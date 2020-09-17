@@ -177,6 +177,7 @@
     <ClCompile Include="Input_Keyboard.cpp" />
     <ClCompile Include="Input_Mouse.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ResourceHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3DPCH.h" />
@@ -189,7 +190,9 @@
     <ClInclude Include="Input.h" />
     <ClInclude Include="Input_Keyboard.h" />
     <ClInclude Include="Input_Mouse.h" />
+    <ClInclude Include="InvalidComponent.h" />
     <ClInclude Include="Layouts.h" />
+    <ClInclude Include="ResourceHandler.h" />
     <ClInclude Include="TestComponent.h" />
     <ClInclude Include="VertexStructs.h" />
   </ItemGroup>

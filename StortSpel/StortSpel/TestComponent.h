@@ -4,20 +4,21 @@
 
 #include "Component.h"
 
-class TestComponents : public Component
+class TestComponent : public Component
 {
 private:
 	std::string m_message;
 
 public:
-	TestComponents()
+	TestComponent()
 	{
 		m_type = ComponentType::TEST;
-		m_message = "Unvalid!";
+		m_message = "Not chosen!";
 	}
-	~TestComponents() {}
+	~TestComponent() {}
 
-	void initialize(std::string newMessage)
+	// Initialization
+	void init(std::string newMessage)
 	{
 		m_message = newMessage;
 	}
@@ -25,6 +26,13 @@ public:
 	void outputMessage() const
 	{
 		OutputDebugStringA(m_message.c_str());
+		OutputDebugStringA("\n");
+	}
+
+	// Update
+	void update(float dt)
+	{
+
 	}
 };
 

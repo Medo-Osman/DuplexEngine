@@ -2,7 +2,7 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 
-enum class ComponentType { MESH, AUDIO, PHYSICS, TEST, UNASIGNED };
+enum class ComponentType { MESH, AUDIO, PHYSICS, TEST, INVALID, UNASIGNED };
 
 class Component
 {
