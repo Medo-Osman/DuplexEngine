@@ -66,6 +66,9 @@
     <ClCompile Include="GraphicEngine.cpp">
       <Filter>Source Files\Graphic</Filter>
     </ClCompile>
+    <ClCompile Include="ResourceHandler.cpp">
+      <Filter>Source Files\Graphic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3DPCH.h">
@@ -103,6 +106,9 @@
     </ClInclude>
     <ClInclude Include="CompileShaderUtility.h">
       <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceHandler.h">
+      <Filter>Header Files\Graphic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
