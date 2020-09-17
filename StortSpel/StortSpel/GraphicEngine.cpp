@@ -268,7 +268,23 @@ void GraphicEngine::handleInput(Mouse* mousePtr, Keyboard* keyboardPtr, const fl
 		}
 	}
 
-	m_camera.controllCameraPosition(keyboardPtr, dt);
+	while (!keyboardPtr->empty())
+	{
+		KeyboardEvent mEvent = keyboardPtr->readKey();
+		if (mEvent.isValid())
+		{
+			//Do on buttondown/button up things here.
+			if (mEvent.getEvent() == Event::Pressed)
+			{
+				if (mEvent.getKey() == 'W')
+				{
+					//Do things
+				}
+			}
+		}
+	}
+
+	m_camera.controllCameraPosition(keyboardPtr, dt); //ControllCameraPosition only uses an array of what keys are pressed.
 }
 
 void GraphicEngine::update(const float& dt)
