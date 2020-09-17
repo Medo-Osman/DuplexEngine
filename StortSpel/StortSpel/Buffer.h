@@ -35,6 +35,8 @@ public:
 		bufferDesc.CPUAccessFlags = dynamic ? D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE : 0;
 
 		bufferDesc.MiscFlags = 0;
+		
+		
 
 		if (data != nullptr)
 		{
