@@ -40,6 +40,9 @@
     <Filter Include="Header Files\Utilities">
       <UniqueIdentifier>{9d8e0bd6-90be-4350-ae84-ac7b2cc4d8d8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Components">
+      <UniqueIdentifier>{58d9a289-4dd7-4e11-9c05-33871704cdde}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -66,8 +69,11 @@
     <ClCompile Include="GraphicEngine.cpp">
       <Filter>Source Files\Graphic</Filter>
     </ClCompile>
-    <ClCompile Include="ResourceHandler.cpp">
-      <Filter>Source Files\Graphic</Filter>
+    <ClCompile Include="Entity.h">
+      <Filter>Header Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.h">
+      <Filter>Header Files\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,17 +113,9 @@
     <ClInclude Include="CompileShaderUtility.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceHandler.h">
-      <Filter>Header Files\Graphic</Filter>
+    <ClInclude Include="TestComponent.h">
+      <Filter>Header Files\Components</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="BasicPixelShader.hlsl">
-      <Filter>Resource Files\Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="VertexShaderBasic.hlsl">
-      <Filter>Resource Files\Shader</Filter>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
