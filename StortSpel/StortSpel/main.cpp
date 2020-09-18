@@ -7,7 +7,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 	bool initOK = false;
 	ApplicationLayer* g_Application = &ApplicationLayer::getInstance();
-	initOK = g_Application->initializeApplication(hInstance, lpCmdLine, g_Application->m_window, nShowCmd);
+	initOK = g_Application->initializeApplication(hInstance, lpCmdLine, g_Application->getWindow(), nShowCmd);
 
 	if (initOK)
 	{
