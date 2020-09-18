@@ -34,6 +34,11 @@
 #include <Effects.h>
 #include <DirectXColors.h>
 
+// Singletons
+#include "ResourceHandler.h"
+
+#include"ErrorLogger.h"
+
 
 // Components
 #include "Component.h"
@@ -73,9 +78,4 @@ enum class Event
 	MouseRAW_MOVE
 };
 
-enum class ParticleType
-{
-	Emitter,
-	Particle
-};
 

@@ -119,6 +119,9 @@
     <ClInclude Include="TestComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="ErrorLogger.h">
+      <Filter>Header Files\Application</Filter>
+	  </ClInclude>
     <ClInclude Include="ResourceHandler.h">
       <Filter>Header Files\Application</Filter>
     </ClInclude>

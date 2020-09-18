@@ -1,12 +1,12 @@
 #pragma once
 #include"VertexStructs.h"
-#include"Model.h"
 #include"ConstantBufferTypes.h"
 #include"Camera.h"
 #include"Layouts.h"
 #include"CompileShaderUtility.h"
 #include"Buffer.h"
 #include "Entity.h"
+
 
 class GraphicEngine
 {
@@ -28,6 +28,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_vertexLayoutPtr;
 	Buffer<ColorVertex> m_vertexBuffer;
 
+	//TEMP:
+	MeshResource* m_TestMesh;
 
 	//Vertex Shader
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShaderPtr;
