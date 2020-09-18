@@ -49,9 +49,10 @@ public:
 	{
 		m_scenePtr->release();
 		m_physicsPtr->release();
-		m_foundationPtr->release();
 		m_PvdPtr->release();
 		delete m_dispatcherPtr;
+		PxCloseExtensions();
+		m_foundationPtr->release();
 	}
 	void init(XMFLOAT3 gravity = {0.0f, -9.81f, 0.0f}, int nrOfThreads = 1)
 	{
