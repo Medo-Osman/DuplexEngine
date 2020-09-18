@@ -31,5 +31,5 @@ public:
 	Input m_input;
 	HWND m_window;
 
-
+	GraphicEngine* getGraphicsEngine() { return m_graphicEnginePtr; }
 };

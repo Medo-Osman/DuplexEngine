@@ -1,5 +1,12 @@
 #pragma once
-#include"3DPCH.h"
+#include <DirectXMath.h>
+using namespace DirectX;
+
+enum class ParticleType
+{
+	Emitter,
+	Particle
+};
 
 struct PositionVertex
 {
@@ -136,4 +143,15 @@ struct ParticleVertex
 		this->time = time;
 		this->type = type;
 	}
+
+	
+};
+
+struct LRM_VERTEX
+{
+	XMFLOAT3 pos;
+	XMFLOAT2 texCoord;
+	XMFLOAT3 normal;
+	XMFLOAT3 tangent;
+	XMFLOAT3 bitangent;
 };

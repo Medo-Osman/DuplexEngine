@@ -98,16 +98,34 @@ HRESULT GraphicEngine::initialize(const HWND& window)
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_psSamplerState);
 	assert(SUCCEEDED(hr) && "Failed to create SampleState");
 
-	ColorVertex triangle[3] =
+	/*ColorVertex triangle[3] =
 	{
 		ColorVertex({-1.f, -1.f, 0.f}, {1.f, 0.f, 0.f}),
 		ColorVertex({-1.f, 1.f, 0.f}, {1.f, 0.f, 0.f}),
 		ColorVertex({1.f, 1.f, 0.f}, {1.f, 0.f, 0.f})
 	};
-	m_vertexBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, triangle, 3);
+	m_vertexBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, triangle, 3);*/
+	
+	m_TestMesh = ResourceHandler::get().loadLRMMesh("../res/models/testCube_pCube1.lrm", m_devicePtr.Get());
+
 	m_vertexShaderConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cbVSWVPMatrix(), 1);
 	m_camera.setProjectionMatrix(80.f, (float)m_height/(float)m_width, 0.01f, 1000.0f);
 	m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
+
+	// Entities
+	m_entities["first"] = new Entity();
+	m_entities["first"]->addComponent("test", new TestComponent());
+	if (m_entities["first"]->getComponent("test")->getType() == ComponentType::TEST)
+	{
+		TestComponent* testComp = dynamic_cast<TestComponent*>(m_entities["first"]->getComponent("test"));
+		testComp->outputMessage();
+		testComp->init("Oh shit, it works!");
+		testComp->outputMessage();
+	}
+	else
+	{
+		OutputDebugStringA("No component of that type exists!\n");
+	}
 
 	return hr;
 }
@@ -193,8 +211,8 @@ HRESULT GraphicEngine::createDepthStencil()
 HRESULT GraphicEngine::setUpInputAssembler()
 {
 
-	HRESULT hr = m_devicePtr->CreateInputLayout(Layouts::colorVertexLayout, //VertexLayout
-		ARRAYSIZE(Layouts::colorVertexLayout), //Nr of elements 
+	HRESULT hr = m_devicePtr->CreateInputLayout(Layouts::LRMVertexLayout, //VertexLayout
+		ARRAYSIZE(Layouts::LRMVertexLayout), //Nr of elements 
 		m_vertexShaderBufferPtr->GetBufferPointer(),
 		m_vertexShaderBufferPtr->GetBufferSize(), //Bytecode length
 		m_vertexLayoutPtr.GetAddressOf()
@@ -289,7 +307,7 @@ void GraphicEngine::handleInput(Mouse* mousePtr, Keyboard* keyboardPtr, const fl
 
 void GraphicEngine::update(const float& dt)
 {
-
+	
 }
 
 void GraphicEngine::render()
@@ -314,7 +332,9 @@ void GraphicEngine::render()
 	//NormalPass
 	m_dContextPtr->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	UINT offset = 0;
-	m_dContextPtr->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.getStridePointer(), &offset);
+	//m_dContextPtr->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.getStridePointer(), &offset);
+	//TEST:
+	m_TestMesh->set(m_dContextPtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set defaul viewport
 	m_rTargetViewsArray[0] = m_rTargetViewPtr.Get();
 	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
@@ -326,7 +346,7 @@ void GraphicEngine::render()
 	m_vertexShaderConstantBuffer.updateBuffer(m_dContextPtr.Get(), &wvp);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_vertexShaderConstantBuffer.GetAddressOf());
 
-	m_dContextPtr->Draw(3, 0);
+	m_dContextPtr->DrawIndexed(m_TestMesh->indexBuffer.getSize(), 0, 0);
 	
 	m_swapChainPtr->Present(0, 0);
 }
