@@ -1,6 +1,7 @@
 #pragma once
 #include"Input.h"
 #include"GraphicEngine.h"
+#include"Physics.h"
 
 class ApplicationLayer
 {
@@ -24,6 +25,8 @@ public:
 	bool initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd);
 	void createWin32Window(const HINSTANCE hInstance, const wchar_t* windowTitle, HWND& _d3d11Window);
 	void applicationLoop();
+
+	Physics m_physics;
 
 	Input m_input;
 	HWND m_window;

@@ -33,6 +33,9 @@
 #include <Effects.h>
 #include <DirectXColors.h>
 
+//PhysX
+#include"PxPhysicsAPI.h"
+
 
 //Texture loading
 #include <WICTextureLoader.h>
