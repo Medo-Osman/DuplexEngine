@@ -18,7 +18,7 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 		{
 			m_Keyboard.onKeyPressed(key);
 		}
-		if (key == 'Q')
+		if (key == VK_ESCAPE)
 			uMsg = WM_DESTROY;
 
 		return 0;

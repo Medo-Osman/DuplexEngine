@@ -34,6 +34,9 @@
 #include <DirectXColors.h>
 
 
+#include"ErrorLogger.h"
+
+
 //Texture loading
 #include <WICTextureLoader.h>
 #include<DDSTextureLoader.h>

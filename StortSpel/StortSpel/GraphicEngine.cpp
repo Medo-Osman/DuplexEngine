@@ -289,7 +289,7 @@ void GraphicEngine::handleInput(Mouse* mousePtr, Keyboard* keyboardPtr, const fl
 
 void GraphicEngine::update(const float& dt)
 {
-
+	
 }
 
 void GraphicEngine::render()

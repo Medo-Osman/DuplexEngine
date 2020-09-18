@@ -1,11 +1,11 @@
 #pragma once
 #include"VertexStructs.h"
-#include"Model.h"
 #include"ConstantBufferTypes.h"
 #include"Camera.h"
 #include"Layouts.h"
 #include"CompileShaderUtility.h"
 #include"Buffer.h"
+
 
 class GraphicEngine
 {
