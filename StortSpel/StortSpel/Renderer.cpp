@@ -353,6 +353,7 @@ void Renderer::render()
 	//m_vertexShaderConstantBuffer.updateBuffer(m_dContextPtr.Get(), &wvp);
 	//m_dContextPtr->VSSetConstantBuffers(0, 1, m_vertexShaderConstantBuffer.GetAddressOf());
 
+	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf()); // ? have this only once somewhere else
 
 	for (auto& component : meshComponentMap)
 	{
@@ -360,14 +361,17 @@ void Renderer::render()
 		constantBufferPerObjectStruct.projection = m_camera.getProjectionMatrix();
 		constantBufferPerObjectStruct.view = m_camera.getViewMatrix();
 		constantBufferPerObjectStruct.world = Engine::get().getEntity(component.second->getParentEntityIdentifier())->calculateWorldMatrix() * component.second->calculateWorldMatrix();
+		constantBufferPerObjectStruct.mvpMatrix = XMMatrixTranspose(constantBufferPerObjectStruct.world * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.projection);
 
 		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 		
 		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+		
+		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
 	
 
-	m_dContextPtr->DrawIndexed(m_TestMesh->getIndexBuffer().getSize(), 0, 0);
+	
 	
 	m_swapChainPtr->Present(0, 0);
 }

@@ -13,6 +13,7 @@ private:
 public:
 	static Engine& get();
 	Entity* getEntity(std::string key);
+	bool addEntity(std::string identifier);
 
 	void Init();
 

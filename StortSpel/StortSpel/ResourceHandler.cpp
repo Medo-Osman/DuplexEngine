@@ -83,6 +83,6 @@ void ResourceHandler::Destroy()
 	}*/
 	for (std::pair<const char*, MeshResource*> element : m_MeshCache)
 	{
-		//delete element.second;
+		delete element.second;
 	}
 }

@@ -8,19 +8,13 @@
 class Entity : public Transform
 {
 private:
-	XMFLOAT3 m_scale;
-	XMFLOAT3 m_rotation;
-	XMFLOAT3 m_position;
+
+	std::string m_identifier;
 
 	std::unordered_map<std::string, Component*> m_components;
 
 public:
-	Entity()
-	{
-		m_scale		= { 1.f, 1.f, 1.f };
-		m_rotation	= { 0.f, 0.f, 0.f };
-		m_position	= { 0.f, 0.f, 0.f };
-	}
+	Entity(std::string identifier) { m_identifier = identifier; }
 	~Entity()
 	{
 		for (auto& component : m_components)
@@ -31,10 +25,10 @@ public:
 	// Component Handling
 	void addComponent(std::string newComponentName, Component* newComponent)
 	{
-		newComponentName += std::to_string(m_components.size());
+		//newComponentName += std::to_string(m_components.size());
 		newComponent->setIdentifier(newComponentName);
+		newComponent->setParentEntityIdentifier(m_identifier);
 		m_components[newComponentName] = newComponent;
-		/*m_components[newComponentName]->setParentEntity(this);*/
 	}
 
 	Component* getComponent(std::string componentName)

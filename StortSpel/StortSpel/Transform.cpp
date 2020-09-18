@@ -90,7 +90,7 @@ void Transform::setScaleLock(bool state)
 DirectX::XMMATRIX Transform::calculateWorldMatrix()
 {
 	DirectX::XMMATRIX worldMtx = scaling * rotation * translation;
-	worldMtx = DirectX::XMMatrixTranspose(worldMtx);
+	//worldMtx = DirectX::XMMatrixTranspose(worldMtx);
 	return worldMtx;
 }
 

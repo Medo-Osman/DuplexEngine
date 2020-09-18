@@ -4,16 +4,18 @@
 class MeshResource
 {
 private:
+	
 	Buffer<LRM_VERTEX> m_vertexBuffer;
 	Buffer<std::uint32_t> m_indexBuffer;
 
+public:
+	
 	~MeshResource()
 	{
 		m_vertexBuffer.release();
 		m_indexBuffer.release();
 	}
-
-public:
+	
 	Buffer<LRM_VERTEX>& getVertexBuffer() { return m_vertexBuffer; }
 	Buffer<std::uint32_t>& getIndexBuffer() { return m_indexBuffer; }
 

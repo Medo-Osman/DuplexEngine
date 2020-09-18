@@ -141,4 +141,12 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="VertexShaderBasic.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="BasicPixelShader.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+  </ItemGroup>
 </Project>

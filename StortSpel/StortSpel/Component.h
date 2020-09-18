@@ -7,7 +7,6 @@ class Component
 {
 protected:
 	ComponentType m_type;
-	//Entity* m_parentEntity;
 	std::string m_parentEntityIdentifier;
 	std::string m_identifier;
 
@@ -15,7 +14,6 @@ public:
 	Component()
 	{
 		m_type = ComponentType::UNASSIGNED;
-		//m_parentEntity = nullptr;
 	}
 	~Component() {}
 
