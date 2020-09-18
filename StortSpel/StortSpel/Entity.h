@@ -1,9 +1,9 @@
 #pragma once
+//#include "3DPCH.h"
 #include "Transform.h"
 #include "Component.h"
 #include "InvalidComponent.h"
 #include <unordered_map>
-using namespace DirectX;
 
 class Entity : public Transform
 {

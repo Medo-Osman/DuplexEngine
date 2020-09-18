@@ -1,14 +1,14 @@
 #pragma once
 #include <DirectXColors.h>
-
+using namespace DirectX;
 
 class Transform
 {
 private:
 
-	DirectX::XMMATRIX translation;
-	DirectX::XMMATRIX rotation;
-	DirectX::XMMATRIX scaling;
+	XMMATRIX translation;
+	XMMATRIX rotation;
+	XMMATRIX scaling;
 
 	bool updated;
 
