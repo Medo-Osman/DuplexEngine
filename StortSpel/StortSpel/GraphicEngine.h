@@ -75,7 +75,7 @@ private:
 	Camera m_camera;
 
 	// Enitities
-	std::map<std::string, Entity*> m_entities;
+	std::unordered_map<std::string, Entity*> m_entities;
 
 	//Functions
 	HRESULT createDeviceAndSwapChain();

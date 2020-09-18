@@ -1,9 +1,5 @@
+#pragma once
 #include "3DPCH.h"
-#ifndef ENTITY_H
-#define ENTITY_H
-
-#include "TestComponent.h"
-#include "InvalidComponent.h"
 
 class Entity
 {
@@ -12,7 +8,7 @@ private:
 	XMFLOAT3 m_rotation;
 	XMFLOAT3 m_position;
 
-	std::map<std::string, Component*> m_components;
+	std::unordered_map<std::string, Component*> m_components;
 
 public:
 	Entity()
@@ -25,12 +21,14 @@ public:
 	{
 		for (auto& component : m_components)
 			delete component.second;
+		m_components.clear();
 	}
 
 	// Component Handeling
 	void addComponent(std::string newComponentName, Component* newComponent)
 	{
 		m_components[newComponentName] = newComponent;
+		m_components[newComponentName]->setParentEntity(this);
 	}
 
 	Component* getComponent(std::string componentName)
@@ -41,5 +39,3 @@ public:
 		return m_components[componentName];
 	}
 };
-
-#endif // !ENTITY_H

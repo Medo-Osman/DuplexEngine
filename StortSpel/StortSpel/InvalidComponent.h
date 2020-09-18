@@ -1,7 +1,5 @@
+#pragma once
 #include "3DPCH.h"
-#ifndef INVALIDCOMPONENT_H
-#define INVALIDCOMPONENT_H
-
 #include "Component.h"
 
 class InvalidComponent : public Component
@@ -14,7 +12,5 @@ public:
 	~InvalidComponent() {}
 	
 	// Update
-	void update(float dt) {}
+	virtual void update(float dt) override {}
 };
-
-#endif // !INVALIDCOMPONENT_H

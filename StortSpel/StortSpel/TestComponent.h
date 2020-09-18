@@ -1,6 +1,5 @@
+#pragma once
 #include "3DPCH.h"
-#ifndef TESTCOMPONENT_H
-#define TESTCOMPONENT_H
 
 #include "Component.h"
 
@@ -30,10 +29,8 @@ public:
 	}
 
 	// Update
-	void update(float dt)
+	virtual void update(float dt) override
 	{
 
 	}
 };
-
-#endif // !TESTCOMPONENT_H
