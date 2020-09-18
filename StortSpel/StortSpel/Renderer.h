@@ -1,14 +1,14 @@
 #pragma once
-#include"VertexStructs.h"
-#include"ConstantBufferTypes.h"
-#include"Camera.h"
-#include"Layouts.h"
-#include"CompileShaderUtility.h"
-#include"Buffer.h"
+#include "VertexStructs.h"
+#include "ConstantBufferTypes.h"
+#include "Camera.h"
+#include "Layouts.h"
+#include "CompileShaderUtility.h"
+#include "Buffer.h"
 #include "Entity.h"
 
 
-class GraphicEngine
+class Renderer
 {
 private:
 	//Pointers
@@ -76,9 +76,6 @@ private:
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 	Camera m_camera;
 
-	// Enitities
-	std::unordered_map<std::string, Entity*> m_entities;
-
 	//Functions
 	HRESULT createDeviceAndSwapChain();
 	HRESULT createDepthStencil();
@@ -90,8 +87,8 @@ private:
 	void setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr);
 
 public:
-	GraphicEngine();
-	~GraphicEngine();
+	Renderer();
+	~Renderer();
 
 	HRESULT initialize(const HWND& window);
 	void release();

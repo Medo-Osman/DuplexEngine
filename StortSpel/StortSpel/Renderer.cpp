@@ -1,7 +1,7 @@
 #include"3DPCH.h"
-#include"GraphicEngine.h"
+#include"Renderer.h"
 
-GraphicEngine::GraphicEngine()
+Renderer::Renderer()
 {
 	m_rTargetViewsArray = new ID3D11RenderTargetView*[8];
 
@@ -11,12 +11,12 @@ GraphicEngine::GraphicEngine()
 }
 
 
-GraphicEngine::~GraphicEngine()
+Renderer::~Renderer()
 {
 
 }
 
-void GraphicEngine::release()
+void Renderer::release()
 {
 	m_devicePtr->Release();
 	m_dContextPtr->Release();
@@ -51,7 +51,7 @@ void GraphicEngine::release()
 }
 
 
-HRESULT GraphicEngine::initialize(const HWND& window)
+HRESULT Renderer::initialize(const HWND& window)
 {
 	HRESULT hr;
 	m_window = window;
@@ -130,7 +130,7 @@ HRESULT GraphicEngine::initialize(const HWND& window)
 	return hr;
 }
 
-HRESULT GraphicEngine::createDeviceAndSwapChain()
+HRESULT Renderer::createDeviceAndSwapChain()
 {
 	HRESULT hr = 0;
 
@@ -168,7 +168,7 @@ HRESULT GraphicEngine::createDeviceAndSwapChain()
 	return hr;
 }
 
-HRESULT GraphicEngine::createDepthStencil()
+HRESULT Renderer::createDepthStencil()
 {
 	HRESULT hr = 0;
 	//Create depthstencil view, page 35
@@ -208,7 +208,7 @@ HRESULT GraphicEngine::createDepthStencil()
 	return hr;
 }
 
-HRESULT GraphicEngine::setUpInputAssembler()
+HRESULT Renderer::setUpInputAssembler()
 {
 
 	HRESULT hr = m_devicePtr->CreateInputLayout(Layouts::LRMVertexLayout, //VertexLayout
@@ -227,7 +227,7 @@ HRESULT GraphicEngine::setUpInputAssembler()
 	return hr;
 }
 
-void GraphicEngine::createViewPort(D3D11_VIEWPORT &viewPort, const int &width, const int &height) const
+void Renderer::createViewPort(D3D11_VIEWPORT &viewPort, const int &width, const int &height) const
 {
 	//Viewport desc
 	ZeroMemory(&viewPort, sizeof(D3D11_VIEWPORT));
@@ -240,7 +240,7 @@ void GraphicEngine::createViewPort(D3D11_VIEWPORT &viewPort, const int &width, c
 	viewPort.MaxDepth = 1.0f;
 }
 
-void GraphicEngine::createAndSetShaders()
+void Renderer::createAndSetShaders()
 {
 	HRESULT hr = 0;
 	//VertexShaderBasic compile and create
@@ -259,7 +259,7 @@ void GraphicEngine::createAndSetShaders()
 	assert(SUCCEEDED(hr) && "Error when creating  PixelShader");
 }
 
-void GraphicEngine::rasterizerSetup()
+void Renderer::rasterizerSetup()
 {
 	HRESULT hr = 0;
 	D3D11_RASTERIZER_DESC rasterizerDesc;
@@ -272,7 +272,7 @@ void GraphicEngine::rasterizerSetup()
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
 }
 
-void GraphicEngine::handleInput(Mouse* mousePtr, Keyboard* keyboardPtr, const float& dt)
+void Renderer::handleInput(Mouse* mousePtr, Keyboard* keyboardPtr, const float& dt)
 {
 	while (!mousePtr->empty())
 	{
@@ -305,12 +305,12 @@ void GraphicEngine::handleInput(Mouse* mousePtr, Keyboard* keyboardPtr, const fl
 	m_camera.controllCameraPosition(keyboardPtr, dt); //ControllCameraPosition only uses an array of what keys are pressed.
 }
 
-void GraphicEngine::update(const float& dt)
+void Renderer::update(const float& dt)
 {
 	
 }
 
-void GraphicEngine::render()
+void Renderer::render()
 {
 
 	//Clear the context of render and depth target
@@ -351,7 +351,7 @@ void GraphicEngine::render()
 	m_swapChainPtr->Present(0, 0);
 }
 
-void GraphicEngine::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
+void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
 {
 	m_dContextPtr->VSSetShader(vsPtr, nullptr, 0);
 	m_dContextPtr->HSSetShader(hsPtr, nullptr, 0);
@@ -360,12 +360,12 @@ void GraphicEngine::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShad
 	m_dContextPtr->PSSetShader(psPtr, nullptr, 0);
 }
 
-ID3D11Device* GraphicEngine::getDevice()
+ID3D11Device* Renderer::getDevice()
 {
 	return m_devicePtr.Get();
 }
 
-ID3D11DeviceContext* GraphicEngine::getDContext()
+ID3D11DeviceContext* Renderer::getDContext()
 {
 	return m_dContextPtr.Get();
 }

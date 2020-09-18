@@ -37,7 +37,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	rawIDevice.hwndTarget = NULL;
 	if (RegisterRawInputDevices(&rawIDevice, 1, sizeof(rawIDevice)) == FALSE)
 		return false;
-	m_graphicEnginePtr = new GraphicEngine();
+	m_graphicEnginePtr = new Renderer();
 	hr = m_graphicEnginePtr->initialize(m_window);
 	if (SUCCEEDED(hr))
 	{

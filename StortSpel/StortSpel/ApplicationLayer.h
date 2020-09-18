@@ -1,12 +1,12 @@
 #pragma once
 #include"Input.h"
-#include"GraphicEngine.h"
+#include"Renderer.h"
 
 class ApplicationLayer
 {
 private:
 	ApplicationLayer();
-	GraphicEngine* m_graphicEnginePtr;
+	Renderer* m_graphicEnginePtr;
 
 	float m_time;
 
@@ -28,5 +28,5 @@ public:
 	Input m_input;
 	HWND m_window;
 
-	GraphicEngine* getGraphicsEngine() { return m_graphicEnginePtr; }
+	Renderer* getGraphicsEngine() { return m_graphicEnginePtr; }
 };
