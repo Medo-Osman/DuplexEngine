@@ -7,6 +7,7 @@
 #include "Buffer.h"
 #include "Entity.h"
 
+class MeshComponent;
 
 class Renderer
 {
@@ -34,7 +35,8 @@ private:
 	//Vertex Shader
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShaderPtr;
 	Microsoft::WRL::ComPtr<ID3DBlob> m_vertexShaderBufferPtr;
-	Buffer<cbVSWVPMatrix> m_vertexShaderConstantBuffer;
+	//Buffer<cbVSWVPMatrix> m_vertexShaderConstantBuffer;
+	Buffer<perObjectMVP> m_perObjectConstantBuffer;
 
 	//HullShader
 	//Microsoft::WRL::ComPtr<ID3D11HullShader> m_hullShaderDMPtr;
@@ -75,6 +77,7 @@ private:
 	int m_height;
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 	Camera m_camera;
+	unsigned int long m_MeshCount = 0;
 
 	//Functions
 	HRESULT createDeviceAndSwapChain();
@@ -85,10 +88,22 @@ private:
 
 	void createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const int& height) const;
 	void setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr);
+	Renderer(); //{};
 
+	std::map<unsigned int long, MeshComponent*> meshComponentMap;
+
+	
 public:
-	Renderer();
-	~Renderer();
+	Renderer(const Renderer&) = delete;
+	void operator=(Renderer const&) = delete;
+
+	static Renderer& get()
+	{
+		static Renderer instance;
+		return instance;
+	}
+	
+	void addMeshComponent(MeshComponent* component);
 
 	HRESULT initialize(const HWND& window);
 	void release();

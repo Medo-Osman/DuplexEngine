@@ -11,10 +11,10 @@ Renderer::Renderer()
 }
 
 
-Renderer::~Renderer()
-{
-
-}
+//Renderer::~Renderer()
+//{
+//
+//}
 
 void Renderer::release()
 {
@@ -31,7 +31,7 @@ void Renderer::release()
 	m_vertexBuffer.release();
 	m_vertexShaderPtr->Release();
 	m_vertexShaderBufferPtr->Release();
-	m_vertexShaderConstantBuffer.release();
+	//m_vertexShaderConstantBuffer.release();
 	m_rasterizerStatePtr->Release();
 	m_pixelShaderPtr->Release();
 	m_pixelBufferPtr->Release();
@@ -50,6 +50,12 @@ void Renderer::release()
 	delete[] m_rTargetViewsArray;
 }
 
+
+void Renderer::addMeshComponent(MeshComponent* component)
+{
+	component->setRenderId(++m_MeshCount);
+	meshComponentMap[m_MeshCount] = component;
+}
 
 HRESULT Renderer::initialize(const HWND& window)
 {
@@ -108,14 +114,15 @@ HRESULT Renderer::initialize(const HWND& window)
 	
 	m_TestMesh = ResourceHandler::get().loadLRMMesh("../res/models/testCube_pCube1.lrm", m_devicePtr.Get());
 
-	m_vertexShaderConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cbVSWVPMatrix(), 1);
+	//m_vertexShaderConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cbVSWVPMatrix(), 1);
+	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
 	m_camera.setProjectionMatrix(80.f, (float)m_height/(float)m_width, 0.01f, 1000.0f);
 	m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
 
 	// Entities
-	m_entities["first"] = new Entity();
-	m_entities["first"]->addComponent("test", new TestComponent());
-	if (m_entities["first"]->getComponent("test")->getType() == ComponentType::TEST)
+	//m_entities["first"] = new Entity();
+	//m_entities["first"]->addComponent("test", new TestComponent());
+	/*if (m_entities["first"]->getComponent("test")->getType() == ComponentType::TEST)
 	{
 		TestComponent* testComp = dynamic_cast<TestComponent*>(m_entities["first"]->getComponent("test"));
 		testComp->outputMessage();
@@ -125,7 +132,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	else
 	{
 		OutputDebugStringA("No component of that type exists!\n");
-	}
+	}*/
 
 	return hr;
 }
@@ -334,7 +341,7 @@ void Renderer::render()
 	UINT offset = 0;
 	//m_dContextPtr->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.getStridePointer(), &offset);
 	//TEST:
-	m_TestMesh->set(m_dContextPtr.Get());
+	m_TestMesh->set(m_dContextPtr.Get()); 
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set defaul viewport
 	m_rTargetViewsArray[0] = m_rTargetViewPtr.Get();
 	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
@@ -343,10 +350,24 @@ void Renderer::render()
 
 	cbVSWVPMatrix wvp;
 	wvp.wvpMatrix = XMMatrixTranspose( m_camera.getViewMatrix()* m_camera.getProjectionMatrix());
-	m_vertexShaderConstantBuffer.updateBuffer(m_dContextPtr.Get(), &wvp);
-	m_dContextPtr->VSSetConstantBuffers(0, 1, m_vertexShaderConstantBuffer.GetAddressOf());
+	//m_vertexShaderConstantBuffer.updateBuffer(m_dContextPtr.Get(), &wvp);
+	//m_dContextPtr->VSSetConstantBuffers(0, 1, m_vertexShaderConstantBuffer.GetAddressOf());
 
-	m_dContextPtr->DrawIndexed(m_TestMesh->indexBuffer.getSize(), 0, 0);
+
+	for (auto& component : meshComponentMap)
+	{
+		perObjectMVP constantBufferPerObjectStruct;
+		constantBufferPerObjectStruct.projection = m_camera.getProjectionMatrix();
+		constantBufferPerObjectStruct.view = m_camera.getViewMatrix();
+		constantBufferPerObjectStruct.world = Engine::get().getEntity(component.second->getParentEntityIdentifier())->calculateWorldMatrix() * component.second->calculateWorldMatrix();
+
+		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
+		
+		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+	}
+	
+
+	m_dContextPtr->DrawIndexed(m_TestMesh->getIndexBuffer().getSize(), 0, 0);
 	
 	m_swapChainPtr->Present(0, 0);
 }

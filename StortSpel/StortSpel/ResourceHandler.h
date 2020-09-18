@@ -1,30 +1,11 @@
 #pragma once
+#include "Buffer.h"
 #include <unordered_map>
 #include <stdio.h>
-#include "Buffer.h"
 #include "Layouts.h"
 #include "VertexStructs.h"
+#include "MeshResource.h"
 //#include "ApplicationLayer.h"
-
-struct MeshResource
-{
-	Buffer<LRM_VERTEX> vertexBuffer;
-	Buffer<std::uint32_t> indexBuffer;
-
-	~MeshResource()
-	{
-		vertexBuffer.release();
-		indexBuffer.release();
-	}
-
-	void set(ID3D11DeviceContext* dContext) // ? Ska denna funktionen finnas här och sedan anropas innan draw eller ska koden ligga i en draw funktion 
-	{
-		UINT offset = 0;
-		
-		dContext->IASetVertexBuffers(0, 1, vertexBuffer.GetAddressOf(), vertexBuffer.getStridePointer(), &offset);
-		dContext->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-	}
-};
 
 class ResourceHandler
 {

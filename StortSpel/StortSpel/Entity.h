@@ -1,7 +1,11 @@
 #pragma once
-#include "3DPCH.h"
+#include "Transform.h"
+#include "Component.h"
+#include "InvalidComponent.h"
+#include <unordered_map>
+using namespace DirectX;
 
-class Entity
+class Entity : public Transform
 {
 private:
 	XMFLOAT3 m_scale;
@@ -24,11 +28,13 @@ public:
 		m_components.clear();
 	}
 
-	// Component Handeling
+	// Component Handling
 	void addComponent(std::string newComponentName, Component* newComponent)
 	{
+		newComponentName += std::to_string(m_components.size());
+		newComponent->setIdentifier(newComponentName);
 		m_components[newComponentName] = newComponent;
-		m_components[newComponentName]->setParentEntity(this);
+		/*m_components[newComponentName]->setParentEntity(this);*/
 	}
 
 	Component* getComponent(std::string componentName)

@@ -72,6 +72,9 @@
     <ClCompile Include="Engine.cpp">
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>Source Files\Graphic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">
@@ -124,6 +127,15 @@
     </ClInclude>
     <ClInclude Include="Engine.h">
       <Filter>Source Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshResource.h">
+      <Filter>Source Files\Application</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
