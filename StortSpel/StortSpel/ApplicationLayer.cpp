@@ -111,6 +111,7 @@ void ApplicationLayer::applicationLoop()
 		}
 	}
 	m_graphicEnginePtr->release();
+	m_physics.release();
 }
 
 

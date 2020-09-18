@@ -43,10 +43,15 @@ public:
 	}
 	~Physics()
 	{
+
+	}
+	void release()
+	{
 		m_scenePtr->release();
 		m_physicsPtr->release();
 		m_foundationPtr->release();
 		m_PvdPtr->release();
+		delete m_dispatcherPtr;
 	}
 	void init(XMFLOAT3 gravity = {0.0f, -9.81f, 0.0f}, int nrOfThreads = 1)
 	{

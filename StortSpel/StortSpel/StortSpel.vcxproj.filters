@@ -42,7 +42,7 @@
     </Filter>
     <Filter Include="Header Files\Game\PhysX">
       <UniqueIdentifier>{130f37fd-d5c7-4704-a59e-ff1ed8ed8983}</UniqueIdentifier>
-	</Filter>
+    </Filter>
     <Filter Include="Header Files\Components">
       <UniqueIdentifier>{58d9a289-4dd7-4e11-9c05-33871704cdde}</UniqueIdentifier>
     </Filter>
@@ -124,18 +124,12 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="BasicPixelShader.hlsl">
-      <Filter>Resource Files\Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="VertexShaderBasic.hlsl">
-      <Filter>Resource Files\Shader</Filter>
-    </FxCompile>
     <ClInclude Include="TestComponent.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="ErrorLogger.h">
       <Filter>Header Files\Application</Filter>
-	  </ClInclude>
+    </ClInclude>
     <ClInclude Include="ResourceHandler.h">
       <Filter>Header Files\Application</Filter>
     </ClInclude>

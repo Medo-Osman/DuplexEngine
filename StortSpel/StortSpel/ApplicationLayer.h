@@ -8,10 +8,15 @@ class ApplicationLayer
 private:
 	ApplicationLayer();
 	GraphicEngine* m_graphicEnginePtr;
+	Physics m_physics;
+	HWND m_window;
+
 
 	float m_time;
 
 	int width, height;
+
+	void createWin32Window(const HINSTANCE hInstance, const wchar_t* windowTitle, HWND& _d3d11Window);
 public:
 	static ApplicationLayer& getInstance()
 	{
@@ -21,15 +26,12 @@ public:
 	ApplicationLayer(ApplicationLayer const&) = delete;
 	void operator=(ApplicationLayer const&) = delete;
 	~ApplicationLayer();
-
 	bool initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd);
-	void createWin32Window(const HINSTANCE hInstance, const wchar_t* windowTitle, HWND& _d3d11Window);
 	void applicationLoop();
 
-	Physics m_physics;
-
-	Input m_input;
-	HWND m_window;
-
 	GraphicEngine* getGraphicsEngine() { return m_graphicEnginePtr; }
+
+	const HWND& getWindow() { return m_window; }
+	Input m_input;
+
 };
