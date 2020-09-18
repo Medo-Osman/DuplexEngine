@@ -27,6 +27,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_vertexLayoutPtr;
 	Buffer<ColorVertex> m_vertexBuffer;
 
+	//TEMP:
+	MeshResource* m_TestMesh;
 
 	//Vertex Shader
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShaderPtr;

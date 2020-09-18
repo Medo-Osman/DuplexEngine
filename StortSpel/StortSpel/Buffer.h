@@ -20,6 +20,8 @@ public:
 	{
 		HRESULT hr = 0;
 		m_stride = UINT(sizeof(T));
+		// TODO: FIX: TEMP: HARDCODE HERE:
+		//m_stride = 12;
 		m_numberOfDataElements = nrOf;
 		m_dynamic = dynamic;
 
