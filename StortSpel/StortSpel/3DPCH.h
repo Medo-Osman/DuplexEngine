@@ -33,6 +33,8 @@
 #include <Effects.h>
 #include <DirectXColors.h>
 
+// Singletons
+#include "ResourceHandler.h"
 
 //Texture loading
 #include <WICTextureLoader.h>
@@ -67,9 +69,4 @@ enum class Event
 	MouseRAW_MOVE
 };
 
-enum class ParticleType
-{
-	Emitter,
-	Particle
-};
 

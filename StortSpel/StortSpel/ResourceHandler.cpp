@@ -1,6 +1,6 @@
 #include "ResourceHandler.h"
 
-MeshBuffers* ResourceHandler::loadLRMMesh(const char* path)
+MeshResource* ResourceHandler::loadLRMMesh(const char* path, ID3D11Device* device)
 {
 	// checks if the mesh is in the cache 
 	if (m_MeshCache.find(path) != m_MeshCache.end())
@@ -17,8 +17,10 @@ MeshBuffers* ResourceHandler::loadLRMMesh(const char* path)
 	if (!fileStream)
 	{
 		// Error message
-		fprintf(stderr, "loadLRMMesh failed to open filestream: %s\n", path);
-
+		//fprintf(stderr, "loadLRMMesh failed to open filestream: %s\n", path);
+		OutputDebugString(L"loadLRMMesh failed to open filestream: " );
+		OutputDebugStringA(path);
+		OutputDebugString(L"\n");
 		// Properly clear and close file buffer
 		fileStream.clear();
 		fileStream.close();
@@ -26,17 +28,13 @@ MeshBuffers* ResourceHandler::loadLRMMesh(const char* path)
 		return nullptr;
 	}
 
-	// Vertex format description
-	// .abm has 12 floats per vertex
-	const int vertexSize = 12;
-
 	// Read file vertex count
 	std::uint32_t vertexCount;
 	fileStream.read((char*)&vertexCount, sizeof(std::uint32_t));
 
 	// Read vertices to array
-	float* vertexArray = new float[vertexCount * vertexSize];
-	fileStream.read((char*)&vertexArray[0], sizeof(float) * vertexCount * vertexSize);
+	LRM_VERTEX* vertexArray = new LRM_VERTEX[vertexCount];
+	fileStream.read((char*)&vertexArray[0], sizeof(LRM_VERTEX) * vertexCount);
 
 	// Read file index count
 	std::uint32_t indexCount;
@@ -51,29 +49,23 @@ MeshBuffers* ResourceHandler::loadLRMMesh(const char* path)
 	fileStream.read(&overByte, 1);
 	if (!fileStream.eof())
 	{
-		fprintf(stderr, "loadLRMMesh : Filestream did not reach eof: %s\n", path);
+		OutputDebugString(L"loadLRMMesh : Filestream did not reach end of: ");
+		OutputDebugStringA(path);
+		OutputDebugString(L"\n");
 		return nullptr;
 	}
 
 	// Close filestream
 	fileStream.close();
 
-	//Depending on how we do vertex data layout, we might want to init that here (OR we can do it in a shader class cause it's gonna be per shader, kinda)
-
-	//HRESULT hr = m_devicePtr->CreateInputLayout(Layouts::LRMVertexLayout, //VertexLayout
-	//	ARRAYSIZE(Layouts::LRMVertexLayout), //Nr of elements 
-	//	m_vertexShaderBufferPtr->GetBufferPointer(),
-	//	m_vertexShaderBufferPtr->GetBufferSize(), //Bytecode length
-	//	m_vertexLayoutPtr.GetAddressOf()
-	//);
+	//Depending on how we do vertex data layout, we might want to init that here (OR we can do it in a shader class because it's gonna be per shader, kinda)
 
 	//Create a new entry in the meshcache
-	m_MeshCache[path] = new MeshBuffers;
+	m_MeshCache[path] = new MeshResource;
 
 	//Init it with the data
-	GraphicEngine* GE = ApplicationLayer::getInstance().getGraphicsEngine();
-	m_MeshCache[path]->vertexBuffer.initializeBuffer(GE->getDevice(), false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount);
-	m_MeshCache[path]->indexBuffer.initializeBuffer(GE->getDevice(), false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
+	m_MeshCache[path]->vertexBuffer.initializeBuffer(device, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount);
+	m_MeshCache[path]->indexBuffer.initializeBuffer(device, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
 
 	delete[] vertexArray;
 	delete[] indexArray;
@@ -88,7 +80,7 @@ void ResourceHandler::Destroy()
 	{
 		delete element.second;
 	}*/
-	for (std::pair<const char*, MeshBuffers*> element : m_MeshCache)
+	for (std::pair<const char*, MeshResource*> element : m_MeshCache)
 	{
 		delete element.second;
 	}

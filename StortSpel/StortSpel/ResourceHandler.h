@@ -3,26 +3,26 @@
 #include <stdio.h>
 #include "Buffer.h"
 #include "Layouts.h"
-#include "ApplicationLayer.h"
+#include "VertexStructs.h"
+//#include "ApplicationLayer.h"
 
-struct MeshBuffers
+struct MeshResource
 {
-	Buffer<float> vertexBuffer;
+	Buffer<LRM_VERTEX> vertexBuffer;
 	Buffer<std::uint32_t> indexBuffer;
 
-	~MeshBuffers()
+	~MeshResource()
 	{
 		vertexBuffer.release();
 		indexBuffer.release();
 	}
 
-	void set() // ? Ska denna funktionen finnas här och anropas innan draw eller ska koden ligga i en draw funktion 
+	void set(ID3D11DeviceContext* dContext) // ? Ska denna funktionen finnas här och sedan anropas innan draw eller ska koden ligga i en draw funktion 
 	{
 		UINT offset = 0;
-		GraphicEngine* GE = ApplicationLayer::getInstance().getGraphicsEngine();
 		
-		GE->getDContext()->IASetVertexBuffers(0, 1, vertexBuffer.GetAddressOf(), vertexBuffer.getStridePointer(), &offset);
-		GE->getDContext()->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+		dContext->IASetVertexBuffers(0, 1, vertexBuffer.GetAddressOf(), vertexBuffer.getStridePointer(), &offset);
+		dContext->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	}
 };
 
@@ -43,7 +43,7 @@ private:
 
 	//std::unordered_map<const char*, -Texture pekare här-*> m_TextureCache;
 	
-	std::unordered_map<const char*, MeshBuffers*> m_MeshCache;
+	std::unordered_map<const char*, MeshResource*> m_MeshCache;
 
 public:
 	
@@ -51,7 +51,7 @@ public:
 
 	//bool getTextureByKey(std::wstring key, Texture** texturePtr);
 
-	MeshBuffers* loadLRMMesh(const char* path);
+	MeshResource* loadLRMMesh(const char* path, ID3D11Device* device);
 
 	void Destroy();
 };
