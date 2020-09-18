@@ -11,6 +11,7 @@
 #include <wrl/client.h>
 #define NOMINMAX
 #include <map>
+#include <unordered_map>
 #include <vector>
 #include <queue>
 #include <string>
@@ -38,6 +39,11 @@
 
 #include"ErrorLogger.h"
 
+
+// Components
+#include "Component.h"
+#include "TestComponent.h"
+#include "InvalidComponent.h"
 
 //Texture loading
 #include <WICTextureLoader.h>

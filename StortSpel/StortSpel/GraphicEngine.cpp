@@ -112,6 +112,21 @@ HRESULT GraphicEngine::initialize(const HWND& window)
 	m_camera.setProjectionMatrix(80.f, (float)m_height/(float)m_width, 0.01f, 1000.0f);
 	m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
 
+	// Entities
+	m_entities["first"] = new Entity();
+	m_entities["first"]->addComponent("test", new TestComponent());
+	if (m_entities["first"]->getComponent("test")->getType() == ComponentType::TEST)
+	{
+		TestComponent* testComp = dynamic_cast<TestComponent*>(m_entities["first"]->getComponent("test"));
+		testComp->outputMessage();
+		testComp->init("Oh shit, it works!");
+		testComp->outputMessage();
+	}
+	else
+	{
+		OutputDebugStringA("No component of that type exists!\n");
+	}
+
 	return hr;
 }
 

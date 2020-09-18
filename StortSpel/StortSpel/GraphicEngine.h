@@ -5,6 +5,7 @@
 #include"Layouts.h"
 #include"CompileShaderUtility.h"
 #include"Buffer.h"
+#include "Entity.h"
 
 
 class GraphicEngine
@@ -74,6 +75,9 @@ private:
 	int m_height;
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 	Camera m_camera;
+
+	// Enitities
+	std::unordered_map<std::string, Entity*> m_entities;
 
 	//Functions
 	HRESULT createDeviceAndSwapChain();
