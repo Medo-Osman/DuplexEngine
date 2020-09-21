@@ -34,6 +34,9 @@
 #include <Effects.h>
 #include <DirectXColors.h>
 
+//PhysX
+#include"PxPhysicsAPI.h"
+
 // Singletons
 #include "ResourceHandler.h"
 #include "ErrorLogger.h"

@@ -16,7 +16,7 @@ ApplicationLayer::ApplicationLayer()
 
 ApplicationLayer::~ApplicationLayer()
 {
-
+	
 }
 
 bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd)
@@ -47,6 +47,9 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	Engine::get().Init();
 
 	srand(static_cast <unsigned> (time(0)));
+
+	//PhysX
+	m_physics.init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
 
 	return initOK;
 }
@@ -102,12 +105,14 @@ void ApplicationLayer::applicationLoop()
 		else // Render/Logic Loop
 		{
 			m_graphicEnginePtr->handleInput(m_input.getMouse(), m_input.getKeyboard(), dt);
+			m_physics.update(dt);
 			m_graphicEnginePtr->update(dt);
 			m_graphicEnginePtr->render();
 		}
 	}
-	
+
 	//m_graphicEnginePtr->release();
+	m_physics.release();
 }
 
 

@@ -31,6 +31,12 @@
     <Filter Include="Source Files\Components">
       <UniqueIdentifier>{58d9a289-4dd7-4e11-9c05-33871704cdde}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Utilities">
+      <UniqueIdentifier>{9d8e0bd6-90be-4350-ae84-ac7b2cc4d8d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Game\PhysX">
+      <UniqueIdentifier>{130f37fd-d5c7-4704-a59e-ff1ed8ed8983}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\Engine">
       <UniqueIdentifier>{a2e571ce-1f95-43d3-8aab-b42df956998e}</UniqueIdentifier>
     </Filter>
@@ -133,6 +139,20 @@
     </ClInclude>
     <ClInclude Include="MeshComponent.h">
       <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics.h">
+      <Filter>Source Files\Game\PhysX</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TestComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrorLogger.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceHandler.h">
+      <Filter>Source Files\Application</Filter>
     </ClInclude>
     <ClInclude Include="MeshResource.h">
       <Filter>Source Files\Application</Filter>
