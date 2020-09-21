@@ -17,3 +17,11 @@ __declspec(align(16)) struct cbVSWVPMatrix
         _mm_free(p);
     }
 };
+
+struct perObjectMVP
+{
+    DirectX::XMMATRIX world; //model
+    DirectX::XMMATRIX view;
+    DirectX::XMMATRIX projection;
+    DirectX::XMMATRIX mvpMatrix; //Model/view/projection
+};

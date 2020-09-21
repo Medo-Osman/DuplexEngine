@@ -39,14 +39,18 @@
 
 // Singletons
 #include "ResourceHandler.h"
+#include "ErrorLogger.h"
+#include "Engine.h"
+//#include "Renderer.h"
 
-#include"ErrorLogger.h"
-
+// Misc
+//#include "Transform.h"
 
 // Components
 #include "Component.h"
 #include "TestComponent.h"
 #include "InvalidComponent.h"
+#include "MeshComponent.h"
 
 //Texture loading
 #include <WICTextureLoader.h>
@@ -61,24 +65,7 @@ using namespace DirectX;
 #pragma comment (lib, "d3dcompiler.lib")
 
 //Defines
-#define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = 0; } }
+#define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = nullptr; } }
 #define SAFE_DELETE(a) if( (a) != NULL ) delete (a); (a) = NULL;
-
-enum class Event
-{
-	Invalid,
-	Pressed,
-	Released,
-	MouseLPressed,
-	MouseLReleased,
-	MouseRPressed,
-	MouseRReleased,
-	MouseMPressed,
-	MouseMReleased,
-	MouseWheelUp,
-	MouseWheelDown,
-	MouseMove,
-	MouseRAW_MOVE
-};
 
 

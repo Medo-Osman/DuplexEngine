@@ -13,14 +13,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\Application">
-      <UniqueIdentifier>{0c7f6dc8-403f-48b5-a5af-48796a10694d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Application">
       <UniqueIdentifier>{9aef1ca1-4d0f-4ca7-b7c3-540f3ac5c558}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Graphic">
-      <UniqueIdentifier>{a1ec2d9d-5feb-4f2b-8278-220d3aaed0a4}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Graphic">
       <UniqueIdentifier>{d4ecf160-93e1-4a8a-ab7e-35b121e613df}</UniqueIdentifier>
@@ -28,30 +22,27 @@
     <Filter Include="Resource Files\Shader">
       <UniqueIdentifier>{ec250e96-ded3-45ad-a1d6-c12c52c90417}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Game">
-      <UniqueIdentifier>{686c071e-d900-4fcb-9485-afe2cae405ab}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Game">
       <UniqueIdentifier>{362475b6-4a68-4a38-a941-cbe00189ad4c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Utilities">
       <UniqueIdentifier>{c7e5b2e7-03dd-4d2a-8b83-be1f607f15e4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Utilities">
+    <Filter Include="Source Files\Components">
+      <UniqueIdentifier>{58d9a289-4dd7-4e11-9c05-33871704cdde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utilities">
       <UniqueIdentifier>{9d8e0bd6-90be-4350-ae84-ac7b2cc4d8d8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Game\PhysX">
+    <Filter Include="Source Files\Game\PhysX">
       <UniqueIdentifier>{130f37fd-d5c7-4704-a59e-ff1ed8ed8983}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Components">
-      <UniqueIdentifier>{58d9a289-4dd7-4e11-9c05-33871704cdde}</UniqueIdentifier>
+    <Filter Include="Source Files\Engine">
+      <UniqueIdentifier>{a2e571ce-1f95-43d3-8aab-b42df956998e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="3DPCH.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ApplicationLayer.cpp">
@@ -69,75 +60,113 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="GraphicEngine.cpp">
-      <Filter>Source Files\Graphic</Filter>
-    </ClCompile>
-    <ClCompile Include="Entity.h">
-      <Filter>Header Files\Game</Filter>
-    </ClCompile>
     <ClCompile Include="Component.h">
-      <Filter>Header Files\Components</Filter>
+      <Filter>Source Files\Components</Filter>
     </ClCompile>
     <ClCompile Include="ResourceHandler.cpp">
       <Filter>Source Files\Application</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Source Files\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.h">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="3DPCH.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine.cpp">
+      <Filter>Source Files\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>Source Files\Graphic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="TestComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="InvalidComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexStructs.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstantBufferTypes.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="Layouts.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="ApplicationLayer.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrorLogger.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Input_Keyboard.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Input_Mouse.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceHandler.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Source Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="CompileShaderUtility.h">
+      <Filter>Source Files\Utilities</Filter>
+    </ClInclude>
     <ClInclude Include="3DPCH.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ApplicationLayer.h">
-      <Filter>Header Files\Application</Filter>
+    <ClInclude Include="Engine.h">
+      <Filter>Source Files\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Input.h">
-      <Filter>Header Files\Application</Filter>
+    <ClInclude Include="Transform.h">
+      <Filter>Source Files\Graphic</Filter>
     </ClInclude>
-    <ClInclude Include="Input_Keyboard.h">
-      <Filter>Header Files\Application</Filter>
-    </ClInclude>
-    <ClInclude Include="Input_Mouse.h">
-      <Filter>Header Files\Application</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files\Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Buffer.h">
-      <Filter>Header Files\Graphic</Filter>
-    </ClInclude>
-    <ClInclude Include="ConstantBufferTypes.h">
-      <Filter>Header Files\Graphic</Filter>
-    </ClInclude>
-    <ClInclude Include="GraphicEngine.h">
-      <Filter>Header Files\Graphic</Filter>
-    </ClInclude>
-    <ClInclude Include="Layouts.h">
-      <Filter>Header Files\Graphic</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexStructs.h">
-      <Filter>Header Files\Graphic</Filter>
-    </ClInclude>
-    <ClInclude Include="CompileShaderUtility.h">
-      <Filter>Header Files\Utilities</Filter>
+    <ClInclude Include="MeshComponent.h">
+      <Filter>Source Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="Physics.h">
-      <Filter>Header Files\Game\PhysX</Filter>
+      <Filter>Source Files\Game\PhysX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">
-      <Filter>Header Files\Components</Filter>
+      <Filter>Source Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="ErrorLogger.h">
-      <Filter>Header Files\Application</Filter>
+      <Filter>Source Files\Application</Filter>
     </ClInclude>
     <ClInclude Include="ResourceHandler.h">
-      <Filter>Header Files\Application</Filter>
+      <Filter>Source Files\Application</Filter>
     </ClInclude>
-    <ClInclude Include="InvalidComponent.h">
-      <Filter>Header Files\Components</Filter>
+    <ClInclude Include="MeshResource.h">
+      <Filter>Source Files\Application</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="VertexShaderBasic.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="BasicPixelShader.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

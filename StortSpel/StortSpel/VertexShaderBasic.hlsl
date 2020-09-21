@@ -25,6 +25,9 @@ struct vs_out
 
 cbuffer perModel : register(b0)
 {
+	float4x4 worldMatrix;
+	float4x4 viewMatrix;
+	float4x4 projectionMatrix;
     float4x4 wvpMatrix;
 };
 

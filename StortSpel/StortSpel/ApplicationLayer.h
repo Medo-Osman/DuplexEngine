@@ -1,16 +1,15 @@
 #pragma once
 #include"Input.h"
-#include"GraphicEngine.h"
+#include"Renderer.h"
 #include"Physics.h"
 
 class ApplicationLayer
 {
 private:
 	ApplicationLayer();
-	GraphicEngine* m_graphicEnginePtr;
+	Renderer* m_graphicEnginePtr;
 	Physics m_physics;
 	HWND m_window;
-
 
 	float m_time;
 
@@ -29,9 +28,6 @@ public:
 	bool initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd);
 	void applicationLoop();
 
-	GraphicEngine* getGraphicsEngine() { return m_graphicEnginePtr; }
-
 	const HWND& getWindow() { return m_window; }
 	Input m_input;
-
 };

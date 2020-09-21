@@ -1,3 +1,4 @@
+#include "3DPCH.h"
 #include "ResourceHandler.h"
 
 MeshResource* ResourceHandler::loadLRMMesh(const char* path, ID3D11Device* device)
@@ -64,8 +65,8 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path, ID3D11Device* devic
 	m_MeshCache[path] = new MeshResource;
 
 	//Init it with the data
-	m_MeshCache[path]->vertexBuffer.initializeBuffer(device, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount);
-	m_MeshCache[path]->indexBuffer.initializeBuffer(device, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
+	m_MeshCache[path]->getVertexBuffer().initializeBuffer(device, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount);
+	m_MeshCache[path]->getIndexBuffer().initializeBuffer(device, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
 
 	delete[] vertexArray;
 	delete[] indexArray;

@@ -37,14 +37,14 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	rawIDevice.hwndTarget = NULL;
 	if (RegisterRawInputDevices(&rawIDevice, 1, sizeof(rawIDevice)) == FALSE)
 		return false;
-	m_graphicEnginePtr = new GraphicEngine();
+	m_graphicEnginePtr = &Renderer::get();//new Renderer();
 	hr = m_graphicEnginePtr->initialize(m_window);
 	if (SUCCEEDED(hr))
 	{
 		initOK = true;
 		ShowWindow(m_window, showCmd);
-
 	}
+	Engine::get().Init();
 
 	srand(static_cast <unsigned> (time(0)));
 
@@ -110,7 +110,8 @@ void ApplicationLayer::applicationLoop()
 			m_graphicEnginePtr->render();
 		}
 	}
-	m_graphicEnginePtr->release();
+
+	//m_graphicEnginePtr->release();
 	m_physics.release();
 }
 

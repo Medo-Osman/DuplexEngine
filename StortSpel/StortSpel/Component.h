@@ -1,6 +1,5 @@
 #pragma once
-
-class Entity;
+#include <string>
 
 enum class ComponentType { MESH, AUDIO, PHYSICS, TEST, INVALID, UNASSIGNED };
 
@@ -8,20 +7,23 @@ class Component
 {
 protected:
 	ComponentType m_type;
-	Entity* m_parentEntity;
+	std::string m_parentEntityIdentifier;
+	std::string m_identifier;
 
 public:
 	Component()
 	{
 		m_type = ComponentType::UNASSIGNED;
-		m_parentEntity = nullptr;
 	}
 	~Component() {}
+
+	
+
 	
 	// Operators
 	bool operator==(const Component& otherComponent)
 	{
-		return this->m_type == otherComponent.m_type;
+		return m_type == otherComponent.m_type;
 	}
 
 	// Getters
@@ -29,15 +31,22 @@ public:
 	{
 		return m_type;
 	}
-	Entity* getParentEntity() const
+	std::string getParentEntityIdentifier() const
 	{
-		return m_parentEntity;
+		return m_parentEntityIdentifier;
+	}
+	std::string getIdentifier()
+	{
+		return m_identifier;
 	}
 
-	// Setters
-	void setParentEntity(Entity* newParentEntity)
+	void setParentEntityIdentifier(std::string newParentEntity)
 	{
-		m_parentEntity = newParentEntity;
+		m_parentEntityIdentifier = newParentEntity;
+	}
+	void setIdentifier(std::string identifier)
+	{
+		m_identifier = identifier;
 	}
 
 	// Update
