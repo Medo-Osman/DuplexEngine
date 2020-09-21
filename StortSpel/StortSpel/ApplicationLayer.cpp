@@ -106,7 +106,8 @@ void ApplicationLayer::applicationLoop()
 			m_graphicEnginePtr->render();
 		}
 	}
-	m_graphicEnginePtr->release();
+	
+	//m_graphicEnginePtr->release();
 }
 
 

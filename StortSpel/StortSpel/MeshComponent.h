@@ -8,6 +8,7 @@ class Renderer;
 class MeshComponent : public Component, public Transform
 {
 private:
+
 	unsigned long int m_renderId;
 	MeshResource* m_resourcePointer = nullptr;
 
