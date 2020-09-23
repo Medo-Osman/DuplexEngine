@@ -1,5 +1,6 @@
 #pragma once
-#include"3DPCH.h"
+//#include"3DPCH.h"
+#include <d3d11.h>
 
 namespace Layouts
 {

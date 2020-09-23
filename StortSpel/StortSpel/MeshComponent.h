@@ -1,9 +1,10 @@
 #pragma once
+//#include "Renderer.h"
 #include "Component.h"
 #include "Transform.h"
-#include "Renderer.h"
+#include "ResourceHandler.h"
 
-class Renderer;
+//class Renderer;
 
 class MeshComponent : public Component, public Transform
 {
@@ -14,12 +15,8 @@ private:
 
 public:
 
-	MeshComponent(const char* filepath)
-	{
-		m_type = ComponentType::MESH;
-		m_resourcePointer = ResourceHandler::get().loadLRMMesh(filepath, Renderer::get().getDevice());
-		Renderer::get().addMeshComponent(this);
-	}
+	MeshComponent(const char* filepath);
+
 	
 	~MeshComponent() {}
 

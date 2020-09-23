@@ -20,8 +20,8 @@
 #include <memory>
 #include <math.h>
 #include <fstream>
-#include<stack>
-#include<iostream>
+#include <stack>
+#include <iostream>
 #include <chrono>
 
 // DirectX 11
@@ -38,19 +38,20 @@
 #include"PxPhysicsAPI.h"
 
 // Singletons
-#include "ResourceHandler.h"
+//#include "ResourceHandler.h"
 #include "ErrorLogger.h"
-#include "Engine.h"
+#include "Buffer.h"
+//#include "Engine.h"
 //#include "Renderer.h"
 
 // Misc
 //#include "Transform.h"
 
 // Components
-#include "Component.h"
-#include "TestComponent.h"
-#include "InvalidComponent.h"
-#include "MeshComponent.h"
+//#include "Component.h"
+//#include "TestComponent.h"
+//#include "InvalidComponent.h"
+//#include "MeshComponent.h"
 
 //Texture loading
 #include <WICTextureLoader.h>

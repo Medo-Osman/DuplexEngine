@@ -1,4 +1,5 @@
 #include"3DPCH.h"
+//#include "MeshComponent.h"
 #include"Renderer.h"
 
 Renderer::Renderer()
@@ -8,6 +9,50 @@ Renderer::Renderer()
 	//Variables
 	m_width = m_startWidth;
 	m_height = m_startHeight;
+}
+
+HRESULT Renderer::compileShader(LPCWSTR fileName, LPCSTR entryPoint, LPCSTR shaderVer, ID3DBlob** blob)
+{
+	if (!fileName || !entryPoint || !shaderVer || !blob)
+		return E_INVALIDARG;
+
+	*blob = nullptr;
+
+	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined( DEBUG ) || defined( _DEBUG )
+	flags |= D3DCOMPILE_DEBUG;
+#endif
+
+
+	ID3DBlob* shaderBlob = nullptr;
+	ID3DBlob* errorBlob = nullptr;
+	HRESULT hr = D3DCompileFromFile(fileName, //Name of file
+		0, //Pointer to array of macros
+		0, //Includes
+		entryPoint, //Function name/Entry point
+		shaderVer, //Shader version
+		0, //CompileFlag 1
+		0, //CompileFlag 2);
+		&shaderBlob, //blob
+		&errorBlob //Error message
+	);
+	if (FAILED(hr))
+	{
+		if (errorBlob)
+		{
+			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+			errorBlob->Release();
+		}
+
+		if (shaderBlob)
+			shaderBlob->Release();
+
+		return hr;
+	}
+
+	*blob = shaderBlob;
+
+	return hr;
 }
 
 
@@ -47,13 +92,6 @@ void Renderer::release()
 
 
 	delete[] m_rTargetViewsArray;
-}
-
-
-void Renderer::addMeshComponent(MeshComponent* component)
-{
-	component->setRenderId(++m_MeshCount);
-	meshComponentMap[m_MeshCount] = component;
 }
 
 HRESULT Renderer::initialize(const HWND& window)
@@ -139,6 +177,9 @@ HRESULT Renderer::initialize(const HWND& window)
 	{
 		OutputDebugStringA("No component of that type exists!\n");
 	}*/
+
+	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
+	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 
 	return hr;
 }
@@ -361,7 +402,7 @@ void Renderer::render()
 
 
 
-	for (auto& component : meshComponentMap)
+	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
 		perObjectMVP constantBufferPerObjectStruct;
 		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
@@ -402,4 +443,21 @@ ID3D11Device* Renderer::getDevice()
 ID3D11DeviceContext* Renderer::getDContext()
 {
 	return m_dContextPtr.Get();
+}
+
+ID3D11DepthStencilView* Renderer::getDepthStencilView()
+{
+	return m_depthStencilViewPtr.Get();
+}
+
+bool Renderer::checkSetShaderFile(ShaderType s, LPCWSTR file)
+{
+	bool isSet = false;
+
+	if (this->setShaderFiles[s] == file)
+		isSet = true;
+	else
+		this->setShaderFiles[s] = file;
+
+	return isSet;
 }

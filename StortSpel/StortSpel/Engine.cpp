@@ -38,10 +38,42 @@ Engine::~Engine()
 void Engine::update(Mouse* mousePtr, Keyboard* keyboardPtr, const float& dt)
 {
 	m_player->updatePlayer(keyboardPtr, dt);
+}
+bool Engine::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
+{
+	if (component->getType() == ComponentType::MESH)
+	{
+		MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
 
+		addMeshComponent(meshComponent);
+	}
+
+
+	entity->addComponent(componentIdentifier, component);
+
+	return true;
 }
 
-void Engine::Init()
+void Engine::addMeshComponent(MeshComponent* component)
+{
+	component->setRenderId(++m_MeshCount);
+	m_meshComponentMap[m_MeshCount] = component;
+}
+
+std::map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
+{
+	return &m_meshComponentMap;
+}
+
+void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
+{
+	m_devicePtr = devicePtr;
+	m_dContextPtr = dContextPtr;
+
+	DeviceAndContextPtrsAreSet = true;
+}
+
+void Engine::initialize()
 {
 	m_player = new Player();
 	if (addEntity("meshPlayer"))
@@ -57,17 +89,27 @@ void Engine::Init()
 	}
 
 
+	if (!DeviceAndContextPtrsAreSet)
+	{
+		// Renderer::initialize needs to be called and it needs to call setDeviceAndContextPtrs()
+		// before this function call be called.
+		assert(false);
+	}
+
 	// Temp entity init
 	addEntity("first");
-	m_entities["first"]->addComponent("test", new TestComponent());
-
+	//m_entities["first"]->addComponent("test", new TestComponent());
+	addComponent(m_entities["first"], "test", new TestComponent());
 
 	if(addEntity("meshTest"))
-		m_entities["meshTest"]->addComponent("mesh", new MeshComponent("../res/models/testCube_pCube1.lrm"));
+		addComponent(m_entities["meshTest"], "mesh", new MeshComponent("../res/models/testCube_pCube1.lrm"));
+		//m_entities["meshTest"]->addComponent("mesh", new MeshComponent("../res/models/testCube_pCube1.lrm"));
 
-	if (addEntity("meshTest1"))
+
+	/*if (addEntity("meshTest1"))
 	{
 		m_entities["meshTest1"]->addComponent("mesh", new MeshComponent("../res/models/testCube_pCube1.lrm"));
+
 		m_entities["meshTest1"]->move({ 2, 1, 1});
 
 		MeshComponent* meshPtr = dynamic_cast<MeshComponent*>(m_entities["meshTest1"]->getComponent("mesh"));
@@ -84,5 +126,7 @@ void Engine::Init()
 		m_entities["meshTest2"]->scaleUniform(0.02f);
 
 	}
+
+	}*/
 
 }
