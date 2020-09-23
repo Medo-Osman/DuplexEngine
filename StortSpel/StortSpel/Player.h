@@ -1,11 +1,8 @@
 #pragma once
-#include <DirectXMath.h>
-#include"Input_Mouse.h"
-#include"Input_Keyboard.h"
+#include "Input.h"
 #include "ResourceHandler.h"
 #include "Entity.h"
-#include "Renderer.h"
-#include "Camera.h"
+
 using namespace DirectX;
 
 class Player

@@ -5,7 +5,7 @@
 Renderer::Renderer()
 {
 	m_rTargetViewsArray = new ID3D11RenderTargetView * [8];
-
+	
 	//Variables
 	m_width = m_startWidth;
 	m_height = m_startHeight;

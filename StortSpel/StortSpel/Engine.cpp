@@ -1,6 +1,10 @@
 #include "3DPCH.h"
 #include "Engine.h"
 
+Engine::Engine()
+{
+}
+
 Engine& Engine::get()
 {
 	static Engine instance;
@@ -75,10 +79,18 @@ void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContex
 
 void Engine::initialize()
 {
+	if (!DeviceAndContextPtrsAreSet)
+	{
+		// Renderer::initialize needs to be called and it needs to call setDeviceAndContextPtrs()
+		// before this function call be called.
+		assert(false);
+	}
+
 	m_player = new Player();
 	if (addEntity("meshPlayer"))
 	{
-		m_entities["meshPlayer"]->addComponent("mesh", new MeshComponent("../res/models/testTania_tania_geo.lrm"));
+		
+		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("../res/models/testTania_tania_geo.lrm"));
 		m_entities["meshPlayer"]->move({ 1, -1, 0 });
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
@@ -89,12 +101,7 @@ void Engine::initialize()
 	}
 
 
-	if (!DeviceAndContextPtrsAreSet)
-	{
-		// Renderer::initialize needs to be called and it needs to call setDeviceAndContextPtrs()
-		// before this function call be called.
-		assert(false);
-	}
+	
 
 	// Temp entity init
 	addEntity("first");

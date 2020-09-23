@@ -1,8 +1,5 @@
 #pragma once
-#include"Input_Mouse.h"
-#include"Input_Keyboard.h"
-#include "Engine.h"
-
+#include "Input.h"
 
 class Camera
 {

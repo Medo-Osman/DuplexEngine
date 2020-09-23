@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ConstantBufferTypes.h"
-#include "Input.h"
+
 #include "Camera.h"
 //#include "Layouts.h"
 //#include "CompileShaderUtility.h"
@@ -79,7 +79,7 @@ private:
 	int m_height;
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 	Camera m_camera;
-
+	
 	//Functions
 	HRESULT createDeviceAndSwapChain();
 	HRESULT createDepthStencil();
