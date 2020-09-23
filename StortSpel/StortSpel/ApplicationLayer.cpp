@@ -48,6 +48,9 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 
 	srand(static_cast <unsigned> (time(0)));
 
+	//PhysX
+	m_physics.init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
+
 	return initOK;
 }
 
@@ -78,7 +81,7 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 		windowRect.top,				// Position, Y
 		this->width,	// Width
 		this->height,	// Height
-		NULL,						// Parent window    
+		NULL,						// Parent window
 		NULL,						// Menu
 		hInstance,					// Instance handle
 		NULL						// Additional application data
@@ -104,12 +107,16 @@ void ApplicationLayer::applicationLoop()
 			m_graphicEnginePtr->handleInput(m_input.getMouse(), m_input.getKeyboard(), dt);
 			Engine* enginePtr = &Engine::get();
 			Engine::get().update(m_input.getMouse(), m_input.getKeyboard(), dt);
-			
+
+			m_physics.update(dt);
 			m_graphicEnginePtr->update(dt);
 			m_graphicEnginePtr->render();
 		}
 	}
 	//m_graphicEnginePtr->release();
+
+	//m_graphicEnginePtr->release();
+	m_physics.release();
 }
 
 

@@ -38,7 +38,7 @@
 *.db
 
 *.obj
-!FishEngine/Models/*
+
 .vs/
 *.suo
 
@@ -80,6 +80,10 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+!StortSpel/3rd-Party/*
+!StortSpel/3rd-Party/PhysX/*
+!StortSpel/3rd-Party/PhysX/debug_x64/*
+!StortSpel/3rd-Party/PhysX/release_x64/*
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/

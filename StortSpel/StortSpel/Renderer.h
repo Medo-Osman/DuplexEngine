@@ -48,7 +48,9 @@ private:
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
+
 	D3D11_VIEWPORT m_defaultViewport;
+
 
 	//Pixel Shader
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShaderPtr = NULL;
@@ -73,7 +75,7 @@ private:
 	int m_height;
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 	Camera m_camera;
-	
+
 	unsigned int long m_MeshCount = 0;
 
 	//Functions

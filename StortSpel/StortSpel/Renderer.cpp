@@ -110,19 +110,22 @@ HRESULT Renderer::initialize(const HWND& window)
 		ColorVertex({1.f, 1.f, 0.f}, {1.f, 0.f, 0.f})
 	};
 	m_vertexBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, triangle, 3);*/
-	
-	
-	
-	
-	
+
+
+
+
+
+
 	//m_vertexShaderConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cbVSWVPMatrix(), 1);
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
+	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+
 	m_camera.setProjectionMatrix(80.f, (float)m_height/(float)m_width, 0.01f, 1000.0f);
 	//m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
-	
+
 
 	// Entities
-	
+
 	//m_entities["first"] = new Entity();
 	//m_entities["first"]->addComponent("test", new TestComponent());
 	/*if (m_entities["first"]->getComponent("test")->getType() == ComponentType::TEST)
@@ -199,7 +202,7 @@ HRESULT Renderer::createDepthStencil()
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = m_devicePtr->CreateDepthStencilView(m_depthStencilBufferPtr.Get(), NULL, m_depthStencilViewPtr.GetAddressOf());
-	
+
 		//Binding rendertarget and depth target to pipline
 	//Best practice to use an array even if only using one rendertarget
 	m_rTargetViewsArray[0] = m_rTargetViewPtr.Get();
@@ -222,7 +225,7 @@ HRESULT Renderer::setUpInputAssembler()
 {
 
 	HRESULT hr = m_devicePtr->CreateInputLayout(Layouts::LRMVertexLayout, //VertexLayout
-		ARRAYSIZE(Layouts::LRMVertexLayout), //Nr of elements 
+		ARRAYSIZE(Layouts::LRMVertexLayout), //Nr of elements
 		m_vertexShaderBufferPtr->GetBufferPointer(),
 		m_vertexShaderBufferPtr->GetBufferSize(), //Bytecode length
 		m_vertexLayoutPtr.GetAddressOf()
@@ -318,7 +321,7 @@ void Renderer::handleInput(Mouse* mousePtr, Keyboard* keyboardPtr, const float& 
 
 void Renderer::update(const float& dt)
 {
-	
+
 }
 
 void Renderer::render()
@@ -334,7 +337,7 @@ void Renderer::render()
 
 		}
 	}
-	
+
 	if (m_depthStencilViewPtr)
 	{
 		m_dContextPtr->ClearDepthStencilView(m_depthStencilViewPtr.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
@@ -345,7 +348,7 @@ void Renderer::render()
 	UINT offset = 0;
 	//m_dContextPtr->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.getStridePointer(), &offset);
 
-	
+
 
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set defaul viewport
 	m_rTargetViewsArray[0] = m_rTargetViewPtr.Get();
@@ -353,12 +356,10 @@ void Renderer::render()
 	this->setPipelineShaders(m_vertexShaderPtr.Get(), nullptr, nullptr, nullptr, m_pixelShaderPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
-	cbVSWVPMatrix wvp;
-	wvp.wvpMatrix = XMMatrixTranspose( m_camera.getViewMatrix()* m_camera.getProjectionMatrix());
-	//m_vertexShaderConstantBuffer.updateBuffer(m_dContextPtr.Get(), &wvp);
-	//m_dContextPtr->VSSetConstantBuffers(0, 1, m_vertexShaderConstantBuffer.GetAddressOf());
+	//cbVSWVPMatrix wvp;
+	//wvp.wvpMatrix = XMMatrixTranspose( m_camera.getViewMatrix()* m_camera.getProjectionMatrix());
 
-	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf()); // ? have this only once somewhere else
+
 
 	for (auto& component : meshComponentMap)
 	{
@@ -368,12 +369,18 @@ void Renderer::render()
 		constantBufferPerObjectStruct.view = m_camera.getViewMatrix();
 		constantBufferPerObjectStruct.world = Engine::get().getEntity(component.second->getParentEntityIdentifier())->calculateWorldMatrix() * component.second->calculateWorldMatrix();
 		constantBufferPerObjectStruct.mvpMatrix = XMMatrixTranspose(constantBufferPerObjectStruct.world * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.projection);
+		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera.getProjectionMatrix());
+		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera.getViewMatrix());
+		constantBufferPerObjectStruct.world = XMMatrixTranspose(Engine::get().getEntity(component.second->getParentEntityIdentifier())->calculateWorldMatrix() * component.second->calculateWorldMatrix());
+		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
-		
+
 		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
-		
+
 		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
+
+
 
 	m_swapChainPtr->Present(0, 0);
 }
