@@ -406,15 +406,10 @@ void Renderer::render()
 	{
 		perObjectMVP constantBufferPerObjectStruct;
 		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
-		constantBufferPerObjectStruct.projection = m_camera.getProjectionMatrix();
-		constantBufferPerObjectStruct.view = m_camera.getViewMatrix();
-		constantBufferPerObjectStruct.world = Engine::get().getEntity(component.second->getParentEntityIdentifier())->calculateWorldMatrix() * component.second->calculateWorldMatrix();
-		constantBufferPerObjectStruct.mvpMatrix = XMMatrixTranspose(constantBufferPerObjectStruct.world * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.projection);
 		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera.getProjectionMatrix());
 		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera.getViewMatrix());
 		constantBufferPerObjectStruct.world = XMMatrixTranspose(Engine::get().getEntity(component.second->getParentEntityIdentifier())->calculateWorldMatrix() * component.second->calculateWorldMatrix());
 		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
-
 
 		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
