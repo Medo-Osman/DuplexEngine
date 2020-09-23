@@ -1,8 +1,29 @@
 #include "3DPCH.h"
 #include "ResourceHandler.h"
 
-MeshResource* ResourceHandler::loadLRMMesh(const char* path, ID3D11Device* device)
+void ResourceHandler::isResourceHandlerReady()
 {
+	if (!DeviceAndContextPtrsAreSet)
+	{
+		// Renderer::initialize needs to be called and it needs to call setDeviceAndContextPtrs()
+		// before this function call be called.
+		ErrorLogger::get().logError("Problem in ResourceHandler::isResourceHandlerReady(). \nRenderer::initialize needs to be called and it needs to call setDeviceAndContextPtrs() \nbefore this function call be called. ");
+		assert(false);
+	}
+}
+
+void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
+{
+	m_devicePtr = devicePtr;
+	m_dContextPtr = dContextPtr;
+
+	DeviceAndContextPtrsAreSet = true;
+}
+
+MeshResource* ResourceHandler::loadLRMMesh(const char* path)
+{
+	isResourceHandlerReady();
+	
 	// checks if the mesh is in the cache 
 	if (m_MeshCache.find(path) != m_MeshCache.end())
 	{
@@ -65,8 +86,8 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path, ID3D11Device* devic
 	m_MeshCache[path] = new MeshResource;
 
 	//Init it with the data
-	m_MeshCache[path]->getVertexBuffer().initializeBuffer(device, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount);
-	m_MeshCache[path]->getIndexBuffer().initializeBuffer(device, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
+	m_MeshCache[path]->getVertexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount);
+	m_MeshCache[path]->getIndexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
 
 	delete[] vertexArray;
 	delete[] indexArray;

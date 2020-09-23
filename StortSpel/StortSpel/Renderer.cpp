@@ -1,13 +1,58 @@
 #include"3DPCH.h"
+//#include "MeshComponent.h"
 #include"Renderer.h"
 
 Renderer::Renderer()
 {
-	m_rTargetViewsArray = new ID3D11RenderTargetView*[8];
-
+	m_rTargetViewsArray = new ID3D11RenderTargetView * [8];
+	
 	//Variables
 	m_width = m_startWidth;
 	m_height = m_startHeight;
+}
+
+HRESULT Renderer::compileShader(LPCWSTR fileName, LPCSTR entryPoint, LPCSTR shaderVer, ID3DBlob** blob)
+{
+	if (!fileName || !entryPoint || !shaderVer || !blob)
+		return E_INVALIDARG;
+
+	*blob = nullptr;
+
+	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined( DEBUG ) || defined( _DEBUG )
+	flags |= D3DCOMPILE_DEBUG;
+#endif
+
+
+	ID3DBlob* shaderBlob = nullptr;
+	ID3DBlob* errorBlob = nullptr;
+	HRESULT hr = D3DCompileFromFile(fileName, //Name of file
+		0, //Pointer to array of macros
+		0, //Includes
+		entryPoint, //Function name/Entry point
+		shaderVer, //Shader version
+		0, //CompileFlag 1
+		0, //CompileFlag 2);
+		&shaderBlob, //blob
+		&errorBlob //Error message
+	);
+	if (FAILED(hr))
+	{
+		if (errorBlob)
+		{
+			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+			errorBlob->Release();
+		}
+
+		if (shaderBlob)
+			shaderBlob->Release();
+
+		return hr;
+	}
+
+	*blob = shaderBlob;
+
+	return hr;
 }
 
 
@@ -46,13 +91,6 @@ void Renderer::release()
 	}
 
 	delete[] m_rTargetViewsArray;
-}
-
-
-void Renderer::addMeshComponent(MeshComponent* component)
-{
-	component->setRenderId(++m_MeshCount);
-	meshComponentMap[m_MeshCount] = component;
 }
 
 HRESULT Renderer::initialize(const HWND& window)
@@ -106,7 +144,28 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 
 	m_camera.setProjectionMatrix(80.f, (float)m_height/(float)m_width, 0.01f, 1000.0f);
-	m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
+	//m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
+
+
+
+	// Entities
+
+	//m_entities["first"] = new Entity();
+	//m_entities["first"]->addComponent("test", new TestComponent());
+	/*if (m_entities["first"]->getComponent("test")->getType() == ComponentType::TEST)
+	{
+		TestComponent* testComp = dynamic_cast<TestComponent*>(m_entities["first"]->getComponent("test"));
+		testComp->outputMessage();
+		testComp->init("Oh shit, it works!");
+		testComp->outputMessage();
+	}
+	else
+	{
+		OutputDebugStringA("No component of that type exists!\n");
+	}*/
+
+	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
+	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 
 	return hr;
 }
@@ -170,7 +229,7 @@ HRESULT Renderer::createDepthStencil()
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = m_devicePtr->CreateDepthStencilView(m_depthStencilBufferPtr.Get(), NULL, m_depthStencilViewPtr.GetAddressOf());
-	
+
 		//Binding rendertarget and depth target to pipline
 	//Best practice to use an array even if only using one rendertarget
 	m_rTargetViewsArray[0] = m_rTargetViewPtr.Get();
@@ -191,7 +250,7 @@ HRESULT Renderer::createDepthStencil()
 HRESULT Renderer::setUpInputAssembler()
 {
 	HRESULT hr = m_devicePtr->CreateInputLayout(Layouts::LRMVertexLayout, //VertexLayout
-		ARRAYSIZE(Layouts::LRMVertexLayout), //Nr of elements 
+		ARRAYSIZE(Layouts::LRMVertexLayout), //Nr of elements
 		m_vertexShaderBufferPtr->GetBufferPointer(),
 		m_vertexShaderBufferPtr->GetBufferSize(), //Bytecode length
 		m_vertexLayoutPtr.GetAddressOf()
@@ -282,12 +341,13 @@ void Renderer::handleInput(Mouse* mousePtr, Keyboard* keyboardPtr, const float& 
 		}
 	}
 
-	m_camera.controllCameraPosition(keyboardPtr, dt); //ControllCameraPosition only uses an array of what keys are pressed.
+	m_camera.controllCameraPosition(); //ControllCameraPosition only uses an array of what keys are pressed.
+
 }
 
 void Renderer::update(const float& dt)
 {
-	
+
 }
 
 void Renderer::render()
@@ -303,7 +363,7 @@ void Renderer::render()
 
 		}
 	}
-	
+
 	if (m_depthStencilViewPtr)
 	{
 		m_dContextPtr->ClearDepthStencilView(m_depthStencilViewPtr.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
@@ -312,27 +372,33 @@ void Renderer::render()
 	//NormalPass
 	m_dContextPtr->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	UINT offset = 0;
+	//m_dContextPtr->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.getStridePointer(), &offset);
+
+
+
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set defaul viewport
 	m_rTargetViewsArray[0] = m_rTargetViewPtr.Get();
 	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
 	this->setPipelineShaders(m_vertexShaderPtr.Get(), nullptr, nullptr, nullptr, m_pixelShaderPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
-	for (auto& component : meshComponentMap)
+	//cbVSWVPMatrix wvp;
+	//wvp.wvpMatrix = XMMatrixTranspose( m_camera.getViewMatrix()* m_camera.getProjectionMatrix());
+
+	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
 		perObjectMVP constantBufferPerObjectStruct;
+		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera.getProjectionMatrix());
 		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera.getViewMatrix());
 		constantBufferPerObjectStruct.world = XMMatrixTranspose(Engine::get().getEntity(component.second->getParentEntityIdentifier())->calculateWorldMatrix() * component.second->calculateWorldMatrix());
 		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
-		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
-		
 		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
-		
+
 		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
-	
+
 	m_swapChainPtr->Present(0, 0);
 }
 
@@ -354,3 +420,22 @@ ID3D11DeviceContext* Renderer::getDContext()
 {
 	return m_dContextPtr.Get();
 }
+
+
+ID3D11DepthStencilView* Renderer::getDepthStencilView()
+{
+	return m_depthStencilViewPtr.Get();
+}
+
+bool Renderer::checkSetShaderFile(ShaderType s, LPCWSTR file)
+{
+	bool isSet = false;
+
+	if (this->setShaderFiles[s] == file)
+		isSet = true;
+	else
+		this->setShaderFiles[s] = file;
+
+	return isSet;
+}
+

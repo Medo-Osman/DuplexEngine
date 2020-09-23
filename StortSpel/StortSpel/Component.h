@@ -1,4 +1,5 @@
 #pragma once
+#include "3DPCH.h"
 #include <string>
 
 enum class ComponentType { MESH, AUDIO, PHYSICS, TEST, INVALID, UNASSIGNED };
@@ -17,9 +18,7 @@ public:
 	}
 	~Component() {}
 
-	
 
-	
 	// Operators
 	bool operator==(const Component& otherComponent)
 	{

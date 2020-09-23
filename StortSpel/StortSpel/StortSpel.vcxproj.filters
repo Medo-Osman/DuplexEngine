@@ -86,6 +86,14 @@
     </ClCompile>
     <ClCompile Include="Input_Mouse.cpp">
       <Filter>Source Files\Application\Input</Filter>
+    <ClCompile Include="Player.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderProgram.cpp">
+      <Filter>Source Files\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshComponent.cpp">
+      <Filter>Source Files\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +165,15 @@
     </ClInclude>
     <ClInclude Include="MovementContext.h">
       <Filter>Source Files\Application\Input\Context</Filter>
+	</ClInclude>
+    <ClInclude Include="ShaderProgram.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderEnums.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="InputStructs.h">
+      <Filter>Source Files\Application</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +188,9 @@
     </ClInclude>
     <ClInclude Include="MeshResource.h">
       <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Source Files\Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

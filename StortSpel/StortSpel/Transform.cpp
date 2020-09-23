@@ -1,13 +1,13 @@
+#include "3DPCH.h"
 #include "Transform.h"
-
 
 
 Transform::Transform()
 {
-	this->setTransformZero();
-	this->translationLock = false;
-	this->rotationLock = false;
-	this->scaleLock = false;
+	setTransformZero();
+	translationLock = false;
+	rotationLock = false;
+	scaleLock = false;
 }
 
 Transform::~Transform()
@@ -15,91 +15,116 @@ Transform::~Transform()
 
 void Transform::setTransformZero()
 {
-	translation = DirectX::XMMatrixTranslation(0, 0, 0);
-	rotation = DirectX::XMMatrixRotationRollPitchYaw(0, 0, 0);
-	scaling = DirectX::XMMatrixScaling(1, 1, 1);
+	translationMatrix = DirectX::XMMatrixTranslation(0, 0, 0);
+	rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(0, 0, 0);
+	scalingMatrix = DirectX::XMMatrixScaling(1, 1, 1);
 
-	this->updated = true;
+	m_translation = Vector3();
+	m_rotation = Vector3();
+	m_scaling = Vector3();
+
+	updated = true;
 }
 
 void Transform::move(DirectX::XMVECTOR moveVector)
 {
-	if (this->translationLock)
+	if (translationLock)
 		return;
 
-	this->translation = DirectX::XMMatrixMultiply(translation, DirectX::XMMatrixTranslationFromVector(moveVector));
+	m_translation += moveVector;
+	translationMatrix = DirectX::XMMatrixMultiply(translationMatrix, DirectX::XMMatrixTranslationFromVector(moveVector));
 
-	this->updated = true;
+	updated = true;
 }
 
-void Transform::rotate(DirectX::XMMATRIX rotationMatrix)
+
+void Transform::rotate(DirectX::XMFLOAT3 rotation)
 {
-	if (this->rotationLock)
-		return;
+	m_rotation = rotation;
+	rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
 
-	this->rotation = DirectX::XMMatrixMultiply(rotation, rotationMatrix);
+	m_rotation += rotation;
 
-	this->updated = true;
+	updated = true;
 }
 
-void Transform::rotate(float x, float y, float z)
+void Transform::translation(DirectX::XMFLOAT3 translation)
 {
-	if (this->rotationLock)
-		return;
+	m_translation = translation;
+	translationMatrix = DirectX::XMMatrixTranslation(translation.x, translation.y, translation.z);
 
-	this->rotation = DirectX::XMMatrixMultiply(rotation, DirectX::XMMatrixRotationRollPitchYaw(x, y, z));
+	m_translation = translation;
 
-	this->updated = true;
+	updated = true;
 }
 
-void Transform::scale(float x, float y, float z)
+void Transform::scale(DirectX::XMFLOAT3 scaling)
 {
-	if (this->scaleLock)
-		return;
+	m_scaling = scaling;
+	scalingMatrix = DirectX::XMMatrixScaling(scaling.x, scaling.y, scaling.z);
 
-	this->scaling = DirectX::XMMatrixMultiply(scaling, DirectX::XMMatrixScaling(x, y, z));
+	m_scaling = scaling;
 
-	this->updated = true;
+	updated = true;
 }
+
+
 
 void Transform::scaleUniform(float amount)
 {
-	if (this->scaleLock)
+	if (scaleLock)
 		return;
 
-	this->scaling = DirectX::XMMatrixMultiply(scaling, DirectX::XMMatrixScaling(amount, amount, amount));
-
-	this->updated = true;
+	scalingMatrix = DirectX::XMMatrixMultiply(scalingMatrix, DirectX::XMMatrixScaling(amount, amount, amount));
+	m_scaling = Vector3(amount, amount, amount);
+	
+	updated = true;
 }
 
 void Transform::setTranslationLock(bool state)
 {
-	this->translationLock = state;
+	translationLock = state;
 }
 
 void Transform::setRotationLock(bool state)
 {
-	this->rotationLock = state;
+	rotationLock = state;
 }
 
 void Transform::setScaleLock(bool state)
 {
-	this->scaleLock = state;
+	scaleLock = state;
 }
+
+Vector3 Transform::getRotation()
+{
+	return m_rotation;
+}
+
+Vector3 Transform::getTranslation()
+{
+	return m_translation;
+}
+
+Vector3 Transform::getScaling()
+{
+	return m_scaling;
+}
+
+
 
 DirectX::XMMATRIX Transform::calculateWorldMatrix()
 {
-	DirectX::XMMATRIX worldMtx = scaling * rotation * translation;
-	//worldMtx = DirectX::XMMatrixTranspose(worldMtx);
+	DirectX::XMMATRIX worldMtx = scalingMatrix * rotationMatrix * translationMatrix;
 	return worldMtx;
 }
 
 bool Transform::getUpdated() const
 {
-	return this->updated;
+	return updated;
 }
 
 void Transform::setNotUpdated()
 {
-	this->updated = false;
+	updated = false;
 }

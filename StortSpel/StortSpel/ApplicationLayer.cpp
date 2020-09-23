@@ -16,7 +16,7 @@ ApplicationLayer::ApplicationLayer()
 
 ApplicationLayer::~ApplicationLayer()
 {
-	
+
 }
 
 bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd)
@@ -44,7 +44,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		initOK = true;
 		ShowWindow(m_window, showCmd);
 	}
-	Engine::get().Init();
+	Engine::get().initialize();
 
 	srand(static_cast <unsigned> (time(0)));
 
@@ -81,7 +81,7 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 		windowRect.top,				// Position, Y
 		this->width,	// Width
 		this->height,	// Height
-		NULL,						// Parent window    
+		NULL,						// Parent window
 		NULL,						// Menu
 		hInstance,					// Instance handle
 		NULL						// Additional application data
@@ -104,14 +104,15 @@ void ApplicationLayer::applicationLoop()
 		}
 		else // Render/Logic Loop
 		{
+
 			m_input.readBuffers();
+			Engine* enginePtr = &Engine::get();
+			Engine::get().update(m_input.getMouse(), m_input.getKeyboard(), dt);
 			m_physics.update(dt);
 			m_graphicEnginePtr->update(dt);
 			m_graphicEnginePtr->render();
 		}
 	}
-
-	//m_graphicEnginePtr->release();
 	m_physics.release();
 }
 

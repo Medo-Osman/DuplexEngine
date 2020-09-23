@@ -1,5 +1,6 @@
-#pragma once
 #include "3DPCH.h"
+#pragma once
+
 
 #include "Component.h"
 
@@ -21,7 +22,7 @@ public:
 	{
 		m_message = newMessage;
 	}
-	
+
 	void outputMessage() const
 	{
 		OutputDebugStringA(m_message.c_str());

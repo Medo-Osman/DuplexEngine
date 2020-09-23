@@ -1,9 +1,10 @@
 #include"3DPCH.h"
+#include "Engine.h"
 #include"Camera.h"
 
 Camera::Camera()
 {
-	m_position = { 0.f, 0.f, 0.f, 1.f };
+	//m_position = { 0.f, 0.f, 0.f, 1.f };
 	m_rotation = { 0.f, 0.f, 0.f, 0.f };
 	m_projectionMatrix = XMMatrixIdentity();
 	m_viewMatrix = XMMatrixIdentity();
@@ -66,37 +67,12 @@ void Camera::controllCameraRotation(const MouseEvent& mEvent, const float &dt)
 	}
 }
 
-void Camera::controllCameraPosition(Keyboard* keyboardPtr, const float &dt)
+void Camera::controllCameraPosition()
 {
-	bool shouldUpdate = false;
-	if(keyboardPtr->isKeyPressed('W'))
-	{
-		m_position += this->curForward * dt * 4;
-		shouldUpdate = true;
-	}
+	
+	m_position = Engine::get().getEntity("meshPlayer")->getTranslation() + Vector3(0, 2, -5);
 
-	if (keyboardPtr->isKeyPressed('S'))
-	{
-		m_position -= this->curForward * dt * 4;
-		shouldUpdate = true;
-	}
-
-	if (keyboardPtr->isKeyPressed('A'))
-	{
-		m_position -= this->curRight * dt * 4;
-		shouldUpdate = true;
-	}
-
-	if (keyboardPtr->isKeyPressed('D'))
-	{
-		m_position += this->curRight * dt * 4;
-		shouldUpdate = true;
-	}
-
-	if (shouldUpdate)
-		this->updateViewMatrix();
-
-
+	this->updateViewMatrix(); 
 }
 
 const XMFLOAT3 Camera::getForward() const
