@@ -178,6 +178,7 @@
     <ClCompile Include="Input_Keyboard.cpp" />
     <ClCompile Include="Input_Mouse.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="ResourceHandler.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
@@ -198,6 +199,7 @@
     <ClInclude Include="Input_Mouse.h" />
     <ClInclude Include="InvalidComponent.h" />
     <ClInclude Include="Layouts.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="ResourceHandler.h" />
     <ClInclude Include="TestComponent.h" />
     <ClInclude Include="Transform.h" />

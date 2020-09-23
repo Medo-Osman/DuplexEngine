@@ -102,11 +102,14 @@ void ApplicationLayer::applicationLoop()
 		else // Render/Logic Loop
 		{
 			m_graphicEnginePtr->handleInput(m_input.getMouse(), m_input.getKeyboard(), dt);
+			Engine* enginePtr = &Engine::get();
+			Engine::get().update(m_input.getMouse(), m_input.getKeyboard(), dt);
+			
 			m_graphicEnginePtr->update(dt);
 			m_graphicEnginePtr->render();
 		}
 	}
-	m_graphicEnginePtr->release();
+	//m_graphicEnginePtr->release();
 }
 
 

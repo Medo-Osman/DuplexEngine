@@ -27,10 +27,36 @@ bool Engine::addEntity(std::string identifier)
 	return true;
 }
 
+Engine::~Engine()
+{
+	if (m_player)
+		delete m_player;
+}
 
+
+
+void Engine::update(Mouse* mousePtr, Keyboard* keyboardPtr, const float& dt)
+{
+	m_player->updatePlayer(keyboardPtr, dt);
+	
+}
 
 void Engine::Init()
 {
+	m_player = new Player();
+	if (addEntity("meshPlayer"))
+	{
+		m_entities["meshPlayer"]->addComponent("mesh", new MeshComponent("../res/models/testTania_tania_geo.lrm"));
+		m_entities["meshPlayer"]->move({ 1, -1, 0 });
+		m_entities["meshPlayer"]->scaleUniform(0.02f);
+		m_player->setPlayerEntity(m_entities["meshPlayer"]);
+	}
+	else
+	{
+		ErrorLogger::get().logError("No player model added or already exists when adding");
+	}
+
+
 	// Temp entity init
 	addEntity("first");
 	m_entities["first"]->addComponent("test", new TestComponent());
@@ -43,13 +69,7 @@ void Engine::Init()
 	{
 		m_entities["meshTest1"]->addComponent("mesh", new MeshComponent("../res/models/testCube_pCube1.lrm"));
 		m_entities["meshTest1"]->move({ 2, 1, 1});
-	}
-
-	if (addEntity("meshTest2"))
-	{
-		m_entities["meshTest2"]->addComponent("mesh", new MeshComponent("../res/models/testTania_tania_geo.lrm"));
-		m_entities["meshTest2"]->move({ -5, -1, 0 });
-		m_entities["meshTest2"]->scaleUniform(0.02f);
+		
 	}
 		
 }

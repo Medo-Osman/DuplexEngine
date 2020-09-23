@@ -1,6 +1,7 @@
 #pragma once
 #include"Input_Mouse.h"
 #include"Input_Keyboard.h"
+#include "Engine.h"
 
 
 class Camera
@@ -36,7 +37,7 @@ public:
 	BoundingFrustum getFrustum();
 
 	void controllCameraRotation(const MouseEvent& mEvent, const float& dt);
-	void controllCameraPosition(Keyboard* keyboardPtr, const float& dt);
+	void controllCameraPosition();
 
 
 
