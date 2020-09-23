@@ -3,7 +3,6 @@
 
 
 Player::Player()
-	:Entity("meshPlayer")
 {
 }
 

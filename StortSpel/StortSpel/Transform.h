@@ -34,7 +34,6 @@ public:
 	void setTransformZero();
 
 	void move(DirectX::XMVECTOR moveVector);
-	void rotate(DirectX::XMMATRIX rotationMatrix);
 
 	//sets rotation/translation/scale
 	void rotate(DirectX::XMFLOAT3 rotation);

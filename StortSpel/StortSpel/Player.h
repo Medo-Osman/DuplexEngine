@@ -8,7 +8,7 @@
 #include "Camera.h"
 using namespace DirectX;
 
-class Player : public Entity
+class Player
 {
 private:
     DirectX::XMVECTOR m_movementVector;
