@@ -104,7 +104,7 @@ void ApplicationLayer::applicationLoop()
 		}
 		else // Render/Logic Loop
 		{
-			m_graphicEnginePtr->handleInput(m_input.getMouse(), m_input.getKeyboard(), dt);
+			m_input.readBuffers();
 			m_physics.update(dt);
 			m_graphicEnginePtr->update(dt);
 			m_graphicEnginePtr->render();
