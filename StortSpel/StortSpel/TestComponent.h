@@ -1,6 +1,5 @@
 #pragma once
 #include "3DPCH.h"
-
 #include "Component.h"
 
 class TestComponent : public Component
