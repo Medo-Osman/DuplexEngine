@@ -92,7 +92,7 @@ struct TextureNormalTangentVertexAnim : public TextureNormalTangentVertex
 {
 	XMFLOAT4 weights;
 	BYTE  boneIndex[4];
-
+	
 	TextureNormalTangentVertexAnim()
 	{
 		this->position = { 0.f, 0.f, 0.f };

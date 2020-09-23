@@ -107,9 +107,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>
-      </PrecompiledHeaderFile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>3DPCH.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\3rd-Party\PhysX\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -176,18 +175,21 @@
     <ClCompile Include="3DPCH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="ApplicationLayer.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Component.h" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Entity.h" />
+    <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Input_Keyboard.cpp" />
     <ClCompile Include="Input_Mouse.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ResourceHandler.cpp" />
+    <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -199,6 +201,7 @@
     <ClInclude Include="ConstantBufferTypes.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="ErrorLogger.h" />
+    <ClInclude Include="InputStructs.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="MeshResource.h" />
     <ClInclude Include="Renderer.h" />
@@ -209,6 +212,8 @@
     <ClInclude Include="Layouts.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="ResourceHandler.h" />
+    <ClInclude Include="ShaderEnums.h" />
+    <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="TestComponent.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="VertexStructs.h" />

@@ -1,4 +1,6 @@
 #pragma once
+#include "InputStructs.h"
+
 
 class KeyboardEvent
 {

@@ -1,5 +1,15 @@
+
 #pragma once
 #include"3DPCH.h"
+//#include <d3d11.h>
+//#include <dxgi.h>
+//#include <dxgi1_2.h>
+//#include <d3dcompiler.h>
+//#include <DirectXMath.h>
+//#include <DirectXCollision.h>
+//#include <Effects.h>
+//#include <DirectXColors.h>
+
 //From https://docs.microsoft.com/en-us/windows/win32/direct3d11/how-to--compile-a-shader
 static const HRESULT compileShader(LPCWSTR fileName, LPCSTR entryPoint, LPCSTR shaderVer, ID3DBlob** blob)
 {

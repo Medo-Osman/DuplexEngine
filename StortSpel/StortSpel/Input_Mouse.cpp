@@ -1,4 +1,4 @@
-#include"3DPCH.h"
+#include "3DPCH.h"
 #include "Input_Mouse.h"
 
 MouseEvent::MouseEvent()
@@ -27,7 +27,6 @@ Event MouseEvent::getEvent() const
 }
 MousePos MouseEvent::getPos() const
 {
-
 	return mousePos;
 }
 bool MouseEvent::isValid() const

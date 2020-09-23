@@ -1,5 +1,5 @@
 #pragma once
-//#include "3DPCH.h"
+#include "3DPCH.h"
 #include "Transform.h"
 #include "Component.h"
 #include "InvalidComponent.h"

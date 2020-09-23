@@ -1,5 +1,8 @@
+
 #pragma once
 #include"3DPCH.h"
+#include <DirectXColors.h>
+using namespace DirectX;
 
 
 //VertexShader shadowpass constant buffers structs
@@ -20,8 +23,8 @@ __declspec(align(16)) struct cbVSWVPMatrix
 
 struct perObjectMVP
 {
-    DirectX::XMMATRIX world; //model
-    DirectX::XMMATRIX view;
-    DirectX::XMMATRIX projection;
-    DirectX::XMMATRIX mvpMatrix; //Model/view/projection
+    XMMATRIX world; //model
+    XMMATRIX view;
+    XMMATRIX projection;
+    XMMATRIX mvpMatrix; //Model/view/projection
 };

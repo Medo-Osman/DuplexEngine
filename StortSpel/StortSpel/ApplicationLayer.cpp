@@ -44,7 +44,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		initOK = true;
 		ShowWindow(m_window, showCmd);
 	}
-	Engine::get().Init();
+	Engine::get().initialize();
 
 	srand(static_cast <unsigned> (time(0)));
 

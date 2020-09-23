@@ -1,4 +1,5 @@
 #pragma once
+#include "3DPCH.h"
 #include <string>
 
 enum class ComponentType { MESH, AUDIO, PHYSICS, TEST, INVALID, UNASSIGNED };

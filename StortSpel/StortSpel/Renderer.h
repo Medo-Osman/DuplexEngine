@@ -1,13 +1,17 @@
 #pragma once
-#include "VertexStructs.h"
-#include "ConstantBufferTypes.h"
-#include "Camera.h"
-#include "Layouts.h"
-#include "CompileShaderUtility.h"
-#include "Buffer.h"
-#include "Entity.h"
 
-class MeshComponent;
+#include "ConstantBufferTypes.h"
+#include "Input.h"
+#include "Camera.h"
+//#include "Layouts.h"
+//#include "CompileShaderUtility.h"
+////#include "Buffer.h"
+//#include "Entity.h"
+#include "ShaderEnums.h"
+#include "Engine.h"
+//#include "ResourceHandler.h"
+
+//class MeshComponent;
 
 class Renderer
 {
@@ -73,7 +77,6 @@ private:
 	int m_height;
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 	Camera m_camera;
-	unsigned int long m_MeshCount = 0;
 
 	//Functions
 	HRESULT createDeviceAndSwapChain();
@@ -86,8 +89,10 @@ private:
 	void setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr);
 	Renderer(); //{};
 
-	std::map<unsigned int long, MeshComponent*> meshComponentMap;
+	HRESULT compileShader(LPCWSTR fileName, LPCSTR entryPoint, LPCSTR shaderVer, ID3DBlob** blob);
+	
 
+	LPCWSTR setShaderFiles[5];
 	
 public:
 	Renderer(const Renderer&) = delete;
@@ -99,7 +104,7 @@ public:
 		return instance;
 	}
 	
-	void addMeshComponent(MeshComponent* component);
+	
 
 	HRESULT initialize(const HWND& window);
 	void release();
@@ -110,5 +115,7 @@ public:
 	void render();
 	ID3D11Device* getDevice();
 	ID3D11DeviceContext* getDContext();
-
+	ID3D11DepthStencilView* getDepthStencilView();
+	
+	bool checkSetShaderFile(ShaderType s, LPCWSTR file);
 };
