@@ -30,15 +30,15 @@ public:
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 
 	Entity* getEntity(std::string key);
-	bool addEntity(std::string identifier);
+	Entity* addEntity(std::string identifier);
 	~Engine();
 
-	void update(Mouse* mousePtr, Keyboard* keyboardPtr, const float &dt);
+	void update(const float &dt);
 
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 
 	void addMeshComponent(MeshComponent* component);
 	std::map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 
-
+	void buildTestStage();
 };

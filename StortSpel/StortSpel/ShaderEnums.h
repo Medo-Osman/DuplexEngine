@@ -1,11 +1,30 @@
 #pragma once
+#include "ShaderProgram.h"
 
-enum ShaderType
+enum ShaderProgramsEnum
 {
-	Vertex = 0,
-	Hull = 1,
-	Domain = 2,
-	Geometry = 3,
-	Pixel = 4,
-	Compute = 5
+	DEFAULT,
+	TEMP_TEST,
+	NONE
 };
+
+inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgram*>* compiledShadersMap, ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr, ID3D11DepthStencilView* depthStencilPtr)
+{
+	// Copy this and paste with diffrent parameters for each diffrent ShaderProgramEnum
+
+	(*compiledShadersMap)[ShaderProgramsEnum::DEFAULT] = new ShaderProgram
+	(
+		{ L"VertexShaderBasic.hlsl",L"null",L"null",L"null",L"BasicPixelShader.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::TEMP_TEST] = new ShaderProgram
+	(
+		{ L"VertexShaderBasic.hlsl",L"null",L"null",L"null",L"BasicPixelShader_temp_for_testing_shaderSwitching.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+}

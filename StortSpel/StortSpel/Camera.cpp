@@ -1,6 +1,7 @@
 #include"3DPCH.h"
 #include "Engine.h"
 #include"Camera.h"
+#include"ApplicationLayer.h"
 
 Camera::Camera()
 {
@@ -8,6 +9,8 @@ Camera::Camera()
 	m_rotation = { 0.f, 0.f, 0.f, 0.f };
 	m_projectionMatrix = XMMatrixIdentity();
 	m_viewMatrix = XMMatrixIdentity();
+	m_newIncrements = false;
+	ApplicationLayer::getInstance().m_input.Attach(this);
 }
 void Camera::setProjectionMatrix(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
 {
@@ -54,25 +57,32 @@ const XMMATRIX& Camera::getProjectionMatrix() const
 	return m_projectionMatrix;
 }
 
-
-
-void Camera::controllCameraRotation(const MouseEvent& mEvent, const float &dt)
+void Camera::inputUpdate(InputData& inputData)
 {
-	if (mEvent.getEvent() == Event::MouseRAW_MOVE)
+	for (std::vector<int>::size_type i = 0; i < inputData.rangeData.size(); i++)
 	{
-		mEvent.getPos();
-		m_rotation += {(float)mEvent.getPos().y * dt * 2, (float)mEvent.getPos().x * dt * 2, 0.0f, 0.0f};
-
-		this->updateViewMatrix();
+		if (inputData.rangeData[i].rangeFlag == Range::RAW)
+		{
+			if (!m_newIncrements)
+			{
+				m_incrementRotation = XMVectorZero();
+				m_newIncrements = true;
+			}
+			m_incrementRotation += {(float)inputData.rangeData[i].pos.y, (float)inputData.rangeData[i].pos.x};
+		}
 	}
 }
 
-void Camera::controllCameraPosition()
+void Camera::update(const float &dt)
 {
-	
+	if (m_newIncrements)
+	{
+		this->m_rotation += m_incrementRotation * dt * 2;
+		m_newIncrements = false;
+	}
 	m_position = Engine::get().getEntity("meshPlayer")->getTranslation() + Vector3(0, 2, -5);
 
-	this->updateViewMatrix(); 
+	this->updateViewMatrix();
 }
 
 const XMFLOAT3 Camera::getForward() const

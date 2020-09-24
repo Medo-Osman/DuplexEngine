@@ -2,6 +2,8 @@
 //#include"3DPCH.h"
 #include <d3d11.h>
 
+enum class VertexLayoutType { vertexLayout, colorVertexLayout, LRMVertexLayout, none };
+
 namespace Layouts
 {
 	static const D3D11_INPUT_ELEMENT_DESC vertexLayout[] =
