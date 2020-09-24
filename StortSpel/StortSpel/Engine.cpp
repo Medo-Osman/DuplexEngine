@@ -90,7 +90,7 @@ void Engine::initialize()
 	if (addEntity("meshPlayer"))
 	{
 		
-		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("../res/models/testTania_tania_geo.lrm"));
+		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm"));
 		m_entities["meshPlayer"]->move({ 1, -1, 0 });
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
@@ -109,8 +109,10 @@ void Engine::initialize()
 	addComponent(m_entities["first"], "test", new TestComponent());
 
 	if(addEntity("meshTest"))
-		addComponent(m_entities["meshTest"], "mesh", new MeshComponent("../res/models/testCube_pCube1.lrm"));
+		addComponent(m_entities["meshTest"], "mesh", new MeshComponent("testCube_pCube1.lrm"));
 		//m_entities["meshTest"]->addComponent("mesh", new MeshComponent("../res/models/testCube_pCube1.lrm"));
+	if(addEntity("meshTest2"))
+		addComponent(m_entities["meshTest2"], "mesh", new MeshComponent("BigTopTent_Cylinder.lrm"));
 
 
 	/*if (addEntity("meshTest1"))

@@ -1,6 +1,14 @@
 #include "3DPCH.h"
 #include "ResourceHandler.h"
 
+
+ResourceHandler::ResourceHandler()
+{
+	m_texturesPath = L"../res/textures/";
+	m_errorTextureName = L"error_dun_gofed.jpg";
+	m_modelPath = "../res/models/";
+}
+
 void ResourceHandler::isResourceHandlerReady()
 {
 	if (!DeviceAndContextPtrsAreSet)
@@ -12,12 +20,49 @@ void ResourceHandler::isResourceHandlerReady()
 	}
 }
 
-void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
+ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
 {
-	m_devicePtr = devicePtr;
-	m_dContextPtr = dContextPtr;
+	if (m_textureCache.count(texturePath))
+		return m_textureCache[texturePath];
+	else
+	{
+		isResourceHandlerReady();
 
-	DeviceAndContextPtrsAreSet = true;
+		HRESULT hr;
+		ID3D11ShaderResourceView* srv = nullptr;
+		std::wstring path = texturePath;
+		path = m_texturesPath + path;
+
+		size_t i = path.rfind('.', path.length());
+		std::wstring fileExtension = path.substr(i + 1, path.length() - i);
+		if (fileExtension == L"dds" || fileExtension == L"DDS")
+			hr = CreateDDSTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
+		else
+			hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
+
+		if (FAILED(hr)) // failed to load new texture, return error texture
+		{
+			if (m_textureCache.count(m_errorTextureName))  // if error texture is loaded
+				return m_textureCache[m_errorTextureName.c_str()];
+			else // Load error texture
+			{
+				path = m_texturesPath + m_errorTextureName;
+				hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &m_textureCache[m_errorTextureName]);
+				if (SUCCEEDED(hr))
+					return m_textureCache[m_errorTextureName];
+				else
+				{
+					std::wstring errorMessage = L"ERROR, '" + m_errorTextureName + L"' texture can not be found in '" + m_texturesPath + L"'!";
+					assert(!errorMessage.c_str());
+				}
+			}
+		}
+		else
+		{
+			m_textureCache[texturePath] = srv;
+			return srv;
+		}
+	}
 }
 
 MeshResource* ResourceHandler::loadLRMMesh(const char* path)
@@ -25,15 +70,15 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	isResourceHandlerReady();
 	
 	// checks if the mesh is in the cache 
-	if (m_MeshCache.find(path) != m_MeshCache.end())
+	if (m_meshCache.find(path) != m_meshCache.end())
 	{
 		// returns the buffers
-		return m_MeshCache[path];
+		return m_meshCache[path];
 	}
 	
 	// or loads the mesh and makes new buffers
-
-	std::ifstream fileStream(path, std::ifstream::in | std::ifstream::binary);
+	std::string modelPath = m_modelPath + path;
+	std::ifstream fileStream(modelPath, std::ifstream::in | std::ifstream::binary);
 
 	// Check filestream failure
 	if (!fileStream)
@@ -41,7 +86,7 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 		// Error message
 		//fprintf(stderr, "loadLRMMesh failed to open filestream: %s\n", path);
 		OutputDebugString(L"loadLRMMesh failed to open filestream: " );
-		OutputDebugStringA(path);
+		OutputDebugStringA(modelPath.c_str());
 		OutputDebugString(L"\n");
 		// Properly clear and close file buffer
 		fileStream.clear();
@@ -72,7 +117,7 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	if (!fileStream.eof())
 	{
 		OutputDebugString(L"loadLRMMesh : Filestream did not reach end of: ");
-		OutputDebugStringA(path);
+		OutputDebugStringA(modelPath.c_str());
 		OutputDebugString(L"\n");
 		return nullptr;
 	}
@@ -83,27 +128,32 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	//Depending on how we do vertex data layout, we might want to init that here (OR we can do it in a shader class because it's gonna be per shader, kinda)
 
 	//Create a new entry in the meshcache
-	m_MeshCache[path] = new MeshResource;
+	m_meshCache[path] = new MeshResource;
 
 	//Init it with the data
-	m_MeshCache[path]->getVertexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount);
-	m_MeshCache[path]->getIndexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
+	m_meshCache[path]->getVertexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount);
+	m_meshCache[path]->getIndexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
 
 	delete[] vertexArray;
 	delete[] indexArray;
 
 	//Return the pointer of the new entry
-	return m_MeshCache[path];
+	return m_meshCache[path];
+}
+
+void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
+{
+	m_devicePtr = devicePtr;
+	m_dContextPtr = dContextPtr;
+
+	DeviceAndContextPtrsAreSet = true;
 }
 
 void ResourceHandler::Destroy()
 {
-	/*for (std::pair<const GLchar*, Texture2D*> element : m_TextureCache)
-	{
+	for (std::pair<std::wstring, ID3D11ShaderResourceView*> element : m_textureCache)
 		delete element.second;
-	}*/
-	for (std::pair<const char*, MeshResource*> element : m_MeshCache)
-	{
+
+	for (std::pair<const char*, MeshResource*> element : m_meshCache)
 		delete element.second;
-	}
 }

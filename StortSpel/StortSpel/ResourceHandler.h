@@ -10,7 +10,7 @@
 class ResourceHandler
 {
 private:
-	ResourceHandler() {}
+	ResourceHandler();
 public:
 	ResourceHandler(const ResourceHandler&) = delete;
 	void operator=(ResourceHandler const&) = delete;
@@ -21,28 +21,24 @@ public:
 	}
 	
 private:
-
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
 
 	bool DeviceAndContextPtrsAreSet = false; //This bool just insures that no one tries to use the resourcehandler before Renderer::initialize has been called
 	void isResourceHandlerReady();
 
-	//std::unordered_map<const char*, -Texture pekare här-*> m_TextureCache;
-	
-	std::unordered_map<const char*, MeshResource*> m_MeshCache;
+	// Textures
+	std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_textureCache;
+	std::wstring m_texturesPath;
+	std::wstring m_errorTextureName;
+	// Models
+	std::unordered_map<const char*, MeshResource*> m_meshCache;
+	std::string m_modelPath;
 
 public:
-	
-	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
-	
-
-	//-Texture pekare här-* LoadTexture2D(const char* path);
-
-	//bool getTextureByKey(std::wstring key, Texture** texturePtr);
-
+	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath);
 	MeshResource* loadLRMMesh(const char* path);
 
+	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 	void Destroy();
 };
-

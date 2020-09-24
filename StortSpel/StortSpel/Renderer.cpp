@@ -141,6 +141,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_psSamplerState);
 	assert(SUCCEEDED(hr) && "Failed to create SampleState");
 
+	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
+
 	/*ColorVertex triangle[3] =
 	{
 		ColorVertex({-1.f, -1.f, 0.f}, {1.f, 0.f, 0.f}),
@@ -390,7 +392,6 @@ void Renderer::render()
 	//m_dContextPtr->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.getStridePointer(), &offset);
 
 
-
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set defaul viewport
 	m_rTargetViewsArray[0] = m_rTargetViewPtr.Get();
 	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
@@ -399,8 +400,8 @@ void Renderer::render()
 
 	//cbVSWVPMatrix wvp;
 	//wvp.wvpMatrix = XMMatrixTranspose( m_camera.getViewMatrix()* m_camera.getProjectionMatrix());
-
-
+	ID3D11ShaderResourceView* srv = ResourceHandler::get().loadTexture(L"T_CircusTent_D.png");
+	m_dContextPtr->PSSetShaderResources(0, 1, &srv);
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{

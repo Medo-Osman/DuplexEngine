@@ -9,10 +9,10 @@ struct ps_in
 	float3 bitangent : BITANGENT;
 };
 
-
-
+Texture2D diffuseTexture : TEXTURE : register(t0);
+SamplerState sampState : SAMPLER : register(s0);
 
 float4 main(ps_in input) : SV_TARGET
 {
-	return float4(1, 0, 0, 1);
+    return float4(diffuseTexture.Sample(sampState, input.uv).xyz, 1.f);
 }

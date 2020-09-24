@@ -56,7 +56,6 @@
 //Texture loading
 #include <WICTextureLoader.h>
 #include<DDSTextureLoader.h>
-#include"DirectXTex.h"
 using namespace DirectX;
 
 // DirectX 11 Linking
