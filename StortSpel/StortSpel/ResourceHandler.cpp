@@ -63,6 +63,7 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
 			return srv;
 		}
 	}
+	return nullptr;
 }
 
 MeshResource* ResourceHandler::loadLRMMesh(const char* path)

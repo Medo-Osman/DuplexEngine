@@ -9,10 +9,7 @@ struct ps_in
 	float3 bitangent : BITANGENT;
 };
 
-
-
-
 float4 main(ps_in input) : SV_TARGET
 {
-	return float4(input.uv, 0, 1);
+	return float4(input.uv, 0.5f, 1.f);
 }
