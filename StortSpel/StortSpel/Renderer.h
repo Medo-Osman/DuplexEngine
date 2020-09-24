@@ -1,17 +1,11 @@
 #pragma once
 
 #include "ConstantBufferTypes.h"
-
 #include "Camera.h"
-//#include "Layouts.h"
-//#include "CompileShaderUtility.h"
-////#include "Buffer.h"
-//#include "Entity.h"
 #include "ShaderEnums.h"
 #include "Engine.h"
-//#include "ResourceHandler.h"
 
-//class MeshComponent;
+
 
 class Renderer
 {
@@ -89,7 +83,7 @@ private:
 
 	void createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const int& height) const;
 	void setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr);
-	Renderer(); //{};
+	Renderer();
 
 	HRESULT compileShader(LPCWSTR fileName, LPCSTR entryPoint, LPCSTR shaderVer, ID3DBlob** blob);
 
@@ -106,13 +100,8 @@ public:
 		return instance;
 	}
 
-
-
 	HRESULT initialize(const HWND& window);
 	void release();
-
-
-	void handleInput(Mouse* mousePtr, Keyboard* keyboardPtr, const float& dt); //Move to game when any sort of gameLayer exists
 	void update(const float& dt);
 	void render();
 	ID3D11Device* getDevice();

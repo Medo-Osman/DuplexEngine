@@ -200,8 +200,11 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
+    <ClInclude Include="MovementContext.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="ErrorLogger.h" />
+    <ClInclude Include="HighLevelInput.h" />
+    <ClInclude Include="iContext.h" />
     <ClInclude Include="InputStructs.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="MeshResource.h" />

@@ -5,15 +5,17 @@
 
 using namespace DirectX;
 
-class Player
+class Player : public InputObserver
 {
 private:
     DirectX::XMVECTOR m_movementVector;
     Entity* m_playerEntity = nullptr;
+    void setStates(std::vector<State> states);
 public:
     Player();
 
-    void updatePlayer(Keyboard* keyboardPtr, const float& dt);
+    void updatePlayer(const float& dt);
     void setPlayerEntity(Entity* entity);
     Entity* getPlayerEntity();
+    void inputUpdate(InputData& inputData);
 };

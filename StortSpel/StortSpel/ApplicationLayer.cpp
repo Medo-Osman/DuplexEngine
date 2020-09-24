@@ -45,6 +45,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		ShowWindow(m_window, showCmd);
 	}
 	Engine::get().initialize();
+	m_enginePtr = &Engine::get();
 
 	srand(static_cast <unsigned> (time(0)));
 
@@ -104,18 +105,14 @@ void ApplicationLayer::applicationLoop()
 		}
 		else // Render/Logic Loop
 		{
-			m_graphicEnginePtr->handleInput(m_input.getMouse(), m_input.getKeyboard(), dt);
-			Engine* enginePtr = &Engine::get();
-			Engine::get().update(m_input.getMouse(), m_input.getKeyboard(), dt);
-
+			m_input.readBuffers();
+			m_enginePtr->update(dt);
 			m_physics.update(dt);
 			m_graphicEnginePtr->update(dt);
 			m_graphicEnginePtr->render();
+
 		}
 	}
-	//m_graphicEnginePtr->release();
-
-	//m_graphicEnginePtr->release();
 	m_physics.release();
 }
 

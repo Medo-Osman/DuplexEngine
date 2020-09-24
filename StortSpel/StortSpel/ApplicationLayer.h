@@ -11,6 +11,7 @@ private:
 	Renderer* m_graphicEnginePtr;
 	Physics m_physics;
 	HWND m_window;
+	Engine* m_enginePtr;
 
 	float m_time;
 
