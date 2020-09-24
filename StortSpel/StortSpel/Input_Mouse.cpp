@@ -41,6 +41,7 @@ Mouse::Mouse()
 	m_mousePos.x = 0;
 	m_mousePos.y = 0;
 }
+
 MouseEvent Mouse::readEvent()
 {
 	MouseEvent evnt;

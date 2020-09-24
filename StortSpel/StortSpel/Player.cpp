@@ -2,34 +2,40 @@
 #include "Player.h"
 
 
-Player::Player()
-{
-}
-
-//Updates player, should later integrate with new inputhandler.
-//To do: Implement with physics objects.
-void Player::updatePlayer(Keyboard* keyboardPtr, const float& dt)
+void Player::setStates(std::vector<State> states)
 {
 	m_movementVector = XMVECTOR();
-	if (keyboardPtr->isKeyPressed('W')) //W-key
+	for (std::vector<int>::size_type i = 0; i < states.size(); i++)
 	{
-		m_movementVector += XMVectorSet( 0, 0, 2*dt, 0 );
+		switch (states[i])
+		{
+		case WALK_LEFT:
+			m_movementVector += XMVectorSet(-2, 0, 0, 0);
+			break;
+		case WALK_RIGHT:
+			m_movementVector += XMVectorSet(2, 0, 0, 0);
+			break;
+		case WALK_FORWARD:
+			m_movementVector += XMVectorSet(0, 0, 2, 0);
+			break;
+		case WALK_BACKWARD:
+			m_movementVector += XMVectorSet(0, 0, -2, 0);
+			break;
+		default:
+			break;
+		}
 	}
-	if (keyboardPtr->isKeyPressed('A')) //A-key
-	{
-		m_movementVector += XMVectorSet( -2*dt, 0, 0, 0 );
-	}
-	if (keyboardPtr->isKeyPressed('S')) //S-key
-	{
-		m_movementVector += XMVectorSet(0, 0, -2*dt, 0);
-	}
+}
 
-	if (keyboardPtr->isKeyPressed('D')) //D-key
-	{
-		m_movementVector += XMVectorSet( 2*dt, 0, 0, 0 );
-	}
-	
-	m_playerEntity->move(m_movementVector);
+Player::Player()
+{
+	m_movementVector = XMVectorZero();
+}
+
+//To do: Implement with physics objects.
+void Player::updatePlayer(const float& dt)
+{
+	m_playerEntity->move(m_movementVector * dt);
 }
 
 void Player::setPlayerEntity(Entity* entity)
@@ -40,4 +46,9 @@ void Player::setPlayerEntity(Entity* entity)
 Entity* Player::getPlayerEntity()
 {
 	return m_playerEntity;
+}
+
+void Player::inputUpdate(InputData& inputData)
+{
+	this->setStates(inputData.stateData);
 }

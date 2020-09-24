@@ -1,18 +1,12 @@
 #pragma once
 
 #include "ConstantBufferTypes.h"
-
 #include "Camera.h"
-//#include "Layouts.h"
-//#include "CompileShaderUtility.h"
-////#include "Buffer.h"
-//#include "Entity.h"
 #include "ShaderProgram.h"
 #include "ShaderEnums.h"
 #include "Engine.h"
-//#include "ResourceHandler.h"
 
-//class MeshComponent;
+
 
 class Renderer
 {
@@ -80,13 +74,8 @@ public:
 		return instance;
 	}
 
-
-
 	HRESULT initialize(const HWND& window);
 	void release();
-
-
-	void handleInput(Mouse* mousePtr, Keyboard* keyboardPtr, const float& dt); //Move to game when any sort of gameLayer exists
 	void update(const float& dt);
 	void render();
 	ID3D11Device* getDevice();

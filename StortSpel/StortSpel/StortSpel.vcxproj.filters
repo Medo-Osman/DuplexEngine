@@ -40,21 +40,18 @@
     <Filter Include="Source Files\Engine">
       <UniqueIdentifier>{a2e571ce-1f95-43d3-8aab-b42df956998e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Application\Input">
+      <UniqueIdentifier>{8064e12e-9923-46ac-8422-18dbb959dc76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Application\Input\Context">
+      <UniqueIdentifier>{9427d680-6062-452d-8ee0-7d381c1aa292}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ApplicationLayer.cpp">
-      <Filter>Source Files\Application</Filter>
-    </ClCompile>
-    <ClCompile Include="Input.cpp">
-      <Filter>Source Files\Application</Filter>
-    </ClCompile>
-    <ClCompile Include="Input_Keyboard.cpp">
-      <Filter>Source Files\Application</Filter>
-    </ClCompile>
-    <ClCompile Include="Input_Mouse.cpp">
       <Filter>Source Files\Application</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
@@ -81,6 +78,15 @@
     <ClCompile Include="Transform.cpp">
       <Filter>Source Files\Graphic</Filter>
     </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>Source Files\Application\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Input_Keyboard.cpp">
+      <Filter>Source Files\Application\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Input_Mouse.cpp">
+      <Filter>Source Files\Application\Input</Filter>
+	</ClCompile>
     <ClCompile Include="Player.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
@@ -119,15 +125,6 @@
     <ClInclude Include="ErrorLogger.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
-    <ClInclude Include="Input.h">
-      <Filter>Source Files\Application</Filter>
-    </ClInclude>
-    <ClInclude Include="Input_Keyboard.h">
-      <Filter>Source Files\Application</Filter>
-    </ClInclude>
-    <ClInclude Include="Input_Mouse.h">
-      <Filter>Source Files\Application</Filter>
-    </ClInclude>
     <ClInclude Include="ResourceHandler.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
@@ -152,6 +149,24 @@
     <ClInclude Include="Physics.h">
       <Filter>Source Files\Game\PhysX</Filter>
     </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>Source Files\Application\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input_Keyboard.h">
+      <Filter>Source Files\Application\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Input_Mouse.h">
+      <Filter>Source Files\Application\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="iContext.h">
+      <Filter>Source Files\Application\Input\Context</Filter>
+    </ClInclude>
+    <ClInclude Include="HighLevelInput.h">
+      <Filter>Source Files\Application\Input\Context</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementContext.h">
+      <Filter>Source Files\Application\Input\Context</Filter>
+	</ClInclude>
     <ClInclude Include="ShaderProgram.h">
       <Filter>Source Files\Graphic</Filter>
     </ClInclude>
