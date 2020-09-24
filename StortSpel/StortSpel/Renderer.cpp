@@ -233,6 +233,7 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
+	// For Tetxure Testing only
 	ID3D11ShaderResourceView* srv = ResourceHandler::get().loadTexture(L"T_CircusTent_D.png");
 	m_dContextPtr->PSSetShaderResources(0, 1, &srv);
 

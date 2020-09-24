@@ -1,14 +1,6 @@
 #include "3DPCH.h"
 #include "ResourceHandler.h"
 
-
-ResourceHandler::ResourceHandler()
-{
-	m_texturesPath = L"../res/textures/";
-	m_errorTextureName = L"error_dun_gofed.jpg";
-	m_modelPath = "../res/models/";
-}
-
 void ResourceHandler::isResourceHandlerReady()
 {
 	if (!DeviceAndContextPtrsAreSet)
@@ -30,11 +22,11 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
 
 		HRESULT hr;
 		ID3D11ShaderResourceView* srv = nullptr;
-		std::wstring path = texturePath;
-		path = m_texturesPath + path;
+		std::wstring path = m_TEXTURES_PATH + texturePath;
 
 		size_t i = path.rfind('.', path.length());
 		std::wstring fileExtension = path.substr(i + 1, path.length() - i);
+
 		if (fileExtension == L"dds" || fileExtension == L"DDS")
 			hr = CreateDDSTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
 		else
@@ -42,18 +34,19 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
 
 		if (FAILED(hr)) // failed to load new texture, return error texture
 		{
-			if (m_textureCache.count(m_errorTextureName))  // if error texture is loaded
-				return m_textureCache[m_errorTextureName.c_str()];
+			if (m_textureCache.count(m_ERROR_TEXTURE_NAME))  // if error texture is loaded
+				return m_textureCache[m_ERROR_TEXTURE_NAME.c_str()];
 			else // Load error texture
 			{
-				path = m_texturesPath + m_errorTextureName;
-				hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &m_textureCache[m_errorTextureName]);
+				path = m_TEXTURES_PATH + m_ERROR_TEXTURE_NAME;
+				hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &m_textureCache[m_ERROR_TEXTURE_NAME]);
 				if (SUCCEEDED(hr))
-					return m_textureCache[m_errorTextureName];
+					return m_textureCache[m_ERROR_TEXTURE_NAME];
 				else
 				{
-					std::wstring errorMessage = L"ERROR, '" + m_errorTextureName + L"' texture can not be found in '" + m_texturesPath + L"'!";
-					assert(!errorMessage.c_str());
+					//std::wstring errorMessage = L"ERROR, '" + m_ERROR_TEXTURE_NAME + L"' texture can not be found in '" + m_TEXTURES_PATH + L"'!";
+					ErrorLogger::get().logError("error texture can not be found in texture folder!");
+					assert(!L"ERROR, error texture can not be found in tetxure folder!");
 				}
 			}
 		}
@@ -78,17 +71,15 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	}
 	
 	// or loads the mesh and makes new buffers
-	std::string modelPath = m_modelPath + path;
+	std::string modelPath = m_MODELS_PATH + path;
 	std::ifstream fileStream(modelPath, std::ifstream::in | std::ifstream::binary);
 
 	// Check filestream failure
 	if (!fileStream)
 	{
 		// Error message
-		//fprintf(stderr, "loadLRMMesh failed to open filestream: %s\n", path);
-		OutputDebugString(L"loadLRMMesh failed to open filestream: " );
-		OutputDebugStringA(modelPath.c_str());
-		OutputDebugString(L"\n");
+		std::string errormsg("loadLRMMesh failed to open filestream: "); errormsg.append(path);
+		ErrorLogger::get().logError(errormsg.c_str());
 		// Properly clear and close file buffer
 		fileStream.clear();
 		fileStream.close();

@@ -1,16 +1,14 @@
 #pragma once
-//#include "Buffer.h"
 #include <unordered_map>
 #include <stdio.h>
 #include "Layouts.h"
 #include "VertexStructs.h"
 #include "MeshResource.h"
-//#include "ApplicationLayer.h"
 
 class ResourceHandler
 {
 private:
-	ResourceHandler();
+	ResourceHandler() {}
 public:
 	ResourceHandler(const ResourceHandler&) = delete;
 	void operator=(ResourceHandler const&) = delete;
@@ -29,11 +27,11 @@ private:
 
 	// Textures
 	std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_textureCache;
-	std::wstring m_texturesPath;
-	std::wstring m_errorTextureName;
+	const std::wstring m_TEXTURES_PATH = L"../res/textures/";
+	const std::wstring m_ERROR_TEXTURE_NAME = L"error_dun_gofed.jpg";
 	// Models
 	std::unordered_map<const char*, MeshResource*> m_meshCache;
-	std::string m_modelPath;
+	const std::string m_MODELS_PATH = "../res/models/";
 
 public:
 	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath);
