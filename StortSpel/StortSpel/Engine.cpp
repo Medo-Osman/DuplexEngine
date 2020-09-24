@@ -1,5 +1,6 @@
 #include "3DPCH.h"
 #include "Engine.h"
+#include"ApplicationLayer.h"
 
 Engine::Engine()
 {
@@ -39,9 +40,9 @@ Engine::~Engine()
 
 
 
-void Engine::update(Mouse* mousePtr, Keyboard* keyboardPtr, const float& dt)
+void Engine::update(const float& dt)
 {
-	m_player->updatePlayer(keyboardPtr, dt);
+	m_player->updatePlayer(dt);
 }
 bool Engine::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
 {
@@ -120,6 +121,7 @@ void Engine::initialize()
 	}
 
 	m_player = new Player();
+	ApplicationLayer::getInstance().m_input.Attach(m_player);
 	if (addEntity("meshPlayer"))
 	{
 		

@@ -1,7 +1,7 @@
 #pragma once
 #include "Input.h"
 
-class Camera
+class Camera : public InputObserver
 {
 private:
 	XMVECTOR m_position;
@@ -16,6 +16,10 @@ private:
 
 	XMMATRIX m_viewMatrix;
 	XMMATRIX m_projectionMatrix;
+
+	bool m_newIncrements;
+	XMVECTOR m_incrementRotation;
+	XMVECTOR m_incrementPosition;
 
 	void updateViewMatrix();
 public:
@@ -33,8 +37,8 @@ public:
 	const XMFLOAT3 getForward() const;
 	BoundingFrustum getFrustum();
 
-	void controllCameraRotation(const MouseEvent& mEvent, const float& dt);
-	void controllCameraPosition();
+	void update(const float& dt);
+	void inputUpdate(InputData& inputData);
 
 
 

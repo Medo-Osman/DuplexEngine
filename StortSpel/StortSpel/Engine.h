@@ -33,7 +33,7 @@ public:
 	Entity* addEntity(std::string identifier);
 	~Engine();
 
-	void update(Mouse* mousePtr, Keyboard* keyboardPtr, const float &dt);
+	void update(const float &dt);
 
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 

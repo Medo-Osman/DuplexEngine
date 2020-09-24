@@ -1,9 +1,42 @@
 #include"3DPCH.h"
 #include"Input.h"
 
+bool Input::fillInputDataUsingKey(const char& key, const bool& wasPressed, const bool& isMouse)
+{
+	bool foundContext = false;
+	for (std::vector<int>::size_type i = 0; i < m_contexts.size() && !foundContext; i++) {
+		if (wasPressed)
+		{
+			int action = m_contexts[i]->getAction(key);
+			if (action != -1)
+			{
+				m_currentInputData.actionData.emplace_back(Action(action));
+				foundContext = true;
+			}
+		}
+
+		if (!foundContext && !isMouse)
+		{
+			int state = m_contexts[i]->getState(key);
+			if (state != -1)
+			{
+				if (wasPressed)
+					m_currentInputData.stateData.emplace_back(State(state));
+				else
+					m_currentInputData.removeStateData(State(state));
+
+				foundContext = true;
+			}
+		}
+	}
+
+	return foundContext;
+}
+
 Input::Input()
 {
 	m_cursorEnabled = false;
+	m_contexts.emplace_back(new MovementContext());
 }
 
 LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lParam)
@@ -167,14 +200,74 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 
 void Input::readBuffers()
 {
+	bool inputDataChanged = false;
+	m_currentInputData.actionData.clear();
+	m_currentInputData.rangeData.clear();
+
 	if (!m_Keyboard.empty())
 	{
 		KeyboardEvent readEvent = m_Keyboard.readKey();
+		if (readEvent.isPressed())
+		{
+			inputDataChanged = this->fillInputDataUsingKey(readEvent.getKey(), true) || inputDataChanged;
+		}
+		else //Is realeased
+		{
+			inputDataChanged = this->fillInputDataUsingKey(readEvent.getKey(), false) || inputDataChanged;
+		}
 	}
-
-	if (!m_Mouse.empty())
+	
+	if(!m_Mouse.empty())
 	{
 		MouseEvent mouseEvnt = m_Mouse.readEvent();
+		char charConverted = iContext::convertEventToMouseChar(mouseEvnt.getEvent());
+
+		if (mouseEvnt.getEvent() == Event::MouseMove || mouseEvnt.getEvent() == Event::MouseRAW_MOVE) //Range
+		{
+			bool foundContext = false;
+			for (std::vector<int>::size_type i = 0; i < m_contexts.size() && !foundContext; i++) 
+			{
+				Range rangeState = Range(m_contexts[i]->getRange(charConverted));
+				if (rangeState != -1)
+				{
+					MousePos pos = mouseEvnt.getPos();
+					this->m_currentInputData.rangeData.emplace_back(rangeState, pos);
+					inputDataChanged = true;
+				}
+			}
+		}
+		else //Button
+		{
+			inputDataChanged = this->fillInputDataUsingKey(charConverted, true, true) || inputDataChanged;
+		}
+	}
+
+	//Notify
+	if (inputDataChanged)
+	{
+		for (std::vector<int>::size_type i = 0; i < m_inputObservers.size(); i++) 
+		{
+			m_inputObservers[i]->inputUpdate(m_currentInputData);
+		}
+	}
+
+}
+
+void Input::addContext(iContext* context)
+{
+	m_contexts.emplace_back(context);
+}
+
+void Input::removeContext(iContext* context)
+{
+	bool removed = false;
+	for (std::vector<int>::size_type i = 0; i < m_contexts.size() && !removed; i++)
+	{
+		if (m_contexts[i] = context)
+		{
+			m_contexts.erase(m_contexts.begin() + i);
+			removed = true;
+		}
 	}
 }
 
@@ -192,3 +285,22 @@ Mouse* Input::getMouse()
 {
 	return &m_Mouse;
 }
+
+
+
+void Input::Attach(InputObserver* observer)
+{
+
+	m_inputObservers.emplace_back(observer);
+
+}
+
+void Input::Detach(InputObserver* observer)
+{
+	bool detatched = false;
+	for (std::vector<int>::size_type i = 0; i < m_inputObservers.size() || !detatched; i++) {
+		if (m_inputObservers[i] == observer)
+			m_inputObservers.erase(m_inputObservers.begin() + i);
+	}
+}
+

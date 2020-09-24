@@ -90,7 +90,6 @@ void Renderer::release()
 		}
 	}
 
-
 	delete[] m_rTargetViewsArray;
 }
 
@@ -141,25 +140,12 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_psSamplerState);
 	assert(SUCCEEDED(hr) && "Failed to create SampleState");
 
-	/*ColorVertex triangle[3] =
-	{
-		ColorVertex({-1.f, -1.f, 0.f}, {1.f, 0.f, 0.f}),
-		ColorVertex({-1.f, 1.f, 0.f}, {1.f, 0.f, 0.f}),
-		ColorVertex({1.f, 1.f, 0.f}, {1.f, 0.f, 0.f})
-	};
-	m_vertexBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, triangle, 3);*/
-
-
-
-
-
-
-	//m_vertexShaderConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cbVSWVPMatrix(), 1);
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 
 	m_camera.setProjectionMatrix(80.f, (float)m_height/(float)m_width, 0.01f, 1000.0f);
 	//m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
+
 
 
 	// Entities
@@ -249,7 +235,6 @@ HRESULT Renderer::createDepthStencil()
 	m_rTargetViewsArray[0] = m_rTargetViewPtr.Get();
 	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
 
-
 	//Depth stencil state desc
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
@@ -264,7 +249,6 @@ HRESULT Renderer::createDepthStencil()
 
 HRESULT Renderer::setUpInputAssembler()
 {
-
 	HRESULT hr = m_devicePtr->CreateInputLayout(Layouts::LRMVertexLayout, //VertexLayout
 		ARRAYSIZE(Layouts::LRMVertexLayout), //Nr of elements
 		m_vertexShaderBufferPtr->GetBufferPointer(),
@@ -326,43 +310,9 @@ void Renderer::rasterizerSetup()
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
 }
 
-void Renderer::handleInput(Mouse* mousePtr, Keyboard* keyboardPtr, const float& dt)
-{
-	while (!mousePtr->empty())
-	{
-		MouseEvent mEvent = mousePtr->readEvent();
-		if (mEvent.isValid())
-		{
-			if (mEvent.getEvent() == Event::MouseRAW_MOVE)
-			{
-				m_camera.controllCameraRotation(mEvent, dt);
-			}
-		}
-	}
-
-	while (!keyboardPtr->empty())
-	{
-		KeyboardEvent mEvent = keyboardPtr->readKey();
-		if (mEvent.isValid())
-		{
-			//Do on buttondown/button up things here.
-			if (mEvent.getEvent() == Event::Pressed)
-			{
-				if (mEvent.getKey() == 'W')
-				{
-					//Do things
-				}
-			}
-		}
-	}
-
-	m_camera.controllCameraPosition(); //ControllCameraPosition only uses an array of what keys are pressed.
-
-}
-
 void Renderer::update(const float& dt)
 {
-
+	m_camera.update(dt);
 }
 
 void Renderer::render()
@@ -400,8 +350,6 @@ void Renderer::render()
 	//cbVSWVPMatrix wvp;
 	//wvp.wvpMatrix = XMMatrixTranspose( m_camera.getViewMatrix()* m_camera.getProjectionMatrix());
 
-
-
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
 		perObjectMVP constantBufferPerObjectStruct;
@@ -415,8 +363,6 @@ void Renderer::render()
 
 		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
-
-
 
 	m_swapChainPtr->Present(0, 0);
 }
@@ -440,6 +386,7 @@ ID3D11DeviceContext* Renderer::getDContext()
 	return m_dContextPtr.Get();
 }
 
+
 ID3D11DepthStencilView* Renderer::getDepthStencilView()
 {
 	return m_depthStencilViewPtr.Get();
@@ -456,3 +403,4 @@ bool Renderer::checkSetShaderFile(ShaderType s, LPCWSTR file)
 
 	return isSet;
 }
+
