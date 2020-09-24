@@ -80,7 +80,7 @@ void Camera::update(const float &dt)
 		this->m_rotation += m_incrementRotation * dt * 2;
 		m_newIncrements = false;
 	}
-	m_position = Engine::get().getEntity("meshPlayer")->getTranslation() + Vector3(0, 2, -50);
+	m_position = Engine::get().getEntity("meshPlayer")->getTranslation() + Vector3(0, 2, -5);
 
 	this->updateViewMatrix();
 }
