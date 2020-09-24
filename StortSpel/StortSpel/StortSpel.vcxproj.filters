@@ -189,5 +189,8 @@
     <FxCompile Include="BasicPixelShader.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
+    <FxCompile Include="BasicPixelShader_temp_for_testing_shaderSwitching.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -38,11 +38,9 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	// Check filestream failure
 	if (!fileStream)
 	{
-		// Error message
-		//fprintf(stderr, "loadLRMMesh failed to open filestream: %s\n", path);
-		OutputDebugString(L"loadLRMMesh failed to open filestream: " );
-		OutputDebugStringA(path);
-		OutputDebugString(L"\n");
+		std::string errormsg("loadLRMMesh failed to open filestream: "); errormsg.append(path);
+		ErrorLogger::get().logError(errormsg.c_str());
+
 		// Properly clear and close file buffer
 		fileStream.clear();
 		fileStream.close();
@@ -71,9 +69,8 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	fileStream.read(&overByte, 1);
 	if (!fileStream.eof())
 	{
-		OutputDebugString(L"loadLRMMesh : Filestream did not reach end of: ");
-		OutputDebugStringA(path);
-		OutputDebugString(L"\n");
+		std::string errormsg("loadLRMMesh : Filestream did not reach end of: "); errormsg.append(path);
+		ErrorLogger::get().logError(errormsg.c_str());
 		return nullptr;
 	}
 

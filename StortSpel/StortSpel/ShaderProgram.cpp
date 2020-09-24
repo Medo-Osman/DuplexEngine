@@ -1,261 +1,259 @@
 #include "3DPCH.h"
-
 #include "ShaderProgram.h"
 
 
 
-ShaderProgram::ShaderProgram(std::initializer_list <LPCWSTR> shaderFiles, D3D_PRIMITIVE_TOPOLOGY topologyType, std::string input_layout_type)
+ShaderProgram::ShaderProgram(std::initializer_list <LPCWSTR> shaderFiles, D3D_PRIMITIVE_TOPOLOGY topologyType, VertexLayoutType inputLayoutType, ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr, ID3D11DepthStencilView* depthStencilPtr)
+	: m_topologyType(topologyType), m_devicePtr(devicePtr), m_dContextPtr(dContextPtr), m_depthStencilPtr(depthStencilPtr)
 {
-	this->topologyType = topologyType;
-
 	int i = 0;
 	for (auto file : shaderFiles)
 	{
-		this->shaderFiles[i] = file;
+		m_shaderFiles[i] = file;
 		i++;
 	}
 
 	for (int i = 0; i < 4; i++)
-		this->shaderNeedsResource[i] = false;
+		m_shaderNeedsResource[i] = false;
 
-	this->shaderNeedsResource[4] = true;
+	m_shaderNeedsResource[4] = true;
 
 	for (int i = 0; i < 4; i++)
-		this->shaderNeedsCBuffer[i] = false;
+		m_shaderNeedsCBuffer[i] = false;
 
-	this->shaderNeedsCBuffer[4] = true;
+	m_shaderNeedsCBuffer[4] = true;
 
-	compileShaders(input_layout_type);
+	compileShaders(inputLayoutType);
 }
 
 ShaderProgram::~ShaderProgram()
 {
-	VS = nullptr;
-	HS = nullptr;
-	DS = nullptr;
-	GS = nullptr;
-	PS = nullptr;
+	m_VS = nullptr;
+	m_HS = nullptr;
+	m_DS = nullptr;
+	m_GS = nullptr;
+	m_PS = nullptr;
 
-	input_layout = nullptr;
+	m_inputLayout = nullptr;
 
-	for (int i = 0; i < renderTargets.size(); i++)
+	for (int i = 0; i < m_renderTargets.size(); i++)
 	{
-		renderTargets.at(i) = nullptr;
+		m_renderTargets.at(i) = nullptr;
 	}
 }
 
-void ShaderProgram::compileShaders(std::string input_layout_type)
+void ShaderProgram::compileShaders(VertexLayoutType inputLayoutType)
 {
 	// Compile and create all the shaders
-	// For now let each Shader object have it's own comptr even if a diffrent Shader uses the same shader-stage. TODO: Consider adding a resource manager at a diffrent time
+	// For now let each Shader object have it's own comptr even if a diffrent Shader uses the same shader-stage.
 	Microsoft::WRL::ComPtr<ID3DBlob> Blob = NULL;
 	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = NULL;
 
+	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined( DEBUG ) || defined( _DEBUG )
+	flags |= D3DCOMPILE_DEBUG;
+#endif
+
 	HRESULT hr = NULL;
 
-	// Make a handy pointer to GraphicsEngine for use in the function
-	Renderer* rend = &Renderer::get();
-
-	if (this->shaderFiles[ShaderType::Vertex] != L"null" && this->shaderFiles[ShaderType::Vertex] != L"")
+	if (m_shaderFiles[ShaderType::Vertex] != L"null" && m_shaderFiles[ShaderType::Vertex] != L"")
 	{
-		hr = D3DCompileFromFile(this->shaderFiles[ShaderType::Vertex], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VSMain", "vs_5_0", 0, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
+		hr = D3DCompileFromFile(m_shaderFiles[ShaderType::Vertex], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", flags, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
 
 		if (FAILED(hr))
-			this->errorBlobCheck(errorBlob);
+			errorBlobCheck(errorBlob);
 
-		hr = rend->getDevice()->CreateVertexShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, this->VS.GetAddressOf());
+		hr = m_devicePtr->CreateVertexShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, m_VS.GetAddressOf());
 		assert(SUCCEEDED(hr));
 	}
 
-	//this->inputLayoutSetup(input_layout_type, Blob);
+	inputLayoutSetup(inputLayoutType, Blob);
 
 	Blob = nullptr;
 
-	if (this->shaderFiles[ShaderType::Hull] != L"null" && this->shaderFiles[ShaderType::Hull] != L"")
+	if (m_shaderFiles[ShaderType::Hull] != L"null" && m_shaderFiles[ShaderType::Hull] != L"")
 	{
-		hr = D3DCompileFromFile(this->shaderFiles[ShaderType::Hull], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "HSMain", "hs_5_0", 0, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
+		hr = D3DCompileFromFile(m_shaderFiles[ShaderType::Hull], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "hs_5_0", flags, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
 
 		if (FAILED(hr))
-			this->errorBlobCheck(errorBlob);
+			errorBlobCheck(errorBlob);
 
-		hr = rend->getDevice()->CreateHullShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, this->HS.GetAddressOf());
+		hr = m_devicePtr->CreateHullShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, m_HS.GetAddressOf());
 		assert(SUCCEEDED(hr));
 	}
 	Blob = nullptr;
 
-	if (this->shaderFiles[ShaderType::Domain] != L"null" && this->shaderFiles[ShaderType::Domain] != L"")
+	if (m_shaderFiles[ShaderType::Domain] != L"null" && m_shaderFiles[ShaderType::Domain] != L"")
 	{
-		hr = D3DCompileFromFile(this->shaderFiles[ShaderType::Domain], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "DSMain", "ds_5_0", 0, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
+		hr = D3DCompileFromFile(m_shaderFiles[ShaderType::Domain], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ds_5_0", flags, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
 
 		if (FAILED(hr))
-			this->errorBlobCheck(errorBlob);
+			errorBlobCheck(errorBlob);
 
-		hr = rend->getDevice()->CreateDomainShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, this->DS.GetAddressOf());
+		hr = m_devicePtr->CreateDomainShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, m_DS.GetAddressOf());
 		assert(SUCCEEDED(hr));
 	}
 	Blob = nullptr;
 
-	if (this->shaderFiles[ShaderType::Geometry] != L"null" && this->shaderFiles[ShaderType::Geometry] != L"")
+	if (m_shaderFiles[ShaderType::Geometry] != L"null" && m_shaderFiles[ShaderType::Geometry] != L"")
 	{
-		hr = D3DCompileFromFile(this->shaderFiles[ShaderType::Geometry], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "GSMain", "gs_5_0", 0, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
+		hr = D3DCompileFromFile(m_shaderFiles[ShaderType::Geometry], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "gs_5_0", flags, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
 
 		if (FAILED(hr))
-			this->errorBlobCheck(errorBlob);
+			errorBlobCheck(errorBlob);
 
-		hr = rend->getDevice()->CreateGeometryShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, this->GS.GetAddressOf());
+		hr = m_devicePtr->CreateGeometryShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, m_GS.GetAddressOf());
 		assert(SUCCEEDED(hr));
 	}
 	Blob = nullptr;
 
-	if (this->shaderFiles[ShaderType::Pixel] != L"null" && this->shaderFiles[ShaderType::Pixel] != L"")
+	if (m_shaderFiles[ShaderType::Pixel] != L"null" && m_shaderFiles[ShaderType::Pixel] != L"")
 	{
-		hr = D3DCompileFromFile(this->shaderFiles[ShaderType::Pixel], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PSMain", "ps_5_0", 0, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
+		hr = D3DCompileFromFile(m_shaderFiles[ShaderType::Pixel], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", flags, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
 
 		if (FAILED(hr))
-			this->errorBlobCheck(errorBlob);
+			errorBlobCheck(errorBlob);
 
-		hr = rend->getDevice()->CreatePixelShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, this->PS.GetAddressOf());
+		hr = m_devicePtr->CreatePixelShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, m_PS.GetAddressOf());
 		assert(SUCCEEDED(hr));
 	}
 }
 
 void ShaderProgram::addRenderTarget(Microsoft::WRL::ComPtr<ID3D11RenderTargetView>& rtv)
 {
-	this->renderTargets.push_back(rtv);
+	m_renderTargets.push_back(rtv);
 }
 
 void ShaderProgram::setUsesDepthStencilView(bool state)
 {
-	this->usesDepthStencilView = state;
+	m_usesDepthStencilView = state;
 }
 
 void ShaderProgram::clearRenderTargets()
 {
 	float colorBlack[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-	for (int i = 0; i < this->renderTargets.size(); i++)
+	for (int i = 0; i < m_renderTargets.size(); i++)
 	{
-		Renderer::get().getDContext()->ClearRenderTargetView(this->renderTargets.at(i).Get(), colorBlack);
+		m_dContextPtr->ClearRenderTargetView(m_renderTargets.at(i).Get(), colorBlack);
 	}
 }
 
 void ShaderProgram::setShaderNeedsResource(ShaderType shader, bool state)
 {
-	this->shaderNeedsResource[shader] = state;
+	m_shaderNeedsResource[shader] = state;
 }
 
 void ShaderProgram::setShadersNeedsResource(bool vState, bool hState, bool dState, bool gState, bool pState)
 {
-	this->shaderNeedsResource[ShaderType::Vertex] = vState;
-	this->shaderNeedsResource[ShaderType::Hull] = hState;
-	this->shaderNeedsResource[ShaderType::Domain] = dState;
-	this->shaderNeedsResource[ShaderType::Geometry] = gState;
-	this->shaderNeedsResource[ShaderType::Pixel] = pState;
+	m_shaderNeedsResource[ShaderType::Vertex] = vState;
+	m_shaderNeedsResource[ShaderType::Hull] = hState;
+	m_shaderNeedsResource[ShaderType::Domain] = dState;
+	m_shaderNeedsResource[ShaderType::Geometry] = gState;
+	m_shaderNeedsResource[ShaderType::Pixel] = pState;
 }
 
 void ShaderProgram::setShaderNeedsCBuffer(ShaderType shader, bool state)
 {
-	this->shaderNeedsCBuffer[shader] = state;
+	m_shaderNeedsCBuffer[shader] = state;
 }
 
 void ShaderProgram::setShadersNeedsCBuffer(bool vState, bool hState, bool dState, bool gState, bool pState)
 {
-	this->shaderNeedsCBuffer[ShaderType::Vertex] = vState;
-	this->shaderNeedsCBuffer[ShaderType::Hull] = hState;
-	this->shaderNeedsCBuffer[ShaderType::Domain] = dState;
-	this->shaderNeedsCBuffer[ShaderType::Geometry] = gState;
-	this->shaderNeedsCBuffer[ShaderType::Pixel] = pState;
+	m_shaderNeedsCBuffer[ShaderType::Vertex] = vState;
+	m_shaderNeedsCBuffer[ShaderType::Hull] = hState;
+	m_shaderNeedsCBuffer[ShaderType::Domain] = dState;
+	m_shaderNeedsCBuffer[ShaderType::Geometry] = gState;
+	m_shaderNeedsCBuffer[ShaderType::Pixel] = pState;
 }
 
 void ShaderProgram::setShaders()
 {
-	// Make a handy pointer to GraphicsEngine for use in the function
-	Renderer* rend = &Renderer::get();
 
-	rend->getDContext()->IASetPrimitiveTopology(this->topologyType);
+	m_dContextPtr->IASetPrimitiveTopology(m_topologyType);
 
-	rend->getDContext()->IASetInputLayout(this->input_layout.Get());
+	m_dContextPtr->IASetInputLayout(m_inputLayout.Get());
 
-	if (this->renderTargets.size() > 0) // TODO: this needs a check to see if they are already set
+	if (m_renderTargets.size() > 0) // TODO: this might need a check to see if they are already set
 	{
-		if (this->usesDepthStencilView)
-			rend->getDContext()->OMSetRenderTargets((UINT)this->renderTargets.size(), this->renderTargets[0].GetAddressOf(), rend->getDepthStencilView());
+		if (m_usesDepthStencilView)
+			m_dContextPtr->OMSetRenderTargets((UINT)m_renderTargets.size(), m_renderTargets[0].GetAddressOf(), m_depthStencilPtr);
 		else
-			rend->getDContext()->OMSetRenderTargets((UINT)this->renderTargets.size(), this->renderTargets[0].GetAddressOf(), NULL);
+			m_dContextPtr->OMSetRenderTargets((UINT)m_renderTargets.size(), m_renderTargets[0].GetAddressOf(), NULL);
 	}
 
 	// ---Vertex
-	if (this->shaderFiles[ShaderType::Vertex] != L"") // Only set if the file isn't "", if it is it means it doesn't matter
+	if (m_shaderFiles[ShaderType::Vertex] != L"") // Only set if the file isn't "", if it is it means it doesn't matter
 	{
-		if (this->shaderFiles[ShaderType::Vertex] == L"null")
+		if (m_shaderFiles[ShaderType::Vertex] == L"null")
 		{
-			if (!rend->checkSetShaderFile(ShaderType::Vertex, L"null")) // If the file is null, check if rend's file is null and
-				rend->getDContext()->VSSetShader(NULL, 0, 0);				// if not then set null
+			if (!checkSetShaderFile(ShaderType::Vertex, L"null")) // If the file is null, check if rend's file is null and
+				m_dContextPtr->VSSetShader(NULL, 0, 0);				// if not then set null
 		}
 		else
 		{
-			if (!rend->checkSetShaderFile(ShaderType::Vertex, this->shaderFiles[ShaderType::Vertex])) //Check if shader is currently set
-				rend->getDContext()->VSSetShader(this->VS.Get(), 0, 0);	// If not then set the shader
+			if (!checkSetShaderFile(ShaderType::Vertex, m_shaderFiles[ShaderType::Vertex])) //Check if shader is currently set
+				m_dContextPtr->VSSetShader(m_VS.Get(), 0, 0);	// If not then set the shader
 		}
 	}
 
 	// ---Hull
-	if (this->shaderFiles[ShaderType::Hull] != L"") // Only set if the file isn't "", if it is it means it doesn't matter
+	if (m_shaderFiles[ShaderType::Hull] != L"") // Only set if the file isn't "", if it is it means it doesn't matter
 	{
-		if (this->shaderFiles[ShaderType::Hull] == L"null")
+		if (m_shaderFiles[ShaderType::Hull] == L"null")
 		{
-			if (!rend->checkSetShaderFile(ShaderType::Hull, L"null")) // If the file is null, check if rend's file is null and
-				rend->getDContext()->HSSetShader(NULL, 0, 0);				// if not then set null
+			if (!checkSetShaderFile(ShaderType::Hull, L"null")) // If the file is null, check if rend's file is null and
+				m_dContextPtr->HSSetShader(NULL, 0, 0);				// if not then set null
 		}
 		else
 		{
-			if (!rend->checkSetShaderFile(ShaderType::Hull, this->shaderFiles[ShaderType::Hull])) //Check if shader is currently set
-				rend->getDContext()->HSSetShader(this->HS.Get(), 0, 0);	// If not then set the shader
+			if (!checkSetShaderFile(ShaderType::Hull, m_shaderFiles[ShaderType::Hull])) //Check if shader is currently set
+				m_dContextPtr->HSSetShader(m_HS.Get(), 0, 0);	// If not then set the shader
 		}
 	}
 
 	// ---Domain
-	if (this->shaderFiles[ShaderType::Domain] != L"") // Only set if the file isn't "", if it is it means it doesn't matter
+	if (m_shaderFiles[ShaderType::Domain] != L"") // Only set if the file isn't "", if it is it means it doesn't matter
 	{
-		if (this->shaderFiles[ShaderType::Domain] == L"null")
+		if (m_shaderFiles[ShaderType::Domain] == L"null")
 		{
-			if (!rend->checkSetShaderFile(ShaderType::Domain, L"null")) // If the file is null, check if rend's file is null and
-				rend->getDContext()->DSSetShader(NULL, 0, 0);				// if not then set null
+			if (!checkSetShaderFile(ShaderType::Domain, L"null")) // If the file is null, check if rend's file is null and
+				m_dContextPtr->DSSetShader(NULL, 0, 0);				// if not then set null
 		}
 		else
 		{
-			if (!rend->checkSetShaderFile(ShaderType::Domain, this->shaderFiles[ShaderType::Domain])) //Check if shader is currently set
-				rend->getDContext()->DSSetShader(this->DS.Get(), 0, 0);	// If not then set the shader
+			if (!checkSetShaderFile(ShaderType::Domain, m_shaderFiles[ShaderType::Domain])) //Check if shader is currently set
+				m_dContextPtr->DSSetShader(m_DS.Get(), 0, 0);	// If not then set the shader
 		}
 	}
 
 	// ---Geo
-	if (this->shaderFiles[ShaderType::Geometry] != L"") // Only set if the file isn't "", if it is it means it doesn't matter
+	if (m_shaderFiles[ShaderType::Geometry] != L"") // Only set if the file isn't "", if it is it means it doesn't matter
 	{
-		if (this->shaderFiles[ShaderType::Geometry] == L"null")
+		if (m_shaderFiles[ShaderType::Geometry] == L"null")
 		{
-			if (!rend->checkSetShaderFile(ShaderType::Geometry, L"null")) // If the file is null, check if rend's file is null and
-				rend->getDContext()->GSSetShader(NULL, 0, 0);				// if not then set null
+			if (!checkSetShaderFile(ShaderType::Geometry, L"null")) // If the file is null, check if rend's file is null and
+				m_dContextPtr->GSSetShader(NULL, 0, 0);				// if not then set null
 		}
 		else
 		{
-			if (!rend->checkSetShaderFile(ShaderType::Geometry, this->shaderFiles[ShaderType::Geometry])) //Check if shader is currently set
-				rend->getDContext()->GSSetShader(this->GS.Get(), 0, 0);	// If not then set the shader
+			if (!checkSetShaderFile(ShaderType::Geometry, m_shaderFiles[ShaderType::Geometry])) //Check if shader is currently set
+				m_dContextPtr->GSSetShader(m_GS.Get(), 0, 0);	// If not then set the shader
 		}
 	}
-
+	
 	// ---Pixel
-	if (this->shaderFiles[ShaderType::Pixel] != L"") // Only set if the file isn't "", if it is it means it doesn't matter
+	if (m_shaderFiles[ShaderType::Pixel] != L"") // Only set if the file isn't "", if it is it means it doesn't matter
 	{
-		if (this->shaderFiles[ShaderType::Pixel] == L"null")
+		if (m_shaderFiles[ShaderType::Pixel] == L"null")
 		{
-			if (!rend->checkSetShaderFile(ShaderType::Pixel, L"null")) // If the file is null, check if rend's file is null and
-				rend->getDContext()->PSSetShader(NULL, 0, 0);				// if not then set null
+			if (!checkSetShaderFile(ShaderType::Pixel, L"null")) // If the file is null, check if rend's file is null and
+				m_dContextPtr->PSSetShader(NULL, 0, 0);				// if not then set null
 		}
 		else
 		{
-			if (!rend->checkSetShaderFile(ShaderType::Pixel, this->shaderFiles[ShaderType::Pixel])) //Check if shader is currently set
-				rend->getDContext()->PSSetShader(this->PS.Get(), 0, 0);	// If not then set the shader
+			if (!checkSetShaderFile(ShaderType::Pixel, m_shaderFiles[ShaderType::Pixel])) //Check if shader is currently set
+				m_dContextPtr->PSSetShader(m_PS.Get(), 0, 0);	// If not then set the shader
 		}
 	}
 }
@@ -264,16 +262,67 @@ void ShaderProgram::errorBlobCheck(Microsoft::WRL::ComPtr<ID3DBlob> errorBlob)
 {
 	if (errorBlob.Get())
 	{
-		//ErrorLogger::logError(errorBlob->GetBufferPointer()); TODO: fix this
+		ErrorLogger::get().logError((char*)errorBlob->GetBufferPointer());
 	}
 	assert(false);
 }
+
+void ShaderProgram::inputLayoutSetup(VertexLayoutType inputLayoutType, Microsoft::WRL::ComPtr<ID3DBlob> VSBlob)
+{
+	const D3D11_INPUT_ELEMENT_DESC* input_element_desc; // This solution of making a pointer here needs to be tested
+	unsigned long long layoutArraySize = 0;
+
+	switch (inputLayoutType)
+	{
+	case VertexLayoutType::none:
+		m_inputLayout = nullptr;
+		return;
+	case VertexLayoutType::vertexLayout:
+		input_element_desc = Layouts::vertexLayout;
+		layoutArraySize = ARRAYSIZE(Layouts::vertexLayout);
+		break;
+	case VertexLayoutType::colorVertexLayout:
+		input_element_desc = Layouts::colorVertexLayout;
+		layoutArraySize = ARRAYSIZE(Layouts::colorVertexLayout);
+		break;
+	case VertexLayoutType::LRMVertexLayout:
+		input_element_desc = Layouts::LRMVertexLayout;
+		layoutArraySize = ARRAYSIZE(Layouts::LRMVertexLayout);
+		break;
+	default:
+		m_inputLayout = nullptr;
+		return;
+	}
+	
+	HRESULT hr = m_devicePtr->CreateInputLayout(
+		input_element_desc,
+		layoutArraySize,
+		VSBlob->GetBufferPointer(),
+		VSBlob->GetBufferSize(),
+		m_inputLayout.GetAddressOf()
+	);
+	assert(SUCCEEDED(hr));
+}
+
+bool ShaderProgram::checkSetShaderFile(ShaderType s, LPCWSTR file)
+{
+	bool isSet = false;
+
+	if (setShaderFiles[s] == file)
+		isSet = true;
+	else
+		setShaderFiles[s] = file;
+
+	return isSet;
+}
+
+// old inputlayout setup with if-statements
 
 //void ShaderProgram::inputLayoutSetup(std::string input_layout_type, Microsoft::WRL::ComPtr<ID3DBlob> VSBlob)
 //{
 //	if (input_layout_type == "null") //These if statements could be replaced with resource handler functionality or perhaps something more dynamic.
 //	{
-//		this->input_layout = nullptr;
+//		m_inputLayout = nullptr;
 //	}
 //	else if (input_layout_type == "pos_uv_n_col")
 //	{
@@ -291,7 +340,7 @@ void ShaderProgram::errorBlobCheck(Microsoft::WRL::ComPtr<ID3DBlob> errorBlob)
 //			ARRAYSIZE(input_element_desc),
 //			VSBlob->GetBufferPointer(),
 //			VSBlob->GetBufferSize(),
-//			this->input_layout.GetAddressOf()
+//			m_inputLayout.GetAddressOf()
 //		);
 //		ASSERT;
 //	}
@@ -312,7 +361,7 @@ void ShaderProgram::errorBlobCheck(Microsoft::WRL::ComPtr<ID3DBlob> errorBlob)
 //			ARRAYSIZE(input_element_desc),
 //			VSBlob->GetBufferPointer(),
 //			VSBlob->GetBufferSize(),
-//			this->input_layout.GetAddressOf()
+//			m_inputLayout.GetAddressOf()
 //		);
 //		ASSERT;
 //	}

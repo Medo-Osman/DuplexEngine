@@ -7,6 +7,7 @@
 //#include "CompileShaderUtility.h"
 ////#include "Buffer.h"
 //#include "Entity.h"
+#include "ShaderProgram.h"
 #include "ShaderEnums.h"
 #include "Engine.h"
 //#include "ResourceHandler.h"
@@ -29,36 +30,14 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
 
-	//Input Assembler
-	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_vertexLayoutPtr = NULL;
-
-	//Vertex Shader
-	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShaderPtr = NULL;
-	Microsoft::WRL::ComPtr<ID3DBlob> m_vertexShaderBufferPtr = NULL;
 	//Buffer<cbVSWVPMatrix> m_vertexShaderConstantBuffer;
 	Buffer<perObjectMVP> m_perObjectConstantBuffer;
-
-	//HullShader
-	//Microsoft::WRL::ComPtr<ID3D11HullShader> m_hullShaderDMPtr;
-	//Microsoft::WRL::ComPtr<ID3DBlob> m_hullShaderBufferPtr;
-
-	//DomainShader
-	//Microsoft::WRL::ComPtr<ID3D11DomainShader> m_domainShaderDMPtr;
-	//Microsoft::WRL::ComPtr<ID3DBlob> m_domainShaderBufferPtr;
-
-	//GeometryShader
-	//Microsoft::WRL::ComPtr<ID3D11GeometryShader> m_geometryShaderPtr;
-	//Microsoft::WRL::ComPtr<ID3DBlob> m_geometryShaderBufferPtr;
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
 
 	D3D11_VIEWPORT m_defaultViewport;
 
-
-	//Pixel Shader
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShaderPtr = NULL;
-	Microsoft::WRL::ComPtr<ID3DBlob> m_pixelBufferPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_psSamplerState = NULL;
 
 
@@ -80,21 +59,16 @@ private:
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 	Camera m_camera;
 	
+	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
+	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
+
 	//Functions
 	HRESULT createDeviceAndSwapChain();
 	HRESULT createDepthStencil();
-	HRESULT setUpInputAssembler();
-	void createAndSetShaders();
 	void rasterizerSetup();
 
 	void createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const int& height) const;
-	void setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr);
 	Renderer(); //{};
-
-	HRESULT compileShader(LPCWSTR fileName, LPCSTR entryPoint, LPCSTR shaderVer, ID3DBlob** blob);
-
-
-	LPCWSTR setShaderFiles[5];
 
 public:
 	Renderer(const Renderer&) = delete;
@@ -119,5 +93,4 @@ public:
 	ID3D11DeviceContext* getDContext();
 	ID3D11DepthStencilView* getDepthStencilView();
 
-	bool checkSetShaderFile(ShaderType s, LPCWSTR file);
 };

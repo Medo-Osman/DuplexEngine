@@ -11,56 +11,6 @@ Renderer::Renderer()
 	m_height = m_startHeight;
 }
 
-HRESULT Renderer::compileShader(LPCWSTR fileName, LPCSTR entryPoint, LPCSTR shaderVer, ID3DBlob** blob)
-{
-	if (!fileName || !entryPoint || !shaderVer || !blob)
-		return E_INVALIDARG;
-
-	*blob = nullptr;
-
-	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
-#if defined( DEBUG ) || defined( _DEBUG )
-	flags |= D3DCOMPILE_DEBUG;
-#endif
-
-
-	ID3DBlob* shaderBlob = nullptr;
-	ID3DBlob* errorBlob = nullptr;
-	HRESULT hr = D3DCompileFromFile(fileName, //Name of file
-		0, //Pointer to array of macros
-		0, //Includes
-		entryPoint, //Function name/Entry point
-		shaderVer, //Shader version
-		0, //CompileFlag 1
-		0, //CompileFlag 2);
-		&shaderBlob, //blob
-		&errorBlob //Error message
-	);
-	if (FAILED(hr))
-	{
-		if (errorBlob)
-		{
-			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-			errorBlob->Release();
-		}
-
-		if (shaderBlob)
-			shaderBlob->Release();
-
-		return hr;
-	}
-
-	*blob = shaderBlob;
-
-	return hr;
-}
-
-
-//Renderer::~Renderer()
-//{
-//
-//}
-
 void Renderer::release()
 {
 	m_devicePtr.Get()->Release();
@@ -72,14 +22,8 @@ void Renderer::release()
 	m_depthStencilBufferPtr->Release();
 	m_depthStencilViewPtr->Release();
 	m_depthStencilStatePtr->Release();
-	m_vertexLayoutPtr->Release();
-	m_vertexShaderPtr->Release();
-	m_vertexShaderBufferPtr->Release();
 	//m_vertexShaderConstantBuffer.release();
 	m_rasterizerStatePtr->Release();
-	m_pixelShaderPtr->Release();
-	m_pixelBufferPtr->Release();
-	m_psSamplerState->Release();
 
 	m_rTargetViewPtr->Release();
 	for (int i = 0; i < 8; i++)
@@ -117,9 +61,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = createDepthStencil();
 	if (!SUCCEEDED(hr)) return hr;
 
-	createAndSetShaders();
-	hr = setUpInputAssembler();
-	assert(SUCCEEDED(hr) && "Failed when configuring inputassember");
+	compileAllShaders(&m_compiledShaders, m_devicePtr.Get(), m_dContextPtr.Get(), m_depthStencilViewPtr.Get());
+
 	createViewPort(m_defaultViewport, m_width, m_height);
 	rasterizerSetup();
 
@@ -141,42 +84,12 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_psSamplerState);
 	assert(SUCCEEDED(hr) && "Failed to create SampleState");
 
-	/*ColorVertex triangle[3] =
-	{
-		ColorVertex({-1.f, -1.f, 0.f}, {1.f, 0.f, 0.f}),
-		ColorVertex({-1.f, 1.f, 0.f}, {1.f, 0.f, 0.f}),
-		ColorVertex({1.f, 1.f, 0.f}, {1.f, 0.f, 0.f})
-	};
-	m_vertexBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, triangle, 3);*/
 
-
-
-
-
-
-	//m_vertexShaderConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cbVSWVPMatrix(), 1);
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 
 	m_camera.setProjectionMatrix(80.f, (float)m_height/(float)m_width, 0.01f, 1000.0f);
 	//m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
-
-
-	// Entities
-
-	//m_entities["first"] = new Entity();
-	//m_entities["first"]->addComponent("test", new TestComponent());
-	/*if (m_entities["first"]->getComponent("test")->getType() == ComponentType::TEST)
-	{
-		TestComponent* testComp = dynamic_cast<TestComponent*>(m_entities["first"]->getComponent("test"));
-		testComp->outputMessage();
-		testComp->init("Oh shit, it works!");
-		testComp->outputMessage();
-	}
-	else
-	{
-		OutputDebugStringA("No component of that type exists!\n");
-	}*/
 
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
@@ -262,25 +175,6 @@ HRESULT Renderer::createDepthStencil()
 	return hr;
 }
 
-HRESULT Renderer::setUpInputAssembler()
-{
-
-	HRESULT hr = m_devicePtr->CreateInputLayout(Layouts::LRMVertexLayout, //VertexLayout
-		ARRAYSIZE(Layouts::LRMVertexLayout), //Nr of elements
-		m_vertexShaderBufferPtr->GetBufferPointer(),
-		m_vertexShaderBufferPtr->GetBufferSize(), //Bytecode length
-		m_vertexLayoutPtr.GetAddressOf()
-	);
-
-	if (SUCCEEDED(hr))
-	{
-		m_dContextPtr->IASetInputLayout(m_vertexLayoutPtr.Get());
-		m_dContextPtr->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	}
-
-	return hr;
-}
-
 void Renderer::createViewPort(D3D11_VIEWPORT &viewPort, const int &width, const int &height) const
 {
 	//Viewport desc
@@ -294,24 +188,6 @@ void Renderer::createViewPort(D3D11_VIEWPORT &viewPort, const int &width, const 
 	viewPort.MaxDepth = 1.0f;
 }
 
-void Renderer::createAndSetShaders()
-{
-	HRESULT hr = 0;
-	//VertexShaderBasic compile and create
-	hr = compileShader(L"VertexShaderBasic.hlsl", "main", "vs_5_0", m_vertexShaderBufferPtr.GetAddressOf() );
-	assert(SUCCEEDED(hr) && "Error when compiling VertexShader from file");
-
-	hr = m_devicePtr->CreateVertexShader(m_vertexShaderBufferPtr->GetBufferPointer(), m_vertexShaderBufferPtr->GetBufferSize(), NULL, m_vertexShaderPtr.GetAddressOf());
-	assert(SUCCEEDED(hr) && "Error when creating  VertexShader");
-
-
-	//Basic pixel shader compile and create
-	hr = compileShader(L"BasicPixelShader.hlsl", "main", "ps_5_0", m_pixelBufferPtr.GetAddressOf());
-	assert(SUCCEEDED(hr) && "Error when compiling pixelShader from file");
-
-	hr = m_devicePtr->CreatePixelShader(m_pixelBufferPtr->GetBufferPointer(), m_pixelBufferPtr->GetBufferSize(), NULL, m_pixelShaderPtr.GetAddressOf());
-	assert(SUCCEEDED(hr) && "Error when creating  PixelShader");
-}
 
 void Renderer::rasterizerSetup()
 {
@@ -387,23 +263,18 @@ void Renderer::render()
 	//NormalPass
 	m_dContextPtr->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	UINT offset = 0;
-	//m_dContextPtr->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.getStridePointer(), &offset);
-
-
 
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set defaul viewport
 	m_rTargetViewsArray[0] = m_rTargetViewPtr.Get();
 	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
-	this->setPipelineShaders(m_vertexShaderPtr.Get(), nullptr, nullptr, nullptr, m_pixelShaderPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
-
-	//cbVSWVPMatrix wvp;
-	//wvp.wvpMatrix = XMMatrixTranspose( m_camera.getViewMatrix()* m_camera.getProjectionMatrix());
-
 
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
+		if (m_currentSetShaderProg != component.second->getShaderProgEnum())
+			m_compiledShaders[component.second->getShaderProgEnum()]->setShaders();
+		
 		perObjectMVP constantBufferPerObjectStruct;
 		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera.getProjectionMatrix());
@@ -417,17 +288,7 @@ void Renderer::render()
 	}
 
 
-
 	m_swapChainPtr->Present(0, 0);
-}
-
-void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
-{
-	m_dContextPtr->VSSetShader(vsPtr, nullptr, 0);
-	m_dContextPtr->HSSetShader(hsPtr, nullptr, 0);
-	m_dContextPtr->DSSetShader(dsPtr, nullptr, 0);
-	m_dContextPtr->GSSetShader(gsPtr, nullptr, 0);
-	m_dContextPtr->PSSetShader(psPtr, nullptr, 0);
 }
 
 ID3D11Device* Renderer::getDevice()
@@ -443,16 +304,4 @@ ID3D11DeviceContext* Renderer::getDContext()
 ID3D11DepthStencilView* Renderer::getDepthStencilView()
 {
 	return m_depthStencilViewPtr.Get();
-}
-
-bool Renderer::checkSetShaderFile(ShaderType s, LPCWSTR file)
-{
-	bool isSet = false;
-
-	if (this->setShaderFiles[s] == file)
-		isSet = true;
-	else
-		this->setShaderFiles[s] = file;
-
-	return isSet;
 }

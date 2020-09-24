@@ -45,15 +45,14 @@ void Engine::update(Mouse* mousePtr, Keyboard* keyboardPtr, const float& dt)
 }
 bool Engine::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
 {
+	entity->addComponent(componentIdentifier, component);
+	
 	if (component->getType() == ComponentType::MESH)
 	{
 		MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
 
 		addMeshComponent(meshComponent);
 	}
-
-
-	entity->addComponent(componentIdentifier, component);
 
 	return true;
 }
@@ -109,8 +108,7 @@ void Engine::initialize()
 	addComponent(m_entities["first"], "test", new TestComponent());
 
 	if(addEntity("meshTest"))
-		addComponent(m_entities["meshTest"], "mesh", new MeshComponent("../res/models/testCube_pCube1.lrm"));
-		//m_entities["meshTest"]->addComponent("mesh", new MeshComponent("../res/models/testCube_pCube1.lrm"));
+		addComponent(m_entities["meshTest"], "mesh", new MeshComponent("../res/models/testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
 
 
 	/*if (addEntity("meshTest1"))
