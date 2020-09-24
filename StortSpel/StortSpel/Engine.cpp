@@ -38,8 +38,6 @@ Engine::~Engine()
 		delete m_player;
 }
 
-
-
 void Engine::update(const float& dt)
 {
 	m_player->updatePlayer(dt);
@@ -68,6 +66,52 @@ void Engine::addMeshComponent(MeshComponent* component)
 std::map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 {
 	return &m_meshComponentMap;
+}
+
+void Engine::buildTestStage()
+{
+	// Cube 1
+	if (addEntity("cube-test"))
+		addComponent(m_entities["cube-test"], "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+
+	// Tent
+	if (addEntity("tent"))
+	{
+		addComponent(m_entities["tent"], "mesh", new MeshComponent("BigTopTent_Cylinder.lrm"));
+		m_entities["tent"]->rotate({ XMConvertToRadians(-90.f), 0.f, 0.f });
+		m_entities["tent"]->move({ -10.f, 0.f, 0.f });
+	}
+
+	// Floor
+	Entity* floor = addEntity("floor");
+	if (floor)
+	{
+		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+		floor->scale({ 500,0.02,500 });
+		floor->move({ 0,-0.6,0 });
+	}
+
+	//Cube 2
+	Entity* cube = addEntity("cube-test2");
+	if (cube)
+	{
+		addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+		cube->scaleUniform({ 3.f });
+		cube->move({ 0.f, 5.f, 5.f });
+		cube->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
+	}
+
+	// Platforms
+	for (int i = 0; i < 5; i++)
+	{
+		Entity* cube = addEntity("cube-test" + std::to_string(i));
+		if (cube)
+		{
+			addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+			cube->scale({ 3,0.2,5 });
+			cube->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
+		}
+	}
 }
 
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
@@ -105,40 +149,7 @@ void Engine::initialize()
 	addEntity("first");
 	addComponent(m_entities["first"], "test", new TestComponent());
 
-	// Cube
-	if (addEntity("meshTest"))
-		addComponent(m_entities["meshTest"], "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-	
-	// Tent
-	if (addEntity("tent"))
-	{
-		addComponent(m_entities["tent"], "mesh", new MeshComponent("BigTopTent_Cylinder.lrm"));
-		m_entities["tent"]->rotate({ XMConvertToRadians(-90.f), 0.f, 0.f });
-		m_entities["tent"]->move({ -10.f, 0.f, 0.f });
-	}
-
-
-	/*if (addEntity("meshTest1"))
-	{
-		m_entities["meshTest1"]->addComponent("mesh", new MeshComponent("../res/models/testCube_pCube1.lrm"));
-
-		m_entities["meshTest1"]->move({ 2, 1, 1});
-
-		MeshComponent* meshPtr = dynamic_cast<MeshComponent*>(m_entities["meshTest1"]->getComponent("mesh"));
-		if (meshPtr)
-		{
-			meshPtr->move({ 2, 10, 1 });
-		}
-	}
-
-	if (addEntity("meshTest2"))
-	{
-		m_entities["meshTest2"]->addComponent("mesh", new MeshComponent("../res/models/testTania_tania_geo.lrm"));
-		m_entities["meshTest2"]->move({ -5, -1, 0 });
-		m_entities["meshTest2"]->scaleUniform(0.02f);
-
-	}
-
-	}*/
+	//Build the hardcoded test stage
+	buildTestStage();
 
 }
