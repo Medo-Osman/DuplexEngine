@@ -32,6 +32,7 @@ private:
 	// Models
 	std::unordered_map<const char*, MeshResource*> m_meshCache;
 	const std::string m_MODELS_PATH = "../res/models/";
+	const std::string m_ERROR_MODEL_NAME = "error.lrm";
 
 public:
 	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath);

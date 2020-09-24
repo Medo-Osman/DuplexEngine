@@ -46,7 +46,7 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
 				{
 					//std::wstring errorMessage = L"ERROR, '" + m_ERROR_TEXTURE_NAME + L"' texture can not be found in '" + m_TEXTURES_PATH + L"'!";
 					ErrorLogger::get().logError("error texture can not be found in texture folder!");
-					assert(!L"ERROR, error texture can not be found in tetxure folder!");
+					assert(!L"ERROR, error texture can not be found in texture folder!");
 				}
 			}
 		}
@@ -83,8 +83,15 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 		// Properly clear and close file buffer
 		fileStream.clear();
 		fileStream.close();
-
-		return nullptr;
+		
+		if (path == m_ERROR_MODEL_NAME.c_str())
+		{
+			ErrorLogger::get().logError("error model can not be found in model folder");
+			assert(!L"ERROR, error model can not be found in model folder!");
+			return nullptr;
+		}
+		else
+			return loadLRMMesh(m_ERROR_MODEL_NAME.c_str());
 	}
 
 	// Read file vertex count
@@ -108,9 +115,8 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	fileStream.read(&overByte, 1);
 	if (!fileStream.eof())
 	{
-		OutputDebugString(L"loadLRMMesh : Filestream did not reach end of: ");
-		OutputDebugStringA(modelPath.c_str());
-		OutputDebugString(L"\n");
+		std::string errormsg("loadLRMMesh : Filestream did not reach end of: "); errormsg.append(path);
+		ErrorLogger::get().logError(errormsg.c_str());
 		return nullptr;
 	}
 
