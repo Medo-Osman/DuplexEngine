@@ -86,6 +86,7 @@
     </ClCompile>
     <ClCompile Include="Input_Mouse.cpp">
       <Filter>Source Files\Application\Input</Filter>
+	</ClCompile>
     <ClCompile Include="Player.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>

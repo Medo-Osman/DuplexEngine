@@ -310,44 +310,9 @@ void Renderer::rasterizerSetup()
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
 }
 
-void Renderer::handleInput(Mouse* mousePtr, Keyboard* keyboardPtr, const float& dt)
-{
-	while (!mousePtr->empty())
-	{
-		MouseEvent mEvent = mousePtr->readEvent();
-		if (mEvent.isValid())
-		{
-			if (mEvent.getEvent() == Event::MouseRAW_MOVE)
-			{
-				//CURRENT CONTEXT 
-				m_camera.controllCameraRotation(mEvent, dt);
-			}
-		}
-	}
-
-	while (!keyboardPtr->empty())
-	{
-		KeyboardEvent mEvent = keyboardPtr->readKey();
-		if (mEvent.isValid())
-		{
-			//Do on buttondown/button up things here.
-			if (mEvent.getEvent() == Event::Pressed)
-			{
-				if (mEvent.getKey() == 'W')
-				{
-					//Do things
-				}
-			}
-		}
-	}
-
-	m_camera.controllCameraPosition(); //ControllCameraPosition only uses an array of what keys are pressed.
-
-}
-
 void Renderer::update(const float& dt)
 {
-
+	m_camera.update(dt);
 }
 
 void Renderer::render()

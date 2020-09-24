@@ -4,7 +4,7 @@
 bool Input::fillInputDataUsingKey(const char& key, const bool& wasPressed, const bool& isMouse)
 {
 	bool foundContext = false;
-	for (std::vector<int>::size_type i = 0; i != m_contexts.size() && !foundContext; i++) {
+	for (std::vector<int>::size_type i = 0; i < m_contexts.size() && !foundContext; i++) {
 		if (wasPressed)
 		{
 			int action = m_contexts[i]->getAction(key);
@@ -225,13 +225,14 @@ void Input::readBuffers()
 		if (mouseEvnt.getEvent() == Event::MouseMove || mouseEvnt.getEvent() == Event::MouseRAW_MOVE) //Range
 		{
 			bool foundContext = false;
-			for (std::vector<int>::size_type i = 0; i != m_contexts.size() && !foundContext; i++) 
+			for (std::vector<int>::size_type i = 0; i < m_contexts.size() && !foundContext; i++) 
 			{
 				Range rangeState = Range(m_contexts[i]->getRange(charConverted));
 				if (rangeState != -1)
 				{
 					MousePos pos = mouseEvnt.getPos();
 					this->m_currentInputData.rangeData.emplace_back(rangeState, pos);
+					inputDataChanged = true;
 				}
 			}
 		}
@@ -244,12 +245,30 @@ void Input::readBuffers()
 	//Notify
 	if (inputDataChanged)
 	{
-		for (std::vector<int>::size_type i = 0; i != m_inputObservers.size(); i++) 
+		for (std::vector<int>::size_type i = 0; i < m_inputObservers.size(); i++) 
 		{
 			m_inputObservers[i]->inputUpdate(m_currentInputData);
 		}
 	}
 
+}
+
+void Input::addContext(iContext* context)
+{
+	m_contexts.emplace_back(context);
+}
+
+void Input::removeContext(iContext* context)
+{
+	bool removed = false;
+	for (std::vector<int>::size_type i = 0; i < m_contexts.size() && !removed; i++)
+	{
+		if (m_contexts[i] = context)
+		{
+			m_contexts.erase(m_contexts.begin() + i);
+			removed = true;
+		}
+	}
 }
 
 MouseEvent Input::getMouseEvent()
@@ -278,7 +297,8 @@ void Input::Attach(InputObserver* observer)
 
 void Input::Detach(InputObserver* observer)
 {
-	for (std::vector<int>::size_type i = 0; i != m_inputObservers.size(); i++) {
+	bool detatched = false;
+	for (std::vector<int>::size_type i = 0; i < m_inputObservers.size() || !detatched; i++) {
 		if (m_inputObservers[i] == observer)
 			m_inputObservers.erase(m_inputObservers.begin() + i);
 	}

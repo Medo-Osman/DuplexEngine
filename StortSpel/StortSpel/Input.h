@@ -32,6 +32,16 @@ struct InputData
 			}
 		}
 	}
+	void removeActionData(const int& pos)
+	{
+		actionData.erase(actionData.begin() + pos);
+	}
+
+	void removeRangeData(const int& pos)
+	{
+		rangeData.erase(rangeData.begin() + pos);
+	}
+
 };
 
 
@@ -39,7 +49,7 @@ class InputObserver {
 public:
 	InputObserver() {};
 	virtual ~InputObserver() {};
-	virtual void inputUpdate(const InputData inputData) = 0;
+	virtual void inputUpdate(InputData& inputData) = 0;
 };
 
 class InputSubject {
@@ -68,6 +78,8 @@ public:
 	Input();
 	LRESULT handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lParam);
 	void readBuffers();
+	void addContext(iContext* context);
+	void removeContext(iContext* context);
 
 	MouseEvent getMouseEvent();
 	Keyboard* getKeyboard();
@@ -75,7 +87,6 @@ public:
 
 	void Attach(InputObserver* observer);
 	void Detach(InputObserver* observer);
-	void Notify();
 
 
 };

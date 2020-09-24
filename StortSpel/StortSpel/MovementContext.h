@@ -11,17 +11,17 @@ public:
 	{
 		//Actions
 		m_actionMapping[' '] = Action::JUMP;
-		m_actionMapping[(char)'m_r'] = Action::USE;
+		//m_actionMapping[(char)'m_rp'] = Action::USE; Example of using mouse for action, m_rp is right mouse pressed.
 
 		//States
 		m_stateMapping['W'] = State::WALK_FORWARD;
-		m_stateMapping['s'] = State::WALK_BACKWARD;
-		m_stateMapping['D'] = State::WALK_LEFT;
-		m_stateMapping['A'] = State::WALK_RIGHT;
+		m_stateMapping['S'] = State::WALK_BACKWARD;
+		m_stateMapping['D'] = State::WALK_RIGHT;
+		m_stateMapping['A'] = State::WALK_LEFT;
 
 		//Range
-		m_rangeMapping[(char)'move'] = Range::REL;
-		m_rangeMapping[(char)'raw'] = Range::RAW;
+		//m_rangeMapping[(char)'move'] = Range::REL; //Mouse position, can be used for UI and such. Leave it in here for example.
+		m_rangeMapping[(char)'raw'] = Range::RAW; //How much has the mouse moved.
 		
 	}
 };
