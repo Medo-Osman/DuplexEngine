@@ -14,5 +14,5 @@ struct ps_in
 
 float4 main(ps_in input) : SV_TARGET
 {
-	return float4(1, 0, 0, 1);
+    return float4(input.uv.x, input.uv.y, 0.5, 1);
 }
