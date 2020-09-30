@@ -1,4 +1,17 @@
-float4 main() : SV_TARGET
+struct ps_in
 {
-	return float4(1.0f, 1.0f, 1.0f, 1.0f);
+    float4 position : SV_Position;
+    float3 pos      : POSITION;
+};
+
+TextureCube skyboxTexture : register(t0);
+SamplerState textureCubeSampler : register(s1);
+
+float4 main(ps_in input) : SV_TARGET
+{
+    float4 output;
+    
+    output = float4(skyboxTexture.Sample(textureCubeSampler, input.pos).xyz, 1);
+    
+    return output;
 }
