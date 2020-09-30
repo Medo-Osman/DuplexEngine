@@ -33,10 +33,15 @@ private:
 	std::unordered_map<const char*, MeshResource*> m_meshCache;
 	const std::string m_MODELS_PATH = "../res/models/";
 	const std::string m_ERROR_MODEL_NAME = "error.lrm";
+	// Audio
+	std::unordered_map<std::wstring, SoundEffect*> m_soundCache;
+	const std::wstring m_SOUNDS_PATH = L"../res/audio/";
+	const std::wstring m_ERROR_SOUND_NAME = L"ErrorSound.wav";
 
 public:
 	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath);
 	MeshResource* loadLRMMesh(const char* path);
+	SoundEffect* loadSound(const WCHAR* soundPath, std::shared_ptr<AudioEngine> audioEngine);
 
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 	void Destroy();

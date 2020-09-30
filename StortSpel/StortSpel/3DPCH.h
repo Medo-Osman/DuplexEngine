@@ -33,7 +33,8 @@
 #include <DirectXCollision.h>
 #include <Effects.h>
 #include <DirectXColors.h>
-
+#include <Audio.h>
+#include <Dbt.h>
 //PhysX
 #include"PxPhysicsAPI.h"
 

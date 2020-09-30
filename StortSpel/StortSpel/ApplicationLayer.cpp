@@ -30,6 +30,8 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	this->createWin32Window(hInstance, WINDOWTILE, hWnd);// hwnd is refference, is set to created window.
 	m_window = hWnd;
 
+	Audio::get().initialize(m_window);
+
 	RAWINPUTDEVICE rawIDevice;
 	rawIDevice.usUsagePage = 0x01;
 	rawIDevice.usUsage = 0x02;
@@ -88,7 +90,6 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 		NULL						// Additional application data
 	);
 	assert(_d3d11Window);
-
 }
 
 void ApplicationLayer::applicationLoop()
@@ -108,6 +109,7 @@ void ApplicationLayer::applicationLoop()
 			m_input.readBuffers();
 			m_enginePtr->update(dt);
 			m_physics.update(dt);
+			Audio::get().update();
 			m_graphicEnginePtr->update(dt);
 			m_graphicEnginePtr->render();
 
@@ -124,6 +126,25 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	g_ApplicationLayer->m_input.handleMessages(hwnd, uMsg, wParam, lParam);
 	switch (uMsg)
 	{
+	case WM_DEVICECHANGE:
+		if (wParam == DBT_DEVICEARRIVAL)
+		{
+			auto pDev = reinterpret_cast<PDEV_BROADCAST_HDR>(lParam);
+			if (pDev)
+			{
+				if (pDev->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+				{
+					auto pInter = reinterpret_cast<
+						const PDEV_BROADCAST_DEVICEINTERFACE>(pDev);
+					if (pInter->dbcc_classguid == KSCATEGORY_AUDIO)
+					{
+						Audio::get().onNewAudioDevice();
+					}
+				}
+			}
+		}
+		return 0;
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
@@ -136,6 +157,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		EndPaint(hwnd, &ps);
 		break;
+
 	}
 
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);

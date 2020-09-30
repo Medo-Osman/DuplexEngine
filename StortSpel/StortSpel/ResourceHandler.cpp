@@ -139,6 +139,15 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	return m_meshCache[path];
 }
 
+SoundEffect* ResourceHandler::loadSound(const WCHAR* soundPath, std::shared_ptr<AudioEngine> audioEngine)
+{
+	if (!m_soundCache.count(soundPath))
+	{
+		m_soundCache[soundPath] = new SoundEffect(audioEngine.get(), soundPath);
+	}
+	return m_soundCache[soundPath];
+}
+
 void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
 	m_devicePtr = devicePtr;
@@ -153,5 +162,8 @@ void ResourceHandler::Destroy()
 		delete element.second;
 
 	for (std::pair<const char*, MeshResource*> element : m_meshCache)
+		delete element.second;
+
+	for (std::pair<std::wstring, SoundEffect*> element : m_soundCache)
 		delete element.second;
 }
