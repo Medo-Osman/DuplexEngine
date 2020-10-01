@@ -143,7 +143,9 @@ SoundEffect* ResourceHandler::loadSound(const WCHAR* soundPath, std::shared_ptr<
 {
 	if (!m_soundCache.count(soundPath))
 	{
-		m_soundCache[soundPath] = new SoundEffect(audioEngine.get(), soundPath);
+		std::wstring path = m_SOUNDS_PATH + soundPath;
+		m_soundCache[soundPath] = new SoundEffect(audioEngine.get(), path.c_str());
+		//SoundEffect soundEffect(audioEngine.get(), path.c_str());
 	}
 	return m_soundCache[soundPath];
 }

@@ -30,7 +30,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	this->createWin32Window(hInstance, WINDOWTILE, hWnd);// hwnd is refference, is set to created window.
 	m_window = hWnd;
 
-	Audio::get().initialize(m_window);
+	AudioHandler::get().initialize(m_window);
 
 	RAWINPUTDEVICE rawIDevice;
 	rawIDevice.usUsagePage = 0x01;
@@ -109,7 +109,7 @@ void ApplicationLayer::applicationLoop()
 			m_input.readBuffers();
 			m_enginePtr->update(dt);
 			m_physics.update(dt);
-			Audio::get().update();
+			AudioHandler::get().update();
 			m_graphicEnginePtr->update(dt);
 			m_graphicEnginePtr->render();
 
@@ -138,7 +138,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						const PDEV_BROADCAST_DEVICEINTERFACE>(pDev);
 					if (pInter->dbcc_classguid == KSCATEGORY_AUDIO)
 					{
-						Audio::get().onNewAudioDevice();
+						AudioHandler::get().onNewAudioDevice();
 					}
 				}
 			}

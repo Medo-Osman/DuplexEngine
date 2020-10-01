@@ -1,6 +1,6 @@
 #pragma once
 #include "ResourceHandler.h"
-class Audio
+class AudioHandler
 {
 private:
 	std::shared_ptr<AudioEngine> m_audioEngine;
@@ -9,17 +9,17 @@ private:
 
 	SoundEffect* m_ambient;
 
-	Audio() {}
+	AudioHandler() {}
 
 public:
-	Audio(const Audio&) = delete;
-	void operator=(Audio const&) = delete;
-	static Audio& get()
+	AudioHandler(const AudioHandler&) = delete;
+	void operator=(AudioHandler const&) = delete;
+	static AudioHandler& get()
 	{
-		static Audio instance;
+		static AudioHandler instance;
 		return instance;
 	}
-	~Audio();
+	~AudioHandler();
 
 	void initialize(HWND &handle);
 	void onNewAudioDevice() { m_retryAudio = true; }

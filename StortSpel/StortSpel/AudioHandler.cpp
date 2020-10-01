@@ -1,7 +1,7 @@
 #include "3DPCH.h"
-#include "Audio.h"
+#include "AudioHandler.h"
 
-Audio::~Audio()
+AudioHandler::~AudioHandler()
 {
 	if (m_audioEngine)
 	{
@@ -9,13 +9,13 @@ Audio::~Audio()
 	}
 }
 
-void Audio::initialize(HWND& handle)
+void AudioHandler::initialize(HWND& handle)
 {
 	AUDIO_ENGINE_FLAGS eflags = AudioEngine_Default;
 #ifdef _DEBUG
 	eflags |= AudioEngine_Debug;
 #endif
-	m_audioEngine = std::make_unique<AudioEngine>(eflags);
+	m_audioEngine = std::make_shared<AudioEngine>(eflags);
 	m_retryAudio = false;
 
 	DEV_BROADCAST_DEVICEINTERFACE filter = {};
@@ -28,7 +28,7 @@ void Audio::initialize(HWND& handle)
 	m_ambient = ResourceHandler::get().loadSound(L"NightAmbienceSimple_02.wav", m_audioEngine);
 }
 
-void Audio::update()
+void AudioHandler::update()
 {
 	if (m_newAudio)
 	{
@@ -51,12 +51,12 @@ void Audio::update()
 	}
 }
 
-void Audio::suspend()
+void AudioHandler::suspend()
 {
 	m_audioEngine->Suspend();
 }
 
-void Audio::resume()
+void AudioHandler::resume()
 {
 	m_audioEngine->Resume();
 }

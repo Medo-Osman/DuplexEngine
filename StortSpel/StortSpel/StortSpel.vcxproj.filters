@@ -96,7 +96,7 @@
     <ClCompile Include="MeshComponent.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="Audio.cpp">
+    <ClCompile Include="AudioHandler.cpp">
       <Filter>Source Files\Application</Filter>
     </ClCompile>
   </ItemGroup>
@@ -179,7 +179,7 @@
     <ClInclude Include="InputStructs.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
-    <ClInclude Include="Audio.h">
+    <ClInclude Include="AudioHandler.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
   </ItemGroup>

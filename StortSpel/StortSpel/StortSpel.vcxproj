@@ -178,7 +178,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="ApplicationLayer.cpp" />
-    <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="AudioHandler.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Component.h" />
     <ClCompile Include="Engine.cpp" />
@@ -197,7 +197,7 @@
   <ItemGroup>
     <ClInclude Include="3DPCH.h" />
     <ClInclude Include="ApplicationLayer.h" />
-    <ClInclude Include="Audio.h" />
+    <ClInclude Include="AudioHandler.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CompileShaderUtility.h" />
