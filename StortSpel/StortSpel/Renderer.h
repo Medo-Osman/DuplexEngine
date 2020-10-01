@@ -55,6 +55,7 @@ private:
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
+	unsigned int long m_currentSetMaterialId = 1000;
 
 	//Functions
 	HRESULT createDeviceAndSwapChain();
@@ -73,6 +74,7 @@ public:
 		static Renderer instance;
 		return instance;
 	}
+	~Renderer();
 
 	HRESULT initialize(const HWND& window);
 	void release();

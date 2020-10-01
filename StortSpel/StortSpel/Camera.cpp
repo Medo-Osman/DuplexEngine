@@ -103,14 +103,21 @@ BoundingFrustum Camera::getFrustum()
 //Private
 void Camera::updateViewMatrix()
 {
+	float currentRotationAngleY = XMVectorGetY(m_rotation);
+	float currentRotationAngleX = XMVectorGetX(m_rotation);
+	
+	XMVECTOR currentRotation = XMQuaternionRotationRollPitchYaw(currentRotationAngleX, currentRotationAngleY, 0);
+
+	XMVECTOR playerPos = Engine::get().getEntity("meshPlayer")->getTranslation();
+	playerPos += Vector3(0, 1.75f, 0);
+	m_position = playerPos;
+	XMVECTOR offsetVector = Vector3(0, 0, 1) * 5;
+	offsetVector = XMVector3Rotate(offsetVector, currentRotation);
+	m_position -= offsetVector;
+	
 	XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
-	XMVECTOR cameraLookAt = XMVector3TransformCoord(this->forwardVector, cameraRotation);
-	cameraLookAt += m_position;
-
 	XMVECTOR up = XMVector3TransformCoord(this->upVector, cameraRotation);
-
-	//Build view matrix for left-handed coordinate system.
-	m_viewMatrix = XMMatrixLookAtLH(m_position, cameraLookAt, up);
+	m_viewMatrix = XMMatrixLookAtLH(m_position, playerPos, up);
 
 	this->curForward = XMVector3TransformCoord(this->forwardVector, cameraRotation);
 	this->curUp = XMVector3TransformCoord(this->upVector, cameraRotation);

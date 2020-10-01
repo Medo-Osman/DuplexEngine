@@ -37,6 +37,14 @@ void Renderer::release()
 	delete[] m_rTargetViewsArray;
 }
 
+Renderer::~Renderer()
+{
+	for (std::pair<ShaderProgramsEnum, ShaderProgram*> element : m_compiledShaders)
+	{
+		delete element.second;
+	}
+}
+
 HRESULT Renderer::initialize(const HWND& window)
 {
 	HRESULT hr;
@@ -112,7 +120,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.BufferDesc.RefreshRate.Numerator = 60; //IF vSync is enabled and fullscreen, this specifies the max refreshRate
 	sChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	sChainDesc.SampleDesc.Quality = 0;
-	sChainDesc.SampleDesc.Count = 1;
+	sChainDesc.SampleDesc.Count = 8;
 	sChainDesc.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_DISCARD; //What to do with buffer when swap occur
 	sChainDesc.OutputWindow = m_window;
 
@@ -148,7 +156,7 @@ HRESULT Renderer::createDepthStencil()
 	depthTextureDesc.MipLevels = 1;
 	depthTextureDesc.MiscFlags = 0;
 	depthTextureDesc.SampleDesc.Quality = 0;
-	depthTextureDesc.SampleDesc.Count = 1;
+	depthTextureDesc.SampleDesc.Count = 8;
 	depthTextureDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
 
 	hr = m_devicePtr->CreateTexture2D(&depthTextureDesc, 0, &m_depthStencilBufferPtr);
@@ -228,19 +236,32 @@ void Renderer::render()
 	m_dContextPtr->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	UINT offset = 0;
 
-	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set defaul viewport
+	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_rTargetViewsArray[0] = m_rTargetViewPtr.Get();
 	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
 	// For Tetxure Testing only
-	ID3D11ShaderResourceView* srv = ResourceHandler::get().loadTexture(L"T_CircusTent_D.png");
-	m_dContextPtr->PSSetShaderResources(0, 1, &srv);
+	//ID3D11ShaderResourceView* srv = ResourceHandler::get().loadTexture(L"T_CircusTent_D.png");
+	//m_dContextPtr->PSSetShaderResources(0, 1, &srv);
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
-		if (m_currentSetShaderProg != component.second->getShaderProgEnum())
-			m_compiledShaders[component.second->getShaderProgEnum()]->setShaders();
+		ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum();
+		if (m_currentSetShaderProg != meshShaderEnum)
+		{
+			m_compiledShaders[meshShaderEnum]->setShaders();
+			m_currentSetShaderProg = meshShaderEnum;
+		}
+			
+		
+		Material* meshMatPtr = component.second->getMaterialPtr();
+		if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+		{
+			meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
+			m_currentSetMaterialId = meshMatPtr->getMaterialId();
+		}
+			
 
 		perObjectMVP constantBufferPerObjectStruct;
 		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
