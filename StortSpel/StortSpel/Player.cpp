@@ -4,14 +4,11 @@
 
 Player::Player()
 {
-	
-
 	m_movementVector = XMVectorZero();
 }
 
 void Player::setStates(std::vector<State> states)
 {
-	 
 	m_movementVector = XMVECTOR();
 	for (std::vector<int>::size_type i = 0; i < states.size(); i++)
 	{
@@ -33,9 +30,6 @@ void Player::setStates(std::vector<State> states)
 			break;
 		}
 	}
-	
-	
-		
 }
 
 float lerp(float a, float b, float t)
@@ -46,7 +40,7 @@ float lerp(float a, float b, float t)
 //To do: Implement with physics objects.
 void Player::updatePlayer(const float& dt)
 {
-	m_playerEntity->move(m_movementVector * dt * m_playerSpeed);
+	m_playerEntity->move(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector)) * dt * m_playerSpeed);
 
 	m_movementVector = XMVector3Normalize(m_movementVector);
 
@@ -59,44 +53,20 @@ void Player::updatePlayer(const float& dt)
 		angleY = -angleY;
 	}
 
-	//Quaternion currentRot(Vector3(0, m_playerEntity->getRotation().y, 0), 1);
-	//currentRot.CreateFromAxisAngle(Vector3(0, 1, 0), m_playerEntity->getRotation().y);
+	//This is the current rotation in quaternions
+	Quaternion currentRotation = m_playerEntity->getQuaternion();
+	currentRotation.Normalize();
 
-	//Quaternion targetRot(Vector3(0, angleY, 0), 1);
-	//targetRot.CreateFromAxisAngle(Vector3(0, 1, 0), angleY);
+	//This is the angleY target quaternion
+	Quaternion targetRot = Quaternion::CreateFromYawPitchRoll(angleY, 0, 0);
+	targetRot.Normalize();
 
-	
-	//Quaternion slerpedRot = XMQuaternionLerp(currentRot, targetRot, 0.1f);
+	//Land somewhere in between target and current
+	Quaternion slerped = Quaternion::Slerp(currentRotation, targetRot, dt/0.05);
+	slerped.Normalize();
 
-	//Quaternion slerpedRot = Quaternion::Slerp(currentRot, targetRot, 0.1f);
-	//slerpedRot.Normalize();
-	//float lerpedAngle = lerp(m_playerEntity->getRotation().y, angleY, dt / 0.1f);
-
-	///*if(Vector3(m_movementVector).LengthSquared() > 0)
-	//	m_playerEntity->rotate(Vector3(0, angleY, 0));*/
-
-	//float rotY = std::asin(2 * (slerpedRot.x * slerpedRot.z + slerpedRot.w * slerpedRot.y));
-
-	/*
-	var yaw = atan2(2.0*(q.y*q.z + q.w*q.x), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
-	var pitch = asin(-2.0*(q.x*q.z - q.w*q.y));
-	var roll = atan2(2.0*(q.x*q.y + q.w*q.z), q.w*q.w + q.x*q.x - q.y*q.y - q.z*q.z);
-	*/
-	
-	//float myAngle = std::asin(-2*(slerpedRot.x*slerpedRot.z - slerpedRot.w * slerpedRot.y));
-	//XMQuaternionToAxisAngle(&XMVectorSet(1, 0, 0, 0), &myAngle, slerpedRot);
-	
-	//ErrorLogger::get().logError(std::string(std::to_string(XMConvertToDegrees(angleY))).c_str());
-
-
-	//Quaternion currentRotation = m_playerEntity->getQuaternion();
-	//Quaternion targetRot(Vector3(0, angleY, 0));
-	//Quaternion slerped = Quaternion::Slerp(currentRotation, targetRot, dt/0.5);
-
-	//m_playerEntity->setQuaternion(slerped, Vector3(0, angleY, 0));
-	m_playerEntity->rotate(Vector3(0, angleY, 0));
-	//m_playerEntity->setRotationMatrix(Matrix::CreateFromAxisAngle(Vector3(0, 1, 0), angleY), Vector3(0,angleY,0));
-
+	//Display slerped result
+	m_playerEntity->setQuaternion(slerped);
 }
 
 void Player::setPlayerEntity(Entity* entity)
@@ -116,5 +86,5 @@ Entity* Player::getPlayerEntity()
 
 void Player::inputUpdate(InputData& inputData)
 {
-	this->setStates(inputData.stateData);
+	setStates(inputData.stateData);
 }

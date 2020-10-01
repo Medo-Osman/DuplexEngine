@@ -18,8 +18,9 @@ private:
 	XMMATRIX scalingMatrix;
 
 	Vector3 m_scaling;
-	Vector3 m_rotation;
+	//Vector3 m_rotation;
 	Vector3 m_translation;
+	Quaternion m_rotationQuat;
 
 
 	Vector3 m_forwardVector;
@@ -53,18 +54,21 @@ public:
 	void setRotationLock(bool state);
 	void setScaleLock(bool state);
 
-	Vector3 getRotation();
+	Quaternion getRotation();
 	Vector3 getTranslation();
 	Vector3 getScaling();
 
-	Vector4 getQuaternion();
+	void setQuaternion(Quaternion quat);
+	Quaternion getQuaternion();
+
+	Vector4 getVec4Quaternion();
+
 
 	Vector3 getForwardVector();
 	Vector3 getUpVector();
 	Vector3 getRightVector();
 	Vector3 getBackwardVector();
 
-	void setRotationMatrix(Matrix newMatrix, Vector3 representationAngles);
 	Matrix getRotationMatrix();
 
 
