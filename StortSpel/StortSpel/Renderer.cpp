@@ -5,10 +5,9 @@
 Renderer::Renderer()
 {
 	m_rTargetViewsArray = new ID3D11RenderTargetView * [8];
-
+	
 	//Variables
-	m_width = m_startWidth;
-	m_height = m_startHeight;
+
 }
 
 void Renderer::release()
@@ -49,6 +48,9 @@ HRESULT Renderer::initialize(const HWND& window)
 {
 	HRESULT hr;
 	m_window = window;
+	
+	m_settings = Engine::get().getSettings();
+
 	hr = createDeviceAndSwapChain(); //Device and context creation
 	if (!SUCCEEDED(hr)) return hr;
 
@@ -70,7 +72,7 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	compileAllShaders(&m_compiledShaders, m_devicePtr.Get(), m_dContextPtr.Get(), m_depthStencilViewPtr.Get());
 
-	createViewPort(m_defaultViewport, m_width, m_height);
+	createViewPort(m_defaultViewport, m_settings.width, m_settings.height);
 	rasterizerSetup();
 
 
@@ -95,11 +97,12 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 
-	m_camera.setProjectionMatrix(80.f, (float)m_height / (float)m_width, 0.01f, 1000.0f);
 	//m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
+	
 
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
+	m_camera = Engine::get().getCameraPtr();
 
 	return hr;
 }
@@ -114,8 +117,8 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.BufferCount = 2;
 	sChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sChainDesc.Windowed = true; //Windowed or fullscreen
-	sChainDesc.BufferDesc.Height = m_height; //Size of buffer in pixels, height
-	sChainDesc.BufferDesc.Width = m_width; //Size of window in pixels, width
+	sChainDesc.BufferDesc.Height = m_settings.height; //Size of buffer in pixels, height
+	sChainDesc.BufferDesc.Width = m_settings.width; //Size of window in pixels, width
 	sChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //DXGI Format, 8 bits for Red, green, etc
 	sChainDesc.BufferDesc.RefreshRate.Numerator = 60; //IF vSync is enabled and fullscreen, this specifies the max refreshRate
 	sChainDesc.BufferDesc.RefreshRate.Denominator = 1;
@@ -151,8 +154,8 @@ HRESULT Renderer::createDepthStencil()
 	depthTextureDesc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_DEPTH_STENCIL;
 	depthTextureDesc.CPUAccessFlags = 0;
 	depthTextureDesc.Format = DXGI_FORMAT::DXGI_FORMAT_D32_FLOAT;
-	depthTextureDesc.Height = m_height;
-	depthTextureDesc.Width = m_width;
+	depthTextureDesc.Height = m_settings.height;
+	depthTextureDesc.Width = m_settings.width;
 	depthTextureDesc.MipLevels = 1;
 	depthTextureDesc.MiscFlags = 0;
 	depthTextureDesc.SampleDesc.Quality = 0;
@@ -210,7 +213,7 @@ void Renderer::rasterizerSetup()
 
 void Renderer::update(const float& dt)
 {
-	m_camera.update(dt);
+	
 }
 
 void Renderer::render()
@@ -265,8 +268,8 @@ void Renderer::render()
 
 		perObjectMVP constantBufferPerObjectStruct;
 		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
-		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera.getProjectionMatrix());
-		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera.getViewMatrix());
+		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
+		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
 		constantBufferPerObjectStruct.world = XMMatrixTranspose(Engine::get().getEntity(component.second->getParentEntityIdentifier())->calculateWorldMatrix() * component.second->calculateWorldMatrix());
 		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
