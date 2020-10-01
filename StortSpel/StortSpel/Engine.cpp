@@ -4,6 +4,8 @@
 
 Engine::Engine()
 {
+	m_settings.width = m_startWidth;
+	m_settings.height = m_startHeight;
 }
 
 Engine& Engine::get()
@@ -40,7 +42,16 @@ Engine::~Engine()
 
 void Engine::update(const float& dt)
 {
+	m_camera.update(dt);
 	m_player->updatePlayer(dt);
+}
+Settings Engine::getSettings() const
+{
+	return m_settings;
+}
+Camera* Engine::getCameraPtr()
+{
+	return &m_camera;
 }
 bool Engine::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
 {
@@ -132,6 +143,7 @@ void Engine::initialize()
 	}
 
 	m_player = new Player();
+	m_camera.setProjectionMatrix(80.f, (float)m_settings.height / (float)m_settings.width, 0.01f, 1000.0f);
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
 	if (addEntity("meshPlayer"))
 	{
@@ -144,6 +156,7 @@ void Engine::initialize()
 	{
 		ErrorLogger::get().logError("No player model added or already exists when adding");
 	}
+	m_player->setCameraTranformPtr(m_camera.getTransform());
 
 	// Temp entity init
 	addEntity("first");

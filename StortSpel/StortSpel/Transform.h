@@ -21,6 +21,12 @@ private:
 	Vector3 m_rotation;
 	Vector3 m_translation;
 
+
+	Vector3 m_forwardVector;
+	Vector3 m_upVector;
+	Vector3 m_rightVector;
+	Vector3 m_backVector;
+
 	bool updated;
 
 	bool translationLock;
@@ -36,7 +42,7 @@ public:
 	void move(DirectX::XMVECTOR moveVector);
 
 	//sets rotation/translation/scale
-	void rotate(DirectX::XMFLOAT3 rotation);
+	void rotate(Vector3 rotation);
 	void translation(DirectX::XMFLOAT3 translation);
 	void scale(DirectX::XMFLOAT3 scaling);
 
@@ -50,6 +56,17 @@ public:
 	Vector3 getRotation();
 	Vector3 getTranslation();
 	Vector3 getScaling();
+
+	Vector4 getQuaternion();
+
+	Vector3 getForwardVector();
+	Vector3 getUpVector();
+	Vector3 getRightVector();
+	Vector3 getBackwardVector();
+
+	void setRotationMatrix(Matrix newMatrix, Vector3 representationAngles);
+	Matrix getRotationMatrix();
+
 
 	DirectX::XMMATRIX calculateWorldMatrix();
 
