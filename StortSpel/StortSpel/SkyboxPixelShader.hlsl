@@ -1,6 +1,6 @@
 struct ps_in
 {
-    float4 position : SV_Position;
+    float4 position : SV_POSITION;
     float3 pos      : POSITION;
 };
 
@@ -13,5 +13,5 @@ float4 main(ps_in input) : SV_TARGET
     
     output = float4(skyboxTexture.Sample(textureCubeSampler, input.pos).xyz, 1);
     
-    return output;
+    return float4(1, 0, 0, 1);
 }

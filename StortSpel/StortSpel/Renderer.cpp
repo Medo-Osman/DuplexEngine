@@ -86,6 +86,8 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+	m_skyboxConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skyboxMVP(), 1);
+	m_dContextPtr->VSSetConstantBuffers(1, 1, m_skyboxConstantBuffer.GetAddressOf());
 
 	m_camera.setProjectionMatrix(80.f, (float)m_height / (float)m_width, 0.01f, 1000.0f);
 	//m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
@@ -236,6 +238,19 @@ void Renderer::render()
 	// For Tetxure Testing only
 	ID3D11ShaderResourceView* srv = ResourceHandler::get().loadTexture(L"T_CircusTent_D.png");
 	m_dContextPtr->PSSetShaderResources(0, 1, &srv);
+
+	skyboxMVP constantBufferSkyboxStruct;
+	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(m_camera.getProjectionMatrix()) * 
+										   XMMatrixTranspose(m_camera.getViewMatrix()) * 
+		                                   XMMatrixTranspose(XMMatrixTranslationFromVector(m_camera.getPosition()));
+	m_skyboxConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferSkyboxStruct);
+
+	//sky_WVP.World = DirectX::XMMatrixTranslation
+	//(
+	//	DirectX::XMVectorGetX(cameraPosition),
+	//	DirectX::XMVectorGetY(cameraPosition),
+	//	DirectX::XMVectorGetZ(cameraPosition)
+	//);
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{

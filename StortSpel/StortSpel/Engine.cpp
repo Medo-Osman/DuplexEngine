@@ -112,6 +112,14 @@ void Engine::buildTestStage()
 			cube->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
 		}
 	}
+
+	// Skybox
+	if (addEntity("Skybox"))
+	{
+		addComponent(m_entities["Skybox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX));
+		//m_entities["Skybox"]->move({ 0.f, 0.f, 5.f });
+		//m_entities["Skybox"]->scale({ 3.f, 3.f, 3.f });
+	}
 }
 
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)

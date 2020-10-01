@@ -26,6 +26,7 @@ private:
 
 	//Buffer<cbVSWVPMatrix> m_vertexShaderConstantBuffer;
 	Buffer<perObjectMVP> m_perObjectConstantBuffer;
+	Buffer<skyboxMVP> m_skyboxConstantBuffer;
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;

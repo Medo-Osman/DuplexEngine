@@ -1,16 +1,19 @@
 struct vs_in
 {
-    float3 pos  : POSITION;
-    float2 uv   : TEXCOORD;
+    float3 pos          : POSITION;
+    float2 uv           : TEXCOORD;
+    float3 normal       : NORMAL;
+    float3 tangent      : TANGENT;
+    float3 bitangent    : BITANGENT;
 };
 
 struct vs_out
 {
-    float4 position : SV_Position;
+    float4 position : SV_POSITION;
     float3 pos      : POSITION;
 };
 
-cbuffer skyboxCbuffer : register(b0)
+cbuffer skyboxCbuffer : register(b1)
 {
     float4x4 wvpMatrix;
 };
