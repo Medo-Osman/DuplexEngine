@@ -9,6 +9,7 @@ class ResourceHandler
 {
 private:
 	ResourceHandler() {}
+
 public:
 	ResourceHandler(const ResourceHandler&) = delete;
 	void operator=(ResourceHandler const&) = delete;
@@ -17,7 +18,7 @@ public:
 		static ResourceHandler instance;
 		return instance;
 	}
-	
+	~ResourceHandler();
 private:
 
 	ID3D11Device* m_devicePtr = NULL;
@@ -37,6 +38,7 @@ private:
 
 public:
 	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath);
+	ID3D11ShaderResourceView* loadErrorTexture();
 	MeshResource* loadLRMMesh(const char* path);
 
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);

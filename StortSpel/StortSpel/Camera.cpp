@@ -45,7 +45,7 @@ Transform* Camera::getTransform()
 const XMVECTOR& Camera::getRotation() const
 {
 	return m_rotation;
-} 
+}
 const XMFLOAT4 Camera::getFloat4Rotation() const
 {
 	XMFLOAT4 float4Rot;
@@ -95,7 +95,7 @@ void Camera::inputUpdate(InputData& inputData)
 			else if (rotationF3.x < -XM_PI)
 				rotationF3.y += XM_PI * 2.0f;
 
-			
+
 			m_rotation = XMLoadFloat3(&rotationF3);
 			m_transform.rotate(m_rotation);
 		}
@@ -104,7 +104,7 @@ void Camera::inputUpdate(InputData& inputData)
 
 void Camera::update(const float &dt)
 {
-	
+
 	//if (m_newIncrements)
 	//{
 	//	this->m_rotation += m_incrementRotation * dt * 2;
@@ -131,7 +131,7 @@ void Camera::updateViewMatrix()
 {
 	float currentRotationAngleY = XMVectorGetY(m_rotation);
 	float currentRotationAngleX = XMVectorGetX(m_rotation);
-
+	
 	XMVECTOR currentRotation = XMQuaternionRotationRollPitchYaw(currentRotationAngleX, currentRotationAngleY, 0);
 
 	XMVECTOR playerPos = Engine::get().getEntity("meshPlayer")->getTranslation();

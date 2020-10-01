@@ -13,8 +13,8 @@ public:
 	
 	~MeshResource()
 	{
-		m_vertexBuffer.release();
-		m_indexBuffer.release();
+		//m_vertexBuffer.release();
+		//m_indexBuffer.release();
 	}
 	
 	Buffer<LRM_VERTEX>& getVertexBuffer() { return m_vertexBuffer; }
