@@ -22,6 +22,7 @@ void Transform::setTransformZero()
 	m_translation = Vector3();
 	m_rotation = Vector3();
 	m_scaling = Vector3(1, 1, 1);
+	m_rotationQuat = Quaternion();
 
 	updated = true;
 }
@@ -38,12 +39,12 @@ void Transform::move(DirectX::XMVECTOR moveVector)
 }
 
 
-void Transform::rotate(DirectX::XMFLOAT3 rotation)
+void Transform::rotate(Vector3 rotation)
 {
-	m_rotation = rotation;
-	rotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
+	m_rotationQuat = Quaternion::CreateFromYawPitchRoll(rotation.y, rotation.x, rotation.z);
+	m_rotationQuat.Normalize();
 
-	m_rotation += rotation;
+	rotationMatrix = DirectX::XMMatrixRotationQuaternion(m_rotationQuat); //DirectX::XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
 
 	updated = true;
 }
@@ -53,8 +54,6 @@ void Transform::translation(DirectX::XMFLOAT3 translation)
 	m_translation = translation;
 	translationMatrix = DirectX::XMMatrixTranslation(translation.x, translation.y, translation.z);
 
-	m_translation = translation;
-
 	updated = true;
 }
 
@@ -63,7 +62,6 @@ void Transform::scale(DirectX::XMFLOAT3 scaling)
 	m_scaling = scaling;
 	scalingMatrix = DirectX::XMMatrixScaling(scaling.x, scaling.y, scaling.z);
 
-	m_scaling = scaling;
 
 	updated = true;
 }
@@ -96,9 +94,9 @@ void Transform::setScaleLock(bool state)
 	scaleLock = state;
 }
 
-Vector3 Transform::getRotation()
+Quaternion Transform::getRotation()
 {
-	return m_rotation;
+	return m_rotationQuat;
 }
 
 Vector3 Transform::getTranslation()
@@ -111,7 +109,50 @@ Vector3 Transform::getScaling()
 	return m_scaling;
 }
 
+void Transform::setQuaternion(Quaternion quat)
+{
+	m_rotationQuat.Normalize();
+	m_rotationQuat = quat;
 
+	Matrix quatRotMatrix = XMMatrixRotationQuaternion(m_rotationQuat);
+	rotationMatrix = quatRotMatrix;
+}
+
+Quaternion Transform::getQuaternion()
+{
+	return m_rotationQuat;
+}
+
+Vector4 Transform::getVec4Quaternion()
+{
+	Quaternion tempQuat = m_rotationQuat;//Quaternion(0, m_rotationQuat.y, 0, 0);
+	return tempQuat;
+}
+
+Vector3 Transform::getForwardVector()
+{
+	return XMVector3Rotate(Vector3(0, 0, 1), getVec4Quaternion());
+}
+
+Vector3 Transform::getUpVector()
+{
+	return XMVector3Rotate(Vector3(0, 1, 0), getVec4Quaternion());
+}
+
+Vector3 Transform::getRightVector()
+{
+	return XMVector3Rotate(Vector3(1, 0, 0), getVec4Quaternion());
+}
+
+Vector3 Transform::getBackwardVector()
+{
+	return XMVector3Rotate(Vector3(0, 0, -1), getVec4Quaternion());
+}
+
+Matrix Transform::getRotationMatrix()
+{
+	return rotationMatrix;
+}
 
 DirectX::XMMATRIX Transform::calculateWorldMatrix()
 {

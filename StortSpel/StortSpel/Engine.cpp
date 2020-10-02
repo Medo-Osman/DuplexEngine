@@ -4,6 +4,8 @@
 
 Engine::Engine()
 {
+	m_settings.width = m_startWidth;
+	m_settings.height = m_startHeight;
 }
 
 Engine& Engine::get()
@@ -36,11 +38,25 @@ Engine::~Engine()
 {
 	if (m_player)
 		delete m_player;
+
+	for (std::pair<std::string, Entity*> entity : m_entities)
+		delete entity.second;
+
+	m_entities.clear();
 }
 
 void Engine::update(const float& dt)
 {
+	m_camera.update(dt);
 	m_player->updatePlayer(dt);
+}
+Settings Engine::getSettings() const
+{
+	return m_settings;
+}
+Camera* Engine::getCameraPtr()
+{
+	return &m_camera;
 }
 bool Engine::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
 {
@@ -77,10 +93,12 @@ void Engine::buildTestStage()
 	// Tent
 	if (addEntity("tent"))
 	{
-		addComponent(m_entities["tent"], "mesh", new MeshComponent("BigTopTent_Cylinder.lrm"));
+		addComponent(m_entities["tent"], "mesh", new MeshComponent("BigTopTent_Cylinder.lrm", Material({ L"T_CircusTent_D.png" })));
 		m_entities["tent"]->rotate({ XMConvertToRadians(-90.f), 0.f, 0.f });
 		m_entities["tent"]->move({ -10.f, 0.f, 0.f });
 	}
+
+	Material gridTest = Material({ L"T_GridTestTex.bmp" });
 
 	// Floor
 	Entity* floor = addEntity("floor");
@@ -95,10 +113,17 @@ void Engine::buildTestStage()
 	Entity* cube = addEntity("cube-test2");
 	if (cube)
 	{
-		addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+		addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
 		cube->scaleUniform({ 3.f });
 		cube->move({ 0.f, 5.f, 5.f });
 		cube->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
+	}
+
+	Entity* testXwing = addEntity("testXwing");
+	if (testXwing)
+	{
+		addComponent(testXwing, "xwingtestmesh", new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
+		testXwing->move({ 15.f, 1.5f, -3.f });
 	}
 
 	// Platforms
@@ -107,7 +132,7 @@ void Engine::buildTestStage()
 		Entity* cube = addEntity("cube-test" + std::to_string(i));
 		if (cube)
 		{
-			addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+			addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm"));
 			cube->scale({ 3,0.2,5 });
 			cube->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
 		}
@@ -140,6 +165,7 @@ void Engine::initialize()
 	}
 
 	m_player = new Player();
+	m_camera.setProjectionMatrix(80.f, (float)m_settings.height / (float)m_settings.width, 0.01f, 1000.0f);
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
 	if (addEntity("meshPlayer"))
 	{
@@ -152,6 +178,7 @@ void Engine::initialize()
 	{
 		ErrorLogger::get().logError("No player model added or already exists when adding");
 	}
+	m_player->setCameraTranformPtr(m_camera.getTransform());
 
 	// Temp entity init
 	addEntity("first");

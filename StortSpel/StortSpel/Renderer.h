@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ConstantBufferTypes.h"
-#include "Camera.h"
 #include "ShaderProgram.h"
 #include "ShaderEnums.h"
 #include "Engine.h"
@@ -43,21 +42,21 @@ private:
 		D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_11_1,
 		D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_11_0,
 	};
-	static const int m_startHeight = 600;
-	static const int m_startWidth = 600;
+
 
 	//Variables
 	ID3D11DepthStencilState* skyboxDSSPtr;
 
 	D3D_FEATURE_LEVEL m_fLevel;
 	HWND m_window;
-	int m_width;
-	int m_height;
+	Settings m_settings;
+	Camera* m_camera = nullptr;
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
-	Camera m_camera;
+
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
+	unsigned int long m_currentSetMaterialId = 1000;
 
 	//Functions
 	HRESULT createDeviceAndSwapChain();
@@ -76,6 +75,7 @@ public:
 		static Renderer instance;
 		return instance;
 	}
+	~Renderer();
 
 	HRESULT initialize(const HWND& window);
 	void release();

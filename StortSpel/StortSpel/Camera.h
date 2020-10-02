@@ -1,5 +1,6 @@
 #pragma once
 #include "Input.h"
+#include "Transform.h"
 
 class Camera : public InputObserver
 {
@@ -10,9 +11,7 @@ private:
 	const XMVECTOR forwardVector = { 0.0f, 0.0f, 1.0f, 0.0f };
 	const XMVECTOR rightVector = { 1.0f, 0.0f, 0.0f, 0.0f };
 
-	XMVECTOR curUp;
-	XMVECTOR curForward;
-	XMVECTOR curRight;
+	Transform m_transform;
 
 	XMMATRIX m_viewMatrix;
 	XMMATRIX m_projectionMatrix;
@@ -28,13 +27,15 @@ public:
 	void setPosition(const XMVECTOR&pos);
 	void setRotation(const XMVECTOR&rot);
 
+	Transform* getTransform();
+
 	const XMVECTOR& getPosition() const;
 	const XMFLOAT3 getFloat3Position() const;
 	const XMVECTOR& getRotation() const;
 	const XMFLOAT4 getFloat4Rotation() const;
 	const XMMATRIX& getViewMatrix() const;
 	const XMMATRIX& getProjectionMatrix() const;
-	const XMFLOAT3 getForward() const;
+
 	BoundingFrustum getFrustum();
 
 	void update(const float& dt);
