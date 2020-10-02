@@ -37,7 +37,7 @@ private:
 	const std::string m_ERROR_MODEL_NAME = "error.lrm";
 
 public:
-	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath);
+	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath, bool isCubeMap = false);
 	ID3D11ShaderResourceView* loadErrorTexture();
 	MeshResource* loadLRMMesh(const char* path);
 

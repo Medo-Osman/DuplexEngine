@@ -141,9 +141,10 @@ void Engine::buildTestStage()
 	// Skybox
 	if (addEntity("Skybox"))
 	{
+		Material skyboxMat;
+		skyboxMat.addTexture()
 		addComponent(m_entities["Skybox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX));
-		//m_entities["Skybox"]->move({ 0.f, 0.f, 5.f });
-		//m_entities["Skybox"]->scale({ 20.f, 20.f, 20.f });
+
 	}
 }
 

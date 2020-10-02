@@ -17,7 +17,7 @@ void ResourceHandler::isResourceHandlerReady()
 	}
 }
 
-ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
+ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isCubeMap)
 {
 	if (m_textureCache.count(texturePath))
 		return m_textureCache[texturePath];

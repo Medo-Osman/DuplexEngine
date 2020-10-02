@@ -99,7 +99,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_skyboxConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skyboxMVP(), 1);
 	m_dContextPtr->VSSetConstantBuffers(1, 1, m_skyboxConstantBuffer.GetAddressOf());
 
-	m_camera.setProjectionMatrix(80.f, (float)m_width / (float)m_height, 0.01f, 1000.0f);
+	
 	//m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
 	
 
@@ -265,9 +265,9 @@ void Renderer::render()
 
 	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
 	skyboxMVP constantBufferSkyboxStruct;
-	XMMATRIX W = XMMatrixTranslation(XMVectorGetX(m_camera.getPosition()), XMVectorGetY(m_camera.getPosition()), XMVectorGetZ(m_camera.getPosition()));
-	XMMATRIX V = m_camera.getViewMatrix();
-	XMMATRIX P = m_camera.getProjectionMatrix();
+	XMMATRIX W = XMMatrixTranslation(XMVectorGetX(m_camera->getPosition()), XMVectorGetY(m_camera->getPosition()), XMVectorGetZ(m_camera->getPosition()));
+	XMMATRIX V = m_camera->getViewMatrix();
+	XMMATRIX P = m_camera->getProjectionMatrix();
 	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(W * V * P);
 	m_skyboxConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferSkyboxStruct);
 	//////////////////////////////////////////////////////////////////////////////////////////
