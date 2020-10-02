@@ -95,6 +95,15 @@ HRESULT Renderer::initialize(const HWND& window)
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 
+	/////////////////////////////////////////////////
+	D3D11_DEPTH_STENCIL_DESC skyboxDSD;
+	ZeroMemory(&skyboxDSD, sizeof(D3D11_DEPTH_STENCIL_DESC));
+	skyboxDSD.DepthEnable = true;
+	skyboxDSD.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	skyboxDSD.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	m_devicePtr->CreateDepthStencilState(&skyboxDSD, &skyboxDSSPtr);
+	/////////////////////////////////////////////////
+
 	return hr;
 }
 
@@ -239,91 +248,17 @@ void Renderer::render()
 	ID3D11ShaderResourceView* srv = ResourceHandler::get().loadTexture(L"T_CircusTent_D.png");
 	m_dContextPtr->PSSetShaderResources(0, 1, &srv);
 
-	Buffer<TEST>b;
-	std::vector<TEST> v =
-	{
-		// Back
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f) },
-
-		// Front
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f) },
-
-		// Left
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f) },
-
-		// Right
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f) },
-
-		// Bottom
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f) },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f) },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f) },
-
-		// Top
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f) },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f) }
-	};
-	b.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, v.data(), 36);
-	//UINT offset = 0;
+	//////////////////////////////////////////////////////////////////////////////////////////
 
 
-	m_dContextPtr->IASetVertexBuffers(0, 1, b.GetAddressOf(), b.getStridePointer(), &offset);
-
+	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
 	skyboxMVP constantBufferSkyboxStruct;
-
-	XMMATRIX W = XMMatrixScaling(1, 1, 1) * XMMatrixTranslation
-	(
-		XMVectorGetX(m_camera.getPosition()),
-		XMVectorGetY(m_camera.getPosition()),
-		XMVectorGetZ(m_camera.getPosition())
-	);
+	XMMATRIX W = XMMatrixTranslation(XMVectorGetX(m_camera.getPosition()), XMVectorGetY(m_camera.getPosition()), XMVectorGetZ(m_camera.getPosition()));
 	XMMATRIX V = m_camera.getViewMatrix();
-	//XMMATRIX V = XMMatrixIdentity();
 	XMMATRIX P = m_camera.getProjectionMatrix();
-	//V = XMMatrixTranspose(V);
-	//P = XMMatrixTranspose(P);
-	constantBufferSkyboxStruct.mvpMatrix = W * V;
-	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(constantBufferSkyboxStruct.mvpMatrix * P);
-	//constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(m_camera.getProjectionMatrix()) *	
-	//									   XMMatrixTranspose(m_camera.getViewMatrix()) *		
-	//	                                   XMMatrixTranspose(XMMatrixTranslationFromVector(m_camera.getPosition()));
-
+	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(W * V * P);
 	m_skyboxConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferSkyboxStruct);
-	m_compiledShaders[ShaderProgramsEnum::SKYBOX]->setShaders();
-	m_dContextPtr->Draw(36, 0);
-	//sky_WVP.World = DirectX::XMMatrixTranslation
-	//(
-	//	DirectX::XMVectorGetX(cameraPosition),
-	//	DirectX::XMVectorGetY(cameraPosition),
-	//	DirectX::XMVectorGetZ(cameraPosition)
-	//);
+	//////////////////////////////////////////////////////////////////////////////////////////
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{

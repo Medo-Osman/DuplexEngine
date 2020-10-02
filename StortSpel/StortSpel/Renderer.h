@@ -47,6 +47,8 @@ private:
 	static const int m_startWidth = 600;
 
 	//Variables
+	ID3D11DepthStencilState* skyboxDSSPtr;
+
 	D3D_FEATURE_LEVEL m_fLevel;
 	HWND m_window;
 	int m_width;
