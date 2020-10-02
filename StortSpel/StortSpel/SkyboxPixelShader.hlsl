@@ -1,7 +1,7 @@
 struct ps_in
 {
-    float4 position : SV_POSITION;
-    float3 pos      : POSITION;
+    float4 position     : SV_POSITION;
+    float3 pos          : POSITION;
 };
 
 TextureCube skyboxTexture : register(t0);

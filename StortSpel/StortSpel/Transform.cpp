@@ -21,7 +21,7 @@ void Transform::setTransformZero()
 
 	m_translation = Vector3();
 	m_rotation = Vector3();
-	m_scaling = Vector3();
+	m_scaling = Vector3(1, 1, 1);
 
 	updated = true;
 }

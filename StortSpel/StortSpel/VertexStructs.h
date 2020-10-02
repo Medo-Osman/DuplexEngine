@@ -155,3 +155,8 @@ struct LRM_VERTEX
 	XMFLOAT3 tangent;
 	XMFLOAT3 bitangent;
 };
+
+struct TEST
+{
+	XMFLOAT3 pos;
+};

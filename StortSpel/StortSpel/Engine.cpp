@@ -71,8 +71,8 @@ std::map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 void Engine::buildTestStage()
 {
 	// Cube 1
-	if (addEntity("cube-test"))
-		addComponent(m_entities["cube-test"], "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+	//if (addEntity("cube-test"))
+	//	addComponent(m_entities["cube-test"], "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
 
 	// Tent
 	if (addEntity("tent"))
@@ -114,12 +114,12 @@ void Engine::buildTestStage()
 	}
 
 	// Skybox
-	if (addEntity("Skybox"))
-	{
-		addComponent(m_entities["Skybox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX));
-		//m_entities["Skybox"]->move({ 0.f, 0.f, 5.f });
-		//m_entities["Skybox"]->scale({ 3.f, 3.f, 3.f });
-	}
+	//if (addEntity("Skybox"))
+	//{
+	//	addComponent(m_entities["Skybox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX));
+	//	//m_entities["Skybox"]->move({ 0.f, 0.f, 5.f });
+	//	m_entities["Skybox"]->scale({ 20.f, 20.f, 20.f });
+	//}
 }
 
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)

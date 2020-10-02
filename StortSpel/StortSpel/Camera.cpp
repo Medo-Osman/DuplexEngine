@@ -81,7 +81,7 @@ void Camera::update(const float &dt)
 		m_newIncrements = false;
 	}
 	m_position = Engine::get().getEntity("meshPlayer")->getTranslation() + Vector3(0, 2, -5);
-
+	
 	this->updateViewMatrix();
 }
 
