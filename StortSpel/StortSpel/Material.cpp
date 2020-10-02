@@ -88,7 +88,7 @@ void Material::setMaterial(bool shaderNeedsResource[5], bool shaderNeedsCBuffer[
 	//TODO: check what is already set and if it should be overwritten, maybe might already be in the drivers
 }
 
-void Material::addTexture(const WCHAR* fileName)
+void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 {
 	if (isDefault)
 	{
@@ -97,7 +97,7 @@ void Material::addTexture(const WCHAR* fileName)
 		isDefault = false;
 	}
 	
-	this->m_textureArray.push_back(ResourceHandler::get().loadTexture(fileName));
+	this->m_textureArray.push_back(ResourceHandler::get().loadTexture(fileName, isCubeMap));
 }
 
 void Material::setUVScale(float scale)

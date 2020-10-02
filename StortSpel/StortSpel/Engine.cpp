@@ -142,8 +142,8 @@ void Engine::buildTestStage()
 	if (addEntity("Skybox"))
 	{
 		Material skyboxMat;
-		skyboxMat.addTexture()
-		addComponent(m_entities["Skybox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX));
+		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		addComponent(m_entities["Skybox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
 	}
 }
