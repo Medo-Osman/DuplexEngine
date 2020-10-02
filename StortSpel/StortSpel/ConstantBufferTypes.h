@@ -31,8 +31,5 @@ struct perObjectMVP
 
 struct skyboxMVP
 {
-    //XMMATRIX W;
-    //XMMATRIX V;
-    //XMMATRIX P;
     XMMATRIX mvpMatrix; //Model/view/projection
 };

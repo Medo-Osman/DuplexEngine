@@ -33,7 +33,6 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath,
 		std::wstring fileExtension = path.substr(i + 1, path.length() - i);
 		if (fileExtension == L"dds" || fileExtension == L"DDS")
 		{
-			//ID3D11Resource* skyboxR_ptr = NULL;
 			if (isCubeMap == true)
 				hr = CreateDDSTextureFromFileEx(m_devicePtr, path.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
 			else

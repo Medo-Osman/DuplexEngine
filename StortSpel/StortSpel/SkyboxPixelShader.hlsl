@@ -9,9 +9,5 @@ SamplerState textureCubeSampler : register(s0);
 
 float4 main(ps_in input) : SV_TARGET
 {
-    float4 output;
-    
-    output = float4(skyboxTexture.Sample(textureCubeSampler, input.pos).xyz, 1);
-    
-    return output;
+    return float4(skyboxTexture.Sample(textureCubeSampler, input.pos).xyz, 1);
 }

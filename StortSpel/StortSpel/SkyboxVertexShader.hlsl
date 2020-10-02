@@ -20,7 +20,6 @@ vs_out main(vs_in input)
     vs_out output;
     
     output.position = mul(float4(input.pos, 1.f), wvpMatrix).xyww;
-    //output.position.w = 0.999f;
     
     output.pos = input.pos;
     

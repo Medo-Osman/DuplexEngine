@@ -256,13 +256,7 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
-	// For Tetxure Testing only
-	//ID3D11ShaderResourceView* srv = ResourceHandler::get().loadTexture(L"T_CircusTent_D.png");
-	//m_dContextPtr->PSSetShaderResources(0, 1, &srv);
-
-	//////////////////////////////////////////////////////////////////////////////////////////
-
-
+	// Skybox constant buffer:
 	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
 	skyboxMVP constantBufferSkyboxStruct;
 	XMMATRIX W = XMMatrixTranslation(XMVectorGetX(m_camera->getPosition()), XMVectorGetY(m_camera->getPosition()), XMVectorGetZ(m_camera->getPosition()));
@@ -270,7 +264,6 @@ void Renderer::render()
 	XMMATRIX P = m_camera->getProjectionMatrix();
 	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(W * V * P);
 	m_skyboxConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferSkyboxStruct);
-	//////////////////////////////////////////////////////////////////////////////////////////
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
