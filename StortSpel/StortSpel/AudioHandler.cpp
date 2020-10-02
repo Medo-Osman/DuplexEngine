@@ -1,5 +1,6 @@
 #include "3DPCH.h"
 #include "AudioHandler.h"
+#include "ApplicationLayer.h"
 
 AudioHandler::~AudioHandler()
 {
@@ -26,6 +27,9 @@ void AudioHandler::initialize(HWND& handle)
 	m_newAudio = RegisterDeviceNotification(handle, &filter,
 		DEVICE_NOTIFY_WINDOW_HANDLE);
 
+	ApplicationLayer::getInstance().m_input.Attach(this);
+
+	m_explode = ResourceHandler::get().loadSound(L"Explo1.wav", m_audioEngine.get());
 	m_ambient = ResourceHandler::get().loadSound(L"NightAmbienceSimple_02.wav", m_audioEngine.get());
 	m_nightLoop = m_ambient->CreateInstance();
 	m_nightLoop->Play(true);
@@ -33,6 +37,17 @@ void AudioHandler::initialize(HWND& handle)
 	nightVolume = 0.5f;
 	nightSlide = -0.1f;
 	m_nightLoop->SetVolume(nightVolume);
+}
+
+void AudioHandler::inputUpdate(InputData& inputData)
+{
+	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
+	{
+		if (inputData.actionData[i] == PLAYSOUND)
+		{
+			m_explode->Play();
+		}
+	}
 }
 
 void AudioHandler::update(float dt)
@@ -49,6 +64,8 @@ void AudioHandler::update(float dt)
 		nightSlide = -nightSlide;
 	}
 	m_nightLoop->SetVolume(nightVolume);
+
+
 
 	if (m_newAudio)
 	{
