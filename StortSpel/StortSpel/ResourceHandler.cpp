@@ -46,7 +46,7 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
 				{
 					//std::wstring errorMessage = L"ERROR, '" + m_ERROR_TEXTURE_NAME + L"' texture can not be found in '" + m_TEXTURES_PATH + L"'!";
 					ErrorLogger::get().logError("error texture can not be found in texture folder!");
-					assert(!L"ERROR, error texture can not be found in texture folder!");
+					assert(!"ERROR, error texture can not be found in texture folder!");
 				}
 			}
 		}
@@ -87,7 +87,7 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 		if (path == m_ERROR_MODEL_NAME.c_str())
 		{
 			ErrorLogger::get().logError("error model can not be found in model folder");
-			assert(!L"ERROR, error model can not be found in model folder!");
+			assert(!"ERROR, error model can not be found in model folder!");
 			return nullptr;
 		}
 		else
@@ -139,13 +139,36 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	return m_meshCache[path];
 }
 
-SoundEffect* ResourceHandler::loadSound(const WCHAR* soundPath, std::shared_ptr<AudioEngine> audioEngine)
+SoundEffect* ResourceHandler::loadSound(const WCHAR* soundPath, AudioEngine* audioEngine)
 {
 	if (!m_soundCache.count(soundPath))
 	{
 		std::wstring path = m_SOUNDS_PATH + soundPath;
-		m_soundCache[soundPath] = new SoundEffect(audioEngine.get(), path.c_str());
-		//SoundEffect soundEffect(audioEngine.get(), path.c_str());
+		try
+		{
+			m_soundCache[soundPath] = new SoundEffect(audioEngine, path.c_str());
+		}
+		catch (std::exception e) // Error, could not load sound file
+		{
+			std::wstring error(soundPath);
+			error = L"Could not load sound file: " + error;
+			ErrorLogger::get().logError(error.c_str());
+
+			if (!m_soundCache.count(m_ERROR_SOUND_NAME)) // if error sound is not loaded
+			{
+				path = m_SOUNDS_PATH + m_ERROR_SOUND_NAME;
+				try
+				{
+					m_soundCache[m_ERROR_SOUND_NAME] = new SoundEffect(audioEngine, path.c_str());
+				}
+				catch (std::exception e) // Fatal Error, error sound file does not exist
+				{
+					ErrorLogger::get().logError("error sound file can not be found in audio folder!");
+					assert(!"ERROR, error sound file can not be found in audio folder!");
+				}
+			}
+			return m_soundCache[m_ERROR_SOUND_NAME];
+		}
 	}
 	return m_soundCache[soundPath];
 }

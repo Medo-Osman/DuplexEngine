@@ -7,13 +7,14 @@ AudioHandler::~AudioHandler()
 	{
 		m_audioEngine->Suspend();
 	}
+	m_nightLoop.reset();
 }
 
 void AudioHandler::initialize(HWND& handle)
 {
 	AUDIO_ENGINE_FLAGS eflags = AudioEngine_Default;
 #ifdef _DEBUG
-	eflags |= AudioEngine_Debug;
+	eflags = AudioEngine_Default | AudioEngine_Debug;
 #endif
 	m_audioEngine = std::make_shared<AudioEngine>(eflags);
 	m_retryAudio = false;
@@ -25,11 +26,30 @@ void AudioHandler::initialize(HWND& handle)
 	m_newAudio = RegisterDeviceNotification(handle, &filter,
 		DEVICE_NOTIFY_WINDOW_HANDLE);
 
-	m_ambient = ResourceHandler::get().loadSound(L"NightAmbienceSimple_02.wav", m_audioEngine);
+	m_ambient = ResourceHandler::get().loadSound(L"NightAmbienceSimple_02.wav", m_audioEngine.get());
+	m_nightLoop = m_ambient->CreateInstance();
+	m_nightLoop->Play(true);
+
+	nightVolume = 0.5f;
+	nightSlide = -0.1f;
+	m_nightLoop->SetVolume(nightVolume);
 }
 
-void AudioHandler::update()
+void AudioHandler::update(float dt)
 {
+	nightVolume += dt * nightSlide;
+	if (nightVolume < 0.f)
+	{
+		nightVolume = 0.f;
+		nightSlide = -nightSlide;
+	}
+	else if (nightVolume > 0.5f)
+	{
+		nightVolume = 0.5f;
+		nightSlide = -nightSlide;
+	}
+	m_nightLoop->SetVolume(nightVolume);
+
 	if (m_newAudio)
 	{
 		UnregisterDeviceNotification(m_newAudio);
@@ -39,7 +59,8 @@ void AudioHandler::update()
 		m_retryAudio = false;
 		if (m_audioEngine->Reset())
 		{
-
+			if (m_nightLoop)
+				m_nightLoop->Play(true);
 		}
 	}
 	else if (!m_audioEngine->Update())
@@ -60,3 +81,9 @@ void AudioHandler::resume()
 {
 	m_audioEngine->Resume();
 }
+
+std::shared_ptr<AudioEngine>* AudioHandler::getAudioEngine()
+{
+	return &m_audioEngine;
+}
+

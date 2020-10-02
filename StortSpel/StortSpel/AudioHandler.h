@@ -3,13 +3,17 @@
 class AudioHandler
 {
 private:
+	AudioHandler() {}
+
 	std::shared_ptr<AudioEngine> m_audioEngine;
 	bool m_retryAudio;
 	HDEVNOTIFY m_newAudio = nullptr;
 
 	SoundEffect* m_ambient;
+	std::unique_ptr<DirectX::SoundEffectInstance> m_nightLoop;
+	float nightVolume;
+	float nightSlide;
 
-	AudioHandler() {}
 
 public:
 	AudioHandler(const AudioHandler&) = delete;
@@ -24,8 +28,9 @@ public:
 	void initialize(HWND &handle);
 	void onNewAudioDevice() { m_retryAudio = true; }
 
-	void update();
+	void update(float dt);
 	void suspend();
 	void resume();
+	std::shared_ptr<AudioEngine>* getAudioEngine();
 
 };

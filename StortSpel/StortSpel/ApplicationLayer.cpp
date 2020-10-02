@@ -25,13 +25,15 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	const wchar_t WINDOWTILE[] = L"3DProject";
 	HRESULT hr = 0;
 	bool initOK = false;
-
+	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 	SetCursor(NULL);
 	this->createWin32Window(hInstance, WINDOWTILE, hWnd);// hwnd is refference, is set to created window.
 	m_window = hWnd;
 
 	AudioHandler::get().initialize(m_window);
 
+	//SoundEffect sound(AudioHandler::get().getAudioEngine()->get(), L"../res/audio/NightAmbienceSimple_02.wav");
+	
 	RAWINPUTDEVICE rawIDevice;
 	rawIDevice.usUsagePage = 0x01;
 	rawIDevice.usUsage = 0x02;
@@ -109,10 +111,9 @@ void ApplicationLayer::applicationLoop()
 			m_input.readBuffers();
 			m_enginePtr->update(dt);
 			m_physics.update(dt);
-			AudioHandler::get().update();
+			AudioHandler::get().update(dt);
 			m_graphicEnginePtr->update(dt);
 			m_graphicEnginePtr->render();
-
 		}
 	}
 	m_physics.release();

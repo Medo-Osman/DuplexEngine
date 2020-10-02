@@ -41,7 +41,7 @@ private:
 public:
 	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath);
 	MeshResource* loadLRMMesh(const char* path);
-	SoundEffect* loadSound(const WCHAR* soundPath, std::shared_ptr<AudioEngine> audioEngine);
+	SoundEffect* loadSound(const WCHAR* soundPath, AudioEngine* audioEngine);
 
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 	void Destroy();

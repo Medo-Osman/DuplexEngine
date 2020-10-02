@@ -201,9 +201,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <FxCompile Include="VertexShaderBasic.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
@@ -213,5 +210,8 @@
     <FxCompile Include="BasicPixelShader_temp_for_testing_shaderSwitching.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
