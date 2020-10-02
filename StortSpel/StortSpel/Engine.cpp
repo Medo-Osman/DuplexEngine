@@ -8,6 +8,28 @@ Engine::Engine()
 	m_settings.height = m_startHeight;
 }
 
+void Engine::updateRenderPointLights()
+{
+	lightBufferStruct lightInfo;
+	int nr = 0;
+	for (auto light : m_lightComponentMap)
+	{
+		auto thing = light.second->getParentEntityIdentifier();
+
+		Matrix parentTransform = XMMatrixTranslationFromVector(getEntity(light.second->getParentEntityIdentifier())->getTranslation());
+		Vector3 offsetFromParent = light.second->getTranslation();
+
+		Vector3 finalPos = XMVector3TransformCoord(offsetFromParent, parentTransform);
+		//Vector3 finalPos = Vector4(offsetFromParent.x, offsetFromParent.y, offsetFromParent.z, 1) * parentTransform;
+
+		lightInfo.lightPosArray[nr] = light.second->getTranslation();
+		lightInfo.lightColorArray[nr++] = light.second->getColor();
+		lightInfo.nrOfLights = m_lightCount;
+	}
+
+	Renderer::get().setPointLightRenderStruct(lightInfo);
+}
+
 Engine& Engine::get()
 {
 	static Engine instance;
@@ -49,6 +71,7 @@ void Engine::update(const float& dt)
 {
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
+	//updateRenderPointLights();
 }
 Settings Engine::getSettings() const
 {
@@ -60,6 +83,8 @@ Camera* Engine::getCameraPtr()
 }
 bool Engine::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
 {
+	entity->addComponent(componentIdentifier, component);
+
 	if (component->getType() == ComponentType::MESH)
 	{
 		MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
@@ -67,8 +92,12 @@ bool Engine::addComponent(Entity* entity, std::string componentIdentifier, Compo
 		addMeshComponent(meshComponent);
 	}
 
+	if (component->getType() == ComponentType::LIGHT)
+	{
+		PointLightComponent* lightComponent = dynamic_cast<PointLightComponent*>(component);
 
-	entity->addComponent(componentIdentifier, component);
+		addPointLightComponent(lightComponent);
+	}
 
 	return true;
 }
@@ -77,6 +106,29 @@ void Engine::addMeshComponent(MeshComponent* component)
 {
 	component->setRenderId(++m_MeshCount);
 	m_meshComponentMap[m_MeshCount] = component;
+}
+
+void Engine::addPointLightComponent(PointLightComponent* component)
+{
+	if (m_lightCount < 8)
+	{
+		component->setLightID(m_lightCount);
+		m_lightComponentMap[m_lightCount++] = component;
+
+		//updateRenderPointLights();
+	}
+	else
+		ErrorLogger::get().logError("Maximum lights achieved, failed to add one.");
+}
+
+void Engine::removePointLightComponent(UINT32 id)
+{
+	int nrOfErased = m_lightComponentMap.erase(id);
+	if (nrOfErased > 0) //if it deleted more than 0 elements
+	{
+		m_lightCount =- nrOfErased;
+		//updateRenderPointLights();
+	}
 }
 
 std::map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
@@ -104,7 +156,7 @@ void Engine::buildTestStage()
 	Entity* floor = addEntity("floor");
 	if (floor)
 	{
-		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm"));
 		floor->scale({ 500,0.02,500 });
 		floor->move({ 0,-0.6,0 });
 	}
@@ -162,6 +214,9 @@ void Engine::initialize()
 	if (addEntity("meshPlayer"))
 	{
 		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
+		addComponent(m_entities["meshPlayer"], "lightTest", new PointLightComponent());
+		dynamic_cast<PointLightComponent*>(m_entities["meshPlayer"]->getComponent("lightTest"))->translation({ 0,0,0 });
+
 		m_entities["meshPlayer"]->move({ 1, -0.5, 0 });
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);

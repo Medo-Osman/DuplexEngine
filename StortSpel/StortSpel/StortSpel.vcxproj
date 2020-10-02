@@ -201,6 +201,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
+    <ClInclude Include="PointLightComponent.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MovementContext.h" />
     <ClInclude Include="Engine.h" />

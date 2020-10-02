@@ -28,3 +28,25 @@ struct perObjectMVP
     XMMATRIX projection;
     XMMATRIX mvpMatrix; //Model/view/projection
 };
+
+struct lightBufferStruct
+{
+    XMVECTOR lightPosArray[8] = { 0 };
+    XMVECTOR lightColorArray[8] = { 0 };
+    int nrOfLights = 0;
+
+    lightBufferStruct& operator=(const lightBufferStruct& other)
+    {
+        for (int i = 0; i < other.nrOfLights; i++) //Shallow copy
+        {
+            this->lightColorArray[i] = other.lightColorArray[i];
+            this->lightPosArray[i] = other.lightPosArray[i];
+            this->nrOfLights = other.nrOfLights;
+        }
+    }
+};
+
+struct cameraBufferStruct
+{
+    XMVECTOR cameraPosition;
+};

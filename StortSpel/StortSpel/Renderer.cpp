@@ -10,6 +10,11 @@ Renderer::Renderer()
 
 }
 
+void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
+{
+	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &buffer);
+}
+
 void Renderer::release()
 {
 	m_devicePtr.Get()->Release();
@@ -96,6 +101,15 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+
+	lightBufferStruct initalLightData; //Not sure why, but it refuses to take &lightBufferStruct() as argument on line below
+	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);
+	m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
+
+	m_cameraBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cameraBufferStruct(), 1);
+	m_dContextPtr->PSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
+
+	m_dContextPtr->PSSetConstantBuffers(2, 1, m_perObjectConstantBuffer.GetAddressOf());
 
 	//m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
 	
@@ -218,6 +232,9 @@ void Renderer::update(const float& dt)
 
 void Renderer::render()
 {
+	//Update camera position for pixel shader buffer
+	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
+	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
 
 	//Clear the context of render and depth target
 	m_dContextPtr->OMGetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, m_rTargetViewsArray, m_depthStencilViewPtr.GetAddressOf());
@@ -244,7 +261,7 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
-	// For Tetxure Testing only
+	// For Texture Testing only
 	//ID3D11ShaderResourceView* srv = ResourceHandler::get().loadTexture(L"T_CircusTent_D.png");
 	//m_dContextPtr->PSSetShaderResources(0, 1, &srv);
 
