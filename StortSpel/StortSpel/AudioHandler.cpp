@@ -8,7 +8,11 @@ AudioHandler::~AudioHandler()
 	{
 		m_audioEngine->Suspend();
 	}
-	m_nightLoop.reset();
+	for (auto& loopingSound : m_loopingSoundInstances)
+	{
+		loopingSound.reset();
+	}
+
 }
 
 void AudioHandler::initialize(HWND& handle)
@@ -31,23 +35,46 @@ void AudioHandler::initialize(HWND& handle)
 
 	m_explode = ResourceHandler::get().loadSound(L"Explo1.wav", m_audioEngine.get());
 	m_ambient = ResourceHandler::get().loadSound(L"NightAmbienceSimple_02.wav", m_audioEngine.get());
-	m_nightLoop = m_ambient->CreateInstance();
-	m_nightLoop->Play(true);
-
+	m_loopingSoundInstances.push_back(m_ambient->CreateInstance());
+	m_loopingSoundInstances[0]->Play(true);
 	nightVolume = 0.5f;
 	nightSlide = -0.1f;
-	m_nightLoop->SetVolume(nightVolume);
+	m_loopingSoundInstances[0]->SetVolume(nightVolume);
+}
+
+int AudioHandler::addSoundInstance(const WCHAR* name, float volume, bool isLooping)
+{
+	SoundEffect* soundEffect = ResourceHandler::get().loadSound(name, m_audioEngine.get());
+	int index;
+	if(isLooping)
+	{
+		index = m_loopingSoundInstances.size();
+		m_loopingSoundInstances.push_back(soundEffect->CreateInstance());
+		m_loopingSoundInstances[index]->SetVolume(volume);
+	}
+	else
+	{
+		index = m_soundInstances.size();
+		m_soundInstances.push_back(soundEffect->CreateInstance());
+		m_soundInstances[index]->SetVolume(volume);
+	}
+	return index;
+}
+
+void AudioHandler::playSound(int index)
+{
+	m_soundInstances[index]->Play();
 }
 
 void AudioHandler::inputUpdate(InputData& inputData)
 {
-	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
+	/*for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
 	{
 		if (inputData.actionData[i] == PLAYSOUND)
 		{
 			m_explode->Play();
 		}
-	}
+	}*/
 }
 
 void AudioHandler::update(float dt)
@@ -63,7 +90,7 @@ void AudioHandler::update(float dt)
 		nightVolume = 0.5f;
 		nightSlide = -nightSlide;
 	}
-	m_nightLoop->SetVolume(nightVolume);
+	m_loopingSoundInstances[0]->SetVolume(nightVolume);
 
 
 
@@ -76,8 +103,10 @@ void AudioHandler::update(float dt)
 		m_retryAudio = false;
 		if (m_audioEngine->Reset())
 		{
-			if (m_nightLoop)
-				m_nightLoop->Play(true);
+			for(auto& loopingSound : m_loopingSoundInstances)
+			{
+				loopingSound->Play(true);
+			}
 		}
 	}
 	else if (!m_audioEngine->Update())

@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "MeshComponent.h"
 #include "TestComponent.h"
+#include "AudioHandler.h"
 
 class Engine
 {

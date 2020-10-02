@@ -2,6 +2,7 @@
 #include "Input.h"
 #include "ResourceHandler.h"
 #include "Entity.h"
+#include "AudioHandler.h"
 
 using namespace DirectX;
 
@@ -11,6 +12,8 @@ private:
     DirectX::XMVECTOR m_movementVector;
     Entity* m_playerEntity = nullptr;
     void setStates(std::vector<State> states);
+    int soundIndex;
+
 public:
     Player();
 

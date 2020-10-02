@@ -30,6 +30,7 @@ void Player::setStates(std::vector<State> states)
 Player::Player()
 {
 	m_movementVector = XMVectorZero();
+	soundIndex = AudioHandler::get().addSoundInstance(L"Explo2.wav", 0.5f, false);
 }
 
 //To do: Implement with physics objects.
@@ -51,4 +52,11 @@ Entity* Player::getPlayerEntity()
 void Player::inputUpdate(InputData& inputData)
 {
 	this->setStates(inputData.stateData);
+	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
+	{
+		if (inputData.actionData[i] == PLAYSOUND)
+		{
+			AudioHandler::get().playSound(soundIndex);
+		}
+	}
 }

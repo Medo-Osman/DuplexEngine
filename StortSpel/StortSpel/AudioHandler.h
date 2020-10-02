@@ -13,9 +13,15 @@ private:
 	SoundEffect* m_explode;
 
 	SoundEffect* m_ambient;
-	std::unique_ptr<SoundEffectInstance> m_nightLoop;
 	float nightVolume;
 	float nightSlide;
+
+	/*std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_soundInstances;
+	std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_loopingSoundInstances;*/
+
+	std::vector<std::unique_ptr<SoundEffectInstance>> m_soundInstances;
+	std::vector<std::unique_ptr<SoundEffectInstance>> m_loopingSoundInstances;
+
 
 public:
 	AudioHandler(const AudioHandler&) = delete;
@@ -30,6 +36,8 @@ public:
 	void initialize(HWND &handle);
 	void onNewAudioDevice() { m_retryAudio = true; }
 
+	int addSoundInstance(const WCHAR* name, float volume, bool isLooping);
+	void playSound(int index);
 	void inputUpdate(InputData& inputData);
 	void update(float dt);
 	void suspend();
