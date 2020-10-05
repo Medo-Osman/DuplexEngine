@@ -58,6 +58,7 @@ struct lightComputeResult
     float intensity;
 };
 
+//Only calculating diffuse light
 lightComputeResult computeLightFactor(ps_in input)
 {
     lightComputeResult result;
@@ -66,6 +67,8 @@ lightComputeResult computeLightFactor(ps_in input)
     float3 lightDir = float3(0, 0, 0);
     float diffuseLightFactor = 0;
     float3 resultColor = float3(0, 0, 0);
+    
+    //Loop through all pointlights
     for (int i = 0; i < nrOfPointLights; i++)
     {
         //Summera ljusen, inte gå över 1
@@ -73,21 +76,21 @@ lightComputeResult computeLightFactor(ps_in input)
         lightDir = normalize(lightPos - input.worldPos.xyz);
         diffuseLightFactor = clamp(diffuseLightFactor + saturate(dot(lightDir, input.normal))*pointLights[i].intensity, 0.f, 1.f);
         
-        resultColor = resultColor + pointLights[i].color;
+        //resultColor = saturate(resultColor + pointLights[i].color);
     }
     
+    //Loop through all spotlights
     for (int j = 0; j < nrOfSpotLights; j++)
     {
         //Summera ljusen, inte gå över 1
         lightPos = spotLights[j].position.xyz; //lightPosArray[0].xyz;
         lightDir = normalize(lightPos - input.worldPos.xyz);
         
-        diffuseLightFactor = pow(max(dot(-lightDir, spotLights[j].direction), 0), spotLights[j].coneFactor); // dot(spotLights[j].direction, input.normal); //clamp(diffuseLightFactor + saturate(dot(lightDir, input.normal)) * spotLights[j].intensity, 0.f, 1.f);
-        
-        resultColor = resultColor + spotLights[j].color;
+        diffuseLightFactor = diffuseLightFactor + pow(max(dot(-lightDir, spotLights[j].direction), 0), spotLights[j].coneFactor);
+        resultColor = spotLights[j].color; //Have to fix color blending
     }
     
-    result.diffuseLightFactor = diffuseLightFactor;
+    result.diffuseLightFactor = max(0.1f, diffuseLightFactor); //0.2f is ambient light
     result.lightColor = resultColor;
     
     return result;
