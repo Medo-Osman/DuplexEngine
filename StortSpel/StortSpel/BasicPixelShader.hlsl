@@ -1,5 +1,12 @@
 #define MAX_LIGHTS 8
 
+struct pointLight
+{
+    float4 position;
+    float3 color;
+    float intensity;
+};
+
 cbuffer lightBuffer : register(b0)
 {
     float4 lightPosArray[8];
@@ -28,25 +35,34 @@ struct ps_in
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
     float4 worldPos : POSITION;
-    float4 worldNormal : WORLDNORMAL;
 };
 
 Texture2D diffuseTexture : TEXTURE : register(t0);
 SamplerState sampState : SAMPLER : register(s0);
 
-float4 main(ps_in input) : SV_TARGET
+float computeLightFactor(ps_in input)
 {
+    float3 lightPos;
+    float3 lightDir = float3(0, 0, 0);
+    float diffuseLightFactor = 0;
     for (int i = 0; i < nrOfLights; i++)
     {
         //Summera ljusen, inte gå över 1
+        lightPos = lightPosArray[i].xyz; //lightPosArray[0].xyz;
+        lightDir = normalize(lightPos - input.worldPos.xyz);
+        diffuseLightFactor = diffuseLightFactor + saturate(dot(lightDir, input.normal));
+       
     }
     
-    float3 diffuse = diffuseTexture.Sample(sampState, input.uv).xyz;
-    
-    float3 lightPos = lightPosArray[0]; //lightPosArray[0].xyz;
-    float3 lightDir = normalize(input.worldPos.xyz - lightPos);
-    float diffuseLightFactor = saturate(dot(-lightDir, input.normal));
+    return diffuseLightFactor;
+}
 
-    return float4(diffuse * diffuseLightFactor, 1); 
+float4 main(ps_in input) : SV_TARGET
+{
+    
+    float3 diffuse = diffuseTexture.Sample(sampState, input.uv).xyz;
+    float diffuseLightFactor = computeLightFactor(input);
+   
+    return float4(diffuse * diffuseLightFactor, 1);
 
 }

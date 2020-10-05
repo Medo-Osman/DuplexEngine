@@ -19,10 +19,12 @@ void Engine::updateRenderPointLights()
 		Matrix parentTransform = XMMatrixTranslationFromVector(getEntity(light.second->getParentEntityIdentifier())->getTranslation());
 		Vector3 offsetFromParent = light.second->getTranslation();
 
-		Vector3 finalPos = XMVector3TransformCoord(offsetFromParent, parentTransform);
+		Matrix parentRotation = getEntity(light.second->getParentEntityIdentifier())->getRotationMatrix();
+
+		Vector3 finalPos = XMVector3TransformCoord(offsetFromParent, parentRotation*parentTransform);
 		//Vector3 finalPos = Vector4(offsetFromParent.x, offsetFromParent.y, offsetFromParent.z, 1) * parentTransform;
 
-		lightInfo.lightPosArray[nr] = light.second->getTranslation();
+		lightInfo.lightPosArray[nr] = finalPos;
 		lightInfo.lightColorArray[nr++] = light.second->getColor();
 		lightInfo.nrOfLights = m_lightCount;
 	}
@@ -71,7 +73,7 @@ void Engine::update(const float& dt)
 {
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
-	//updateRenderPointLights();
+	updateRenderPointLights();
 }
 Settings Engine::getSettings() const
 {
@@ -157,7 +159,7 @@ void Engine::buildTestStage()
 	if (floor)
 	{
 		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm"));
-		floor->scale({ 500,0.02,500 });
+		floor->scale({ 300,0.1,300 });
 		floor->move({ 0,-0.6,0 });
 	}
 
@@ -215,7 +217,10 @@ void Engine::initialize()
 	{
 		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
 		addComponent(m_entities["meshPlayer"], "lightTest", new PointLightComponent());
-		dynamic_cast<PointLightComponent*>(m_entities["meshPlayer"]->getComponent("lightTest"))->translation({ 0,0,0 });
+		dynamic_cast<PointLightComponent*>(m_entities["meshPlayer"]->getComponent("lightTest"))->translation({ 0,1.f,0 });
+
+		addComponent(m_entities["meshPlayer"], "lightTest2", new PointLightComponent());
+		dynamic_cast<PointLightComponent*>(m_entities["meshPlayer"]->getComponent("lightTest"))->translation({ 3,1.f,0 });
 
 		m_entities["meshPlayer"]->move({ 1, -0.5, 0 });
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
