@@ -4,6 +4,12 @@
 #include <DirectXColors.h>
 using namespace DirectX;
 
+struct PointLightRepresentation
+{
+    XMVECTOR position;
+    XMFLOAT3 color;
+    FLOAT intensity;
+};
 
 //VertexShader shadowpass constant buffers structs
 __declspec(align(16)) struct cbVSWVPMatrix
@@ -31,22 +37,12 @@ struct perObjectMVP
 
 struct lightBufferStruct
 {
-    XMVECTOR lightPosArray[8] = { 0 };
-    XMVECTOR lightColorArray[8] = { 0 };
-    int nrOfLights = 0;
-
-    lightBufferStruct& operator=(const lightBufferStruct& other)
-    {
-        for (int i = 0; i < other.nrOfLights; i++) //Shallow copy
-        {
-            this->lightColorArray[i] = other.lightColorArray[i];
-            this->lightPosArray[i] = other.lightPosArray[i];
-            this->nrOfLights = other.nrOfLights;
-        }
-    }
+    PointLightRepresentation pointLights[8];
+    int nrOfPointLights = 0;
 };
 
 struct cameraBufferStruct
 {
     XMVECTOR cameraPosition;
 };
+

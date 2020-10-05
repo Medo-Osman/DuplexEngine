@@ -9,8 +9,7 @@ struct pointLight
 
 cbuffer lightBuffer : register(b0)
 {
-    float4 lightPosArray[8];
-    float4 lightColorArray[8];
+    pointLight pointLights[8];
     int nrOfLights;
 }
 
@@ -40,29 +39,43 @@ struct ps_in
 Texture2D diffuseTexture : TEXTURE : register(t0);
 SamplerState sampState : SAMPLER : register(s0);
 
-float computeLightFactor(ps_in input)
+struct lightComputeResult
 {
+    float3 lightColor;
+    float diffuseLightFactor;
+    float intensity;
+};
+
+lightComputeResult computeLightFactor(ps_in input)
+{
+    lightComputeResult result;
+    
     float3 lightPos;
     float3 lightDir = float3(0, 0, 0);
     float diffuseLightFactor = 0;
+    float3 resultColor = float3(0, 0, 0);
     for (int i = 0; i < nrOfLights; i++)
     {
         //Summera ljusen, inte gå över 1
-        lightPos = lightPosArray[i].xyz; //lightPosArray[0].xyz;
+        lightPos = pointLights[i].position.xyz; //lightPosArray[0].xyz;
         lightDir = normalize(lightPos - input.worldPos.xyz);
-        diffuseLightFactor = diffuseLightFactor + saturate(dot(lightDir, input.normal));
-       
+        diffuseLightFactor = clamp(diffuseLightFactor + saturate(dot(lightDir, input.normal))*pointLights[i].intensity, 0.f, 1.f);
+        
+        resultColor = resultColor + pointLights[i].color;
     }
     
-    return diffuseLightFactor;
+    result.diffuseLightFactor = diffuseLightFactor;
+    result.lightColor = resultColor;
+    
+    return result;
 }
 
 float4 main(ps_in input) : SV_TARGET
 {
     
     float3 diffuse = diffuseTexture.Sample(sampState, input.uv).xyz;
-    float diffuseLightFactor = computeLightFactor(input);
+    lightComputeResult lightResult = computeLightFactor(input);
    
-    return float4(diffuse * diffuseLightFactor, 1);
+    return float4(diffuse * lightResult.lightColor * lightResult.diffuseLightFactor, 1);
 
 }

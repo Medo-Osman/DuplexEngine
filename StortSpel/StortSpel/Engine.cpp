@@ -24,9 +24,17 @@ void Engine::updateRenderPointLights()
 		Vector3 finalPos = XMVector3TransformCoord(offsetFromParent, parentRotation*parentTransform);
 		//Vector3 finalPos = Vector4(offsetFromParent.x, offsetFromParent.y, offsetFromParent.z, 1) * parentTransform;
 
-		lightInfo.lightPosArray[nr] = finalPos;
+
+		PointLightRepresentation pointLight;
+		pointLight.position = finalPos;
+		pointLight.color = XMFLOAT3(1, 1, 1);
+		pointLight.intensity = 1;
+		lightInfo.pointLights[nr++] = pointLight;
+		lightInfo.nrOfPointLights = m_lightCount;
+
+		/*lightInfo.lightPosArray[nr] = finalPos;
 		lightInfo.lightColorArray[nr++] = light.second->getColor();
-		lightInfo.nrOfLights = m_lightCount;
+		lightInfo.nrOfLights = m_lightCount;*/
 	}
 
 	Renderer::get().setPointLightRenderStruct(lightInfo);
