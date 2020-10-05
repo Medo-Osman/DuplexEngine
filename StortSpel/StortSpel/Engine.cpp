@@ -139,6 +139,8 @@ void Engine::initialize()
 		m_entities["meshPlayer"]->move({ 1, -0.5, 0 });
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
+
+		addComponent(m_entities["meshPlayer"], "audio", new AudioComponent(L"Explosion.wav", false, 0.5f));
 	}
 	else
 	{

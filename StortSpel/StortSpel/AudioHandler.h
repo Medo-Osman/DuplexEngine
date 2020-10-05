@@ -38,6 +38,7 @@ public:
 
 	int addSoundInstance(const WCHAR* name, float volume, bool isLooping);
 	void playSound(int index);
+	void setVolume(int index, float volume, bool loop);
 	void inputUpdate(InputData& inputData);
 	void update(float dt);
 	void suspend();

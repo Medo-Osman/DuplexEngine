@@ -63,7 +63,23 @@ int AudioHandler::addSoundInstance(const WCHAR* name, float volume, bool isLoopi
 
 void AudioHandler::playSound(int index)
 {
+	if(m_soundInstances[index]->GetState() == SoundState::PLAYING)
+	{
+		m_soundInstances[index]->Stop();
+	}
 	m_soundInstances[index]->Play();
+}
+
+void AudioHandler::setVolume(int index, float volume, bool loop)
+{
+	if(loop)
+	{
+		m_loopingSoundInstances[index]->SetVolume(volume);
+	}
+	else
+	{
+		m_soundInstances[index]->SetVolume(volume);
+	}
 }
 
 void AudioHandler::inputUpdate(InputData& inputData)
@@ -91,8 +107,6 @@ void AudioHandler::update(float dt)
 		nightSlide = -nightSlide;
 	}
 	m_loopingSoundInstances[0]->SetVolume(nightVolume);
-
-
 
 	if (m_newAudio)
 	{
@@ -132,4 +146,3 @@ std::shared_ptr<AudioEngine>* AudioHandler::getAudioEngine()
 {
 	return &m_audioEngine;
 }
-

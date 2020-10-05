@@ -3,6 +3,7 @@
 #include "MeshComponent.h"
 #include "TestComponent.h"
 #include "AudioHandler.h"
+#include "AudioComponent.h"
 
 class Engine
 {
