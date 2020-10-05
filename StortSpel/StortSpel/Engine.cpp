@@ -11,7 +11,8 @@ Engine::Engine()
 void Engine::updateRenderPointLights()
 {
 	lightBufferStruct lightInfo;
-	int nr = 0;
+	int nrPointLights = 0;
+	int nrSpotLights = 0;
 	for (auto light : m_lightComponentMap)
 	{
 		auto thing = light.second->getParentEntityIdentifier();
@@ -22,15 +23,32 @@ void Engine::updateRenderPointLights()
 		Matrix parentRotation = getEntity(light.second->getParentEntityIdentifier())->getRotationMatrix();
 
 		Vector3 finalPos = XMVector3TransformCoord(offsetFromParent, parentRotation*parentTransform);
-		//Vector3 finalPos = Vector4(offsetFromParent.x, offsetFromParent.y, offsetFromParent.z, 1) * parentTransform;
 
 
-		PointLightRepresentation pointLight;
-		pointLight.position = finalPos;
-		pointLight.color = XMFLOAT3(1, 1, 1);
-		pointLight.intensity = 1;
-		lightInfo.pointLights[nr++] = pointLight;
-		lightInfo.nrOfPointLights = m_lightCount;
+		if (light.second->getLightType() == LightType::Point)
+		{
+			PointLightRepresentation pointLight;
+			pointLight.position = finalPos;
+			pointLight.color = light.second->getColor();
+			pointLight.intensity = light.second->getIntensity();
+			lightInfo.pointLights[nrPointLights++] = pointLight;
+			lightInfo.nrOfPointLights = nrPointLights;
+		}
+		if (light.second->getLightType() == LightType::Spot)
+		{
+			SpotLightComponent* spotLightComponent = dynamic_cast<SpotLightComponent*>(light.second);
+
+			SpotLightRepresentation spotLight;
+			spotLight.position = finalPos;
+			spotLight.color = spotLightComponent->getColor();
+			spotLight.intensity = spotLightComponent->getIntensity();
+			spotLight.coneFactor = spotLightComponent->getConeFactor();
+			spotLight.direction = Vector3(XMVector3TransformCoord(XMVectorSet(spotLightComponent->getDirection().x, spotLightComponent->getDirection().y, spotLightComponent->getDirection().z, 0),parentRotation));
+			
+			lightInfo.spotLights[nrSpotLights++] = spotLight;
+			lightInfo.nrOfSpotLights = nrSpotLights;
+		}
+		
 
 		/*lightInfo.lightPosArray[nr] = finalPos;
 		lightInfo.lightColorArray[nr++] = light.second->getColor();
@@ -104,7 +122,7 @@ bool Engine::addComponent(Entity* entity, std::string componentIdentifier, Compo
 
 	if (component->getType() == ComponentType::LIGHT)
 	{
-		PointLightComponent* lightComponent = dynamic_cast<PointLightComponent*>(component);
+		LightComponent* lightComponent = dynamic_cast<LightComponent*>(component);
 
 		addPointLightComponent(lightComponent);
 	}
@@ -118,7 +136,7 @@ void Engine::addMeshComponent(MeshComponent* component)
 	m_meshComponentMap[m_MeshCount] = component;
 }
 
-void Engine::addPointLightComponent(PointLightComponent* component)
+void Engine::addPointLightComponent(LightComponent* component)
 {
 	if (m_lightCount < 8)
 	{
@@ -224,11 +242,20 @@ void Engine::initialize()
 	if (addEntity("meshPlayer"))
 	{
 		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
-		addComponent(m_entities["meshPlayer"], "lightTest", new PointLightComponent());
-		dynamic_cast<PointLightComponent*>(m_entities["meshPlayer"]->getComponent("lightTest"))->translation({ 0,1.f,0 });
+		//addComponent(m_entities["meshPlayer"], "lightTest", new PointLightComponent());
+		//dynamic_cast<PointLightComponent*>(m_entities["meshPlayer"]->getComponent("lightTest"))->translation({ 0,1.f,0 });
 
-		addComponent(m_entities["meshPlayer"], "lightTest2", new PointLightComponent());
-		dynamic_cast<PointLightComponent*>(m_entities["meshPlayer"]->getComponent("lightTest"))->translation({ 3,1.f,0 });
+		//addComponent(m_entities["meshPlayer"], "lightTest2", new LightComponent());
+		//dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("lightTest2"))->translation({ 3,1.f,0 });
+		//dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("lightTest2"))->setColor(XMFLOAT3(1,0,0));
+		//dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("lightTest2"))->setIntensity(1.0f);
+
+		addComponent(m_entities["meshPlayer"], "spotlightTest2", new SpotLightComponent());
+		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->translation({ 0,1.f,0 });
+		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+		//dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("lightTest2"))->setColor(XMFLOAT3(0, 1, 0));
+		//dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("lightTest2"))->setColor(XMFLOAT3(0, 1, 0));
+
 
 		m_entities["meshPlayer"]->move({ 1, -0.5, 0 });
 		m_entities["meshPlayer"]->scaleUniform(0.02f);

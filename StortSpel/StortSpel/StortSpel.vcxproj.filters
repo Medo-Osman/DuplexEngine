@@ -182,7 +182,10 @@
     <ClInclude Include="Material.h">
       <Filter>Source Files\Graphic</Filter>
     </ClInclude>
-    <ClInclude Include="PointLightComponent.h">
+    <ClInclude Include="SpotLightComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="LightComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,7 @@
 #pragma once
 #include "Player.h"
-#include "PointLightComponent.h"
+#include "LightComponent.h"
+#include "SpotLightComponent.h"
 #include "MeshComponent.h"
 #include "TestComponent.h"
 #include "Camera.h"
@@ -29,7 +30,7 @@ private:
 	Player* m_player = nullptr;
 	Camera m_camera;
 	std::map<unsigned int long, MeshComponent*> m_meshComponentMap;
-	std::map<unsigned int long, PointLightComponent*> m_lightComponentMap;
+	std::map<unsigned int long, LightComponent*> m_lightComponentMap;
 
 	unsigned int long m_MeshCount = 0;
 	unsigned int long m_lightCount = 0;
@@ -55,7 +56,7 @@ public:
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 
 	void addMeshComponent(MeshComponent* component);
-	void addPointLightComponent(PointLightComponent* component);
+	void addPointLightComponent(LightComponent* component);
 	void removePointLightComponent(UINT32 id);
 
 	std::map<unsigned int long, MeshComponent*>* getMeshComponentMap();

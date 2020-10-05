@@ -4,7 +4,7 @@
 #include "ShaderProgram.h"
 #include "ShaderEnums.h"
 #include "Engine.h"
-//#include "PointLightComponent.h"
+//#include "LightComponent.h"
 
 
 

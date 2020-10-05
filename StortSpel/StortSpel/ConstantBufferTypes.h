@@ -11,6 +11,15 @@ struct PointLightRepresentation
     FLOAT intensity;
 };
 
+struct SpotLightRepresentation
+{
+    XMVECTOR position;
+    XMFLOAT3 color;
+    FLOAT intensity;
+    XMFLOAT3 direction;
+    FLOAT coneFactor;
+};
+
 //VertexShader shadowpass constant buffers structs
 __declspec(align(16)) struct cbVSWVPMatrix
 {
@@ -39,6 +48,9 @@ struct lightBufferStruct
 {
     PointLightRepresentation pointLights[8];
     int nrOfPointLights = 0;
+
+    SpotLightRepresentation spotLights[8];
+    int nrOfSpotLights = 0;
 };
 
 struct cameraBufferStruct
