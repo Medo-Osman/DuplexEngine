@@ -66,8 +66,10 @@ public:
 
 	void setShaderNeedsResource(ShaderType shader, bool state);
 	void setShadersNeedsResource(bool vState, bool hState, bool dState, bool gState, bool pState);
+	bool* getShadersNeedsResource();
 	void setShaderNeedsCBuffer(ShaderType shader, bool state);
 	void setShadersNeedsCBuffer(bool vState, bool hState, bool dState, bool gState, bool pState);
+	bool* getShaderNeedsCBuffer();
 
 	void setShaders();
 

@@ -1,6 +1,11 @@
 #include "3DPCH.h"
 #include "ResourceHandler.h"
 
+ResourceHandler::~ResourceHandler()
+{
+	Destroy();
+}
+
 void ResourceHandler::isResourceHandlerReady()
 {
 	if (!DeviceAndContextPtrsAreSet)
@@ -12,7 +17,7 @@ void ResourceHandler::isResourceHandlerReady()
 	}
 }
 
-ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
+ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isCubeMap)
 {
 	if (m_textureCache.count(texturePath))
 		return m_textureCache[texturePath];
@@ -26,9 +31,13 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
 
 		size_t i = path.rfind('.', path.length());
 		std::wstring fileExtension = path.substr(i + 1, path.length() - i);
-
 		if (fileExtension == L"dds" || fileExtension == L"DDS")
-			hr = CreateDDSTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
+		{
+			if (isCubeMap == true)
+				hr = CreateDDSTextureFromFileEx(m_devicePtr, path.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
+			else
+				hr = CreateDDSTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
+		}
 		else
 			hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
 
@@ -59,6 +68,11 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
 	return nullptr;
 }
 
+ID3D11ShaderResourceView* ResourceHandler::loadErrorTexture()
+{
+	return loadTexture(m_ERROR_TEXTURE_NAME.c_str());
+}
+
 MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 {
 	isResourceHandlerReady();
@@ -84,6 +98,7 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 		fileStream.clear();
 		fileStream.close();
 		
+		// If the path that couldn't be opened was the error model path.
 		if (path == m_ERROR_MODEL_NAME.c_str())
 		{
 			ErrorLogger::get().logError("error model can not be found in model folder");
@@ -91,7 +106,7 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 			return nullptr;
 		}
 		else
-			return loadLRMMesh(m_ERROR_MODEL_NAME.c_str());
+			return loadLRMMesh(m_ERROR_MODEL_NAME.c_str()); // recursively load the error model instead
 	}
 
 	// Read file vertex count
@@ -184,11 +199,23 @@ void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11Dev
 void ResourceHandler::Destroy()
 {
 	for (std::pair<std::wstring, ID3D11ShaderResourceView*> element : m_textureCache)
-		delete element.second;
+		element.second->Release();
+		//delete element.second;
+	m_textureCache.clear();
+	
+	/*for (auto it = m_meshCache.cbegin(); it != m_meshCache.cend();)
+	{
+		m_meshCache.erase(it++);
+	}*/
 
 	for (std::pair<const char*, MeshResource*> element : m_meshCache)
+	{
 		delete element.second;
-
+	}
 	for (std::pair<std::wstring, SoundEffect*> element : m_soundCache)
+	{
 		delete element.second;
+	}
+		
+	m_meshCache.clear();
 }

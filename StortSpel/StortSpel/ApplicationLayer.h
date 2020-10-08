@@ -1,15 +1,16 @@
 #pragma once
-#include"Input.h"
-#include"Renderer.h"
+#include "Input.h"
+#include "Renderer.h"
 #include "Engine.h"
 #include"Physics.h"
 #include"AudioHandler.h"
+
 
 class ApplicationLayer
 {
 private:
 	ApplicationLayer();
-	Renderer* m_graphicEnginePtr;
+	Renderer* m_rendererPtr;
 	Physics m_physics;
 	HWND m_window;
 	Engine* m_enginePtr;

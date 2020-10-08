@@ -6,7 +6,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 ApplicationLayer::ApplicationLayer()
 {
-	m_graphicEnginePtr = nullptr;
+	m_rendererPtr = nullptr;
 	m_window = 0;
 	this->width = 800;
 	this->height = 800;
@@ -41,8 +41,8 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	rawIDevice.hwndTarget = NULL;
 	if (RegisterRawInputDevices(&rawIDevice, 1, sizeof(rawIDevice)) == FALSE)
 		return false;
-	m_graphicEnginePtr = &Renderer::get();//new Renderer();
-	hr = m_graphicEnginePtr->initialize(m_window);
+	m_rendererPtr = &Renderer::get();//new Renderer();
+	hr = m_rendererPtr->initialize(m_window);
 	if (SUCCEEDED(hr))
 	{
 		initOK = true;

@@ -98,6 +98,9 @@
     </ClCompile>
     <ClCompile Include="AudioHandler.cpp">
       <Filter>Source Files\Application</Filter>
+	</ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Source Files\Graphic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +187,9 @@
     </ClInclude>
     <ClInclude Include="AudioComponent.h">
       <Filter>Source Files\Components</Filter>
+	</ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Source Files\Graphic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -211,6 +217,12 @@
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
     <FxCompile Include="BasicPixelShader_temp_for_testing_shaderSwitching.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxPixelShader.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxVertexShader.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
   </ItemGroup>

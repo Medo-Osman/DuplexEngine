@@ -5,12 +5,24 @@
 #include "AudioHandler.h"
 #include "AudioComponent.h"
 
+#include "Camera.h"
+
+struct Settings
+{
+	int width;
+	int height;
+};
+
+
 class Engine
 {
 
 private:
 	Engine();
-
+	Settings m_settings;
+	static const int m_startHeight = 600;
+	static const int m_startWidth = 600;
+	
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
 
@@ -21,6 +33,7 @@ private:
 	std::unordered_map<std::string, Entity*> m_entities;
 	//{};
 	Player* m_player = nullptr;
+	Camera m_camera;
 	std::map<unsigned int long, MeshComponent*> m_meshComponentMap;
 
 	unsigned int long m_MeshCount = 0;
@@ -39,6 +52,9 @@ public:
 	~Engine();
 
 	void update(const float &dt);
+
+	Settings getSettings() const;
+	Camera* getCameraPtr();
 
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 
