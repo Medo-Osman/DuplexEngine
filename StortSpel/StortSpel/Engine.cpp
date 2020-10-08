@@ -200,6 +200,11 @@ void Engine::initialize()
 	}
 	m_player->setCameraTranformPtr(m_camera.getTransform());
 
+	Entity* audioTestDelete = addEntity("deleteTestAudio");
+	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+	delete m_entities["deleteTestAudio"];
+	m_entities.erase("deleteTestAudio");
+
 	// Audio test
 	Entity* audioTest = addEntity("audioTest");
 	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.5f));

@@ -7,14 +7,14 @@ private:
 	AudioHandler() {}
 	std::shared_ptr<AudioEngine> m_audioEngine;
 
-	std::vector<std::unique_ptr<SoundEffectInstance>> m_soundInstances;
-	std::vector<std::unique_ptr<SoundEffectInstance>> m_loopingSoundInstances;
+	/*std::vector<std::unique_ptr<SoundEffectInstance>> m_soundInstances;
+	std::vector<std::unique_ptr<SoundEffectInstance>> m_loopingSoundInstances;*/
 
 	bool m_retryAudio;
 	HDEVNOTIFY m_newAudio = nullptr;
 
-	/*std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_soundInstances;
-	std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_loopingSoundInstances;*/
+	std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_soundInstances;
+	std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_loopingSoundInstances;
 
 	
 
@@ -39,6 +39,7 @@ public:
 	void update(float dt);
 	void suspend();
 	void resume();
+	void deleteSound(int index, bool isLooping);
 	std::shared_ptr<AudioEngine>* getAudioEngine();
 
 };

@@ -11,7 +11,7 @@ AudioHandler::~AudioHandler()
 	}
 	for (auto& loopingSound : m_loopingSoundInstances)
 	{
-		loopingSound.release();
+		loopingSound.second.release();
 	}
 }
 
@@ -43,14 +43,14 @@ int AudioHandler::addSoundInstance(const WCHAR* name, float volume, bool isLoopi
 	if(isLooping)
 	{
 		index = m_loopingSoundInstances.size();
-		m_loopingSoundInstances.push_back(soundEffect->CreateInstance());
+		m_loopingSoundInstances[index] = soundEffect->CreateInstance();
 		m_loopingSoundInstances[index]->SetVolume(volume);
 		m_loopingSoundInstances[index]->Play(true);
 	}
 	else
 	{
 		index = m_soundInstances.size();
-		m_soundInstances.push_back(soundEffect->CreateInstance());
+		m_soundInstances[index] = soundEffect->CreateInstance();
 		m_soundInstances[index]->SetVolume(volume);
 	}
 	return index;
@@ -103,7 +103,7 @@ void AudioHandler::update(float dt)
 		{
 			for(auto& loopingSound : m_loopingSoundInstances)
 			{
-				loopingSound->Play(true);
+				loopingSound.second->Play(true);
 			}
 		}
 	}
@@ -126,6 +126,20 @@ void AudioHandler::resume()
 	m_audioEngine->Resume();
 }
 
+void AudioHandler::deleteSound(int index, bool isLooping)
+{
+	if (isLooping)
+	{
+		m_loopingSoundInstances[index]->Stop();
+		m_loopingSoundInstances[index].release();
+		m_loopingSoundInstances.erase(index);
+	}
+	else
+	{
+		m_soundInstances[index].release();
+		m_soundInstances.erase(index);
+	}
+}
 std::shared_ptr<AudioEngine>* AudioHandler::getAudioEngine()
 {
 	return &m_audioEngine;

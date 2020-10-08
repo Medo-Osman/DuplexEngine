@@ -15,7 +15,10 @@ public:
 		m_isLooping = loop;
 		m_audioIndex = AudioHandler::get().addSoundInstance(soundName.c_str(), volume, loop);
 	}
-	~AudioComponent() {}
+	virtual ~AudioComponent() override 
+	{
+		AudioHandler::get().deleteSound(m_audioIndex, m_isLooping);
+	}
 
 	void setVolume(float volume)
 	{
