@@ -4,9 +4,9 @@
 #include "SpotLightComponent.h"
 #include "MeshComponent.h"
 #include "TestComponent.h"
+#include"PhysicsComponent.h"
 #include "AudioHandler.h"
 #include "AudioComponent.h"
-
 #include "Camera.h"
 
 struct Settings
@@ -68,6 +68,7 @@ public:
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 
 	void addMeshComponent(MeshComponent* component);
+	void createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique);
 	void addLightComponent(LightComponent* component);
 	void removeLightComponent(LightComponent* component);
 

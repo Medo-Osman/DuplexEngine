@@ -98,6 +98,12 @@ void Engine::update(const float& dt)
 {
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
+
+	for (auto& entities : m_entities)
+	{
+		entities.second->update(dt);
+	}
+
 	updateLightData();
 
 	// AUDIO TEST
@@ -145,12 +151,63 @@ bool Engine::addComponent(Entity* entity, std::string componentIdentifier, Compo
 	return true;
 }
 
+
+
 void Engine::addMeshComponent(MeshComponent* component)
 {
 	component->setRenderId(++m_MeshCount);
 	m_meshComponentMap[m_MeshCount] = component;
 }
 
+void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false)
+{
+	std::vector<Component*> tempComponentVector;
+	PhysicsComponent* physComp = new PhysicsComponent(&ApplicationLayer::getInstance().m_physics);
+	MeshComponent* meshComponent = nullptr;
+	bool found = false;
+
+	entity->getComponentsOfType(tempComponentVector, ComponentType::MESH);
+
+	if (meshName != "")
+	{
+		for (std::size_t i = 0; i < tempComponentVector.size() && !found; ++i) {
+			MeshComponent* currentMesh = static_cast<MeshComponent*>(tempComponentVector[i]);
+			if (currentMesh->getFilePath() == meshName)
+			{
+				meshComponent = currentMesh;
+				found = true;
+			}
+		}
+
+		if (!found)
+		{
+			ErrorLogger::get().logError(("When creating new physics component, meshResource " + meshName + " does not exist. ->").c_str());
+
+			if (tempComponentVector.size() > 0)
+			{
+				ErrorLogger::get().logError("Using first meshComponent.");
+				meshComponent = static_cast<MeshComponent*>(tempComponentVector[0]);
+				found = true;
+			}
+
+		}
+	}
+	else
+	{
+		if (tempComponentVector.size() > 0)
+		{
+			meshComponent = static_cast<MeshComponent*>(tempComponentVector[0]);
+			found = true;
+		}
+	}
+	if (!found)
+		ErrorLogger::get().logError("Trying to add physic component without any meshcomponent!. Can't use this helper function.");
+
+	
+	entity->addComponent("physics", physComp);
+	physComp->initActorAndShape(entity, meshComponent, geometryType, dynamic, materialName, isUnique);
+}
+	
 void Engine::addLightComponent(LightComponent* component)
 {
 	if (m_lightCount < 8)
@@ -185,11 +242,14 @@ void Engine::buildTestStage()
 	//	addComponent(m_entities["cube-test"], "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
 
 	// Tent
-	if (addEntity("tent"))
+	Entity* tent = addEntity("tent");
+	if (tent)
 	{
-		addComponent(m_entities["tent"], "mesh", new MeshComponent("BigTopTent_Cylinder.lrm", Material({ L"T_CircusTent_D.png" })));
-		m_entities["tent"]->rotate({ XMConvertToRadians(-90.f), 0.f, 0.f });
-		m_entities["tent"]->move({ -10.f, 0.f, 0.f });
+		addComponent(tent, "mesh", new MeshComponent("BigTopTent_Cylinder.lrm", Material({ L"T_CircusTent_D.png" })));
+		tent->rotate({ XMConvertToRadians(-90.f), 0.f, 0.f });
+		tent->move({ -10.f, 0.f, 0.f });
+
+		this->createNewPhysicsComponent(tent, true, "");
 	}
 
 	Material gridTest = Material({ L"T_GridTestTex.bmp" });
@@ -201,6 +261,7 @@ void Engine::buildTestStage()
 		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"T_CircusTent_D.png" })));
 		floor->scale({ 300,0.1,300 });
 		floor->move({ 0,-0.6,0 });
+		this->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
 	//Cube 2
@@ -211,6 +272,21 @@ void Engine::buildTestStage()
 		cube->scaleUniform({ 3.f });
 		cube->move({ 0.f, 5.f, 5.f });
 		cube->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
+		this->createNewPhysicsComponent(cube, true, "", PxGeometryType::eSPHERE);
+	}
+
+	//Cube with sphere shape
+	Entity* cubeSphereBB = addEntity("cube-test3");
+	if (cubeSphereBB)
+	{
+		addComponent(cubeSphereBB, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+		cubeSphereBB->scaleUniform({ 3.f });
+		cubeSphereBB->move({ -10.f, 5.f, 5.f });
+		cubeSphereBB->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
+		addComponent(cubeSphereBB, "physics", new PhysicsComponent(&ApplicationLayer::getInstance().m_physics));
+		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(cubeSphereBB->getComponent("physics"));
+		physicsComp->initActor(cubeSphereBB, false);
+		physicsComp->addSphereShape(2.f);
 	}
 
 	Entity* testXwing = addEntity("testXwing");
@@ -229,6 +305,7 @@ void Engine::buildTestStage()
 			addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm"));
 			cube->scale({ 3,0.2,5 });
 			cube->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
+			this->createNewPhysicsComponent(cube);
 		}
 	}
 
@@ -265,6 +342,7 @@ void Engine::initialize()
 	if (addEntity("meshPlayer"))
 	{
 		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
+		m_entities["meshPlayer"]->translation({ 5, 10.f, 0 });
 
 		//Point Light
 		addComponent(m_entities["meshPlayer"], "testLight", new LightComponent());
@@ -289,8 +367,10 @@ void Engine::initialize()
 			removeLightComponent(static_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent(std::string("lightTest") + std::to_string(i))));
 		}
 
-		m_entities["meshPlayer"]->move({ 1, -0.5, 0 });
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
+		createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
+		PhysicsComponent* pc = static_cast<PhysicsComponent*>(m_entities["meshPlayer"]->getComponent("physics"));
+		pc->controllRotation(false);
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
 
 		addComponent(m_entities["meshPlayer"], "audio", new AudioComponent(L"Explosion.wav", false, 0.5f));

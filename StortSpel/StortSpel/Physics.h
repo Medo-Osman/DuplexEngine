@@ -1,38 +1,75 @@
-#include"3DPCH.h"
 #pragma once
+#include"3DPCH.h"
+#include"PhysicsMaterial.h"
 
 
 static physx::PxDefaultErrorCallback gDefaultErrorCallback;
 static physx::PxDefaultAllocator gDefaultAllocatorCallback;
 using namespace physx;
 
+
+
+
 class Physics
 {
 
 private:
 	const char* m_host = "localhost";
-	physx::PxFoundation* m_foundationPtr;
-	physx::PxPhysics* m_physicsPtr;
-	physx::PxPvd* m_PvdPtr;
-	physx::PxCpuDispatcher* m_dispatcherPtr;
-	physx::PxScene* m_scenePtr;
+	PxFoundation* m_foundationPtr;
+	PxPhysics* m_physicsPtr;
+	PxPvd* m_PvdPtr;
+	PxCpuDispatcher* m_dispatcherPtr;
+	PxScene* m_scenePtr;
 
-	PxRigidDynamic* m_boxBodyPtr; //For test, remove in other sprint where functionality is added.
+	std::map<std::string, PxMaterial*> m_defaultMaterials;
+	std::map<std::string, PxGeometry*> m_sharedGeometry;
+	std::map<std::string, PxShape*> m_sharedShapes;
+
 
 	bool m_recordMemoryAllocations = true;
 
-	void loadScene()
-	{
-		PxTransform pos(PxVec3(0.f, 0.f, -2.f));
-		physx::PxMaterial* mat = m_physicsPtr->createMaterial(0.5f, 0.5f, 0.6f);
-		PxShape* box = m_physicsPtr->createShape(PxBoxGeometry(PxVec3(2.f, 2.f, 2.f)), *mat);
 
-		m_boxBodyPtr = m_physicsPtr->createRigidDynamic(pos);
-		m_boxBodyPtr->attachShape(*box);
-		PxRigidBodyExt::updateMassAndInertia(*m_boxBodyPtr, 10.0f);
-		m_scenePtr->addActor(*m_boxBodyPtr);
+	void loadDefaultMaterials()
+	{
+		std::vector<PhysicsMaterial> physicMaterialVector;
+		PhysicsMaterial::createDefaultMaterials(physicMaterialVector);
+		for (int i = 0; i < physicMaterialVector.size(); i++)
+		{
+			this->addPhysicsMaterial(physicMaterialVector[i]);
+		}
+
 	}
 
+	PxRigidActor* createDynamicActor(PxVec3 pos, PxQuat rot)
+	{
+		return m_physicsPtr->createRigidDynamic(PxTransform(pos, rot));
+	}
+
+	PxRigidActor* createStaticActor(PxVec3 pos, PxQuat rot)
+	{
+		return m_physicsPtr->createRigidStatic(PxTransform(pos, rot));
+	}
+
+	PxGeometryHolder scaleGeometry(PxGeometry* geometry, XMFLOAT3 scale)
+	{
+		PxGeometryHolder geometryHolder = *geometry;
+		PxVec3 pxScale(scale.x, scale.y, scale.z);
+		switch (geometryHolder.getType())
+		{
+		case physx::PxGeometryType::ePLANE:
+			break;
+		case physx::PxGeometryType::eCAPSULE:
+			break;
+		case physx::PxGeometryType::eSPHERE: //Jump into same since we can use box data
+			geometryHolder.sphere().radius *= pxScale.maxElement();
+			break;
+		case physx::PxGeometryType::eBOX:
+			 geometryHolder.box().halfExtents = geometryHolder.box().halfExtents.multiply(pxScale);
+			break;
+		}
+
+		return geometryHolder;
+	}
 
 public:
 	Physics()
@@ -49,6 +86,7 @@ public:
 	void release()
 	{
 		m_scenePtr->release();
+		m_scenePtr = nullptr;
 		m_physicsPtr->release();
 		m_PvdPtr->release();
 		delete m_dispatcherPtr;
@@ -86,8 +124,120 @@ public:
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 		}
+		this->loadDefaultMaterials();
+	}
 
-		this->loadScene();
+	void addShapeForSharing(PxShape* shape, std::string name)
+	{
+		if (shape->isExclusive())
+			ErrorLogger::get().logError("A shape being added for sharing is exclusive.");
+		else
+		{
+			if (m_sharedShapes.find(name) == m_sharedShapes.end())
+				m_sharedShapes[name] = shape;
+		}
+	}
+
+	PxShape* getSharedShape(std::string name)
+	{
+		if (m_sharedShapes.find(name) != m_sharedShapes.end())
+			return m_sharedShapes[name];
+
+		return nullptr;
+	}
+
+	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometry* geometry, std::string materialName, bool unique, XMFLOAT3 scale = { 1, 1, 1 })
+	{
+		physx::PxMaterial* physicsMaterial = m_defaultMaterials[materialName];
+		PxGeometryHolder scaledGeometry = *geometry;
+		if (physicsMaterial == nullptr)
+		{
+			physicsMaterial = m_defaultMaterials["default"];
+			physicsMaterial ? ErrorLogger::get().logError(std::string("Physical material:" + materialName + " does not exist, default is used.").c_str()) : assert("Default material has been changed or cannot be accessed, a recent change in code did this.");
+		}
+		if (scale.x != 1 || scale.y != 1 || scale.z != 1)
+			scaledGeometry = scaleGeometry(geometry, scale);
+
+
+		
+		PxShape* shape = m_physicsPtr->createShape(scaledGeometry.any(), *physicsMaterial, unique);
+		actor->attachShape(*shape);
+		return shape;
+	}
+
+	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometryHolder geometry, std::string materialName, bool unique, XMFLOAT3 scale = { 1, 1, 1 })
+	{
+		physx::PxMaterial* physicsMaterial = m_defaultMaterials[materialName];
+		if (physicsMaterial == nullptr)
+		{
+			physicsMaterial = m_defaultMaterials["default"];
+			physicsMaterial ? ErrorLogger::get().logError("Physical material entered does not exist, default is used.") : assert("Default material has been changed or cannot be accessed, a recent change in code did this.");
+		}
+
+		PxShape* shape = m_physicsPtr->createShape(geometry.any(), *physicsMaterial, unique);
+		actor->attachShape(*shape);
+		return shape;
+	}
+
+	void addShapeToActor(PxRigidActor* actor, PxShape* shape)
+	{
+		actor->attachShape(*shape);
+	}
+
+	PxRigidActor* createRigidActor(XMFLOAT3 position, XMFLOAT4 quaternion, bool dynamic)
+	{
+		PxVec3 pos(position.x, position.y, position.z);
+		PxQuat quat(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+
+		PxRigidActor* actor = dynamic ? createDynamicActor(pos, quat) : createStaticActor(pos, quat);
+		m_scenePtr->addActor(*actor);
+		return actor;
+	}
+
+	void setPosition(PxRigidActor* actor, XMFLOAT3 pos)
+	{
+		actor->setGlobalPose(PxTransform(PxVec3(pos.x, pos.y, pos.z)));
+	}
+
+	void setRotation(PxRigidActor* actor, XMFLOAT4 rotationQuat)
+	{
+		actor->setGlobalPose(PxTransform(PxQuat(rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w)));
+	}
+
+	void setGlobalTransform(PxRigidActor* actor, XMFLOAT3 pos,  XMFLOAT4 rotQ)
+	{
+		actor->setGlobalPose(PxTransform(pos.x, pos.y, pos.z, PxQuat(rotQ.x, rotQ.y, rotQ.z, rotQ.w)));
+	}
+
+
+
+	void setMassOfActor(PxRigidActor* actor, float weight)
+	{
+		static_cast<PxRigidDynamic*>(actor)->setMass(weight);
+	}
+
+	void addPhysicsMaterial(PhysicsMaterial physicsMaterial)
+	{
+		if (m_defaultMaterials.find(physicsMaterial.name) == m_defaultMaterials.end())
+		{
+			PxMaterial* currentPhysXMaterial = m_defaultMaterials[physicsMaterial.name] = m_physicsPtr->createMaterial(physicsMaterial.staticFriction, physicsMaterial.dynamicFriction, physicsMaterial.restitution);
+			currentPhysXMaterial->setFrictionCombineMode(physicsMaterial.frictionCombineMode);
+			currentPhysXMaterial->setRestitutionCombineMode(physicsMaterial.restitutionCombineMode);
+		}
+		else
+			ErrorLogger::get().logError(std::string("Trying to add a duplicate of material" + physicsMaterial.name).c_str());
+	}
+
+	void addPhysicsMaterial(std::string name, float staticFriction, float dynamicFriction, float restitution, physx::PxCombineMode::Enum frictionCombineMode, physx::PxCombineMode::Enum restitutionCombineMode)
+	{
+		this->addPhysicsMaterial(PhysicsMaterial(name, staticFriction, dynamicFriction, restitution, frictionCombineMode, restitutionCombineMode));
+	}
+
+	void setShapeMaterial(PxShape* shape, std::string materialName)
+	{
+		PxMaterial* materials[1];
+		materials[0] = m_defaultMaterials[materialName];
+		shape->isExclusive() ? shape->setMaterials(materials, 1) : ErrorLogger::get().logError("Trying to change material on shape that is not exclusive, this is not possible.");
 	}
 
 	void update(float dt)
@@ -95,10 +245,22 @@ public:
 		m_scenePtr->simulate(dt);
 		m_scenePtr->fetchResults(true);
 
-		//Task test of completion, gravity takes the box down in y axis.
-		//PxVec3 pos = m_boxBodyPtr->getGlobalPose().p;
-		//OutputDebugString(std::to_wstring(pos.y).c_str());
-		//OutputDebugString(L"\n");
+	}
+
+	PxGeometry* getGeometry(std::string geometryName)
+	{
+		if (m_sharedGeometry.find(geometryName) != m_sharedGeometry.end())
+			return m_sharedGeometry[geometryName];
+		else
+			return nullptr;
+	}
+
+	void addGeometry(std::string geometryName, PxGeometry* geometry)
+	{
+		if (m_sharedGeometry.find(geometryName) == m_sharedGeometry.end())
+			m_sharedGeometry[geometryName] = geometry;
+		else
+			ErrorLogger::get().logError("Trying to add already existing geometry to sharedGeometry map");
 	}
 
 };

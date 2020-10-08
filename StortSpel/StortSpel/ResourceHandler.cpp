@@ -147,6 +147,29 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	m_meshCache[path]->getVertexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount);
 	m_meshCache[path]->getIndexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
 
+	XMFLOAT3 min = { 99999, 99999, 99999 }, max = { -99999, -99999, -99999 };
+	for (int i = 0; i < vertexCount; i++)
+	{
+		XMFLOAT3 currentPos = vertexArray[i].pos;
+		if (currentPos.x >= max.x)
+			max.x = currentPos.x;
+		if (currentPos.y >= max.y)
+			max.y = currentPos.y;
+		if (currentPos.z >= max.z)
+			max.z = currentPos.z;
+
+		if (currentPos.x <= min.x)
+			min.x = currentPos.x;
+		if (currentPos.y <= min.y)
+			min.y = currentPos.y;
+		if (currentPos.z <= min.z)
+			min.z = currentPos.z;
+
+	}
+
+	m_meshCache[path]->setMinMax(min, max);
+	m_meshCache[path]->storeVertexArray(vertexArray, vertexCount);
+
 	delete[] vertexArray;
 	delete[] indexArray;
 

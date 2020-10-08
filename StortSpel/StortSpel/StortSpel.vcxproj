@@ -216,6 +216,8 @@
     <ClInclude Include="InputStructs.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="MeshResource.h" />
+    <ClInclude Include="PhysicsComponent.h" />
+    <ClInclude Include="PhysicsMaterial.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Input_Keyboard.h" />

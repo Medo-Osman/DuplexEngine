@@ -182,6 +182,12 @@
     <ClInclude Include="InputStructs.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
+    <ClInclude Include="PhysicsComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsMaterial.h">
+      <Filter>Source Files\Game\PhysX</Filter>
+	</ClInclude>
     <ClInclude Include="AudioHandler.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>

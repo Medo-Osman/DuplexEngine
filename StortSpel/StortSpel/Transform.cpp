@@ -20,9 +20,9 @@ void Transform::setTransformZero()
 	scalingMatrix = DirectX::XMMatrixScaling(1, 1, 1);
 
 	m_translation = Vector3();
-	m_scaling = Vector3(1, 1, 1);
 	m_rotationQuat = Quaternion();
-
+	m_scaling = { 1, 1, 1 };
+	
 	updated = true;
 }
 
@@ -90,6 +90,11 @@ void Transform::setScaleLock(bool state)
 	scaleLock = state;
 }
 
+Transform* Transform::getTransform()
+{
+	return this;
+}
+
 Quaternion Transform::getRotation()
 {
 	return m_rotationQuat;
@@ -112,6 +117,8 @@ void Transform::setQuaternion(Quaternion quat)
 
 	Matrix quatRotMatrix = XMMatrixRotationQuaternion(m_rotationQuat);
 	rotationMatrix = quatRotMatrix;
+
+	updated = true;
 }
 
 Quaternion Transform::getQuaternion()
