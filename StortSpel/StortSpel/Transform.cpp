@@ -20,8 +20,8 @@ void Transform::setTransformZero()
 	scalingMatrix = DirectX::XMMatrixScaling(1, 1, 1);
 
 	m_translation = Vector3();
+	m_scaling = Vector3(1, 1, 1);
 	m_rotationQuat = Quaternion();
-	m_scaling = Vector3();
 
 	updated = true;
 }

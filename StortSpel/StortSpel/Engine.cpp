@@ -99,6 +99,22 @@ void Engine::update(const float& dt)
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
 	updateLightData();
+
+	// AUDIO TEST
+	nightVolume += dt * nightSlide;
+	if (nightVolume < 0.f)
+	{
+		nightVolume = 0.f;
+		nightSlide = -nightSlide;
+	}
+	else if (nightVolume > 0.5f)
+	{
+		nightVolume = 0.5f;
+		nightSlide = -nightSlide;
+	}
+	AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
+	ac->setVolume(nightVolume);
+
 }
 Settings Engine::getSettings() const
 {
@@ -165,8 +181,8 @@ std::map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 void Engine::buildTestStage()
 {
 	// Cube 1
-	if (addEntity("cube-test"))
-		addComponent(m_entities["cube-test"], "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+	//if (addEntity("cube-test"))
+	//	addComponent(m_entities["cube-test"], "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
 
 	// Tent
 	if (addEntity("tent"))
@@ -214,6 +230,15 @@ void Engine::buildTestStage()
 			cube->scale({ 3,0.2,5 });
 			cube->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
 		}
+	}
+
+	// Skybox
+	if (addEntity("Skybox"))
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		addComponent(m_entities["Skybox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+
 	}
 }
 
@@ -267,12 +292,26 @@ void Engine::initialize()
 		m_entities["meshPlayer"]->move({ 1, -0.5, 0 });
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
+
+		addComponent(m_entities["meshPlayer"], "audio", new AudioComponent(L"Explosion.wav", false, 0.5f));
+		//addComponent(m_entities["meshPlayer"], "audioLoop", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
 	}
 	else
 	{
 		ErrorLogger::get().logError("No player model added or already exists when adding");
 	}
 	m_player->setCameraTranformPtr(m_camera.getTransform());
+
+	Entity* audioTestDelete = addEntity("deleteTestAudio");
+	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+	delete m_entities["deleteTestAudio"];
+	m_entities.erase("deleteTestAudio");
+
+	// Audio test
+	Entity* audioTest = addEntity("audioTest");
+	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.5f));
+	nightSlide = 0.1f;
+	nightVolume = 0.5f;
 
 	// Temp entity init
 	addEntity("first");

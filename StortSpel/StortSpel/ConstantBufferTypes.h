@@ -46,3 +46,7 @@ struct cameraBufferStruct
     XMVECTOR cameraPosition;
 };
 
+struct skyboxMVP
+{
+    XMMATRIX mvpMatrix; //Model/view/projection
+};

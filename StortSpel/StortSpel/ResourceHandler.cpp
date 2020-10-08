@@ -17,7 +17,7 @@ void ResourceHandler::isResourceHandlerReady()
 	}
 }
 
-ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
+ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isCubeMap)
 {
 	if (m_textureCache.count(texturePath))
 		return m_textureCache[texturePath];
@@ -31,9 +31,13 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
 
 		size_t i = path.rfind('.', path.length());
 		std::wstring fileExtension = path.substr(i + 1, path.length() - i);
-
 		if (fileExtension == L"dds" || fileExtension == L"DDS")
-			hr = CreateDDSTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
+		{
+			if (isCubeMap == true)
+				hr = CreateDDSTextureFromFileEx(m_devicePtr, path.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
+			else
+				hr = CreateDDSTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
+		}
 		else
 			hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
 
@@ -51,7 +55,7 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath)
 				{
 					//std::wstring errorMessage = L"ERROR, '" + m_ERROR_TEXTURE_NAME + L"' texture can not be found in '" + m_TEXTURES_PATH + L"'!";
 					ErrorLogger::get().logError("error texture can not be found in texture folder!");
-					assert(!L"ERROR, error texture can not be found in texture folder!");
+					assert(!"ERROR, error texture can not be found in texture folder!");
 				}
 			}
 		}
@@ -98,7 +102,7 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 		if (path == m_ERROR_MODEL_NAME.c_str())
 		{
 			ErrorLogger::get().logError("error model can not be found in model folder");
-			assert(!L"ERROR, error model can not be found in model folder!");
+			assert(!"ERROR, error model can not be found in model folder!");
 			return nullptr;
 		}
 		else
@@ -150,6 +154,40 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	return m_meshCache[path];
 }
 
+SoundEffect* ResourceHandler::loadSound(const WCHAR* soundPath, AudioEngine* audioEngine)
+{
+	if (!m_soundCache.count(soundPath))
+	{
+		std::wstring path = m_SOUNDS_PATH + soundPath;
+		try
+		{
+			m_soundCache[soundPath] = new SoundEffect(audioEngine, path.c_str());
+		}
+		catch (std::exception e) // Error, could not load sound file
+		{
+			std::wstring error(soundPath);
+			error = L"Could not load sound file: " + error;
+			ErrorLogger::get().logError(error.c_str());
+
+			if (!m_soundCache.count(m_ERROR_SOUND_NAME)) // if error sound is not loaded
+			{
+				path = m_SOUNDS_PATH + m_ERROR_SOUND_NAME;
+				try
+				{
+					m_soundCache[m_ERROR_SOUND_NAME] = new SoundEffect(audioEngine, path.c_str());
+				}
+				catch (std::exception e) // Fatal Error, error sound file does not exist
+				{
+					ErrorLogger::get().logError("error sound file can not be found in audio folder!");
+					assert(!"ERROR, error sound file can not be found in audio folder!");
+				}
+			}
+			return m_soundCache[m_ERROR_SOUND_NAME];
+		}
+	}
+	return m_soundCache[soundPath];
+}
+
 void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
 	m_devicePtr = devicePtr;
@@ -171,6 +209,10 @@ void ResourceHandler::Destroy()
 	}*/
 
 	for (std::pair<const char*, MeshResource*> element : m_meshCache)
+	{
+		delete element.second;
+	}
+	for (std::pair<std::wstring, SoundEffect*> element : m_soundCache)
 	{
 		delete element.second;
 	}

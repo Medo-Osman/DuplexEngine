@@ -16,7 +16,7 @@ public:
 	{
 		m_type = ComponentType::UNASSIGNED;
 	}
-	~Component() {}
+	virtual ~Component() {}
 
 
 	// Operators

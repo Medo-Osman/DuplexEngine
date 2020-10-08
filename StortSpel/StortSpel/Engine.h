@@ -4,6 +4,9 @@
 #include "SpotLightComponent.h"
 #include "MeshComponent.h"
 #include "TestComponent.h"
+#include "AudioHandler.h"
+#include "AudioComponent.h"
+
 #include "Camera.h"
 
 struct Settings
@@ -11,6 +14,7 @@ struct Settings
 	int width = 1920;
 	int height = 1080;
 };
+
 
 class Engine
 {
@@ -28,6 +32,9 @@ private:
 	
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
+
+	float nightVolume;
+	float nightSlide;
 
 	// Entities
 	std::unordered_map<std::string, Entity*> m_entities;

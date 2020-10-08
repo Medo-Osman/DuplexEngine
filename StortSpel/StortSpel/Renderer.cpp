@@ -101,6 +101,8 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+	m_skyboxConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skyboxMVP(), 1);
+	m_dContextPtr->VSSetConstantBuffers(1, 1, m_skyboxConstantBuffer.GetAddressOf());
 
 	lightBufferStruct initalLightData; //Not sure why, but it refuses to take &lightBufferStruct() as argument on line below
 	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);
@@ -114,6 +116,15 @@ HRESULT Renderer::initialize(const HWND& window)
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 	m_camera = Engine::get().getCameraPtr();
+
+	/////////////////////////////////////////////////
+	D3D11_DEPTH_STENCIL_DESC skyboxDSD;
+	ZeroMemory(&skyboxDSD, sizeof(D3D11_DEPTH_STENCIL_DESC));
+	skyboxDSD.DepthEnable = true;
+	skyboxDSD.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	skyboxDSD.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	m_devicePtr->CreateDepthStencilState(&skyboxDSD, &skyboxDSSPtr);
+	/////////////////////////////////////////////////
 
 	return hr;
 }
@@ -259,6 +270,14 @@ void Renderer::render()
 	// For Texture Testing only
 	//ID3D11ShaderResourceView* srv = ResourceHandler::get().loadTexture(L"T_CircusTent_D.png");
 	//m_dContextPtr->PSSetShaderResources(0, 1, &srv);
+	// Skybox constant buffer:
+	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
+	skyboxMVP constantBufferSkyboxStruct;
+	XMMATRIX W = XMMatrixTranslation(XMVectorGetX(m_camera->getPosition()), XMVectorGetY(m_camera->getPosition()), XMVectorGetZ(m_camera->getPosition()));
+	XMMATRIX V = m_camera->getViewMatrix();
+	XMMATRIX P = m_camera->getProjectionMatrix();
+	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(W * V * P);
+	m_skyboxConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferSkyboxStruct);
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{

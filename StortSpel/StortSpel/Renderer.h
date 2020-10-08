@@ -30,6 +30,7 @@ private:
 	Buffer<perObjectMVP> m_perObjectConstantBuffer;
 	Buffer<lightBufferStruct> m_lightBuffer;
 	Buffer<cameraBufferStruct> m_cameraBuffer;
+	Buffer<skyboxMVP> m_skyboxConstantBuffer;
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
@@ -49,6 +50,8 @@ private:
 
 
 	//Variables
+	ID3D11DepthStencilState* skyboxDSSPtr;
+
 	D3D_FEATURE_LEVEL m_fLevel;
 	HWND m_window;
 	Settings m_settings;
