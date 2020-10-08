@@ -192,7 +192,7 @@ void Engine::initialize()
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
 
 		addComponent(m_entities["meshPlayer"], "audio", new AudioComponent(L"Explosion.wav", false, 0.5f));
-		addComponent(m_entities["meshPlayer"], "audioLoop", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+		//addComponent(m_entities["meshPlayer"], "audioLoop", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
 	}
 	else
 	{

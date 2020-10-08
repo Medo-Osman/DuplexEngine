@@ -112,8 +112,8 @@ void ApplicationLayer::applicationLoop()
 			m_enginePtr->update(dt);
 			m_physics.update(dt);
 			AudioHandler::get().update(dt);
-			m_graphicEnginePtr->update(dt);
-			m_graphicEnginePtr->render();
+			m_enginePtr->update(dt);
+			m_rendererPtr->render();
 		}
 	}
 	m_physics.release();

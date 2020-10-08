@@ -7,12 +7,12 @@ AudioHandler::~AudioHandler()
 	if (m_audioEngine)
 	{
 		m_audioEngine->Suspend();
+		m_audioEngine.reset();
 	}
 	for (auto& loopingSound : m_loopingSoundInstances)
 	{
-		loopingSound.reset();
+		loopingSound.release();
 	}
-
 }
 
 void AudioHandler::initialize(HWND& handle)
