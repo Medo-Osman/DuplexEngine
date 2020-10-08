@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "MeshComponent.h"
 #include "TestComponent.h"
+#include"PhysicsComponent.h"
 
 class Engine
 {
@@ -38,6 +39,7 @@ public:
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 
 	void addMeshComponent(MeshComponent* component);
+	void createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique);
 	std::map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 
 	void buildTestStage();

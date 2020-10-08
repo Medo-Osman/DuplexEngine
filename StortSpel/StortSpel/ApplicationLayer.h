@@ -1,15 +1,14 @@
 #pragma once
+#include"Physics.h"
 #include"Input.h"
 #include"Renderer.h"
 #include "Engine.h"
-#include"Physics.h"
 
 class ApplicationLayer
 {
 private:
 	ApplicationLayer();
 	Renderer* m_graphicEnginePtr;
-	Physics m_physics;
 	HWND m_window;
 	Engine* m_enginePtr;
 
@@ -32,4 +31,6 @@ public:
 
 	const HWND& getWindow() { return m_window; }
 	Input m_input;
+	Physics m_physics;
+
 };

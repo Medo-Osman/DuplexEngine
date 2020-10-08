@@ -22,6 +22,12 @@ public:
 		m_components.clear();
 	}
 
+	void update(const float &dt)
+	{
+		for (auto& component : m_components)
+			component.second->update(dt);
+	}
+
 	// Component Handling
 	void addComponent(std::string newComponentName, Component* newComponent)
 	{
@@ -38,4 +44,17 @@ public:
 
 		return m_components[componentName];
 	}
+	
+	void getComponentsOfType(std::vector<Component*> &compVec, ComponentType type)
+	{
+		for (std::pair<std::string, Component*> component : m_components)
+		{
+			if (component.second->getType() == type)
+			{
+				compVec.push_back(component.second);
+			}
+		}
+	}
+	
+
 };

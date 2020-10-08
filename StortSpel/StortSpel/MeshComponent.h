@@ -14,6 +14,7 @@ private:
 	unsigned long int m_renderId;
 	MeshResource* m_resourcePointer = nullptr;
 	ShaderProgramsEnum m_shaderProgEnum;
+	std::string  m_filePath;
 
 public:
 
@@ -25,6 +26,8 @@ public:
 
 	MeshResource* getMeshResourcePtr() { return m_resourcePointer; }
 	ShaderProgramsEnum getShaderProgEnum() { return m_shaderProgEnum; }
+	const std::string& getFilePath() { return m_filePath; }
+	
 
 	// Update
 	virtual void update(float dt) override {}

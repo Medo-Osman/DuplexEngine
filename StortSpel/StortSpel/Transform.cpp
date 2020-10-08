@@ -21,7 +21,7 @@ void Transform::setTransformZero()
 
 	m_translation = Vector3();
 	m_rotation = Vector3();
-	m_scaling = Vector3();
+	m_scaling = { 1, 1, 1 };
 
 	updated = true;
 }
@@ -94,6 +94,16 @@ void Transform::setRotationLock(bool state)
 void Transform::setScaleLock(bool state)
 {
 	scaleLock = state;
+}
+
+Vector4 Transform::getQuaternion()
+{
+	return XMQuaternionRotationMatrix(rotationMatrix);
+}
+
+Transform* Transform::getTransform()
+{
+	return this;
 }
 
 Vector3 Transform::getRotation()

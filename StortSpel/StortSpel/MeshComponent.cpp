@@ -7,4 +7,5 @@ MeshComponent::MeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum
 {
 	m_type = ComponentType::MESH;
 	m_resourcePointer = ResourceHandler::get().loadLRMMesh(filepath);
+	m_filePath = filepath;
 }

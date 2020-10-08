@@ -44,13 +44,13 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		initOK = true;
 		ShowWindow(m_window, showCmd);
 	}
+	//PhysX
+	m_physics.init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
+
 	Engine::get().initialize();
 	m_enginePtr = &Engine::get();
 
 	srand(static_cast <unsigned> (time(0)));
-
-	//PhysX
-	m_physics.init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
 
 	return initOK;
 }

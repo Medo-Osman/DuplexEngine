@@ -47,6 +47,8 @@ public:
 	void setRotationLock(bool state);
 	void setScaleLock(bool state);
 
+	Vector4 getQuaternion();
+	Transform* getTransform();
 	Vector3 getRotation();
 	Vector3 getTranslation();
 	Vector3 getScaling();

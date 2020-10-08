@@ -17,6 +17,7 @@ public:
 		static ResourceHandler instance;
 		return instance;
 	}
+
 	
 private:
 	ID3D11Device* m_devicePtr = NULL;
@@ -37,6 +38,7 @@ private:
 public:
 	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath);
 	MeshResource* loadLRMMesh(const char* path);
+
 
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 	void Destroy();
