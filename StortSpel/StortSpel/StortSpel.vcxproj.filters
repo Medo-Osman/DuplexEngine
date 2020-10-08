@@ -188,6 +188,9 @@
     <ClInclude Include="LightComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="LightStructs.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">

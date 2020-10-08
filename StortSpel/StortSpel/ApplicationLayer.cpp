@@ -8,8 +8,8 @@ ApplicationLayer::ApplicationLayer()
 {
 	m_rendererPtr = nullptr;
 	m_window = 0;
-	this->width = 800;
-	this->height = 800;
+	this->width = 1920;
+	this->height = 1080;
 	m_time = 0.f;
 
 }
@@ -80,8 +80,8 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 		WS_OVERLAPPEDWINDOW,        // Window style
 		windowRect.left,				// Position, X
 		windowRect.top,				// Position, Y
-		this->width,	// Width
-		this->height,	// Height
+		(float)this->width,	// Width
+		(float)this->height,	// Height
 		NULL,						// Parent window
 		NULL,						// Menu
 		hInstance,					// Instance handle

@@ -111,9 +111,6 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	m_dContextPtr->PSSetConstantBuffers(2, 1, m_perObjectConstantBuffer.GetAddressOf());
 
-	//m_camera.setPosition({ 0.0f, 0.0f, -5.0f, 1.0f });
-	
-
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 	m_camera = Engine::get().getCameraPtr();
@@ -211,7 +208,6 @@ void Renderer::createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const 
 	viewPort.MaxDepth = 1.0f;
 }
 
-
 void Renderer::rasterizerSetup()
 {
 	HRESULT hr = 0;
@@ -243,7 +239,6 @@ void Renderer::render()
 		if (m_rTargetViewsArray[i] != NULL)
 		{
 			m_dContextPtr->ClearRenderTargetView(m_rTargetViewsArray[i], m_clearColor);
-
 		}
 	}
 
@@ -282,7 +277,6 @@ void Renderer::render()
 			m_currentSetMaterialId = meshMatPtr->getMaterialId();
 		}
 			
-
 		perObjectMVP constantBufferPerObjectStruct;
 		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
@@ -294,7 +288,6 @@ void Renderer::render()
 
 		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
-
 
 	m_swapChainPtr->Present(0, 0);
 }

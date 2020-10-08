@@ -4,21 +4,6 @@
 #include <DirectXColors.h>
 using namespace DirectX;
 
-struct PointLightRepresentation
-{
-    XMVECTOR position;
-    XMFLOAT3 color;
-    FLOAT intensity;
-};
-
-struct SpotLightRepresentation
-{
-    XMVECTOR position;
-    XMFLOAT3 color;
-    FLOAT intensity;
-    XMFLOAT3 direction;
-    FLOAT coneFactor;
-};
 
 //VertexShader shadowpass constant buffers structs
 __declspec(align(16)) struct cbVSWVPMatrix
@@ -46,11 +31,14 @@ struct perObjectMVP
 
 struct lightBufferStruct
 {
+    FLOAT ambientLightLevel = 0.1f;
     PointLightRepresentation pointLights[8];
     int nrOfPointLights = 0;
 
     SpotLightRepresentation spotLights[8];
     int nrOfSpotLights = 0;
+
+    DirectionLight skyLight;
 };
 
 struct cameraBufferStruct

@@ -7,7 +7,7 @@ enum LightType{ Point, Spot };
 class LightComponent : public Component, public Transform
 {
 private:
-	UINT32 m_lightID = 0;
+	std::string m_lightID;
 	XMFLOAT3 m_color;
 	FLOAT m_intensity = 1.f;
 	LightType m_lightType;
@@ -28,12 +28,12 @@ public:
 	// Update
 	virtual void update(float dt) override {}
 
-	void setLightID(UINT32 id)
+	void setLightID(std::string id)
 	{
 		m_lightID = id;
 	}
 
-	UINT32 getLightID()
+	std::string getLightID()
 	{
 		return m_lightID;
 	}

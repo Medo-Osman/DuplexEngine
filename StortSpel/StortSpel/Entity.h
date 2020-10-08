@@ -25,16 +25,26 @@ public:
 	// Component Handling
 	void addComponent(std::string newComponentName, Component* newComponent)
 	{
-		//newComponentName += std::to_string(m_components.size());
 		newComponent->setIdentifier(newComponentName);
 		newComponent->setParentEntityIdentifier(m_identifier);
 		m_components[newComponentName] = newComponent;
+	}
+	
+	void removeComponent(Component* component)
+	{
+		int deleted = m_components.erase(component->getIdentifier());
+		std::cout << std::to_string(deleted);
 	}
 
 	Component* getComponent(std::string componentName)
 	{
 		if (m_components.find(componentName) == m_components.end()) // If component does not exist
+		{
+			ErrorLogger::get().logError("Attempt to retrieve component by name failed, does not exist.");
+
 			return new InvalidComponent();
+		}
+			
 
 		return m_components[componentName];
 	}

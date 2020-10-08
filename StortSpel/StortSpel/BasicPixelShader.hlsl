@@ -16,16 +16,26 @@ struct spotLight
     float coneFactor;
 };
 
+struct directionalLight
+{
+    float4 direction;
+    float4 color;
+    float brightness;
+};
+
 cbuffer lightBuffer : register(b0)
 {
+    float1 ambientLightLevel;
     pointLight pointLights[8];
     int nrOfPointLights;
     
     spotLight spotLights[8];
     int nrOfSpotLights;
+    
+    directionalLight skyLight;
 }
 
-cbuffer lightBuffer : register(b1)
+cbuffer cameraBuffer : register(b1)
 {
     float4 cameraPosition;
 }
@@ -66,42 +76,50 @@ lightComputeResult computeLightFactor(ps_in input)
     float3 lightPos;
     float3 lightDir = float3(0, 0, 0);
     float diffuseLightFactor = 0;
-    float3 resultColor = float3(0, 0, 0);
+    float3 finalColor = float3(0, 0, 0);
+    float3 diffuse = diffuseTexture.Sample(sampState, input.uv).xyz;
     
     //Loop through all pointlights
     for (int i = 0; i < nrOfPointLights; i++)
     {
         //Summera ljusen, inte gå över 1
-        lightPos = pointLights[i].position.xyz; //lightPosArray[0].xyz;
+        lightPos = pointLights[i].position.xyz;
         lightDir = normalize(lightPos - input.worldPos.xyz);
-        diffuseLightFactor = clamp(diffuseLightFactor + saturate(dot(lightDir, input.normal))*pointLights[i].intensity, 0.f, 1.f);
+      
+        float d = distance(lightPos, input.worldPos.xyz);
+        float attenuationFactor = pointLights[i].intensity / (0 + (0.1f * d) + (0 * (d * d))); 
         
-        //resultColor = saturate(resultColor + pointLights[i].color);
+        diffuseLightFactor = clamp(diffuseLightFactor + saturate(((dot(lightDir, input.normal)))), 0.f, 1.f);
+        finalColor = clamp(finalColor + pointLights[i].color * diffuseLightFactor * attenuationFactor, 0, 1);
+
     }
     
     //Loop through all spotlights
     for (int j = 0; j < nrOfSpotLights; j++)
     {
         //Summera ljusen, inte gå över 1
-        lightPos = spotLights[j].position.xyz; //lightPosArray[0].xyz;
+        lightPos = spotLights[j].position.xyz;
         lightDir = normalize(lightPos - input.worldPos.xyz);
         
-        diffuseLightFactor = diffuseLightFactor + pow(max(dot(-lightDir, spotLights[j].direction), 0), spotLights[j].coneFactor);
-        resultColor = spotLights[j].color; //Have to fix color blending
+        float d = distance(lightPos, input.worldPos.xyz);
+        float attenuationFactor = saturate(spotLights[j].intensity / (0 + (0.01f * d) + (0 * (d * d))));
+        
+        float spotLightFactor = pow(max(dot(-lightDir, spotLights[j].direction), 0), spotLights[j].coneFactor);
+        diffuseLightFactor = spotLightFactor * (diffuseLightFactor + attenuationFactor); 
+        finalColor = saturate(finalColor + (diffuseLightFactor * spotLights[j].color * attenuationFactor));
     }
     
-    result.diffuseLightFactor = max(0.1f, diffuseLightFactor); //0.2f is ambient light
-    result.lightColor = resultColor;
+    finalColor = finalColor + saturate(dot(skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
+    
+    result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel));
     
     return result;
 }
 
 float4 main(ps_in input) : SV_TARGET
 {
-    
-    float3 diffuse = diffuseTexture.Sample(sampState, input.uv).xyz;
     lightComputeResult lightResult = computeLightFactor(input);
    
-    return float4(diffuse * lightResult.lightColor * lightResult.diffuseLightFactor, 1);
+    return float4(lightResult.lightColor, 1);
 
 }

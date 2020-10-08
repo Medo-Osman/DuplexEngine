@@ -58,6 +58,9 @@
 #include<DDSTextureLoader.h>
 using namespace DirectX;
 
+//Include light structures
+#include "LightStructs.h"
+
 // DirectX 11 Linking
 #pragma comment (lib, "user32")
 #pragma comment (lib, "d3d11.lib")
