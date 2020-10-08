@@ -55,7 +55,7 @@ void Player::inputUpdate(InputData& inputData)
 	{
 		if (inputData.actionData[i] == PLAYSOUND)
 		{
-			dynamic_cast<AudioComponent*>(m_playerEntity->getComponent("audio"))->playSound();
+			//dynamic_cast<AudioComponent*>(m_playerEntity->getComponent("audio"))->playSound();
 		}
 	}
 }

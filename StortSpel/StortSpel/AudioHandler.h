@@ -5,22 +5,18 @@ class AudioHandler : public InputObserver
 {
 private:
 	AudioHandler() {}
-
 	std::shared_ptr<AudioEngine> m_audioEngine;
+
+	std::vector<std::unique_ptr<SoundEffectInstance>> m_soundInstances;
+	std::vector<std::unique_ptr<SoundEffectInstance>> m_loopingSoundInstances;
+
 	bool m_retryAudio;
 	HDEVNOTIFY m_newAudio = nullptr;
-
-	SoundEffect* m_explode;
-
-	SoundEffect* m_ambient;
-	float nightVolume;
-	float nightSlide;
 
 	/*std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_soundInstances;
 	std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_loopingSoundInstances;*/
 
-	std::vector<std::unique_ptr<SoundEffectInstance>> m_soundInstances;
-	std::vector<std::unique_ptr<SoundEffectInstance>> m_loopingSoundInstances;
+	
 
 
 public:

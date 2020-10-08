@@ -41,6 +41,22 @@ Engine::~Engine()
 void Engine::update(const float& dt)
 {
 	m_player->updatePlayer(dt);
+
+	// AUDIO TEST
+	nightVolume += dt * nightSlide;
+	if (nightVolume < 0.f)
+	{
+		nightVolume = 0.f;
+		nightSlide = -nightSlide;
+	}
+	else if (nightVolume > 0.5f)
+	{
+		nightVolume = 0.5f;
+		nightSlide = -nightSlide;
+	}
+	AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
+	ac->setVolume(nightVolume);
+
 }
 bool Engine::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
 {
@@ -141,11 +157,18 @@ void Engine::initialize()
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
 
 		addComponent(m_entities["meshPlayer"], "audio", new AudioComponent(L"Explosion.wav", false, 0.5f));
+		addComponent(m_entities["meshPlayer"], "audioLoop", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
 	}
 	else
 	{
 		ErrorLogger::get().logError("No player model added or already exists when adding");
 	}
+
+	// Audio test
+	Entity* audioTest = addEntity("audioTest");
+	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.5f));
+	nightSlide = 0.1f;
+	nightVolume = 0.5f;
 
 	// Temp entity init
 	addEntity("first");

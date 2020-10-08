@@ -14,6 +14,9 @@ private:
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
 
+	float nightVolume;
+	float nightSlide;
+
 	// Entities
 	std::unordered_map<std::string, Entity*> m_entities;
 	//{};

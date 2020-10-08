@@ -32,14 +32,8 @@ void AudioHandler::initialize(HWND& handle)
 		DEVICE_NOTIFY_WINDOW_HANDLE);
 
 	ApplicationLayer::getInstance().m_input.Attach(this);
-
-	m_explode = ResourceHandler::get().loadSound(L"Explo1.wav", m_audioEngine.get());
-	m_ambient = ResourceHandler::get().loadSound(L"NightAmbienceSimple_02.wav", m_audioEngine.get());
-	m_loopingSoundInstances.push_back(m_ambient->CreateInstance());
-	m_loopingSoundInstances[0]->Play(true);
-	nightVolume = 0.5f;
-	nightSlide = -0.1f;
-	m_loopingSoundInstances[0]->SetVolume(nightVolume);
+	m_soundInstances.clear();
+	m_loopingSoundInstances.clear();
 }
 
 int AudioHandler::addSoundInstance(const WCHAR* name, float volume, bool isLooping)
@@ -51,6 +45,7 @@ int AudioHandler::addSoundInstance(const WCHAR* name, float volume, bool isLoopi
 		index = m_loopingSoundInstances.size();
 		m_loopingSoundInstances.push_back(soundEffect->CreateInstance());
 		m_loopingSoundInstances[index]->SetVolume(volume);
+		m_loopingSoundInstances[index]->Play(true);
 	}
 	else
 	{
@@ -95,18 +90,7 @@ void AudioHandler::inputUpdate(InputData& inputData)
 
 void AudioHandler::update(float dt)
 {
-	nightVolume += dt * nightSlide;
-	if (nightVolume < 0.f)
-	{
-		nightVolume = 0.f;
-		nightSlide = -nightSlide;
-	}
-	else if (nightVolume > 0.5f)
-	{
-		nightVolume = 0.5f;
-		nightSlide = -nightSlide;
-	}
-	m_loopingSoundInstances[0]->SetVolume(nightVolume);
+	
 
 	if (m_newAudio)
 	{
