@@ -28,3 +28,8 @@ struct perObjectMVP
     XMMATRIX projection;
     XMMATRIX mvpMatrix; //Model/view/projection
 };
+
+struct skyboxMVP
+{
+    XMMATRIX mvpMatrix; //Model/view/projection
+};

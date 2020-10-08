@@ -9,6 +9,7 @@ class ResourceHandler
 {
 private:
 	ResourceHandler() {}
+
 public:
 	ResourceHandler(const ResourceHandler&) = delete;
 	void operator=(ResourceHandler const&) = delete;
@@ -18,8 +19,9 @@ public:
 		return instance;
 	}
 
-	
+	~ResourceHandler();
 private:
+
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
 
@@ -36,7 +38,8 @@ private:
 	const std::string m_ERROR_MODEL_NAME = "error.lrm";
 
 public:
-	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath);
+	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath, bool isCubeMap = false);
+	ID3D11ShaderResourceView* loadErrorTexture();
 	MeshResource* loadLRMMesh(const char* path);
 
 

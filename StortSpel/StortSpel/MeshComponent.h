@@ -4,6 +4,7 @@
 #include "Component.h"
 #include "Transform.h"
 #include "ResourceHandler.h"
+#include "Material.h"
 
 //class Renderer;
 
@@ -15,10 +16,12 @@ private:
 	MeshResource* m_resourcePointer = nullptr;
 	ShaderProgramsEnum m_shaderProgEnum;
 	std::string  m_filePath;
+	Material m_material;
 
 public:
 
-	MeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum = ShaderProgramsEnum::DEFAULT);
+	MeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum = ShaderProgramsEnum::DEFAULT, Material material = Material());
+	MeshComponent(const char* filepath, Material material);
 
 	~MeshComponent() {}
 
@@ -28,6 +31,7 @@ public:
 	ShaderProgramsEnum getShaderProgEnum() { return m_shaderProgEnum; }
 	const std::string& getFilePath() { return m_filePath; }
 	
+	Material* getMaterialPtr();
 
 	// Update
 	virtual void update(float dt) override {}

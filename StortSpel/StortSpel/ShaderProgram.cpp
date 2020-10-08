@@ -153,6 +153,12 @@ void ShaderProgram::setShadersNeedsResource(bool vState, bool hState, bool dStat
 	m_shaderNeedsResource[ShaderType::Pixel] = pState;
 }
 
+bool* ShaderProgram::getShadersNeedsResource()
+{
+	bool* shaderNeedsResourcePtr = m_shaderNeedsResource;
+	return shaderNeedsResourcePtr;
+}
+
 void ShaderProgram::setShaderNeedsCBuffer(ShaderType shader, bool state)
 {
 	m_shaderNeedsCBuffer[shader] = state;
@@ -165,6 +171,12 @@ void ShaderProgram::setShadersNeedsCBuffer(bool vState, bool hState, bool dState
 	m_shaderNeedsCBuffer[ShaderType::Domain] = dState;
 	m_shaderNeedsCBuffer[ShaderType::Geometry] = gState;
 	m_shaderNeedsCBuffer[ShaderType::Pixel] = pState;
+}
+
+bool* ShaderProgram::getShaderNeedsCBuffer()
+{
+	bool* shaderNeedsCBufferPtr = m_shaderNeedsCBuffer;
+	return shaderNeedsCBufferPtr;
 }
 
 void ShaderProgram::setShaders()

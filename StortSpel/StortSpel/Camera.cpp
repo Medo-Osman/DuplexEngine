@@ -1,6 +1,7 @@
 #include"3DPCH.h"
 #include "Engine.h"
 #include"Camera.h"
+
 #include"ApplicationLayer.h"
 
 Camera::Camera()
@@ -37,10 +38,14 @@ void Camera::setRotation(const XMVECTOR& rot)
 	m_rotation = rot;
 	this->updateViewMatrix();
 }
+Transform* Camera::getTransform()
+{
+	return &m_transform;
+}
 const XMVECTOR& Camera::getRotation() const
 {
 	return m_rotation;
-} 
+}
 const XMFLOAT4 Camera::getFloat4Rotation() const
 {
 	XMFLOAT4 float4Rot;
@@ -68,29 +73,50 @@ void Camera::inputUpdate(InputData& inputData)
 				m_incrementRotation = XMVectorZero();
 				m_newIncrements = true;
 			}
-			m_incrementRotation += {(float)inputData.rangeData[i].pos.y, (float)inputData.rangeData[i].pos.x};
+
+			XMFLOAT2 mouseDelta = XMFLOAT2((float)inputData.rangeData[i].pos.x, (float)inputData.rangeData[i].pos.y);
+
+			// Set Pitch
+			XMFLOAT3 rotationF3;
+			XMStoreFloat3(&rotationF3, m_rotation);
+			rotationF3.x += mouseDelta.y * 0.02;
+
+			// Limit pitch to straight up or straight down with a little fudge-factor to avoid gimbal lock
+			float limit = XM_PI / 2.0f - 0.01f;
+			rotationF3.x = max(-limit, rotationF3.x);
+			rotationF3.x = min(limit, rotationF3.x);
+
+			// Set Yaw
+			rotationF3.y += mouseDelta.x * 0.02;
+
+			// Keep longitude in sane range by wrapping
+			if (rotationF3.x > XM_PI)
+				rotationF3.y -= XM_PI * 2.0f;
+			else if (rotationF3.x < -XM_PI)
+				rotationF3.y += XM_PI * 2.0f;
+
+
+			m_rotation = XMLoadFloat3(&rotationF3);
+			m_transform.rotate(m_rotation);
 		}
 	}
 }
 
 void Camera::update(const float &dt)
 {
-	if (m_newIncrements)
-	{
-		this->m_rotation += m_incrementRotation * dt * 2;
-		m_newIncrements = false;
-	}
-	m_position = Engine::get().getEntity("meshPlayer")->getTranslation() + Vector3(0, 2, -5);
 
+	//if (m_newIncrements)
+	//{
+	//	this->m_rotation += m_incrementRotation * dt * 2;
+	//	m_transform.rotate(m_rotation);
+	//	m_newIncrements = false;
+	//}
+	m_position = Engine::get().getEntity("meshPlayer")->getTranslation() + Vector3(0, 2, -5);
+	
 	this->updateViewMatrix();
 }
 
-const XMFLOAT3 Camera::getForward() const
-{
-	XMFLOAT3 forward;
-	XMStoreFloat3(&forward, this->curForward);
-	return forward;
-}
+
 
 BoundingFrustum Camera::getFrustum()
 {
@@ -103,16 +129,23 @@ BoundingFrustum Camera::getFrustum()
 //Private
 void Camera::updateViewMatrix()
 {
+	float currentRotationAngleY = XMVectorGetY(m_rotation);
+	float currentRotationAngleX = XMVectorGetX(m_rotation);
+	
+	XMVECTOR currentRotation = XMQuaternionRotationRollPitchYaw(currentRotationAngleX, currentRotationAngleY, 0);
+
+	XMVECTOR playerPos = Engine::get().getEntity("meshPlayer")->getTranslation();
+	playerPos += Vector3(0, 1.75f, 0);
+	m_position = playerPos;
+	XMVECTOR offsetVector = Vector3(0, 0, 1) * 5;
+	offsetVector = XMVector3Rotate(offsetVector, currentRotation);
+	m_position -= offsetVector;
+
 	XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
-	XMVECTOR cameraLookAt = XMVector3TransformCoord(this->forwardVector, cameraRotation);
-	cameraLookAt += m_position;
-
 	XMVECTOR up = XMVector3TransformCoord(this->upVector, cameraRotation);
+	m_viewMatrix = XMMatrixLookAtLH(m_position, playerPos, up);
 
-	//Build view matrix for left-handed coordinate system.
-	m_viewMatrix = XMMatrixLookAtLH(m_position, cameraLookAt, up);
-
-	this->curForward = XMVector3TransformCoord(this->forwardVector, cameraRotation);
-	this->curUp = XMVector3TransformCoord(this->upVector, cameraRotation);
-	this->curRight = XMVector3TransformCoord(this->rightVector, cameraRotation);
+	// = XMVector3TransformCoord(this->forwardVector, cameraRotation);
+	//m_curUp = XMVector3TransformCoord(this->upVector, cameraRotation);
+	//m_curRight = XMVector3TransformCoord(this->rightVector, cameraRotation);
 }
