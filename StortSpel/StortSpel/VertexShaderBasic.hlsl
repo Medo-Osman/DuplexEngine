@@ -21,6 +21,7 @@ struct vs_out
     float3 normal : NORMAL;
     float3 tangent : TANGENT;
     float3 bitangent : BITANGENT;
+    float4 worldPos : POSITION;
 };
 
 cbuffer perModel : register(b0)
@@ -37,9 +38,10 @@ vs_out main(vs_in input)
     vs_out output;
     output.pos = mul(float4(input.pos, 1), wvpMatrix);
     output.uv = input.uv;
-	output.normal = input.normal;
+    output.normal = normalize(mul(float4(input.normal, 0), worldMatrix));
     output.tangent = input.tangent;
     output.bitangent = input.bitangent;
+    output.worldPos = mul(float4(input.pos, 1), worldMatrix);
     
     return output;
 }

@@ -37,7 +37,6 @@ void Transform::move(DirectX::XMVECTOR moveVector)
 	updated = true;
 }
 
-
 void Transform::rotate(Vector3 rotation)
 {
 	m_rotationQuat = Quaternion::CreateFromYawPitchRoll(rotation.y, rotation.x, rotation.z);
@@ -64,8 +63,6 @@ void Transform::scale(DirectX::XMFLOAT3 scaling)
 
 	updated = true;
 }
-
-
 
 void Transform::scaleUniform(float amount)
 {
@@ -131,7 +128,7 @@ Quaternion Transform::getQuaternion()
 
 Vector4 Transform::getVec4Quaternion()
 {
-	Quaternion tempQuat = m_rotationQuat;//Quaternion(0, m_rotationQuat.y, 0, 0);
+	Quaternion tempQuat = m_rotationQuat;
 	return tempQuat;
 }
 

@@ -40,7 +40,9 @@ float lerp(float a, float b, float t)
 //To do: Implement with physics objects.
 void Player::updatePlayer(const float& dt)
 {
-	m_physicsComponent->addForce(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector)) * dt * m_playerSpeed * 2);
+	Vector3 finalMovement = XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * dt * m_playerSpeed;
+	m_physicsComponent->addForce(finalMovement);
+
 
 	m_movementVector = XMVector3Normalize(m_movementVector);
 

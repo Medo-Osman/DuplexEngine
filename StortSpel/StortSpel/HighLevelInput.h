@@ -6,6 +6,7 @@ enum Action
 {
 	JUMP,
 	USE,
+	PLAYSOUND
 };
 
 enum State

@@ -34,4 +34,18 @@ public:
 
 		OutputDebugStringA(fullError.c_str());
 	}
+
+	void logError(const WCHAR errorMsg[])
+	{
+
+		std::wstring errorPrefix = L">>>>>>>>>>>>>>>>>>>>>>> ENGINE ERROR #" + std::to_wstring(m_nrOfErrors) + L": '";
+		std::wstring errorMsgString = std::wstring(errorMsg);
+		std::wstring errorSuffix = L"' >>>>>>>>>>>>>>>>>>>>>>>\n";
+
+		std::wstring fullError = errorPrefix + errorMsgString + errorSuffix;
+
+		m_nrOfErrors++;
+
+		OutputDebugString(fullError.c_str());
+	}
 };
