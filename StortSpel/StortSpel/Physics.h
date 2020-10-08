@@ -28,10 +28,6 @@ private:
 
 	bool m_recordMemoryAllocations = true;
 
-	void loadScene()
-	{
-
-	}
 
 	void loadDefaultMaterials()
 	{
@@ -129,7 +125,6 @@ public:
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 		}
 		this->loadDefaultMaterials();
-		this->loadScene();
 	}
 
 	void addShapeForSharing(PxShape* shape, std::string name)
@@ -196,8 +191,22 @@ public:
 
 		PxRigidActor* actor = dynamic ? createDynamicActor(pos, quat) : createStaticActor(pos, quat);
 		m_scenePtr->addActor(*actor);
-
 		return actor;
+	}
+
+	void setPosition(PxRigidActor* actor, XMFLOAT3 pos)
+	{
+		actor->setGlobalPose(PxTransform(PxVec3(pos.x, pos.y, pos.z)));
+	}
+
+	void setRotation(PxRigidActor* actor, XMFLOAT4 rotationQuat)
+	{
+		actor->setGlobalPose(PxTransform(PxQuat(rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w)));
+	}
+
+	void setGlobalTransform(PxRigidActor* actor, XMFLOAT3 pos,  XMFLOAT4 rotQ)
+	{
+		actor->setGlobalPose(PxTransform(pos.x, pos.y, pos.z, PxQuat(rotQ.x, rotQ.y, rotQ.z, rotQ.w)));
 	}
 
 

@@ -10,7 +10,6 @@ private:
 	ApplicationLayer();
 
 	Renderer* m_rendererPtr;
-	Physics m_physics;
 	HWND m_window;
 	Engine* m_enginePtr;
 

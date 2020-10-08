@@ -255,7 +255,9 @@ void Engine::initialize()
 		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
 		m_entities["meshPlayer"]->translation({ 5, 10.f, 0 });
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
-		this->createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
+		createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
+		PhysicsComponent* pc = static_cast<PhysicsComponent*>(m_entities["meshPlayer"]->getComponent("physics"));
+		pc->controllRotation(false);
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
 	}
 	else

@@ -120,6 +120,8 @@ void Transform::setQuaternion(Quaternion quat)
 
 	Matrix quatRotMatrix = XMMatrixRotationQuaternion(m_rotationQuat);
 	rotationMatrix = quatRotMatrix;
+
+	updated = true;
 }
 
 Quaternion Transform::getQuaternion()

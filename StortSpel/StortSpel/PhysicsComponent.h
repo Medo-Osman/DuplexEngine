@@ -9,10 +9,11 @@ class PhysicsComponent : public Component
 private:
 	Physics* m_physicsPtr;
 	PxRigidActor* m_actor;
-	bool m_dynamic;
 	Transform* m_transform;
 	PxShape* m_shape;
 	std::vector<PxShape*> m_shapes;
+	bool m_dynamic;
+	bool m_controllRotation;
 
 
 	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, LRM_VERTEX vertexArray[], const int vertexCount)
@@ -26,7 +27,7 @@ private:
 		case physx::PxGeometryType::eCAPSULE:
 			createdGeometry = new PxCapsuleGeometry(vec.x, vec.y);
 			break;
-		case physx::PxGeometryType::eSPHERE: //Jump into same since we can use box data
+		case physx::PxGeometryType::eSPHERE:
 			XMFLOAT3 center = { (max.x + min.x) * 0.5f, (max.y + min.y) * 0.5f, (max.z + min.z) * 0.5f };
 			float radius;
 			radius = 0;
@@ -85,12 +86,14 @@ public:
 		m_type = ComponentType::PHYSICS;
 		m_physicsPtr = nullptr;
 		m_dynamic = false;
+		m_controllRotation = true;
 	}
 	PhysicsComponent(Physics* physics)
 	{
 		m_type = ComponentType::PHYSICS;
 		m_physicsPtr = physics;
 		m_dynamic = false;
+		m_controllRotation = true;
 	}
 	~PhysicsComponent()
 	{
@@ -250,6 +253,8 @@ public:
 	void update(float dt) override 
 	{
 		m_transform->translation(this->getActorPosition());
+		if(m_controllRotation)
+			m_transform->setQuaternion(this->getActorQuaternion());
 	}
 
 	XMFLOAT3 getActorPosition()
@@ -260,6 +265,26 @@ public:
 	XMFLOAT4 getActorQuaternion()
 	{
 		return XMFLOAT4(m_actor->getGlobalPose().q.x, m_actor->getGlobalPose().q.y, m_actor->getGlobalPose().q.z, m_actor->getGlobalPose().q.w);
+	}
+
+	void controllRotation(bool shouldControllRotation)
+	{
+		m_controllRotation = shouldControllRotation;
+	}
+
+	void setPosition(XMFLOAT3 pos)
+	{
+		m_physicsPtr->setPosition(m_actor, pos);
+	}
+
+	void setRotation(XMFLOAT4 rotQ)
+	{
+		m_physicsPtr->setRotation(m_actor, rotQ);
+	}
+
+	void setPose(XMFLOAT3 pos, XMFLOAT4 rotQ)
+	{
+		m_physicsPtr->setGlobalTransform(m_actor, pos, rotQ);
 	}
 };
 
