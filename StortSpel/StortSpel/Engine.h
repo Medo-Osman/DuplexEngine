@@ -25,10 +25,10 @@ private:
 	static const int m_startWidth = 1920;
 	static const int m_startHeight = 1080;
 
-	Vector4 m_skyLightDir = Vector4(0, 0.5, 0.5, 0);
+	Vector4 m_skyLightDir = Vector4(0, 0.5, -0.5, 0);
 	Vector4 m_skyLightColor = Vector4(1, 1, 1, 1);
 	FLOAT m_skyLightBrightness = 1.5f;
-	FLOAT m_ambientLightLevel = 0.1f;
+	FLOAT m_ambientLightLevel = 0.3f;
 	
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
