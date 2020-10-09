@@ -48,6 +48,15 @@ void Transform::rotate(Vector3 rotation)
 	updated = true;
 }
 
+void Transform::rotateQuat(Quaternion rotation)
+{
+	m_rotationQuat = rotation;
+	m_rotationQuat.Normalize();
+
+	rotationMatrix = DirectX::XMMatrixRotationQuaternion(m_rotationQuat);
+	updated = true;
+}
+
 void Transform::translation(DirectX::XMFLOAT3 translation)
 {
 	m_translation = translation;

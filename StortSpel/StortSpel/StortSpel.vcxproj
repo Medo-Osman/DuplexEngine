@@ -219,6 +219,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="ResourceHandler.h" />
+    <ClInclude Include="RotateAroundComponent.h" />
     <ClInclude Include="ShaderEnums.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="TestComponent.h" />

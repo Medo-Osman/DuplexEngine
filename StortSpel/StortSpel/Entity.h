@@ -38,4 +38,10 @@ public:
 
 		return m_components[componentName];
 	}
+
+	void update(float dt) 
+	{
+		for (auto& component : m_components)
+			component.second->update(dt);
+	}
 };

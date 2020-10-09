@@ -44,6 +44,7 @@ public:
 
 	//sets rotation/translation/scale
 	void rotate(Vector3 rotation);
+	void rotateQuat(Quaternion rotation);
 	void translation(DirectX::XMFLOAT3 translation);
 	void scale(DirectX::XMFLOAT3 scaling);
 

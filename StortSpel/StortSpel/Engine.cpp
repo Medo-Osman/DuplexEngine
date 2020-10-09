@@ -49,6 +49,10 @@ void Engine::update(const float& dt)
 {
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
+	for (auto& entity : m_entities)
+	{
+		entity.second->update(dt);
+	}
 }
 Settings Engine::getSettings() const
 {
@@ -137,6 +141,27 @@ void Engine::buildTestStage()
 			cube->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
 		}
 	}
+
+	// Rotating Cube
+	Entity* centerCube = addEntity("centerCube");
+	if (centerCube)
+	{
+		addComponent(centerCube, "mesh",
+			new MeshComponent("testCube_pCube1.lrm"));
+		centerCube->move({ 0.f, 5.f, 0.f });
+		centerCube->rotate({ 0.5f, 0, 0 });
+	}
+
+	// Rotating Cube
+	if (addEntity("RotatingCube"))
+	{
+		addComponent(m_entities["RotatingCube"], "mesh",
+			new MeshComponent("testCube_pCube1.lrm"));
+		addComponent(m_entities["RotatingCube"], "rotate",
+			new RotateAroundComponent(centerCube->getTranslation(), centerCube->getRotationMatrix(), dynamic_cast<Transform*>(m_entities["RotatingCube"]), 5));
+		
+	}
+
 
 	// Skybox
 	if (addEntity("Skybox"))
