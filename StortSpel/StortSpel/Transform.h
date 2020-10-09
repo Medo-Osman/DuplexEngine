@@ -2,9 +2,6 @@
 #include <DirectXColors.h>
 #include "SimpleMath.h"
 
-
-
-
 using namespace DirectX;
 using namespace SimpleMath;
 
@@ -55,7 +52,10 @@ public:
 	void setRotationLock(bool state);
 	void setScaleLock(bool state);
 
+
+	Transform* getTransform();
 	Quaternion getRotation();
+
 	Vector3 getTranslation();
 	Vector3 getScaling();
 

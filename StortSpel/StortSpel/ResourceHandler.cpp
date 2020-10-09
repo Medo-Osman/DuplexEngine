@@ -55,7 +55,7 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath,
 				{
 					//std::wstring errorMessage = L"ERROR, '" + m_ERROR_TEXTURE_NAME + L"' texture can not be found in '" + m_TEXTURES_PATH + L"'!";
 					ErrorLogger::get().logError("error texture can not be found in texture folder!");
-					assert(!L"ERROR, error texture can not be found in texture folder!");
+					assert(!"ERROR, error texture can not be found in texture folder!");
 				}
 			}
 		}
@@ -102,7 +102,7 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 		if (path == m_ERROR_MODEL_NAME.c_str())
 		{
 			ErrorLogger::get().logError("error model can not be found in model folder");
-			assert(!L"ERROR, error model can not be found in model folder!");
+			assert(!"ERROR, error model can not be found in model folder!");
 			return nullptr;
 		}
 		else
@@ -147,11 +147,68 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	m_meshCache[path]->getVertexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount);
 	m_meshCache[path]->getIndexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
 
+	XMFLOAT3 min = { 99999, 99999, 99999 }, max = { -99999, -99999, -99999 };
+	for (int i = 0; i < vertexCount; i++)
+	{
+		XMFLOAT3 currentPos = vertexArray[i].pos;
+		if (currentPos.x >= max.x)
+			max.x = currentPos.x;
+		if (currentPos.y >= max.y)
+			max.y = currentPos.y;
+		if (currentPos.z >= max.z)
+			max.z = currentPos.z;
+
+		if (currentPos.x <= min.x)
+			min.x = currentPos.x;
+		if (currentPos.y <= min.y)
+			min.y = currentPos.y;
+		if (currentPos.z <= min.z)
+			min.z = currentPos.z;
+
+	}
+
+	m_meshCache[path]->setMinMax(min, max);
+	m_meshCache[path]->storeVertexArray(vertexArray, vertexCount);
+
 	delete[] vertexArray;
 	delete[] indexArray;
 
 	//Return the pointer of the new entry
 	return m_meshCache[path];
+}
+
+SoundEffect* ResourceHandler::loadSound(const WCHAR* soundPath, AudioEngine* audioEngine)
+{
+	if (!m_soundCache.count(soundPath))
+	{
+		std::wstring path = m_SOUNDS_PATH + soundPath;
+		try
+		{
+			m_soundCache[soundPath] = new SoundEffect(audioEngine, path.c_str());
+		}
+		catch (std::exception e) // Error, could not load sound file
+		{
+			std::wstring error(soundPath);
+			error = L"Could not load sound file: " + error;
+			ErrorLogger::get().logError(error.c_str());
+
+			if (!m_soundCache.count(m_ERROR_SOUND_NAME)) // if error sound is not loaded
+			{
+				path = m_SOUNDS_PATH + m_ERROR_SOUND_NAME;
+				try
+				{
+					m_soundCache[m_ERROR_SOUND_NAME] = new SoundEffect(audioEngine, path.c_str());
+				}
+				catch (std::exception e) // Fatal Error, error sound file does not exist
+				{
+					ErrorLogger::get().logError("error sound file can not be found in audio folder!");
+					assert(!"ERROR, error sound file can not be found in audio folder!");
+				}
+			}
+			return m_soundCache[m_ERROR_SOUND_NAME];
+		}
+	}
+	return m_soundCache[soundPath];
 }
 
 void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
@@ -175,6 +232,10 @@ void ResourceHandler::Destroy()
 	}*/
 
 	for (std::pair<const char*, MeshResource*> element : m_meshCache)
+	{
+		delete element.second;
+	}
+	for (std::pair<std::wstring, SoundEffect*> element : m_soundCache)
 	{
 		delete element.second;
 	}

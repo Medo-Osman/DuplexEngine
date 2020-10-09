@@ -2,7 +2,7 @@
 #include "3DPCH.h"
 #include <string>
 
-enum class ComponentType { MESH, AUDIO, PHYSICS, TEST, INVALID, UNASSIGNED, ROTATEAROUND };
+enum class ComponentType { MESH, AUDIO, PHYSICS, TEST, INVALID, UNASSIGNED, ROTATEAROUND, LIGHT};
 
 class Component
 {
@@ -16,7 +16,7 @@ public:
 	{
 		m_type = ComponentType::UNASSIGNED;
 	}
-	~Component() {}
+	virtual ~Component() {}
 
 
 	// Operators

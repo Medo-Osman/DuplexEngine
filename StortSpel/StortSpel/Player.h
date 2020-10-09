@@ -2,7 +2,11 @@
 #include "Input.h"
 #include "ResourceHandler.h"
 #include "Entity.h"
+#include"PhysicsComponent.h"
+#include "AudioHandler.h"
+#include "audioComponent.h"
 #include <cmath>
+
 
 using namespace DirectX;
 
@@ -16,6 +20,8 @@ private:
     float angleY;
 
     void setStates(std::vector<State> states);
+    PhysicsComponent* m_physicsComponent;
+
 public:
     Player();
 

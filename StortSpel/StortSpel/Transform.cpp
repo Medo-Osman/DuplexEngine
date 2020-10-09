@@ -20,9 +20,9 @@ void Transform::setTransformZero()
 	scalingMatrix = DirectX::XMMatrixScaling(1, 1, 1);
 
 	m_translation = Vector3();
-	m_scaling = Vector3(1, 1, 1);
 	m_rotationQuat = Quaternion();
-
+	m_scaling = { 1, 1, 1 };
+	
 	updated = true;
 }
 
@@ -36,7 +36,6 @@ void Transform::move(DirectX::XMVECTOR moveVector)
 
 	updated = true;
 }
-
 
 void Transform::rotate(Vector3 rotation)
 {
@@ -74,8 +73,6 @@ void Transform::scale(DirectX::XMFLOAT3 scaling)
 	updated = true;
 }
 
-
-
 void Transform::scaleUniform(float amount)
 {
 	if (scaleLock)
@@ -102,6 +99,11 @@ void Transform::setScaleLock(bool state)
 	scaleLock = state;
 }
 
+Transform* Transform::getTransform()
+{
+	return this;
+}
+
 Quaternion Transform::getRotation()
 {
 	return m_rotationQuat;
@@ -124,6 +126,8 @@ void Transform::setQuaternion(Quaternion quat)
 
 	Matrix quatRotMatrix = XMMatrixRotationQuaternion(m_rotationQuat);
 	rotationMatrix = quatRotMatrix;
+
+	updated = true;
 }
 
 Quaternion Transform::getQuaternion()
@@ -133,7 +137,7 @@ Quaternion Transform::getQuaternion()
 
 Vector4 Transform::getVec4Quaternion()
 {
-	Quaternion tempQuat = m_rotationQuat;//Quaternion(0, m_rotationQuat.y, 0, 0);
+	Quaternion tempQuat = m_rotationQuat;
 	return tempQuat;
 }
 

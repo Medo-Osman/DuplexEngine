@@ -22,19 +22,38 @@ public:
 		m_components.clear();
 	}
 
+	void update(const float &dt)
+	{
+		for (auto& component : m_components)
+			component.second->update(dt);
+	}
+
 	// Component Handling
 	void addComponent(std::string newComponentName, Component* newComponent)
 	{
-		//newComponentName += std::to_string(m_components.size());
 		newComponent->setIdentifier(newComponentName);
 		newComponent->setParentEntityIdentifier(m_identifier);
 		m_components[newComponentName] = newComponent;
+	}
+	
+	void removeComponent(Component* component)
+	{
+
+		int deleted = m_components.erase(component->getIdentifier());
+		std::cout << std::to_string(deleted);
+
+
 	}
 
 	Component* getComponent(std::string componentName)
 	{
 		if (m_components.find(componentName) == m_components.end()) // If component does not exist
+		{
+			ErrorLogger::get().logError("Attempt to retrieve component by name failed, does not exist.");
+
 			return new InvalidComponent();
+		}
+			
 
 		return m_components[componentName];
 	}
@@ -43,5 +62,16 @@ public:
 	{
 		for (auto& component : m_components)
 			component.second->update(dt);
+	}
+	
+	void getComponentsOfType(std::vector<Component*> &compVec, ComponentType type)
+	{
+		for (std::pair<std::string, Component*> component : m_components)
+		{
+			if (component.second->getType() == type)
+			{
+				compVec.push_back(component.second);
+			}
+		}
 	}
 };
