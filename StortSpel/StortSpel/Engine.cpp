@@ -113,9 +113,9 @@ void Engine::update(const float& dt)
 		nightVolume = 0.f;
 		nightSlide = -nightSlide;
 	}
-	else if (nightVolume > 0.5f)
+	else if (nightVolume > 0.2f)
 	{
-		nightVolume = 0.5f;
+		nightVolume = 0.2f;
 		nightSlide = -nightSlide;
 	}
 	AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
@@ -410,9 +410,9 @@ void Engine::initialize()
 
 	// Audio test
 	Entity* audioTest = addEntity("audioTest");
-	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.5f));
-	nightSlide = 0.1f;
-	nightVolume = 0.5f;
+	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	nightSlide = 0.01f;
+	nightVolume = 0.2f;
 
 	// Temp entity init
 	addEntity("first");

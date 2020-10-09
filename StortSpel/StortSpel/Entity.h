@@ -57,12 +57,6 @@ public:
 
 		return m_components[componentName];
 	}
-
-	void update(float dt) 
-	{
-		for (auto& component : m_components)
-			component.second->update(dt);
-	}
 	
 	void getComponentsOfType(std::vector<Component*> &compVec, ComponentType type)
 	{
