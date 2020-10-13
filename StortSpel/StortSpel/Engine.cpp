@@ -418,8 +418,11 @@ void Engine::initialize()
 		}
 
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
-		createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
+		//createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
+		m_entities["meshPlayer"]->addComponent("physics", new PhysicsComponent(&ApplicationLayer::getInstance().m_physics));
 		PhysicsComponent* pc = static_cast<PhysicsComponent*>(m_entities["meshPlayer"]->getComponent("physics"));
+		pc->initActor(m_entities["meshPlayer"], true);
+		pc->addBoxShape({ 1.f, 1.f, 1.f }, "human");
 		pc->controllRotation(false);
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
 

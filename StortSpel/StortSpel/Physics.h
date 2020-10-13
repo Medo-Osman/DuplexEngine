@@ -266,4 +266,15 @@ public:
 			ErrorLogger::get().logError("Trying to add already existing geometry to sharedGeometry map");
 	}
 
+	bool castRay(SimpleMath::Vector3 origin, SimpleMath::Vector3 unitDirection, float distance)
+	{
+		PxVec3 pOrigin(origin.x, origin.y, origin.z);
+		PxVec3 pUnitDir(unitDirection.x, unitDirection.y, unitDirection.z);
+		PxRaycastBuffer hit;                 // [out] Raycast results
+
+		// Raycast against all static & dynamic objects (no filtering)
+		// The main result from this call is the closest hit, stored in the 'hit.block' structure
+		return m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
+	}
+
 };
