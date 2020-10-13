@@ -238,11 +238,42 @@ std::map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 void Engine::buildTestStage()
 {
 	// Cube 1
-	//if (addEntity("cube-test"))
-	//	addComponent(m_entities["cube-test"], "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+	Entity* cube1 = addEntity("cube1");
+	if (cube1)
+	{
+		addComponent(cube1, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
+		cube1->scaleUniform({ -1.f });
+	}
+
+	// Cube 2
+	Entity* cube2 = addEntity("cube2");
+	if (cube2)
+	{
+		addComponent(cube2, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
+		cube2->move({ 10.f, 0.5f, 0.f });
+		cube2->scaleUniform({ -2.f });
+	}
+
+	// Cube 3
+	Entity* cube3 = addEntity("cube3");
+	if (cube3)
+	{
+		addComponent(cube3, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture3m.png" })));
+		cube3->move({ 20.f, 1.f, 0.f });
+		cube3->scaleUniform({ -3.f });
+	}
+
+	// Cube 4
+	Entity* cube4 = addEntity("cube4");
+	if (cube4)
+	{
+		addComponent(cube4, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture4m.png" })));
+		cube4->move({ 30.f, 1.5f, 0.f });
+		cube4->scaleUniform({ -4.f });
+	}
 
 	// Tent
-	Entity* tent = addEntity("tent");
+	/*Entity* tent = addEntity("tent");
 	if (tent)
 	{
 		addComponent(tent, "mesh", new MeshComponent("BigTopTent_Cylinder.lrm", Material({ L"T_CircusTent_D.png" })));
@@ -250,21 +281,20 @@ void Engine::buildTestStage()
 		tent->move({ -10.f, 0.f, 0.f });
 
 		this->createNewPhysicsComponent(tent, true, "");
-	}
-
-	Material gridTest = Material({ L"T_GridTestTex.bmp" });
+	}*/
 
 	// Floor
+	Material gridTest = Material({ L"T_GridTestTex.bmp" });
 	Entity* floor = addEntity("floor");
 	if (floor)
 	{
-		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"T_CircusTent_D.png" })));
+		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
 		floor->scale({ 300,0.1,300 });
-		floor->move({ 0,-0.6,0 });
+		floor->move({ 0,-0.55,0 });
 		this->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	//Cube 2
+	// Flying Cube
 	Entity* cube = addEntity("cube-test2");
 	if (cube)
 	{
@@ -275,7 +305,7 @@ void Engine::buildTestStage()
 		this->createNewPhysicsComponent(cube, true, "", PxGeometryType::eSPHERE);
 	}
 
-	//Cube with sphere shape
+	// Cube with sphere shape
 	Entity* cubeSphereBB = addEntity("cube-test3");
 	if (cubeSphereBB)
 	{
@@ -289,11 +319,12 @@ void Engine::buildTestStage()
 		physicsComp->addSphereShape(2.f);
 	}
 
+	// XWing
 	Entity* testXwing = addEntity("testXwing");
 	if (testXwing)
 	{
 		addComponent(testXwing, "xwingtestmesh", new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
-		testXwing->move({ 15.f, 1.5f, -3.f });
+		testXwing->move({ 0.f, 1.5f, 20.f });
 	}
 
 	// Platforms
@@ -315,7 +346,7 @@ void Engine::buildTestStage()
 	{
 		addComponent(centerCube, "mesh",
 			new MeshComponent("testCube_pCube1.lrm"));
-		centerCube->move({ 0.f, 5.f, 0.f });
+		centerCube->move({ 0.f, 5.f, 10.f });
 		centerCube->rotate({ 0.5f, 0, 0 });
 	}
 
@@ -329,14 +360,12 @@ void Engine::buildTestStage()
 		
 	}
 
-
 	// Skybox
 	if (addEntity("Skybox"))
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		addComponent(m_entities["Skybox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-
 	}
 }
 
