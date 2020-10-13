@@ -98,9 +98,12 @@
     </ClCompile>
     <ClCompile Include="AudioHandler.cpp">
       <Filter>Source Files\Application</Filter>
-	</ClCompile>
+    </ClCompile>
     <ClCompile Include="Material.cpp">
       <Filter>Source Files\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Source Files\Application</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -187,13 +190,13 @@
     </ClInclude>
     <ClInclude Include="PhysicsMaterial.h">
       <Filter>Source Files\Game\PhysX</Filter>
-	</ClInclude>
+    </ClInclude>
     <ClInclude Include="AudioHandler.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
     <ClInclude Include="AudioComponent.h">
       <Filter>Source Files\Components</Filter>
-	</ClInclude>
+    </ClInclude>
     <ClInclude Include="Material.h">
       <Filter>Source Files\Graphic</Filter>
     </ClInclude>
@@ -208,6 +211,9 @@
     </ClInclude>
     <ClInclude Include="LightStructs.h">
       <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Source Files\Application</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

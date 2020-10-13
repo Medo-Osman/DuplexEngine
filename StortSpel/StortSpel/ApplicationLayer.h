@@ -4,6 +4,7 @@
 #include"Renderer.h"
 #include "Engine.h"
 #include"AudioHandler.h"
+#include"Timer.h"
 
 
 class ApplicationLayer
@@ -15,7 +16,8 @@ private:
 	HWND m_window;
 	Engine* m_enginePtr;
 
-	float m_time;
+	Timer m_timer;
+	float m_dt;
 
 	int width, height;
 

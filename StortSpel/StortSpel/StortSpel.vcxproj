@@ -194,6 +194,7 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="ResourceHandler.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
+    <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -232,6 +233,7 @@
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="SpotLightComponent.h" />
     <ClInclude Include="TestComponent.h" />
+    <ClInclude Include="Timer.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="VertexStructs.h" />
   </ItemGroup>

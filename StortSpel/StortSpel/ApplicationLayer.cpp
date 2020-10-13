@@ -10,7 +10,7 @@ ApplicationLayer::ApplicationLayer()
 	m_window = 0;
 	this->width = 1920;
 	this->height = 1080;
-	m_time = 0.f;
+	m_dt = 0.f;
 
 }
 
@@ -96,7 +96,6 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 
 void ApplicationLayer::applicationLoop()
 {
-	float dt = 0.001f; //DT
 	MSG msg = { };
 	while (WM_QUIT != msg.message)
 	{
@@ -108,11 +107,14 @@ void ApplicationLayer::applicationLoop()
 		}
 		else // Render/Logic Loop
 		{
+			this->m_dt = (float)m_timer.timeElapsed();
+			m_timer.restart();
+
 			m_input.readBuffers();
-			m_enginePtr->update(dt);
-			m_physics.update(dt);
-			AudioHandler::get().update(dt);
-			m_enginePtr->update(dt);
+			m_enginePtr->update(m_dt);
+			m_physics.update(m_dt);
+			AudioHandler::get().update(m_dt);
+			m_enginePtr->update(m_dt);
 			m_rendererPtr->render();
 		}
 	}
