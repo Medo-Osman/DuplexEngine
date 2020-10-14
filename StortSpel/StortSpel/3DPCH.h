@@ -30,6 +30,7 @@
 #include <dxgi1_2.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include "SimpleMath.h"
 #include <DirectXCollision.h>
 #include <Effects.h>
 #include <DirectXColors.h>

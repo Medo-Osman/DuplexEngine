@@ -96,7 +96,10 @@ void Player::inputUpdate(InputData& inputData)
 	{
 		if (inputData.actionData[i] == Action::JUMP)
 		{
-			//m_controller->addForce(XMFLOAT3(0.f, 10.f, 0.f));
+			if (m_physicsComponent->checkGround(m_playerEntity->getTranslation() - Vector3(0.f, 1.1f, 0.f), Vector3(0.f, -1.f, 0.f), 1.f))
+			{
+				m_physicsComponent->addForce(XMFLOAT3(0.f, 10.f, 0.f));
+			}
 		}
 	}
 
