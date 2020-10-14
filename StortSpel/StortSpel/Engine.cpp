@@ -1,6 +1,7 @@
 #include "3DPCH.h"
 #include "Engine.h"
 #include"ApplicationLayer.h"
+#include"CharacterControllerComponent.h"
 
 Engine::Engine()
 {
@@ -418,9 +419,9 @@ void Engine::initialize()
 		}
 
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
-		createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
-		PhysicsComponent* pc = static_cast<PhysicsComponent*>(m_entities["meshPlayer"]->getComponent("physics"));
-		pc->controllRotation(false);
+		m_entities["meshPlayer"]->addComponent("CCC", new CharacterControllerComponent(&ApplicationLayer::getInstance().m_physics));
+		CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(m_entities["meshPlayer"]->getComponent("CCC"));
+		pc->initController(m_entities["meshPlayer"]->getTransform(), 2, 1, "human");
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
 
 		addComponent(m_entities["meshPlayer"], "audio", new AudioComponent(L"Explosion.wav", false, 0.5f));

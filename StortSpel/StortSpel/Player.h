@@ -2,7 +2,7 @@
 #include "Input.h"
 #include "ResourceHandler.h"
 #include "Entity.h"
-#include"PhysicsComponent.h"
+#include"CharacterControllerComponent.h"
 #include "AudioHandler.h"
 #include "audioComponent.h"
 #include <cmath>
@@ -20,7 +20,7 @@ private:
     float angleY;
 
     void setStates(std::vector<State> states);
-    PhysicsComponent* m_physicsComponent;
+    CharacterControllerComponent* m_controller;
 
 public:
     Player();

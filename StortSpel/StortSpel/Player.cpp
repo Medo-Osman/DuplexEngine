@@ -41,7 +41,7 @@ float lerp(float a, float b, float t)
 void Player::updatePlayer(const float& dt)
 {
 	Vector3 finalMovement = XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * dt * m_playerSpeed;
-	m_physicsComponent->addForce(finalMovement);
+	m_controller->move(finalMovement, dt);
 
 
 	m_movementVector = XMVector3Normalize(m_movementVector);
@@ -74,7 +74,7 @@ void Player::updatePlayer(const float& dt)
 void Player::setPlayerEntity(Entity* entity)
 {
 	m_playerEntity = entity;
-	m_physicsComponent = static_cast<PhysicsComponent*>(m_playerEntity->getComponent("physics"));
+	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 
 }
 
@@ -96,7 +96,7 @@ void Player::inputUpdate(InputData& inputData)
 	{
 		if (inputData.actionData[i] == Action::JUMP)
 		{
-			m_physicsComponent->addForce(XMFLOAT3(0.f, 10.f, 0.f));
+			//m_controller->addForce(XMFLOAT3(0.f, 10.f, 0.f));
 		}
 	}
 

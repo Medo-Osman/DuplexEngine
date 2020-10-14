@@ -204,6 +204,7 @@
     <ClInclude Include="AudioHandler.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CharacterControllerComponent.h" />
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
     <ClInclude Include="LightComponent.h" />

@@ -151,7 +151,7 @@ public:
 
 	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometry* geometry, std::string materialName, bool unique, XMFLOAT3 scale = { 1, 1, 1 })
 	{
-		physx::PxMaterial* physicsMaterial = m_defaultMaterials[materialName];
+		physx::PxMaterial* physicsMaterial = getMaterialByName(materialName);
 		PxGeometryHolder scaledGeometry = *geometry;
 		if (physicsMaterial == nullptr)
 		{
@@ -170,7 +170,7 @@ public:
 
 	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometryHolder geometry, std::string materialName, bool unique, XMFLOAT3 scale = { 1, 1, 1 })
 	{
-		physx::PxMaterial* physicsMaterial = m_defaultMaterials[materialName];
+		physx::PxMaterial* physicsMaterial = getMaterialByName(materialName);
 		if (physicsMaterial == nullptr)
 		{
 			physicsMaterial = m_defaultMaterials["default"];
@@ -180,6 +180,16 @@ public:
 		PxShape* shape = m_physicsPtr->createShape(geometry.any(), *physicsMaterial, unique);
 		actor->attachShape(*shape);
 		return shape;
+	}
+
+	PxMaterial* getMaterialByName(std::string name)
+	{
+		PxMaterial* materialPtr = nullptr;
+		if (m_defaultMaterials.find(name) != m_defaultMaterials.end())
+		{
+			materialPtr = m_defaultMaterials[name];
+		}
+		return materialPtr;
 	}
 
 	void addShapeToActor(PxRigidActor* actor, PxShape* shape)
@@ -264,6 +274,51 @@ public:
 			m_sharedGeometry[geometryName] = geometry;
 		else
 			ErrorLogger::get().logError("Trying to add already existing geometry to sharedGeometry map");
+	}
+
+	//Manager
+	PxController* addCapsuleController(XMFLOAT3 position, float height, float radius, std::string materialName)
+	{
+		PxController* capsuleController = nullptr;
+		PxCapsuleControllerDesc ccd;
+		ccd.climbingMode = PxCapsuleClimbingMode::eCONSTRAINED;
+		ccd.contactOffset = 0.1f;
+		ccd.height = height;
+		ccd.radius = radius;
+		ccd.invisibleWallHeight = 0.f;
+		ccd.maxJumpHeight = 0.f; //If invisibleWalLHeigt is used, this parameter is used.
+		ccd.nonWalkableMode = PxControllerNonWalkableMode::ePREVENT_CLIMBING_AND_FORCE_SLIDING;
+		ccd.position = PxExtendedVec3(position.x, position.y, position.z);
+		ccd.registerDeletionListener = true;
+		ccd.slopeLimit = 0.707f;
+		ccd.stepOffset = 0.5f;
+		ccd.upDirection = PxVec3(0.f, 1.f, 0.f);
+		ccd.userData = NULL;
+		ccd.volumeGrowth = 1.5f;
+
+		//Callbacks
+		ccd.reportCallback = NULL;
+		ccd.behaviorCallback = NULL;
+
+		//Actor
+		ccd.density = 10.0;
+		ccd.material = getMaterialByName(materialName);
+		ccd.scaleCoeff = 0.8f;
+
+		capsuleController = m_controllManager->createController(ccd);
+
+		return capsuleController;
+	}
+
+	void setCapsuleSize(PxController* controller, float height)
+	{
+		controller->resize(height);
+	}
+
+	void setCapsuleRadius(PxController* controller, float radius)
+	{
+		PxCapsuleController* capsule = static_cast<PxCapsuleController*>(controller);
+		capsule->setRadius(radius);
 	}
 
 };
