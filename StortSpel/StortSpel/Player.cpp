@@ -5,6 +5,8 @@
 Player::Player()
 {
 	m_movementVector = XMVectorZero();
+	m_height = 0;
+	m_jumps = 0;
 }
 
 void Player::setStates(std::vector<State> states)
@@ -41,6 +43,35 @@ float lerp(float a, float b, float t)
 void Player::updatePlayer(const float& dt)
 {
 	Vector3 finalMovement = XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * dt * m_playerSpeed;
+
+	if(m_height >= MAX_FALL_SPEED)
+		m_height += GRAVITY_MODIFIER * dt;
+
+	switch (m_state)
+	{
+	case PlayerState::IDLE:
+		break;
+	case PlayerState::DO_JUMP:
+		m_height = INITAL_JUMP_VELOCITY;
+		m_state = PlayerState::JUMPING;
+		m_jumps++;
+		break;
+	case PlayerState::JUMPING:
+		if (m_height < 0)
+		{
+			if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 1.f))
+			{
+				m_state = PlayerState::IDLE;
+				m_jumps = 0;
+			}
+		}
+		break;
+	default:
+		break;
+	}
+		
+
+	finalMovement.y = m_height;
 	m_controller->move(finalMovement, dt);
 
 
@@ -96,10 +127,21 @@ void Player::inputUpdate(InputData& inputData)
 	{
 		if (inputData.actionData[i] == Action::JUMP)
 		{
-			if (m_physicsComponent->checkGround(m_playerEntity->getTranslation() - Vector3(0.f, 1.1f, 0.f), Vector3(0.f, -1.f, 0.f), 1.f))
+			if (m_state != PlayerState::JUMPING)
 			{
-				m_physicsComponent->addForce(XMFLOAT3(0.f, 10.f, 0.f));
+				m_state = PlayerState::DO_JUMP;
 			}
+			else
+			{
+				if (m_jumps < 2)
+				{
+					m_state = PlayerState::DO_JUMP;
+				}
+			}
+			//if (m_controller->checkGround(m_playerEntity->getTranslation() - Vector3(0.f, 1.1f, 0.f), Vector3(0.f, -1.f, 0.f), 1.f))
+			//{
+			//	
+			//}
 		}
 	}
 

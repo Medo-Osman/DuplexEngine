@@ -72,6 +72,12 @@ private:
 		return geometryHolder;
 	}
 
+	template <typename T>
+	void deleteVectorPointers(T* const ptr)
+	{
+		delete ptr;
+	}
+
 public:
 	Physics()
 	{

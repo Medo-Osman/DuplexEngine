@@ -9,6 +9,7 @@ class CharacterControllerComponent : public Component
 private:
 	Physics* m_physicsPtr;
 	Transform* m_transform;
+	XMFLOAT3 m_transformOffset;
 
 	PxController* m_controller;
 	bool canUseController()
@@ -29,10 +30,11 @@ public:
 		m_physicsPtr = physics;
 	}
 
-	void initController(Transform* transform, float height, float radius, std::string material = "default")
+	void initController(Transform* transform, float height, float radius, XMFLOAT3 transformOffset, std::string material = "default")
 	{
 		m_transform = transform;
 		m_controller = m_physicsPtr->addCapsuleController(m_transform->getTranslation(), height, radius, material);
+		m_transformOffset = transformOffset;
 	}
 
 	void move(XMFLOAT3 moveTowards, const float &dt)
@@ -40,7 +42,7 @@ public:
 		if (!canUseController())
 			return;
 
-		moveTowards.y -= 0.9;
+	//	moveTowards.y -= 9.0f * dt;
 		m_controller->move({moveTowards.x, moveTowards.y, moveTowards.z}, 0.001f, dt, NULL, NULL);
 
 	}
@@ -79,7 +81,13 @@ public:
 		if (!canUseController())
 			return;
 		PxExtendedVec3 pos = m_controller->getPosition();
-		m_transform->translation(XMFLOAT3(pos.x, pos.y, pos.z ));
+		XMFLOAT3 position = XMFLOAT3(pos.x + m_transformOffset.x, pos.y + m_transformOffset.y, pos.z + m_transformOffset.z);
+
+		m_transform->translation(XMFLOAT3(position.x, position.y, position.z ));
 	}
 	
+	bool checkGround(Vector3 origin, Vector3 unitDirection, float distance)
+	{
+		return m_physicsPtr->castRay(origin, unitDirection, distance);
+	}
 };
