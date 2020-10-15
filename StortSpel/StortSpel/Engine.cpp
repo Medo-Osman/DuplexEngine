@@ -250,7 +250,7 @@ void Engine::buildTestStage()
 	if (cube2)
 	{
 		addComponent(cube2, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
-		cube2->move({ 10.f, 0.5f, 0.f });
+		cube2->translate({ 10.f, 0.5f, 0.f });
 		cube2->scaleUniform({ -2.f });
 	}
 
@@ -259,7 +259,7 @@ void Engine::buildTestStage()
 	if (cube3)
 	{
 		addComponent(cube3, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture3m.png" })));
-		cube3->move({ 20.f, 1.f, 0.f });
+		cube3->translate({ 20.f, 1.f, 0.f });
 		cube3->scaleUniform({ -3.f });
 	}
 
@@ -268,7 +268,7 @@ void Engine::buildTestStage()
 	if (cube4)
 	{
 		addComponent(cube4, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture4m.png" })));
-		cube4->move({ 30.f, 1.5f, 0.f });
+		cube4->translate({ 30.f, 1.5f, 0.f });
 		cube4->scaleUniform({ -4.f });
 	}
 
@@ -290,7 +290,7 @@ void Engine::buildTestStage()
 	{
 		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
 		floor->scale({ 300,0.1,300 });
-		floor->move({ 0,-0.55,0 });
+		floor->translate({ 0,-0.55,0 });
 		this->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
@@ -300,7 +300,7 @@ void Engine::buildTestStage()
 	{
 		addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
 		cube->scaleUniform({ 3.f });
-		cube->move({ 0.f, 5.f, 5.f });
+		cube->translate({ 0.f, 5.f, 5.f });
 		cube->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
 		this->createNewPhysicsComponent(cube, true, "", PxGeometryType::eSPHERE);
 	}
@@ -311,7 +311,7 @@ void Engine::buildTestStage()
 	{
 		addComponent(cubeSphereBB, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
 		cubeSphereBB->scaleUniform({ 3.f });
-		cubeSphereBB->move({ -10.f, 5.f, 5.f });
+		cubeSphereBB->translate({ -10.f, 5.f, 5.f });
 		cubeSphereBB->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
 		addComponent(cubeSphereBB, "physics", new PhysicsComponent(&ApplicationLayer::getInstance().m_physics));
 		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(cubeSphereBB->getComponent("physics"));
@@ -324,7 +324,7 @@ void Engine::buildTestStage()
 	if (testXwing)
 	{
 		addComponent(testXwing, "xwingtestmesh", new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
-		testXwing->move({ 0.f, 1.5f, 20.f });
+		testXwing->translate({ 0.f, 1.5f, 20.f });
 	}
 
 	// Platforms
@@ -335,7 +335,7 @@ void Engine::buildTestStage()
 		{
 			addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm"));
 			cube->scale({ 3,0.2,5 });
-			cube->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
+			cube->translate({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
 			this->createNewPhysicsComponent(cube);
 		}
 	}
@@ -346,7 +346,7 @@ void Engine::buildTestStage()
 	{
 		addComponent(centerCube, "mesh",
 			new MeshComponent("testCube_pCube1.lrm"));
-		centerCube->move({ 0.f, 5.f, 10.f });
+		centerCube->translate({ 0.f, 5.f, 10.f });
 		centerCube->rotate({ 0.5f, 0, 0 });
 	}
 
@@ -392,17 +392,17 @@ void Engine::initialize()
 	if (addEntity("meshPlayer"))
 	{
 		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
-		m_entities["meshPlayer"]->translation({ 5, 10.f, 0 });
+		m_entities["meshPlayer"]->setPosition({ 5, 10.f, 0 });
 
 		//Point Light
 		addComponent(m_entities["meshPlayer"], "testLight", new LightComponent());
-		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->translation({ 0,1.f,-5 });
+		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setPosition({ 0,1.f,-5 });
 		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
 		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setIntensity(1.0f);
 
 		//Spot Light
 		addComponent(m_entities["meshPlayer"], "spotlightTest2", new SpotLightComponent());
-		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->translation({ 0,1.f,0 });
+		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setPosition({ 0,1.f,0 });
 		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
 		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setIntensity(3.f);
 

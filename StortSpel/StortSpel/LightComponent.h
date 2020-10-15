@@ -17,7 +17,7 @@ public:
 	{
 		m_lightType = LightType::Point;
 
-		translation(position);
+		setPosition(position);
 		m_color = color;
 
 		m_intensity = intensity;

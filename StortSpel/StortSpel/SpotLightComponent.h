@@ -13,7 +13,7 @@ private:
 public:
 	SpotLightComponent(Vector3 position = Vector3(), XMFLOAT3 color = XMFLOAT3(1, 1, 1), FLOAT intensity = 1.f, XMFLOAT3 direction = XMFLOAT3(0,0,1))
 	{
-		translation(position);
+		setPosition(position);
 		setColor(color);
 		setIntensity(intensity);
 		m_direction = direction;

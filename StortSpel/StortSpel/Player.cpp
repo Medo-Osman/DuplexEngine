@@ -15,7 +15,7 @@ void Player::setStates(std::vector<State> states)
 		switch (states[i])
 		{
 		case WALK_LEFT:
-			m_movementVector += m_cameraTransform->getRightVector() * -1;
+			m_movementVector += m_cameraTransform->getLeftVector();
 			break;
 		case WALK_RIGHT:
 			m_movementVector += m_cameraTransform->getRightVector();
@@ -56,7 +56,7 @@ void Player::updatePlayer(const float& dt)
 	}
 
 	//This is the current rotation in quaternions
-	Quaternion currentRotation = m_playerEntity->getQuaternion();
+	Quaternion currentRotation = m_playerEntity->getRotation();
 	currentRotation.Normalize();
 
 	//This is the angleY target quaternion
@@ -68,7 +68,7 @@ void Player::updatePlayer(const float& dt)
 	slerped.Normalize();
 
 	//Display slerped result
-	m_playerEntity->setQuaternion(slerped);
+	m_playerEntity->setRotationQuat(slerped);
 }
 
 void Player::setPlayerEntity(Entity* entity)
