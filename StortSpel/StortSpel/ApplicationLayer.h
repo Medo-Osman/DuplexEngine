@@ -4,6 +4,7 @@
 #include"Renderer.h"
 #include "Engine.h"
 #include"AudioHandler.h"
+#include "SceneManager.h"
 #include"Timer.h"
 
 
@@ -15,7 +16,8 @@ private:
 	Renderer* m_rendererPtr;
 	HWND m_window;
 	Engine* m_enginePtr;
-
+	SceneManager m_sceneManager;
+	float m_time;
 	Timer m_timer;
 	float m_dt;
 
@@ -36,6 +38,6 @@ public:
 
 	const HWND& getWindow() { return m_window; }
 	Input m_input;
-	Physics m_physics;
+	Physics* m_physics;
 
 };

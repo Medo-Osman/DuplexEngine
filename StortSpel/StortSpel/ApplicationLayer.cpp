@@ -33,7 +33,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	AudioHandler::get().initialize(m_window);
 
 	//SoundEffect sound(AudioHandler::get().getAudioEngine()->get(), L"../res/audio/NightAmbienceSimple_02.wav");
-	
+
 	RAWINPUTDEVICE rawIDevice;
 	rawIDevice.usUsagePage = 0x01;
 	rawIDevice.usUsage = 0x02;
@@ -48,11 +48,15 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		initOK = true;
 		ShowWindow(m_window, showCmd);
 	}
+
 	//PhysX
-	m_physics.init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
+	m_physics = &Physics::get();
+	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
 
 	Engine::get().initialize();
 	m_enginePtr = &Engine::get();
+
+	m_sceneManager.initalize();
 
 	srand(static_cast <unsigned> (time(0)));
 
@@ -111,15 +115,17 @@ void ApplicationLayer::applicationLoop()
 			m_timer.restart();
 
 			m_input.readBuffers();
+			m_sceneManager.updateScene(m_dt);
 			m_enginePtr->update(m_dt);
-			m_physics.update(m_dt);
+			m_physics->update(m_dt);
 			AudioHandler::get().update(m_dt);
 			m_enginePtr->update(m_dt);
 			m_rendererPtr->update(m_dt);
 			m_rendererPtr->render();
 		}
 	}
-	m_physics.release();
+	m_physics->release();
+}
 
 	// ImGui Cleanup
 	ImGui_ImplDX11_Shutdown();
