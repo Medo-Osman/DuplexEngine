@@ -42,7 +42,7 @@ float lerp(float a, float b, float t)
 //To do: Implement with physics objects.
 void Player::updatePlayer(const float& dt)
 {
-	Vector3 finalMovement = XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * dt * m_playerSpeed;
+	Vector3 finalMovement = XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * m_playerSpeed;
 
 	if(m_height >= MAX_FALL_SPEED)
 		m_height += GRAVITY_MODIFIER * dt;
