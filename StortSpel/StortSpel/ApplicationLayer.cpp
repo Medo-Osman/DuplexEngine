@@ -115,11 +115,11 @@ void ApplicationLayer::applicationLoop()
 			m_timer.restart();
 
 			m_input.readBuffers();
-			m_sceneManager.updateScene(dt);
-			m_enginePtr->update(dt);
-			m_physics->update(dt);
-			AudioHandler::get().update(dt);
-			m_enginePtr->update(dt);
+			m_sceneManager.updateScene(m_dt);
+			m_enginePtr->update(m_dt);
+			m_physics->update(m_dt);
+			AudioHandler::get().update(m_dt);
+			m_enginePtr->update(m_dt);
 			m_rendererPtr->render();
 		}
 	}

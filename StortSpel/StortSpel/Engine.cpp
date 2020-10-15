@@ -237,128 +237,7 @@ std::map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 
 void Engine::buildTestStage()
 {
-	// Cube 1
-	Entity* cube1 = addEntity("cube1");
-	if (cube1)
-	{
-		addComponent(cube1, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
-		cube1->scaleUniform({ -1.f });
-	}
-
-	// Cube 2
-	Entity* cube2 = addEntity("cube2");
-	if (cube2)
-	{
-		addComponent(cube2, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
-		cube2->move({ 10.f, 0.5f, 0.f });
-		cube2->scaleUniform({ -2.f });
-	}
-
-	// Cube 3
-	Entity* cube3 = addEntity("cube3");
-	if (cube3)
-	{
-		addComponent(cube3, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture3m.png" })));
-		cube3->move({ 20.f, 1.f, 0.f });
-		cube3->scaleUniform({ -3.f });
-	}
-
-	// Cube 4
-	Entity* cube4 = addEntity("cube4");
-	if (cube4)
-	{
-		addComponent(cube4, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture4m.png" })));
-		cube4->move({ 30.f, 1.5f, 0.f });
-		cube4->scaleUniform({ -4.f });
-	}
-
-	// Tent
-	/*Entity* tent = addEntity("tent");
-	if (tent)
-	{
-		addComponent(tent, "mesh", new MeshComponent("BigTopTent_Cylinder.lrm", Material({ L"T_CircusTent_D.png" })));
-		tent->rotate({ XMConvertToRadians(-90.f), 0.f, 0.f });
-		tent->move({ -10.f, 0.f, 0.f });
-
-		this->createNewPhysicsComponent(tent, true, "");
-	}*/
-
-	// Floor
-	Material gridTest = Material({ L"T_GridTestTex.bmp" });
-	Entity* floor = addEntity("floor");
-	if (floor)
-	{
-		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		floor->scale({ 300,0.1,300 });
-		floor->move({ 0,-0.55,0 });
-		this->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
-	}
-
-	// Flying Cube
-	Entity* cube = addEntity("cube-test2");
-	if (cube)
-	{
-		addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		cube->scaleUniform({ 3.f });
-		cube->move({ 0.f, 5.f, 5.f });
-		cube->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		this->createNewPhysicsComponent(cube, true, "", PxGeometryType::eSPHERE);
-	}
-
-	// Cube with sphere shape
-	Entity* cubeSphereBB = addEntity("cube-test3");
-	if (cubeSphereBB)
-	{
-		addComponent(cubeSphereBB, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-		cubeSphereBB->scaleUniform({ 3.f });
-		cubeSphereBB->move({ -10.f, 5.f, 5.f });
-		cubeSphereBB->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		addComponent(cubeSphereBB, "physics", new PhysicsComponent(&ApplicationLayer::getInstance().m_physics));
-		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(cubeSphereBB->getComponent("physics"));
-		physicsComp->initActor(cubeSphereBB, false);
-		physicsComp->addSphereShape(2.f);
-	}
-
-	// XWing
-	Entity* testXwing = addEntity("testXwing");
-	if (testXwing)
-	{
-		addComponent(testXwing, "xwingtestmesh", new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
-		testXwing->move({ 0.f, 1.5f, 20.f });
-	}
-
-	// Platforms
-	for (int i = 0; i < 5; i++)
-	{
-		Entity* cube = addEntity("cube-test" + std::to_string(i));
-		if (cube)
-		{
-			addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm"));
-			cube->scale({ 3,0.2,5 });
-			cube->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
-			this->createNewPhysicsComponent(cube);
-		}
-	}
-
-	// Rotating Cube
-	Entity* centerCube = addEntity("centerCube");
-	if (centerCube)
-	{
-		addComponent(centerCube, "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
-		centerCube->move({ 0.f, 5.f, 10.f });
-		centerCube->rotate({ 0.5f, 0, 0 });
-	}
-
-
-
-	// Skybox
-	if (addEntity("Skybox"))
-	{
-		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		addComponent(m_entities["Skybox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-	}
+	
 }
 
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
@@ -411,7 +290,7 @@ void Engine::initialize()
 
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
 		//createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
-		m_entities["meshPlayer"]->addComponent("physics", new PhysicsComponent(&ApplicationLayer::getInstance().m_physics));
+		m_entities["meshPlayer"]->addComponent("physics", new PhysicsComponent(&Physics::get()));
 		PhysicsComponent* pc = static_cast<PhysicsComponent*>(m_entities["meshPlayer"]->getComponent("physics"));
 		pc->initActor(m_entities["meshPlayer"], true);
 		pc->addBoxShape({ 1.f, 1.f, 1.f }, "human");
