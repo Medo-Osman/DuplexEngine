@@ -6,6 +6,8 @@ class RotateAroundComponent : public Component
 {
 private:
 	// Input stuff:
+	Transform* m_originTransform;
+
 	Vector3 m_origin;
 	XMMATRIX m_rotation;
 	Transform* m_transform;
@@ -16,14 +18,16 @@ private:
 	// Other:
 	Vector3 m_pos;
 	Vector3 m_offset;
-	XMMATRIX m_originTransform;
+	XMMATRIX m_originTransformMatrix;
 	XMMATRIX m_rotationMatrix;
 
 public:
-	RotateAroundComponent(Vector3 origin, XMMATRIX originRotationAxis, Transform* transform, float radius, float startAngle = 0.f, float rotationSpeed = 20.f)
+	RotateAroundComponent(Transform* origin, XMMATRIX originRotationAxis, Transform* transform, float radius, float rotationSpeed = 20.f, float startAngle = 0.f)
 	{
 		m_type = ComponentType::ROTATEAROUND;
-		this->m_origin		  = origin;
+		this->m_originTransform = origin;
+
+		//this->m_origin		  = origin;
 		this->m_rotation	  = originRotationAxis;
 		this->m_transform	  = transform;
 		this->m_angle		  = startAngle;
@@ -42,10 +46,10 @@ public:
 		}
 
 		m_offset		  = Vector3(m_radius, 0, 0);
-		m_originTransform = XMMatrixTranslationFromVector(m_origin);
+		m_originTransformMatrix = XMMatrixTranslationFromVector(m_originTransform->getTranslation());
 		m_rotationMatrix  = XMMatrixRotationY(XMConvertToRadians(m_angle));
 
-		m_pos = XMVector3TransformCoord(m_offset,  m_rotationMatrix * m_rotation * m_originTransform);
+		m_pos = XMVector3TransformCoord(m_offset,  m_rotationMatrix * m_rotation * m_originTransformMatrix);
 
 		//Set rotation of the mesh that rotates, so that it matches the parent
 		m_transform->setQuaternion(Quaternion::CreateFromRotationMatrix(m_rotation));

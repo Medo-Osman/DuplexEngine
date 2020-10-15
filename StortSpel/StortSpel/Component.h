@@ -2,7 +2,7 @@
 #include "3DPCH.h"
 #include <string>
 
-enum class ComponentType { MESH, AUDIO, PHYSICS, TEST, INVALID, UNASSIGNED, ROTATEAROUND, LIGHT};
+enum class ComponentType { MESH, AUDIO, PHYSICS, TEST, INVALID, UNASSIGNED, ROTATEAROUND, LIGHT, MOVINGPLATFORM, FLIPPINGPLATFORM};
 
 class Component
 {
