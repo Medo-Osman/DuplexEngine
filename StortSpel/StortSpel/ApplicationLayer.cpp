@@ -115,18 +115,28 @@ void ApplicationLayer::applicationLoop()
 			m_physics.update(m_dt);
 			AudioHandler::get().update(m_dt);
 			m_enginePtr->update(m_dt);
+			m_rendererPtr->update(m_dt);
 			m_rendererPtr->render();
 		}
 	}
 	m_physics.release();
+
+	// ImGui Cleanup
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 }
 
 
-
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	ApplicationLayer* g_ApplicationLayer = &ApplicationLayer::getInstance();
 	g_ApplicationLayer->m_input.handleMessages(hwnd, uMsg, wParam, lParam);
+
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
+		return true;
+
 	switch (uMsg)
 	{
 	case WM_DEVICECHANGE:

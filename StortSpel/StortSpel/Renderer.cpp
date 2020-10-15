@@ -126,6 +126,17 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_devicePtr->CreateDepthStencilState(&skyboxDSD, &skyboxDSSPtr);
 	/////////////////////////////////////////////////
 
+	// ImGui initialization
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	//ImGui::SetCurrentContext(imguictx);
+
+	ImGui::StyleColorsDark();
+
+	ImGui_ImplWin32_Init(window);
+	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
+
 	return hr;
 }
 
@@ -234,7 +245,11 @@ void Renderer::rasterizerSetup()
 
 void Renderer::update(const float& dt)
 {
-	
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	ImGui::ShowDemoWindow();
 }
 
 void Renderer::render()
@@ -307,6 +322,20 @@ void Renderer::render()
 
 		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
+
+	////ImGui::Begin("Test");
+	{
+		ImGui::SetNextWindowPos(ImVec2(1350.0f, 0.0f));
+		ImGui::SetNextWindowSize(ImVec2(250.0f, 30.0f));
+		ImGui::Begin("FPS Counter", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+
+		ImGui::Text("Avg. %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	}
+	ImGui::End();
+
+	// Render ImGui
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	m_swapChainPtr->Present(0, 0);
 }
