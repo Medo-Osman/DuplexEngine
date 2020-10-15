@@ -249,7 +249,7 @@ void Renderer::update(const float& dt)
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::ShowDemoWindow();
+	//ImGui::ShowDemoWindow();
 }
 
 void Renderer::render()
@@ -322,16 +322,6 @@ void Renderer::render()
 
 		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
-
-	////ImGui::Begin("Test");
-	{
-		ImGui::SetNextWindowPos(ImVec2(1350.0f, 0.0f));
-		ImGui::SetNextWindowSize(ImVec2(250.0f, 30.0f));
-		ImGui::Begin("FPS Counter", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
-
-		ImGui::Text("Avg. %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	}
-	ImGui::End();
 
 	// Render ImGui
 	ImGui::Render();

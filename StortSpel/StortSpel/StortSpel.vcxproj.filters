@@ -110,6 +110,7 @@
     </ClCompile>
     <ClCompile Include="SceneManager.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Timer.cpp">
       <Filter>Source Files\Application</Filter>
     </ClCompile>
@@ -243,6 +244,7 @@
     </ClInclude>
     <ClInclude Include="SceneManager.h">
       <Filter>Source Files\Game</Filter>
+    </ClInclude>
     <ClInclude Include="Timer.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
