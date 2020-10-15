@@ -249,6 +249,9 @@
     <FxCompile Include="SkyboxVertexShader.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
+    <FxCompile Include="DownSampleShader.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

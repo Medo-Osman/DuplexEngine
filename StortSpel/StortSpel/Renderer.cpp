@@ -26,6 +26,15 @@ void Renderer::release()
 	m_depthStencilBufferPtr->Release();
 	m_depthStencilViewPtr->Release();
 	m_depthStencilStatePtr->Release();
+
+	m_geometryShaderResourceView->Release();
+	m_geometryUnorderedAccessView->Release();
+	m_geometryTexture->Release();
+
+	m_downSampledShaderResourceView->Release();
+	m_downSampledUnorderedAccessView->Release();
+	m_downSampledTexture->Release();
+
 	//m_vertexShaderConstantBuffer.release();
 	m_rasterizerStatePtr->Release();
 
@@ -73,6 +82,53 @@ HRESULT Renderer::initialize(const HWND& window)
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = createDepthStencil();
+	if (!SUCCEEDED(hr)) return hr;
+	
+	D3D11_TEXTURE2D_DESC textureDesc = { 0 };
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	textureDesc.Width = m_settings.width;
+	textureDesc.Height = m_settings.height;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.MipLevels = 1;
+	textureDesc.ArraySize = 1;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &m_geometryTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateRenderTargetView(m_geometryTexture.Get(), 0, &m_rTargetViewsArray[1]);
+	if (!SUCCEEDED(hr)) return hr;
+
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	textureDesc.Width = m_settings.width/2;
+	textureDesc.Height = m_settings.height/2;
+
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &m_downSampledTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	hr = m_devicePtr->CreateShaderResourceView(m_downSampledTexture.Get(), &srvDesc, &m_downSampledShaderResourceView);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateShaderResourceView(m_geometryTexture.Get(), &srvDesc, &m_geometryShaderResourceView);
+	if (!SUCCEEDED(hr)) return hr;
+
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+
+	uavDesc.Format = textureDesc.Format;
+	uavDesc.ViewDimension = D3D11_UAV_DIMENSION::D3D11_UAV_DIMENSION_TEXTURE2D;
+	uavDesc.Texture2D.MipSlice = 0;
+	
+	hr = m_devicePtr->CreateUnorderedAccessView(m_downSampledTexture.Get(), &uavDesc, &m_downSampledUnorderedAccessView);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateUnorderedAccessView(m_geometryTexture.Get(), &uavDesc, &m_geometryUnorderedAccessView);
 	if (!SUCCEEDED(hr)) return hr;
 
 	compileAllShaders(&m_compiledShaders, m_devicePtr.Get(), m_dContextPtr.Get(), m_depthStencilViewPtr.Get());
@@ -308,6 +364,10 @@ void Renderer::render()
 		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
 
+	// Bloom Filter
+	//m_dContextPtr->CSSetShader()
+	m_dContextPtr->CSSetShaderResources(0, 1, &m_downSampledShaderResourceView);
+	m_dContextPtr->CSGetUnorderedAccessViews(0, 1, &m_downSampledUnorderedAccessView);
 	m_swapChainPtr->Present(0, 0);
 }
 
@@ -320,7 +380,6 @@ ID3D11DeviceContext* Renderer::getDContext()
 {
 	return m_dContextPtr.Get();
 }
-
 
 ID3D11DepthStencilView* Renderer::getDepthStencilView()
 {

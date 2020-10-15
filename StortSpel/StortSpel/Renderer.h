@@ -24,7 +24,12 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
 
-	
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_geometryTexture = NULL;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_downSampledTexture = NULL;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_downSampledShaderResourceView = NULL;
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_downSampledUnorderedAccessView = NULL;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_geometryShaderResourceView = NULL;
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_geometryUnorderedAccessView = NULL;
 
 	//Buffer<cbVSWVPMatrix> m_vertexShaderConstantBuffer;
 	Buffer<perObjectMVP> m_perObjectConstantBuffer;
