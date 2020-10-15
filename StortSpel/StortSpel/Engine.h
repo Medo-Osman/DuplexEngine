@@ -57,8 +57,6 @@ public:
 	void initialize();
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 
-	Entity* getEntity(std::string key);
-	Entity* addEntity(std::string identifier);
 	~Engine();
 
 	void update(const float &dt);
@@ -66,6 +64,8 @@ public:
 	Settings getSettings() const;
 	Camera* getCameraPtr();
 
+	Entity* getEntity(std::string key);
+	Entity* addEntity(std::string identifier);
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 
 	void addMeshComponent(MeshComponent* component);

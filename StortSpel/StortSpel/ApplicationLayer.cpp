@@ -48,11 +48,15 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		initOK = true;
 		ShowWindow(m_window, showCmd);
 	}
+	
 	//PhysX
-	m_physics.init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
-
+	m_physics = &Physics::get();
+	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
+	
 	Engine::get().initialize();
 	m_enginePtr = &Engine::get();
+
+	m_sceneManager.initalize();
 
 	srand(static_cast <unsigned> (time(0)));
 
@@ -109,14 +113,15 @@ void ApplicationLayer::applicationLoop()
 		else // Render/Logic Loop
 		{
 			m_input.readBuffers();
+			m_sceneManager.updateScene(dt);
 			m_enginePtr->update(dt);
-			m_physics.update(dt);
+			m_physics->update(dt);
 			AudioHandler::get().update(dt);
 			m_enginePtr->update(dt);
 			m_rendererPtr->render();
 		}
 	}
-	m_physics.release();
+	m_physics->release();
 }
 
 

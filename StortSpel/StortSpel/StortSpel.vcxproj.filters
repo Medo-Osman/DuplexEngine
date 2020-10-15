@@ -98,9 +98,15 @@
     </ClCompile>
     <ClCompile Include="AudioHandler.cpp">
       <Filter>Source Files\Application</Filter>
-	</ClCompile>
+    </ClCompile>
     <ClCompile Include="Material.cpp">
       <Filter>Source Files\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -187,13 +193,13 @@
     </ClInclude>
     <ClInclude Include="PhysicsMaterial.h">
       <Filter>Source Files\Game\PhysX</Filter>
-	</ClInclude>
+    </ClInclude>
     <ClInclude Include="AudioHandler.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
     <ClInclude Include="AudioComponent.h">
       <Filter>Source Files\Components</Filter>
-	</ClInclude>
+    </ClInclude>
     <ClInclude Include="Material.h">
       <Filter>Source Files\Graphic</Filter>
     </ClInclude>
@@ -208,6 +214,12 @@
     </ClInclude>
     <ClInclude Include="LightStructs.h">
       <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Source Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>Source Files\Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

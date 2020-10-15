@@ -4,7 +4,7 @@
 #include"Renderer.h"
 #include "Engine.h"
 #include"AudioHandler.h"
-
+#include "SceneManager.h"
 
 class ApplicationLayer
 {
@@ -14,7 +14,7 @@ private:
 	Renderer* m_rendererPtr;
 	HWND m_window;
 	Engine* m_enginePtr;
-
+	SceneManager m_sceneManager;
 	float m_time;
 
 	int width, height;
@@ -34,6 +34,6 @@ public:
 
 	const HWND& getWindow() { return m_window; }
 	Input m_input;
-	Physics m_physics;
+	Physics* m_physics;
 
 };

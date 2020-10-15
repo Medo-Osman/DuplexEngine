@@ -162,7 +162,7 @@ void Engine::addMeshComponent(MeshComponent* component)
 void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false)
 {
 	std::vector<Component*> tempComponentVector;
-	PhysicsComponent* physComp = new PhysicsComponent(&ApplicationLayer::getInstance().m_physics);
+	PhysicsComponent* physComp = new PhysicsComponent(&Physics::get());
 	MeshComponent* meshComponent = nullptr;
 	bool found = false;
 
@@ -241,103 +241,18 @@ void Engine::buildTestStage()
 	//if (addEntity("cube-test"))
 	//	addComponent(m_entities["cube-test"], "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
 
-	// Tent
-	Entity* tent = addEntity("tent");
-	if (tent)
-	{
-		addComponent(tent, "mesh", new MeshComponent("BigTopTent_Cylinder.lrm", Material({ L"T_CircusTent_D.png" })));
-		tent->rotate({ XMConvertToRadians(-90.f), 0.f, 0.f });
-		tent->move({ -10.f, 0.f, 0.f });
-
-		this->createNewPhysicsComponent(tent, true, "");
-	}
-
-	Material gridTest = Material({ L"T_GridTestTex.bmp" });
-
-	// Floor
-	Entity* floor = addEntity("floor");
-	if (floor)
-	{
-		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"T_CircusTent_D.png" })));
-		floor->scale({ 300,0.1,300 });
-		floor->move({ 0,-0.6,0 });
-		this->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
-	}
-
-	//Cube 2
-	Entity* cube = addEntity("cube-test2");
-	if (cube)
-	{
-		addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		cube->scaleUniform({ 3.f });
-		cube->move({ 0.f, 5.f, 5.f });
-		cube->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		this->createNewPhysicsComponent(cube, true, "", PxGeometryType::eSPHERE);
-	}
-
-	//Cube with sphere shape
-	Entity* cubeSphereBB = addEntity("cube-test3");
-	if (cubeSphereBB)
-	{
-		addComponent(cubeSphereBB, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-		cubeSphereBB->scaleUniform({ 3.f });
-		cubeSphereBB->move({ -10.f, 5.f, 5.f });
-		cubeSphereBB->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		addComponent(cubeSphereBB, "physics", new PhysicsComponent(&ApplicationLayer::getInstance().m_physics));
-		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(cubeSphereBB->getComponent("physics"));
-		physicsComp->initActor(cubeSphereBB, false);
-		physicsComp->addSphereShape(2.f);
-	}
-
-	Entity* testXwing = addEntity("testXwing");
-	if (testXwing)
-	{
-		addComponent(testXwing, "xwingtestmesh", new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
-		testXwing->move({ 15.f, 1.5f, -3.f });
-	}
-
-	// Platforms
-	for (int i = 0; i < 5; i++)
-	{
-		Entity* cube = addEntity("cube-test" + std::to_string(i));
-		if (cube)
-		{
-			addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm"));
-			cube->scale({ 3,0.2,5 });
-			cube->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
-			this->createNewPhysicsComponent(cube);
-		}
-	}
-
-	// Rotating Cube
-	Entity* centerCube = addEntity("centerCube");
-	if (centerCube)
-	{
-		addComponent(centerCube, "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
-		centerCube->move({ 0.f, 5.f, 0.f });
-		centerCube->rotate({ 0.5f, 0, 0 });
-	}
-
-	// Rotating Cube
-	if (addEntity("RotatingCube"))
-	{
-		addComponent(m_entities["RotatingCube"], "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
-		addComponent(m_entities["RotatingCube"], "rotate",
-			new RotateAroundComponent(centerCube->getTranslation(), centerCube->getRotationMatrix(), dynamic_cast<Transform*>(m_entities["RotatingCube"]), 5));
-		
-	}
+	
 
 
-	// Skybox
-	if (addEntity("Skybox"))
-	{
-		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		addComponent(m_entities["Skybox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
-	}
+
+
+	
+
+	
+
+
+
 }
 
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)

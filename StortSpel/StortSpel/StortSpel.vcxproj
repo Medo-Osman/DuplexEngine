@@ -193,6 +193,8 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="ResourceHandler.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
@@ -228,6 +230,8 @@
     <ClInclude Include="Physics.h" />
     <ClInclude Include="ResourceHandler.h" />
     <ClInclude Include="RotateAroundComponent.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneManager.h" />
     <ClInclude Include="ShaderEnums.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="SpotLightComponent.h" />
