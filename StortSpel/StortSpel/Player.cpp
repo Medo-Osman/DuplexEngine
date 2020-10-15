@@ -44,8 +44,14 @@ void Player::updatePlayer(const float& dt)
 {
 	Vector3 finalMovement = XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * m_playerSpeed;
 
-	if(m_height >= MAX_FALL_SPEED)
-		m_height += GRAVITY_MODIFIER * dt;
+	if(m_height > 0) 
+		m_height += GRAVITY_MODIFIER * FALL_MULTIPLIER * dt;
+	else
+	{
+		if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 1.f))
+			m_height += GRAVITY_MODIFIER * dt;
+			
+	}
 
 	switch (m_state)
 	{
@@ -63,6 +69,7 @@ void Player::updatePlayer(const float& dt)
 			{
 				m_state = PlayerState::IDLE;
 				m_jumps = 0;
+				m_height = -0.01 * dt;
 			}
 		}
 		break;

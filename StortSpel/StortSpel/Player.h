@@ -19,9 +19,10 @@ using namespace DirectX;
 class Player : public InputObserver
 {
 private:
-    const float MAX_FALL_SPEED = -0.02f;
+    const float FALL_MULTIPLIER = 2.5f;
+    const float MAX_FALL = 0.005f;
     const float GRAVITY_MODIFIER = -0.07f;
-    const float INITAL_JUMP_VELOCITY = 0.03f;
+    const float INITAL_JUMP_VELOCITY = 0.05f;
     DirectX::XMVECTOR m_movementVector;
     Entity* m_playerEntity = nullptr;
     Transform* m_cameraTransform;
