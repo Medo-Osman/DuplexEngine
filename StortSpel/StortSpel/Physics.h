@@ -20,6 +20,7 @@ private:
 	PxPvd* m_PvdPtr;
 	PxCpuDispatcher* m_dispatcherPtr;
 	PxScene* m_scenePtr;
+	PxControllerManager* m_controllManager;
 
 	std::map<std::string, PxMaterial*> m_defaultMaterials;
 	std::map<std::string, PxGeometry*> m_sharedGeometry;
@@ -123,6 +124,8 @@ public:
 		sceneDesc.cpuDispatcher = m_dispatcherPtr;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
 		m_scenePtr = m_physicsPtr->createScene(sceneDesc);
+
+		m_controllManager = PxCreateControllerManager(*m_scenePtr);
 
 		PxPvdSceneClient* pvdClient = m_scenePtr->getScenePvdClient();
 		if (pvdClient)
@@ -268,6 +271,17 @@ public:
 			m_sharedGeometry[geometryName] = geometry;
 		else
 			ErrorLogger::get().logError("Trying to add already existing geometry to sharedGeometry map");
+	}
+
+	bool castRay(SimpleMath::Vector3 origin, SimpleMath::Vector3 unitDirection, float distance)
+	{
+		PxVec3 pOrigin(origin.x, origin.y, origin.z);
+		PxVec3 pUnitDir(unitDirection.x, unitDirection.y, unitDirection.z);
+		PxRaycastBuffer hit;                 // [out] Raycast results
+
+		// Raycast against all static & dynamic objects (no filtering)
+		// The main result from this call is the closest hit, stored in the 'hit.block' structure
+		return m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
 	}
 
 };

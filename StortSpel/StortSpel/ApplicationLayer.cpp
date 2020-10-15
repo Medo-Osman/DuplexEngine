@@ -10,7 +10,7 @@ ApplicationLayer::ApplicationLayer()
 	m_window = 0;
 	this->width = 1920;
 	this->height = 1080;
-	m_time = 0.f;
+	m_dt = 0.f;
 
 }
 
@@ -33,7 +33,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	AudioHandler::get().initialize(m_window);
 
 	//SoundEffect sound(AudioHandler::get().getAudioEngine()->get(), L"../res/audio/NightAmbienceSimple_02.wav");
-	
+
 	RAWINPUTDEVICE rawIDevice;
 	rawIDevice.usUsagePage = 0x01;
 	rawIDevice.usUsage = 0x02;
@@ -48,11 +48,11 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		initOK = true;
 		ShowWindow(m_window, showCmd);
 	}
-	
+
 	//PhysX
 	m_physics = &Physics::get();
 	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
-	
+
 	Engine::get().initialize();
 	m_enginePtr = &Engine::get();
 
@@ -100,7 +100,6 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 
 void ApplicationLayer::applicationLoop()
 {
-	float dt = 0.001f; //DT
 	MSG msg = { };
 	while (WM_QUIT != msg.message)
 	{
@@ -112,6 +111,9 @@ void ApplicationLayer::applicationLoop()
 		}
 		else // Render/Logic Loop
 		{
+			this->m_dt = (float)m_timer.timeElapsed();
+			m_timer.restart();
+
 			m_input.readBuffers();
 			m_sceneManager.updateScene(dt);
 			m_enginePtr->update(dt);

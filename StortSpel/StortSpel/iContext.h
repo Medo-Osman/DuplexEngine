@@ -9,10 +9,19 @@ protected:
 	std::map<char, Action> m_actionMapping;
 	std::map<char, State> m_stateMapping;
 	std::map<char, Range> m_rangeMapping;
+	bool m_mute = false;
 
 	
 public:
-	
+	void setMute(bool eatAll)
+	{
+		m_mute = eatAll;
+	}
+
+	bool getMute()
+	{
+		return m_mute;
+	}
 	int getAction(char character)
 	{
 		int action = -1;

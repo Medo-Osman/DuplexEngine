@@ -5,6 +5,8 @@
 #include "Engine.h"
 #include"AudioHandler.h"
 #include "SceneManager.h"
+#include"Timer.h"
+
 
 class ApplicationLayer
 {
@@ -16,6 +18,8 @@ private:
 	Engine* m_enginePtr;
 	SceneManager m_sceneManager;
 	float m_time;
+	Timer m_timer;
+	float m_dt;
 
 	int width, height;
 

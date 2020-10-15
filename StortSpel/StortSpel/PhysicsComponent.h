@@ -10,6 +10,7 @@ private:
 	Physics* m_physicsPtr;
 	PxRigidActor* m_actor;
 	Transform* m_transform;
+	Vector3 m_posOffset;
 	PxShape* m_shape;
 	std::vector<PxShape*> m_shapes;
 	bool m_dynamic;
@@ -285,6 +286,11 @@ public:
 	void setPose(XMFLOAT3 pos, XMFLOAT4 rotQ)
 	{
 		m_physicsPtr->setGlobalTransform(m_actor, pos, rotQ);
+	}
+
+	bool checkGround(Vector3 origin, Vector3 unitDirection, float distance)
+	{
+		return m_physicsPtr->castRay(origin, unitDirection, distance);
 	}
 };
 
