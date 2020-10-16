@@ -51,7 +51,7 @@ public:
 			}
 
 			m_alpha += m_flipSpeed * dt; //               0          180
-			m_transform->rotateQuat(Quaternion::Slerp(m_startRot, m_endRot, ParametricBlend(m_alpha)));
+			m_transform->setRotationQuat(Quaternion::Slerp(m_startRot, m_endRot, ParametricBlend(m_alpha)));
 
 			if (m_alpha >= 1)
 			{
@@ -71,7 +71,7 @@ public:
 			}
 
 			m_alpha += m_flipSpeed * dt; //               180        361
-			m_transform->rotateQuat(Quaternion::Slerp(m_startRot, m_endRot, ParametricBlend(m_alpha - 1)));
+			m_transform->setRotationQuat(Quaternion::Slerp(m_startRot, m_endRot, ParametricBlend(m_alpha - 1)));
 
 			if (m_alpha >= 2)
 			{
