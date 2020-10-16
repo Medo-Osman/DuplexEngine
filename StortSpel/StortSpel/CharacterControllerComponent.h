@@ -23,12 +23,12 @@ private:
 	}
 
 public:
-	CharacterControllerComponent(Physics* physics)
+	CharacterControllerComponent()
 	{
 		m_type = ComponentType::PHYSICS;
 		m_transform = nullptr;
 		m_controller = nullptr;
-		m_physicsPtr = physics;
+		m_physicsPtr = &Physics::get();
 		m_transformOffset = { 0.f, 0.f, 0.f };
 	}
 
@@ -84,7 +84,7 @@ public:
 		PxExtendedVec3 pos = m_controller->getPosition();
 		XMFLOAT3 position = XMFLOAT3((float)pos.x + m_transformOffset.x, (float)pos.y + m_transformOffset.y, (float)pos.z + m_transformOffset.z);
 
-		m_transform->translation(XMFLOAT3(position.x, position.y, position.z ));
+		m_transform->setPosition(XMFLOAT3(position.x, position.y, position.z ));
 	}
 	
 	bool checkGround(const Vector3 &origin, const Vector3 &unitDirection, const float &distance) const

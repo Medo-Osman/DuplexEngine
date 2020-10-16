@@ -15,6 +15,7 @@ private:
 	PxPvd* m_PvdPtr;
 	PxCpuDispatcher* m_dispatcherPtr;
 	PxScene* m_scenePtr;
+	PxControllerManager* m_controllManager;
 
 	std::map<std::string, PxMaterial*> m_defaultMaterials;
 	std::map<std::string, PxGeometry*> m_sharedGeometry;
@@ -122,6 +123,7 @@ public:
 		sceneDesc.cpuDispatcher = m_dispatcherPtr;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
 		m_scenePtr = m_physicsPtr->createScene(sceneDesc);
+		m_controllManager = PxCreateControllerManager(*m_scenePtr);
 
 		PxPvdSceneClient* pvdClient = m_scenePtr->getScenePvdClient();
 		if (pvdClient)

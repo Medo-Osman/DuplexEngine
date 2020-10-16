@@ -291,9 +291,9 @@ void Engine::initialize()
 		}
 
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
-		m_entities["meshPlayer"]->addComponent("CCC", new CharacterControllerComponent(&ApplicationLayer::getInstance().m_physics));
+		m_entities["meshPlayer"]->addComponent("CCC", new CharacterControllerComponent());
 		CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(m_entities["meshPlayer"]->getComponent("CCC"));
-		pc->initController(m_entities["meshPlayer"]->getTransform(), 1.75f, 0.5, {0.f, -1.45f, 0.f}, "human");
+		pc->initController(m_entities["meshPlayer"], 1.75f, 0.5, {0.f, -1.45f, 0.f}, "human");
 
 
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
