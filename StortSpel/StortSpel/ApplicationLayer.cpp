@@ -55,6 +55,8 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	Engine::get().initialize();
 	m_enginePtr = &Engine::get();
 
+	m_scenemanager.initalize();
+
 	srand(static_cast <unsigned> (time(0)));
 
 	return initOK;
@@ -113,6 +115,7 @@ void ApplicationLayer::applicationLoop()
 
 			m_input.readBuffers();
 			m_enginePtr->update(m_dt);
+			m_scenemanager.updateScene(m_dt);
 			m_physics->update(m_dt);
 			AudioHandler::get().update(m_dt);
 			m_enginePtr->update(m_dt);

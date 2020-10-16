@@ -5,6 +5,7 @@
 #include "Engine.h"
 #include"AudioHandler.h"
 #include"Timer.h"
+#include "SceneManager.h"
 
 
 class ApplicationLayer
@@ -15,6 +16,7 @@ private:
 	Renderer* m_rendererPtr;
 	HWND m_window;
 	Engine* m_enginePtr;
+	SceneManager m_scenemanager;
 
 	Timer m_timer;
 	float m_dt;
