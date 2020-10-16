@@ -18,7 +18,6 @@ public:
 	}
 	virtual ~Component() {}
 
-
 	// Operators
 	bool operator==(const Component& otherComponent)
 	{

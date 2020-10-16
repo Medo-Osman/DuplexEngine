@@ -1,7 +1,6 @@
 #include"3DPCH.h"
 #include"ApplicationLayer.h"
 
-
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 ApplicationLayer::ApplicationLayer()
@@ -114,11 +113,10 @@ void ApplicationLayer::applicationLoop()
 			m_timer.restart();
 
 			m_input.readBuffers();
+			m_physics->update(m_dt);
 			m_enginePtr->update(m_dt);
 			m_scenemanager.updateScene(m_dt);
-			m_physics->update(m_dt);
 			AudioHandler::get().update(m_dt);
-			m_enginePtr->update(m_dt);
 			m_rendererPtr->render();
 		}
 	}
