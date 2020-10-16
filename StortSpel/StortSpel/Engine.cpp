@@ -1,6 +1,7 @@
 #include "3DPCH.h"
 #include "Engine.h"
 #include"ApplicationLayer.h"
+#include"CharacterControllerComponent.h"
 
 Engine::Engine()
 {
@@ -162,7 +163,7 @@ void Engine::addMeshComponent(MeshComponent* component)
 void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
 {
 	std::vector<Component*> tempComponentVector;
-	PhysicsComponent* physComp = new PhysicsComponent(&Physics::get());
+	PhysicsComponent* physComp = new PhysicsComponent();
 	MeshComponent* meshComponent = nullptr;
 	bool found = false;
 
@@ -290,12 +291,11 @@ void Engine::initialize()
 		}
 
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
-		//createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
-		m_entities["meshPlayer"]->addComponent("physics", new PhysicsComponent(&Physics::get()));
-		PhysicsComponent* pc = static_cast<PhysicsComponent*>(m_entities["meshPlayer"]->getComponent("physics"));
-		pc->initActor(m_entities["meshPlayer"], true);
-		pc->addBoxShape({ 1.f, 1.f, 1.f }, "human");
-		pc->controllRotation(false);
+		m_entities["meshPlayer"]->addComponent("CCC", new CharacterControllerComponent());
+		CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(m_entities["meshPlayer"]->getComponent("CCC"));
+		pc->initController(m_entities["meshPlayer"], 1.75f, 0.5, {0.f, -1.45f, 0.f}, "human");
+
+
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
 
 		addComponent(m_entities["meshPlayer"], "audio", new AudioComponent(L"Explosion.wav", false, 0.5f));

@@ -79,7 +79,7 @@ void Scene::loadScene(std::string path)
 		cubeSphereBB->scaleUniform({ 3.f });
 		cubeSphereBB->translate({ -10.f, 5.f, 5.f });
 		cubeSphereBB->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		engine->addComponent(cubeSphereBB, "physics", new PhysicsComponent(&Physics::get()));
+		engine->addComponent(cubeSphereBB, "physics", new PhysicsComponent());
 		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(cubeSphereBB->getComponent("physics"));
 		physicsComp->initActor(cubeSphereBB, false);
 		physicsComp->addSphereShape(2.f);

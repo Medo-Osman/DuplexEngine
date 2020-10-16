@@ -85,14 +85,7 @@ public:
 	PhysicsComponent()
 	{
 		m_type = ComponentType::PHYSICS;
-		m_physicsPtr = nullptr;
-		m_dynamic = false;
-		m_controllRotation = true;
-	}
-	PhysicsComponent(Physics* physics)
-	{
-		m_type = ComponentType::PHYSICS;
-		m_physicsPtr = physics;
+		m_physicsPtr = &Physics::get();
 		m_dynamic = false;
 		m_controllRotation = true;
 	}

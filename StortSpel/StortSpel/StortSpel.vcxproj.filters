@@ -221,6 +221,9 @@
     <ClInclude Include="Timer.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
+    <ClInclude Include="CharacterControllerComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
     <ClInclude Include="FlippingComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
