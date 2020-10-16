@@ -36,36 +36,34 @@ private:
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
 
-
-    //DASH CONFIG
+    //DASH CONFIG 
     const float DASH_TRAVEL_DISTANCE = 15.f;
-    const int DASH_SPEED = 10.0f;
+    const float DASH_SPEED = 10.0f;
     bool m_hasDashed;
 
     //Roll CONFIG
     const float ROLL_TRAVEL_DISTANCE = 15.f;
-    const int ROLL_SPEED = 10.0f;
-    const float GRAVITY = 900.f;
+    const float ROLL_SPEED = 10.0f;
+    const float GRAVITY = 15.f;
     const float ROLL_HEIGHT = 0.3f;
     const float ROLL_RADIUS = 0.2f;
 
 
-
+    float m_angleY;
     float m_currentDistance;
     Vector3 m_moveDirection;
     PlayerState m_state;
-    float angleY;
     Entity* m_playerEntity = nullptr;
+    CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
 
     void setStates(std::vector<State> states);
-    CharacterControllerComponent* m_controller;
     void handleRotation(const float& dt);
     void playerStateLogic(const float& dt);
 
-    bool canRoll();
+    bool canRoll() const;
     void roll();
-    bool canDash();
+    bool canDash() const;
     void dash();
     void jump();
     void prepDistVariables();
@@ -78,6 +76,6 @@ public:
 
     void setCameraTranformPtr(Transform* transform);
 
-    Entity* getPlayerEntity();
+    Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
 };

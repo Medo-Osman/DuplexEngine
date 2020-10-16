@@ -13,7 +13,7 @@ private:
 	XMFLOAT3 m_transformOffset;
 
 	PxController* m_controller;
-	bool canUseController()
+	bool canUseController() const
 	{
 		bool canUse = true;
 		if (!m_physicsPtr || !m_transform || !m_controller)
@@ -31,46 +31,45 @@ public:
 		m_physicsPtr = physics;
 	}
 
-	void initController(Transform* transform, float height, float radius, XMFLOAT3 transformOffset, std::string material = "default")
+	void initController(Transform* transform, const float& height, const float &radius, const XMFLOAT3 &transformOffset, std::string material = "default")
 	{
 		m_transform = transform;
 		m_controller = m_physicsPtr->addCapsuleController(m_transform->getTranslation(), height, radius, material, this);
 		m_transformOffset = transformOffset;
 	}
 
-	void move(XMFLOAT3 moveTowards, const float &dt)
+	void move(const XMFLOAT3 &moveTowards, const float &dt)
 	{
 		if (!canUseController())
 			return;
 
-	//	moveTowards.y -= 9.0f * dt;
 		m_controller->move({moveTowards.x, moveTowards.y, moveTowards.z}, 0.001f, dt, NULL, NULL);
 
 	}
 
-	void setPosition(XMFLOAT3 position)
+	void setPosition(const XMFLOAT3 &position)
 	{
 		if (!canUseController())
 			return;
 		m_controller->setPosition(PxExtendedVec3(position.x, position.y, position.z));
 	}
 
-	XMFLOAT3 getFootPosition()
+	XMFLOAT3 getFootPosition() const
 	{
 		if (!canUseController())
 			return {0.f, 0.f, 0.f};
 		PxExtendedVec3 footPos = m_controller->getFootPosition();
-		return XMFLOAT3(footPos.x, footPos.y, footPos.z);
+		return XMFLOAT3((float)footPos.x, (float)footPos.y, (float)footPos.z);
 	}
 
-	void setControllerSize(float height)
+	void setControllerSize(const float &height)
 	{
 		if (!canUseController())
 			return;
 		m_physicsPtr->setCapsuleSize(m_controller, height);
 	}
 
-	void setControllerRadius(float radius)
+	void setControllerRadius(const float &radius)
 	{
 		if (!canUseController())
 			return;
@@ -82,17 +81,17 @@ public:
 		if (!canUseController())
 			return;
 		PxExtendedVec3 pos = m_controller->getPosition();
-		XMFLOAT3 position = XMFLOAT3(pos.x + m_transformOffset.x, pos.y + m_transformOffset.y, pos.z + m_transformOffset.z);
+		XMFLOAT3 position = XMFLOAT3((float)pos.x + m_transformOffset.x, (float)pos.y + m_transformOffset.y, (float)pos.z + m_transformOffset.z);
 
 		m_transform->translation(XMFLOAT3(position.x, position.y, position.z ));
 	}
 	
-	bool checkGround(Vector3 origin, Vector3 unitDirection, float distance)
+	bool checkGround(const Vector3 &origin, const Vector3 &unitDirection, const float &distance) const
 	{
 		return m_physicsPtr->castRay(origin, unitDirection, distance);
 	}
 
-	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxShape& shape, const PxActor& actor)
+	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxShape& shape, const PxActor& actor) //Controller colides with shapes
 	{
 		return PxControllerBehaviorFlags();
 	}

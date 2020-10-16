@@ -8,6 +8,7 @@ Player::Player()
 	m_jumps = 0;
 	m_currentDistance = 0;
 	m_hasDashed = false;
+	m_angleY = 0;
 }
 
 void Player::setStates(std::vector<State> states)
@@ -44,12 +45,12 @@ void Player::handleRotation(const float &dt)
 	m_movementVector = XMVector3Normalize(m_movementVector);
 
 	if (Vector3(m_movementVector).LengthSquared() > 0) //Only update when moving
-		angleY = XMVectorGetY(XMVector3AngleBetweenNormals(XMVectorSet(0, 0, 1, 0), m_movementVector));
+		m_angleY = XMVectorGetY(XMVector3AngleBetweenNormals(XMVectorSet(0, 0, 1, 0), m_movementVector));
 
 	//if this vector has posisitv value the character is facing the positiv x axis, fixed to check against z axis and not camera forward
 	if (XMVectorGetY(XMVector3Cross(m_movementVector, XMVectorSet(0, 0, 1, 0))) > 0.0f)
 	{
-		angleY = -angleY;
+		m_angleY = -m_angleY;
 	}
 
 	//This is the current rotation in quaternions
@@ -57,18 +58,18 @@ void Player::handleRotation(const float &dt)
 	currentRotation.Normalize();
 
 	//This is the angleY target quaternion
-	targetRot = Quaternion::CreateFromYawPitchRoll(angleY, 0, 0);
+	targetRot = Quaternion::CreateFromYawPitchRoll(m_angleY, 0, 0);
 	targetRot.Normalize();
 
 	//Land somewhere in between target and current
-	slerped = Quaternion::Slerp(currentRotation, targetRot, dt / 0.05);
+	slerped = Quaternion::Slerp(currentRotation, targetRot, dt / 0.05f);
 	slerped.Normalize();
 
 	//Display slerped result
 	m_playerEntity->setQuaternion(slerped);
 }
 
-float lerp(float a, float b, float t)
+float lerp(const float& a, const float &b, const float &t)
 {
 	return a + (t * (b - a));
 }
@@ -89,9 +90,9 @@ void Player::playerStateLogic(const float& dt)
 		else
 		{
 			m_currentDistance += ROLL_SPEED * dt;
-			Vector3 move = m_moveDirection;
-			move.y -= GRAVITY * dt;
-			m_controller->move(move * ROLL_SPEED * dt, dt);
+			Vector3 move = m_moveDirection * ROLL_SPEED * dt;
+			move.y = -GRAVITY * dt;
+			m_controller->move(move, dt);
 		}
 		break;
 	case PlayerState::DASH:
@@ -133,7 +134,7 @@ void Player::playerStateLogic(const float& dt)
 
 		break;
 	case PlayerState::IDLE:
-		finalMovement.y = -JUMP_SPEED * FALL_MULTIPLIER * dt;
+		finalMovement.y = -GRAVITY * dt;
 		m_controller->move(finalMovement, dt);
 		break;
 	default:
@@ -141,10 +142,11 @@ void Player::playerStateLogic(const float& dt)
 	}
 }
 
-//To do: Implement with physics objects.
 void Player::updatePlayer(const float& dt)
 {
-	handleRotation(dt);
+	if(m_state != PlayerState::ROLL)
+		handleRotation(dt);
+
 	playerStateLogic(dt);
 }
 
@@ -159,7 +161,7 @@ void Player::setCameraTranformPtr(Transform* transform)
 	m_cameraTransform = transform;
 }
 
-Entity* Player::getPlayerEntity()
+Entity* Player::getPlayerEntity() const
 {
 	return m_playerEntity;
 }
@@ -211,7 +213,7 @@ void Player::jump()
 	m_jumps++;
 }
 
-bool Player::canRoll()
+bool Player::canRoll() const
 {
 	return (m_state == PlayerState::IDLE);
 }
@@ -224,7 +226,7 @@ void Player::roll()
 	m_state = PlayerState::ROLL;
 }
 
-bool Player::canDash()
+bool Player::canDash() const
 {
 	return (m_state == PlayerState::JUMPING || m_state == PlayerState::FALLING && !m_hasDashed);
 }

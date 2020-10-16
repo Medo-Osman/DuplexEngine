@@ -291,7 +291,6 @@ public:
 		// Raycast against all static & dynamic objects (no filtering)
 		// The main result from this call is the closest hit, stored in the 'hit.block' structure
 		return m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
-
 	}
 
 
