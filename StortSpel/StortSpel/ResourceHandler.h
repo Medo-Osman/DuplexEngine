@@ -4,6 +4,7 @@
 #include "Layouts.h"
 #include "VertexStructs.h"
 #include "MeshResource.h"
+#include "SkeletalMeshResource.h"
 
 class ResourceHandler
 {
@@ -40,6 +41,7 @@ public:
 	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath, bool isCubeMap = false);
 	ID3D11ShaderResourceView* loadErrorTexture();
 	MeshResource* loadLRMMesh(const char* path);
+	MeshResource* loadLRSMMesh(const char* path);
 
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 	void Destroy();

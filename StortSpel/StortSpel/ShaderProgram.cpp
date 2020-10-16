@@ -301,6 +301,10 @@ void ShaderProgram::inputLayoutSetup(VertexLayoutType inputLayoutType, Microsoft
 		input_element_desc = Layouts::LRMVertexLayout;
 		layoutArraySize = ARRAYSIZE(Layouts::LRMVertexLayout);
 		break;
+	case VertexLayoutType::LRSMVertexLayout:
+		input_element_desc = Layouts::LRSMVertexLayout;
+		layoutArraySize = ARRAYSIZE(Layouts::LRSMVertexLayout);
+		break;
 	default:
 		m_inputLayout = nullptr;
 		return;

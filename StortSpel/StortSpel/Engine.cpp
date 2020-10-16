@@ -101,13 +101,13 @@ void Engine::buildTestStage()
 	Material gridTest = Material({ L"T_GridTestTex.bmp" });
 
 	// Floor
-	Entity* floor = addEntity("floor");
+	/*Entity* floor = addEntity("floor");
 	if (floor)
 	{
 		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
 		floor->scale({ 500,0.02,500 });
 		floor->move({ 0,-0.6,0 });
-	}
+	}*/
 
 	//Cube 2
 	Entity* cube = addEntity("cube-test2");
@@ -115,7 +115,7 @@ void Engine::buildTestStage()
 	{
 		addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
 		cube->scaleUniform({ 3.f });
-		cube->move({ 0.f, 5.f, 5.f });
+		cube->move({ 10.f, 5.f, 5.f });
 		cube->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
 	}
 
@@ -144,8 +144,29 @@ void Engine::buildTestStage()
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		addComponent(m_entities["Skybox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-
 	}
+
+	Entity* skelTest = addEntity("skeleton-test");
+	if (skelTest)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		AnimatedMeshComponent* a1 = new AnimatedMeshComponent("skelTestStairs_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a1->move({ 0.f, 0.f, 0.f });
+		AnimatedMeshComponent* a2 = new AnimatedMeshComponent("testTania_tania_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a2->scaleUniform(0.02f);
+		a2->move({ 3.f, 0.f, 0.f });
+		AnimatedMeshComponent* a3 = new AnimatedMeshComponent("skelTestBranch.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a3->move({ 6.f, 0.f, 0.f });
+		addComponent(skelTest, "skeleton mesh", a1);
+		addComponent(skelTest, "skeleton mesh", a2);
+		addComponent(skelTest, "skeleton mesh", a3);
+																										// skelTestStairs_stairs.lrsm testTania_tania_geo.lrsm skelTestBranch.lrsm
+		//skelTest->scaleUniform(0.02f);
+		skelTest->move({ 0.f, 1.5f, 20.f });
+	}
+
+	
 }
 
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)

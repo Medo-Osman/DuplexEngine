@@ -109,13 +109,16 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 			return loadLRMMesh(m_ERROR_MODEL_NAME.c_str()); // recursively load the error model instead
 	}
 
+	// .lrm has 14 floats per vertex
+	const std::uint32_t nrOfFloatsInVertex = 14;
+	
 	// Read file vertex count
 	std::uint32_t vertexCount;
 	fileStream.read((char*)&vertexCount, sizeof(std::uint32_t));
-
+	
 	// Read vertices to array
-	LRM_VERTEX* vertexArray = new LRM_VERTEX[vertexCount];
-	fileStream.read((char*)&vertexArray[0], sizeof(LRM_VERTEX) * vertexCount);
+	float* vertexArray = new float[vertexCount * nrOfFloatsInVertex];
+	fileStream.read((char*)&vertexArray[0], sizeof(float) * vertexCount * nrOfFloatsInVertex);
 
 	// Read file index count
 	std::uint32_t indexCount;
@@ -138,14 +141,103 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	// Close filestream
 	fileStream.close();
 
-	//Depending on how we do vertex data layout, we might want to init that here (OR we can do it in a shader class because it's gonna be per shader, kinda)
-
 	//Create a new entry in the meshcache
 	m_meshCache[path] = new MeshResource;
 
 	//Init it with the data
-	m_meshCache[path]->getVertexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount);
+	m_meshCache[path]->getVertexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount, false, sizeof(float) * nrOfFloatsInVertex);
 	m_meshCache[path]->getIndexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
+
+	delete[] vertexArray;
+	delete[] indexArray;
+
+	//Return the pointer of the new entry
+	return m_meshCache[path];
+}
+
+MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
+{
+	isResourceHandlerReady();
+
+	// checks if the mesh is in the cache 
+	if (m_meshCache.find(path) != m_meshCache.end())
+	{
+		// returns the buffers
+		return m_meshCache[path];
+	}
+
+	// or loads the mesh and makes new buffers
+	std::string modelPath = m_MODELS_PATH + path;
+	std::ifstream fileStream(modelPath, std::ifstream::in | std::ifstream::binary);
+	
+	std::string thisPath = m_MODELS_PATH + path;
+	size_t i = thisPath.rfind('.', thisPath.length());
+	std::string fileExtension = thisPath.substr(i + 1, thisPath.length() - i);
+	bool correctFileType = (fileExtension == "lrsm" || fileExtension == "LRSM");
+	
+		// Check filestream failure
+	if (!fileStream || !correctFileType)
+	{
+		// Error message
+		std::string errormsg("loadLRMMesh failed to open filestream: "); errormsg.append(path);
+		ErrorLogger::get().logError(errormsg.c_str());
+		// Properly clear and close file buffer
+		fileStream.clear();
+		fileStream.close();
+
+		return loadLRMMesh(m_ERROR_MODEL_NAME.c_str()); // recursively load the error model instead, this'll be weird because it needs another input layout, but whatever
+	}
+
+	// .lrm has 14 floats per vertex
+	const std::uint32_t nrOfFloatsInVertex = 22;
+
+	// Read file vertex count
+	std::uint32_t vertexCount;
+	fileStream.read((char*)&vertexCount, sizeof(std::uint32_t));
+
+	// Read vertices to array
+	float* vertexArray = new float[vertexCount * nrOfFloatsInVertex];
+	fileStream.read((char*)&vertexArray[0], sizeof(float) * vertexCount * nrOfFloatsInVertex);
+
+	// Read file index count
+	std::uint32_t indexCount;
+	fileStream.read((char*)&indexCount, sizeof(std::uint32_t));
+
+	// Read indices to array
+	std::uint32_t* indexArray = new std::uint32_t[indexCount];
+	fileStream.read((char*)&indexArray[0], sizeof(std::uint32_t) * indexCount);
+	
+	// Read file index count
+	std::uint32_t jointCount;
+	fileStream.read((char*)&jointCount, sizeof(std::uint32_t));
+	
+	// Read indices to array
+	LRSM_JOINT* jointArray = new LRSM_JOINT[jointCount];
+	fileStream.read((char*)&jointArray[0], sizeof(LRSM_JOINT) * jointCount);
+
+	// Make sure all data was read
+	char overByte;
+	fileStream.read(&overByte, 1);
+	if (!fileStream.eof())
+	{
+		std::string errormsg("loadLRMMesh : Filestream did not reach end of: "); errormsg.append(path);
+		ErrorLogger::get().logError(errormsg.c_str());
+		return nullptr;
+	}
+
+	// Close filestream
+	fileStream.close();
+
+	SkeletalMeshResource* thisSkelRes = new SkeletalMeshResource;
+
+	//Init it with the data
+	thisSkelRes->getVertexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount, false, sizeof(float) * nrOfFloatsInVertex);
+	thisSkelRes->getIndexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
+	thisSkelRes->setJointCount(jointCount);
+	thisSkelRes->setJoints(jointArray);
+
+	//Create a new entry in the meshcache
+	m_meshCache[path] = thisSkelRes;
 
 	delete[] vertexArray;
 	delete[] indexArray;

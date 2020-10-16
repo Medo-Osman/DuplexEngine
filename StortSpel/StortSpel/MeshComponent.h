@@ -26,11 +26,15 @@ public:
 
 	void setRenderId(unsigned long int id) { m_renderId = id; }
 
+	void setMeshResourcePtr(MeshResource* newResourcePointer) { m_resourcePointer = newResourcePointer; }
 	MeshResource* getMeshResourcePtr() { return m_resourcePointer; }
 	ShaderProgramsEnum getShaderProgEnum() { return m_shaderProgEnum; }
 	Material* getMaterialPtr();
 
 	// Update
 	virtual void update(float dt) override {}
+
+protected:
+	MeshComponent(ShaderProgramsEnum shaderEnum = ShaderProgramsEnum::DEFAULT, Material material = Material());
 
 };

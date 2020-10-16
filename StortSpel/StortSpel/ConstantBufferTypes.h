@@ -33,3 +33,8 @@ struct skyboxMVP
 {
     XMMATRIX mvpMatrix; //Model/view/projection
 };
+
+struct skeletonAnimationCBuffer
+{
+    XMMATRIX boneMatrixPallet[30]; // 30 is currently the max number of bones, this can be changed later if needed
+};

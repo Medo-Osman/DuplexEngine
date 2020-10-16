@@ -1,6 +1,7 @@
 #pragma once
 #include "Player.h"
 #include "MeshComponent.h"
+#include "AnimatedMeshComponent.h"
 #include "TestComponent.h"
 #include "Camera.h"
 

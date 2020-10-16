@@ -35,6 +35,7 @@ cbuffer perModel : register(b0)
 vs_out main(vs_in input)
 {
     vs_out output;
+	//input.pos.x = -input.pos.x;
     output.pos = mul(float4(input.pos, 1), wvpMatrix);
     output.uv = input.uv;
 	output.normal = input.normal;
