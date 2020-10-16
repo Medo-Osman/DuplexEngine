@@ -1,16 +1,15 @@
 #include"3DPCH.h"
 #include"ApplicationLayer.h"
 
-
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 ApplicationLayer::ApplicationLayer()
 {
 	m_rendererPtr = nullptr;
 	m_window = 0;
-	this->width = 800;
-	this->height = 800;
-	m_time = 0.f;
+	this->width = 1920;
+	this->height = 1080;
+	m_dt = 0.f;
 
 }
 
@@ -25,11 +24,15 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	const wchar_t WINDOWTILE[] = L"3DProject";
 	HRESULT hr = 0;
 	bool initOK = false;
-
+	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 	SetCursor(NULL);
 	this->createWin32Window(hInstance, WINDOWTILE, hWnd);// hwnd is refference, is set to created window.
 	m_window = hWnd;
 
+	AudioHandler::get().initialize(m_window);
+
+	//SoundEffect sound(AudioHandler::get().getAudioEngine()->get(), L"../res/audio/NightAmbienceSimple_02.wav");
+	
 	RAWINPUTDEVICE rawIDevice;
 	rawIDevice.usUsagePage = 0x01;
 	rawIDevice.usUsage = 0x02;
@@ -44,13 +47,16 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		initOK = true;
 		ShowWindow(m_window, showCmd);
 	}
+	//PhysX
+	m_physics = &Physics::get();
+	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
+
 	Engine::get().initialize();
 	m_enginePtr = &Engine::get();
 
-	srand(static_cast <unsigned> (time(0)));
+	m_scenemanager.initalize();
 
-	//PhysX
-	m_physics.init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
+	srand(static_cast <unsigned> (time(0)));
 
 	return initOK;
 }
@@ -80,20 +86,18 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 		WS_OVERLAPPEDWINDOW,        // Window style
 		windowRect.left,				// Position, X
 		windowRect.top,				// Position, Y
-		this->width,	// Width
-		this->height,	// Height
+		(float)this->width,	// Width
+		(float)this->height,	// Height
 		NULL,						// Parent window
 		NULL,						// Menu
 		hInstance,					// Instance handle
 		NULL						// Additional application data
 	);
 	assert(_d3d11Window);
-
 }
 
 void ApplicationLayer::applicationLoop()
 {
-	float dt = 0.001f; //DT
 	MSG msg = { };
 	while (WM_QUIT != msg.message)
 	{
@@ -105,15 +109,18 @@ void ApplicationLayer::applicationLoop()
 		}
 		else // Render/Logic Loop
 		{
-			m_input.readBuffers();
-			m_enginePtr->update(dt);
-			m_physics.update(dt);
-			m_rendererPtr->update(dt);
-			m_rendererPtr->render();
+			this->m_dt = (float)m_timer.timeElapsed();
+			m_timer.restart();
 
+			m_input.readBuffers();
+			m_physics->update(m_dt);
+			m_enginePtr->update(m_dt);
+			m_scenemanager.updateScene(m_dt);
+			AudioHandler::get().update(m_dt);
+			m_rendererPtr->render();
 		}
 	}
-	m_physics.release();
+	m_physics->release();
 }
 
 
@@ -124,6 +131,25 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	g_ApplicationLayer->m_input.handleMessages(hwnd, uMsg, wParam, lParam);
 	switch (uMsg)
 	{
+	case WM_DEVICECHANGE:
+		if (wParam == DBT_DEVICEARRIVAL)
+		{
+			auto pDev = reinterpret_cast<PDEV_BROADCAST_HDR>(lParam);
+			if (pDev)
+			{
+				if (pDev->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+				{
+					auto pInter = reinterpret_cast<
+						const PDEV_BROADCAST_DEVICEINTERFACE>(pDev);
+					if (pInter->dbcc_classguid == KSCATEGORY_AUDIO)
+					{
+						AudioHandler::get().onNewAudioDevice();
+					}
+				}
+			}
+		}
+		return 0;
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
@@ -136,6 +162,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		EndPaint(hwnd, &ps);
 		break;
+
 	}
 
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);

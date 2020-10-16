@@ -4,6 +4,7 @@
 #include "ShaderProgram.h"
 #include "ShaderEnums.h"
 #include "Engine.h"
+//#include "LightComponent.h"
 
 
 
@@ -23,8 +24,12 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
 
+	
+
 	//Buffer<cbVSWVPMatrix> m_vertexShaderConstantBuffer;
 	Buffer<perObjectMVP> m_perObjectConstantBuffer;
+	Buffer<lightBufferStruct> m_lightBuffer;
+	Buffer<cameraBufferStruct> m_cameraBuffer;
 	Buffer<skyboxMVP> m_skyboxConstantBuffer;
 	Buffer<skeletonAnimationCBuffer> m_skelAnimationConstantBuffer;
 
@@ -70,6 +75,7 @@ private:
 public:
 	Renderer(const Renderer&) = delete;
 	void operator=(Renderer const&) = delete;
+	void setPointLightRenderStruct(lightBufferStruct& buffer);
 
 	static Renderer& get()
 	{

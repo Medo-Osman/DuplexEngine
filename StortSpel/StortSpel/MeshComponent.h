@@ -15,6 +15,7 @@ private:
 	unsigned long int m_renderId;
 	MeshResource* m_resourcePointer = nullptr;
 	ShaderProgramsEnum m_shaderProgEnum;
+	std::string  m_filePath;
 	Material m_material;
 
 public:
@@ -29,6 +30,8 @@ public:
 	void setMeshResourcePtr(MeshResource* newResourcePointer) { m_resourcePointer = newResourcePointer; }
 	MeshResource* getMeshResourcePtr() { return m_resourcePointer; }
 	ShaderProgramsEnum getShaderProgEnum() { return m_shaderProgEnum; }
+	const std::string& getFilePath() { return m_filePath; }
+	
 	Material* getMaterialPtr();
 
 	// Update

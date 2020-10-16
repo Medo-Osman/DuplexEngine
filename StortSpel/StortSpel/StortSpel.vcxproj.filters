@@ -96,11 +96,23 @@
     <ClCompile Include="MeshComponent.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
+    <ClCompile Include="AudioHandler.cpp">
+      <Filter>Source Files\Application</Filter>
+    </ClCompile>
     <ClCompile Include="Material.cpp">
       <Filter>Source Files\Graphic</Filter>
     </ClCompile>
     <ClCompile Include="AnimatedMeshComponent.cpp">
       <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Source Files\Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Source Files\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>Source Files\Graphic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -182,6 +194,18 @@
     <ClInclude Include="InputStructs.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
+    <ClInclude Include="PhysicsComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsMaterial.h">
+      <Filter>Source Files\Game\PhysX</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioHandler.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
     <ClInclude Include="Material.h">
       <Filter>Source Files\Graphic</Filter>
     </ClInclude>
@@ -190,6 +214,36 @@
     </ClInclude>
     <ClInclude Include="SkeletalMeshResource.h">
       <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="RotateAroundComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="SpotLightComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="LightComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="LightStructs.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="CharacterControllerComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="FlippingComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="SweepingComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>Source Files\Graphic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -210,9 +264,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <FxCompile Include="VertexShaderBasic.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
@@ -231,5 +282,8 @@
     <FxCompile Include="VertexShaderAnim.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

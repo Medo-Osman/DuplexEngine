@@ -1,11 +1,61 @@
 #include "3DPCH.h"
 #include "Engine.h"
 #include"ApplicationLayer.h"
+#include"CharacterControllerComponent.h"
 
 Engine::Engine()
 {
 	m_settings.width = m_startWidth;
 	m_settings.height = m_startHeight;
+}
+
+void Engine::updateLightData()
+{
+	lightBufferStruct lightInfo;
+	int nrPointLights = 0;
+	int nrSpotLights = 0;
+	for (auto light : m_lightComponentMap)
+	{
+		Matrix parentTransform = XMMatrixTranslationFromVector(getEntity(light.second->getParentEntityIdentifier())->getTranslation());
+		
+		Vector3 offsetFromParent = light.second->getTranslation();
+
+		Matrix parentRotation = getEntity(light.second->getParentEntityIdentifier())->getRotationMatrix();
+
+		Vector3 finalPos = XMVector3TransformCoord(offsetFromParent, parentRotation*parentTransform);
+
+		if (light.second->getLightType() == LightType::Point)
+		{
+			PointLightRepresentation pointLight;
+			pointLight.position = finalPos;
+			pointLight.color = light.second->getColor();
+			pointLight.intensity = light.second->getIntensity();
+
+			lightInfo.pointLights[nrPointLights++] = pointLight;
+			lightInfo.nrOfPointLights = nrPointLights;
+		}
+		if (light.second->getLightType() == LightType::Spot)
+		{
+			SpotLightComponent* spotLightComponent = dynamic_cast<SpotLightComponent*>(light.second);
+
+			SpotLightRepresentation spotLight;
+			spotLight.position = finalPos;
+			spotLight.color = spotLightComponent->getColor();
+			spotLight.intensity = spotLightComponent->getIntensity();
+			spotLight.coneFactor = spotLightComponent->getConeFactor();
+			spotLight.direction = Vector3(XMVector3TransformCoord(XMVectorSet(spotLightComponent->getDirection().x, spotLightComponent->getDirection().y, spotLightComponent->getDirection().z, 0),parentRotation));
+			
+			lightInfo.spotLights[nrSpotLights++] = spotLight;
+			lightInfo.nrOfSpotLights = nrSpotLights;
+		}
+	}
+
+	lightInfo.skyLight.direction = m_skyLightDir;
+	lightInfo.skyLight.color = m_skyLightColor;
+	lightInfo.skyLight.brightness = m_skyLightBrightness;
+	lightInfo.ambientLightLevel = m_ambientLightLevel;
+
+	Renderer::get().setPointLightRenderStruct(lightInfo);
 }
 
 Engine& Engine::get()
@@ -49,6 +99,29 @@ void Engine::update(const float& dt)
 {
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
+
+	for (auto& entity : m_entities)
+	{
+		entity.second->update(dt);
+	}
+
+	updateLightData();
+
+	// AUDIO TEST
+	nightVolume += dt * nightSlide;
+	if (nightVolume < 0.f)
+	{
+		nightVolume = 0.f;
+		nightSlide = -nightSlide;
+	}
+	else if (nightVolume > 0.2f)
+	{
+		nightVolume = 0.2f;
+		nightSlide = -nightSlide;
+	}
+	AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
+	ac->setVolume(nightVolume);
+
 }
 Settings Engine::getSettings() const
 {
@@ -60,6 +133,8 @@ Camera* Engine::getCameraPtr()
 }
 bool Engine::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
 {
+	entity->addComponent(componentIdentifier, component);
+
 	if (component->getType() == ComponentType::MESH)
 	{
 		MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
@@ -67,16 +142,93 @@ bool Engine::addComponent(Entity* entity, std::string componentIdentifier, Compo
 		addMeshComponent(meshComponent);
 	}
 
+	if (component->getType() == ComponentType::LIGHT)
+	{
+		LightComponent* lightComponent = dynamic_cast<LightComponent*>(component);
 
-	entity->addComponent(componentIdentifier, component);
+		addLightComponent(lightComponent);
+	}
 
 	return true;
 }
+
+
 
 void Engine::addMeshComponent(MeshComponent* component)
 {
 	component->setRenderId(++m_MeshCount);
 	m_meshComponentMap[m_MeshCount] = component;
+}
+
+void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
+{
+	std::vector<Component*> tempComponentVector;
+	PhysicsComponent* physComp = new PhysicsComponent();
+	MeshComponent* meshComponent = nullptr;
+	bool found = false;
+
+	entity->getComponentsOfType(tempComponentVector, ComponentType::MESH);
+
+	if (meshName != "")
+	{
+		for (std::size_t i = 0; i < tempComponentVector.size() && !found; ++i) {
+			MeshComponent* currentMesh = static_cast<MeshComponent*>(tempComponentVector[i]);
+			if (currentMesh->getFilePath() == meshName)
+			{
+				meshComponent = currentMesh;
+				found = true;
+			}
+		}
+
+		if (!found)
+		{
+			ErrorLogger::get().logError(("When creating new physics component, meshResource " + meshName + " does not exist. ->").c_str());
+
+			if (tempComponentVector.size() > 0)
+			{
+				ErrorLogger::get().logError("Using first meshComponent.");
+				meshComponent = static_cast<MeshComponent*>(tempComponentVector[0]);
+				found = true;
+			}
+
+		}
+	}
+	else
+	{
+		if (tempComponentVector.size() > 0)
+		{
+			meshComponent = static_cast<MeshComponent*>(tempComponentVector[0]);
+			found = true;
+		}
+	}
+	if (!found)
+		ErrorLogger::get().logError("Trying to add physic component without any meshcomponent!. Can't use this helper function.");
+
+	
+	entity->addComponent("physics", physComp);
+	physComp->initActorAndShape(entity, meshComponent, geometryType, dynamic, materialName, isUnique);
+}
+	
+void Engine::addLightComponent(LightComponent* component)
+{
+	if (m_lightCount < 8)
+	{
+		component->setLightID(component->getIdentifier());
+		m_lightComponentMap[component->getIdentifier()] = component;
+	}
+	else
+		ErrorLogger::get().logError("Maximum lights achieved, failed to add one.");
+}
+
+void Engine::removeLightComponent(LightComponent* component)
+{
+	getEntity(component->getParentEntityIdentifier())->removeComponent(component);
+
+	int nrOfErased = m_lightComponentMap.erase(component->getIdentifier());
+	if (nrOfErased > 0) //if it deleted more than 0 elements
+	{
+		m_lightCount -= nrOfErased;
+	}
 }
 
 std::map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
@@ -87,85 +239,6 @@ std::map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 void Engine::buildTestStage()
 {
 	// Cube 1
-	//if (addEntity("cube-test"))
-	//	addComponent(m_entities["cube-test"], "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-
-	// Tent
-	if (addEntity("tent"))
-	{
-		addComponent(m_entities["tent"], "mesh", new MeshComponent("BigTopTent_Cylinder.lrm", Material({ L"T_CircusTent_D.png" })));
-		m_entities["tent"]->rotate({ XMConvertToRadians(-90.f), 0.f, 0.f });
-		m_entities["tent"]->move({ -10.f, 0.f, 0.f });
-	}
-
-	Material gridTest = Material({ L"T_GridTestTex.bmp" });
-
-	// Floor
-	/*Entity* floor = addEntity("floor");
-	if (floor)
-	{
-		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-		floor->scale({ 500,0.02,500 });
-		floor->move({ 0,-0.6,0 });
-	}*/
-
-	//Cube 2
-	Entity* cube = addEntity("cube-test2");
-	if (cube)
-	{
-		addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		cube->scaleUniform({ 3.f });
-		cube->move({ 10.f, 5.f, 5.f });
-		cube->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-	}
-
-	Entity* testXwing = addEntity("testXwing");
-	if (testXwing)
-	{
-		addComponent(testXwing, "xwingtestmesh", new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
-		testXwing->move({ 15.f, 1.5f, -3.f });
-	}
-
-	// Platforms
-	for (int i = 0; i < 5; i++)
-	{
-		Entity* cube = addEntity("cube-test" + std::to_string(i));
-		if (cube)
-		{
-			addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm"));
-			cube->scale({ 3,0.2,5 });
-			cube->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
-		}
-	}
-
-	// Skybox
-	if (addEntity("Skybox"))
-	{
-		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		addComponent(m_entities["Skybox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-	}
-
-	Entity* skelTest = addEntity("skeleton-test");
-	if (skelTest)
-	{
-		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		AnimatedMeshComponent* a1 = new AnimatedMeshComponent("skelTestStairs_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		a1->move({ 0.f, 0.f, 0.f });
-		AnimatedMeshComponent* a2 = new AnimatedMeshComponent("testTania_tania_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		a2->scaleUniform(0.02f);
-		a2->move({ 3.f, 0.f, 0.f });
-		AnimatedMeshComponent* a3 = new AnimatedMeshComponent("skelTestBranch.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		a3->move({ 6.f, 0.f, 0.f });
-		addComponent(skelTest, "skeleton mesh", a1);
-		addComponent(skelTest, "skeleton mesh", a2);
-		addComponent(skelTest, "skeleton mesh", a3);
-																										// skelTestStairs_stairs.lrsm testTania_tania_geo.lrsm skelTestBranch.lrsm
-		//skelTest->scaleUniform(0.02f);
-		skelTest->move({ 0.f, 1.5f, 20.f });
-	}
-
 	
 }
 
@@ -187,20 +260,63 @@ void Engine::initialize()
 	}
 
 	m_player = new Player();
-	m_camera.setProjectionMatrix(80.f, (float)m_settings.height / (float)m_settings.width, 0.01f, 1000.0f);
+	m_camera.setProjectionMatrix(80.f,  (float)m_settings.width/(float)m_settings.height, 0.01f, 1000.0f);
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
 	if (addEntity("meshPlayer"))
 	{
 		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
-		m_entities["meshPlayer"]->move({ 1, -0.5, 0 });
+		m_entities["meshPlayer"]->setPosition({ 5, 10.f, 0 });
+
+		//Point Light
+		addComponent(m_entities["meshPlayer"], "testLight", new LightComponent());
+		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setPosition({ 0,1.f,-5 });
+		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
+		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setIntensity(1.0f);
+
+		//Spot Light
+		addComponent(m_entities["meshPlayer"], "spotlightTest2", new SpotLightComponent());
+		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setPosition({ 0,1.f,0 });
+		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setIntensity(3.f);
+
+		//Tests and demonstration how to add and remove lights
+		for (int i = 0; i < 8; i++)
+		{
+			addComponent(m_entities["meshPlayer"], std::string("lightTest")+std::to_string(i), new LightComponent());
+		}
+
+		for (int i = 0; i < 8; i++)
+		{
+			removeLightComponent(static_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent(std::string("lightTest") + std::to_string(i))));
+		}
+
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
+		m_entities["meshPlayer"]->addComponent("CCC", new CharacterControllerComponent());
+		CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(m_entities["meshPlayer"]->getComponent("CCC"));
+		pc->initController(m_entities["meshPlayer"], 1.75f, 0.5, {0.f, -1.45f, 0.f}, "human");
+
+
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
+
+		addComponent(m_entities["meshPlayer"], "audio", new AudioComponent(L"Explosion.wav", false, 0.5f));
+		//addComponent(m_entities["meshPlayer"], "audioLoop", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
 	}
 	else
 	{
 		ErrorLogger::get().logError("No player model added or already exists when adding");
 	}
 	m_player->setCameraTranformPtr(m_camera.getTransform());
+
+	Entity* audioTestDelete = addEntity("deleteTestAudio");
+	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+	delete m_entities["deleteTestAudio"];
+	m_entities.erase("deleteTestAudio");
+
+	// Audio test
+	Entity* audioTest = addEntity("audioTest");
+	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	nightSlide = 0.01f;
+	nightVolume = 0.2f;
 
 	// Temp entity init
 	addEntity("first");

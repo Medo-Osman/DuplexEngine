@@ -7,7 +7,7 @@ MeshComponent::MeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum
 {
 	m_type = ComponentType::MESH;
 	m_resourcePointer = ResourceHandler::get().loadLRMMesh(filepath);
-
+	m_filePath = filepath;
 	// If we do material file reading, there needs to be functionality here to check for such a file and read it or use deafult if none is found.
 }
 

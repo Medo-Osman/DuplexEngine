@@ -5,7 +5,10 @@
 enum Action
 {
 	JUMP,
+	DASH,
+	ROLL,
 	USE,
+	PLAYSOUND
 };
 
 enum State

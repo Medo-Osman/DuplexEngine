@@ -30,10 +30,12 @@
 #include <dxgi1_2.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include "SimpleMath.h"
 #include <DirectXCollision.h>
 #include <Effects.h>
 #include <DirectXColors.h>
-
+#include <Audio.h>
+#include <Dbt.h>
 //PhysX
 #include"PxPhysicsAPI.h"
 
@@ -57,6 +59,9 @@
 #include <WICTextureLoader.h>
 #include<DDSTextureLoader.h>
 using namespace DirectX;
+
+//Include light structures
+#include "LightStructs.h"
 
 // DirectX 11 Linking
 #pragma comment (lib, "user32")

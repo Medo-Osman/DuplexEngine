@@ -204,7 +204,7 @@ void Input::readBuffers()
 	m_currentInputData.actionData.clear();
 	m_currentInputData.rangeData.clear();
 
-	if (!m_Keyboard.empty())
+	while(!m_Keyboard.empty())
 	{
 		KeyboardEvent readEvent = m_Keyboard.readKey();
 		if (readEvent.isPressed())
@@ -217,7 +217,7 @@ void Input::readBuffers()
 		}
 	}
 	
-	if(!m_Mouse.empty())
+	while(!m_Mouse.empty())
 	{
 		MouseEvent mouseEvnt = m_Mouse.readEvent();
 		char charConverted = iContext::convertEventToMouseChar(mouseEvnt.getEvent());
