@@ -53,7 +53,7 @@ private:
     float m_currentDistance;
     Vector3 m_moveDirection;
     PlayerState m_state;
-    Entity* m_playerEntity = nullptr;
+    Entity* m_playerEntity;
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
 

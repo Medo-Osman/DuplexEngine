@@ -2,17 +2,12 @@
 #include"3DPCH.h"
 #include"PhysicsMaterial.h"
 
-
 static physx::PxDefaultErrorCallback gDefaultErrorCallback;
 static physx::PxDefaultAllocator gDefaultAllocatorCallback;
 using namespace physx;
 
-
-
-
 class Physics
 {
-
 private:
 	const char* m_host = "localhost";
 	PxFoundation* m_foundationPtr;
@@ -26,9 +21,7 @@ private:
 	std::map<std::string, PxGeometry*> m_sharedGeometry;
 	std::map<std::string, PxShape*> m_sharedShapes;
 
-
 	bool m_recordMemoryAllocations = true;
-
 
 	void loadDefaultMaterials()
 	{
@@ -38,7 +31,6 @@ private:
 		{
 			this->addPhysicsMaterial(physicMaterialVector[i]);
 		}
-
 	}
 
 	PxRigidActor* createDynamicActor(PxVec3 pos, PxQuat rot)
@@ -72,26 +64,25 @@ private:
 		return geometryHolder;
 	}
 
-	template <typename T>
-	void deleteVectorPointers(T* const ptr)
-	{
-		delete ptr;
-	}
-
 public:
 	Physics()
 	{
 		m_foundationPtr = nullptr;
 		m_physicsPtr = nullptr;
 		m_PvdPtr = nullptr;
+		m_dispatcherPtr = nullptr;
 		m_scenePtr = nullptr;
+		m_controllManager = nullptr;
 	}
+
 	~Physics()
 	{
 
 	}
+
 	void release()
 	{
+		m_controllManager->release();
 		m_scenePtr->release();
 		m_scenePtr = nullptr;
 		m_physicsPtr->release();
@@ -100,7 +91,8 @@ public:
 		PxCloseExtensions();
 		m_foundationPtr->release();
 	}
-	void init(XMFLOAT3 gravity = {0.0f, -9.81f, 0.0f}, int nrOfThreads = 1)
+
+	void init(const XMFLOAT3 &gravity = {0.0f, -9.81f, 0.0f}, const int &nrOfThreads = 1)
 	{
 		m_foundationPtr = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
 
@@ -136,7 +128,7 @@ public:
 		this->loadDefaultMaterials();
 	}
 
-	void addShapeForSharing(PxShape* shape, std::string name)
+	void addShapeForSharing(PxShape* shape, const std::string &name)
 	{
 		if (shape->isExclusive())
 			ErrorLogger::get().logError("A shape being added for sharing is exclusive.");
@@ -147,7 +139,7 @@ public:
 		}
 	}
 
-	PxShape* getSharedShape(std::string name)
+	PxShape* getSharedShape(const std::string &name)
 	{
 		if (m_sharedShapes.find(name) != m_sharedShapes.end())
 			return m_sharedShapes[name];
@@ -155,7 +147,7 @@ public:
 		return nullptr;
 	}
 
-	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometry* geometry, std::string materialName, bool unique, XMFLOAT3 scale = { 1, 1, 1 })
+	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometry* geometry, const std::string &materialName, const bool &unique, const XMFLOAT3 &scale = { 1, 1, 1 })
 	{
 		physx::PxMaterial* physicsMaterial = getMaterialByName(materialName);
 		PxGeometryHolder scaledGeometry = *geometry;
@@ -168,13 +160,12 @@ public:
 			scaledGeometry = scaleGeometry(geometry, scale);
 
 
-		
 		PxShape* shape = m_physicsPtr->createShape(scaledGeometry.any(), *physicsMaterial, unique);
 		actor->attachShape(*shape);
 		return shape;
 	}
 
-	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometryHolder geometry, std::string materialName, bool unique, XMFLOAT3 scale = { 1, 1, 1 })
+	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometryHolder geometry, const std::string &materialName, const bool &unique, const XMFLOAT3 &scale = { 1, 1, 1 })
 	{
 		physx::PxMaterial* physicsMaterial = getMaterialByName(materialName);
 		if (physicsMaterial == nullptr)
@@ -188,7 +179,7 @@ public:
 		return shape;
 	}
 
-	PxMaterial* getMaterialByName(std::string name)
+	PxMaterial* getMaterialByName(const std::string &name)
 	{
 		PxMaterial* materialPtr = nullptr;
 		if (m_defaultMaterials.find(name) != m_defaultMaterials.end())
@@ -203,7 +194,7 @@ public:
 		actor->attachShape(*shape);
 	}
 
-	PxRigidActor* createRigidActor(XMFLOAT3 position, XMFLOAT4 quaternion, bool dynamic)
+	PxRigidActor* createRigidActor(const XMFLOAT3 &position, const XMFLOAT4& quaternion, const bool &dynamic)
 	{
 		PxVec3 pos(position.x, position.y, position.z);
 		PxQuat quat(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
@@ -213,29 +204,29 @@ public:
 		return actor;
 	}
 
-	void setPosition(PxRigidActor* actor, XMFLOAT3 pos)
+	void setPosition(PxRigidActor* actor, const XMFLOAT3 &pos)
 	{
 		actor->setGlobalPose(PxTransform(PxVec3(pos.x, pos.y, pos.z)));
 	}
 
-	void setRotation(PxRigidActor* actor, XMFLOAT4 rotationQuat)
+	void setRotation(PxRigidActor* actor, const XMFLOAT4 &rotationQuat)
 	{
 		actor->setGlobalPose(PxTransform(PxQuat(rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w)));
 	}
 
-	void setGlobalTransform(PxRigidActor* actor, XMFLOAT3 pos,  XMFLOAT4 rotQ)
+	void setGlobalTransform(PxRigidActor* actor, const XMFLOAT3 &pos,  const XMFLOAT4 &rotQ)
 	{
 		actor->setGlobalPose(PxTransform(pos.x, pos.y, pos.z, PxQuat(rotQ.x, rotQ.y, rotQ.z, rotQ.w)));
 	}
 
 
 
-	void setMassOfActor(PxRigidActor* actor, float weight)
+	void setMassOfActor(PxRigidActor* actor, const float &weight)
 	{
 		static_cast<PxRigidDynamic*>(actor)->setMass(weight);
 	}
 
-	void addPhysicsMaterial(PhysicsMaterial physicsMaterial)
+	void addPhysicsMaterial(const PhysicsMaterial &physicsMaterial)
 	{
 		if (m_defaultMaterials.find(physicsMaterial.name) == m_defaultMaterials.end())
 		{
@@ -247,26 +238,26 @@ public:
 			ErrorLogger::get().logError(std::string("Trying to add a duplicate of material" + physicsMaterial.name).c_str());
 	}
 
-	void addPhysicsMaterial(std::string name, float staticFriction, float dynamicFriction, float restitution, physx::PxCombineMode::Enum frictionCombineMode, physx::PxCombineMode::Enum restitutionCombineMode)
+	void addPhysicsMaterial(const std::string &name, const float &staticFriction, const float &dynamicFriction, const float &restitution, const physx::PxCombineMode::Enum &frictionCombineMode, const physx::PxCombineMode::Enum &restitutionCombineMode)
 	{
 		this->addPhysicsMaterial(PhysicsMaterial(name, staticFriction, dynamicFriction, restitution, frictionCombineMode, restitutionCombineMode));
 	}
 
-	void setShapeMaterial(PxShape* shape, std::string materialName)
+	void setShapeMaterial(PxShape* shape, const std::string &materialName)
 	{
 		PxMaterial* materials[1];
 		materials[0] = m_defaultMaterials[materialName];
 		shape->isExclusive() ? shape->setMaterials(materials, 1) : ErrorLogger::get().logError("Trying to change material on shape that is not exclusive, this is not possible.");
 	}
 
-	void update(float dt)
+	void update(const float &dt)
 	{
 		m_scenePtr->simulate(dt);
 		m_scenePtr->fetchResults(true);
 
 	}
 
-	PxGeometry* getGeometry(std::string geometryName)
+	PxGeometry* getGeometry(const std::string &geometryName)
 	{
 		if (m_sharedGeometry.find(geometryName) != m_sharedGeometry.end())
 			return m_sharedGeometry[geometryName];
@@ -274,7 +265,7 @@ public:
 			return nullptr;
 	}
 
-	void addGeometry(std::string geometryName, PxGeometry* geometry)
+	void addGeometry(const std::string &geometryName, PxGeometry* geometry)
 	{
 		if (m_sharedGeometry.find(geometryName) == m_sharedGeometry.end())
 			m_sharedGeometry[geometryName] = geometry;
@@ -282,7 +273,7 @@ public:
 			ErrorLogger::get().logError("Trying to add already existing geometry to sharedGeometry map");
 	}
 
-	bool castRay(SimpleMath::Vector3 origin, SimpleMath::Vector3 unitDirection, float distance)
+	bool castRay(const SimpleMath::Vector3 &origin, const SimpleMath::Vector3 &unitDirection, const float &distance)
 	{
 		PxVec3 pOrigin(origin.x, origin.y, origin.z);
 		PxVec3 pUnitDir(unitDirection.x, unitDirection.y, unitDirection.z);
@@ -293,9 +284,8 @@ public:
 		return m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
 	}
 
-
 	//Manager
-	PxController* addCapsuleController(XMFLOAT3 position, float height, float radius, std::string materialName, PxControllerBehaviorCallback* controlBehavior)
+	PxController* addCapsuleController(const XMFLOAT3 &position, const float &height, const float &radius, const std::string &materialName, PxControllerBehaviorCallback* controlBehavior)
 	{
 		PxController* capsuleController = nullptr;
 		PxCapsuleControllerDesc ccd;
@@ -328,17 +318,16 @@ public:
 		return capsuleController;
 	}
 
-	void setCapsuleSize(PxController* controller, float height)
+	void setCapsuleSize(PxController* controller, const float &height)
 	{
 		controller->resize(height);
 	}
 
-	void setCapsuleRadius(PxController* controller, float radius)
+	void setCapsuleRadius(PxController* controller, const float &radius)
 	{
 		PxCapsuleController* capsule = static_cast<PxCapsuleController*>(controller);
 		capsule->setRadius(radius);
 
 	}
-
 
 };

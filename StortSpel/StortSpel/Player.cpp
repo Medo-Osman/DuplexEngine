@@ -9,6 +9,10 @@ Player::Player()
 	m_currentDistance = 0;
 	m_hasDashed = false;
 	m_angleY = 0;
+	m_playerEntity = nullptr;
+	m_cameraTransform = nullptr;
+	m_controller = nullptr;
+	m_state = PlayerState::IDLE;
 }
 
 void Player::setStates(std::vector<State> states)
@@ -189,7 +193,6 @@ void Player::inputUpdate(InputData& inputData)
 					}
 				}
 			}
-
 			break;
 		case DASH:
 			if (canDash())
@@ -203,7 +206,6 @@ void Player::inputUpdate(InputData& inputData)
 			break;
 		}
 	}
-
 }
 
 void Player::jump()

@@ -1,9 +1,7 @@
 #pragma once
 #include"3DPCH.h"
 #include"Component.h"
-#include"Entity.h"
 #include"Physics.h"
-
 
 class CharacterControllerComponent : public Component, public PxControllerBehaviorCallback
 {
@@ -28,7 +26,10 @@ public:
 	CharacterControllerComponent(Physics* physics)
 	{
 		m_type = ComponentType::PHYSICS;
+		m_transform = nullptr;
+		m_controller = nullptr;
 		m_physicsPtr = physics;
+		m_transformOffset = { 0.f, 0.f, 0.f };
 	}
 
 	void initController(Transform* transform, const float& height, const float &radius, const XMFLOAT3 &transformOffset, std::string material = "default")
