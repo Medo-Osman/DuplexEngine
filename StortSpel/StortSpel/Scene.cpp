@@ -27,7 +27,7 @@ void Scene::loadScene(std::string path)
 	if (cube2)
 	{
 		engine->addComponent(cube2, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
-		cube2->move({ 10.f, 0.5f, 0.f });
+		cube2->translate({ 10.f, 0.5f, 0.f });
 		cube2->scaleUniform({ -2.f });
 	}
 
@@ -36,7 +36,7 @@ void Scene::loadScene(std::string path)
 	if (cube3)
 	{
 		engine->addComponent(cube3, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture3m.png" })));
-		cube3->move({ 20.f, 1.f, 0.f });
+		cube3->translate({ 20.f, 1.f, 0.f });
 		cube3->scaleUniform({ -3.f });
 	}
 
@@ -45,7 +45,7 @@ void Scene::loadScene(std::string path)
 	if (cube4)
 	{
 		engine->addComponent(cube4, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture4m.png" })));
-		cube4->move({ 30.f, 1.5f, 0.f });
+		cube4->translate({ 30.f, 1.5f, 0.f });
 		cube4->scaleUniform({ -4.f });
 	}
 
@@ -67,7 +67,7 @@ void Scene::loadScene(std::string path)
 	{
 		engine->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
 		floor->scale({ 300, 2,300 });
-		floor->move({ 0,-2,0 });
+		floor->translate({ 0,-2,0 });
 		engine->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
@@ -77,7 +77,7 @@ void Scene::loadScene(std::string path)
 	{
 		engine->addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
 		cube->scaleUniform({ 3.f });
-		cube->move({ 0.f, 5.f, 5.f });
+		cube->translate({ 0.f, 5.f, 5.f });
 		cube->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
 		engine->createNewPhysicsComponent(cube, true, "", PxGeometryType::eSPHERE);
 	}
@@ -88,7 +88,7 @@ void Scene::loadScene(std::string path)
 	{
 		engine->addComponent(cubeSphereBB, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
 		cubeSphereBB->scaleUniform({ 3.f });
-		cubeSphereBB->move({ -10.f, 5.f, 5.f });
+		cubeSphereBB->translate({ -10.f, 5.f, 5.f });
 		cubeSphereBB->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
 		engine->addComponent(cubeSphereBB, "physics", new PhysicsComponent(&Physics::get()));
 		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(cubeSphereBB->getComponent("physics"));
@@ -141,7 +141,7 @@ void Scene::loadScene(std::string path)
 	{
 		engine->addComponent(FlippingCube, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
-		FlippingCube->move({ 5.f, 0.f, 15.f });
+		FlippingCube->translate({ 5.f, 0.f, 15.f });
 		FlippingCube->scale({ 4, 1, 4 });
 		engine->addComponent(FlippingCube, "flipp",
 			new FlippingComponent(dynamic_cast<Transform*>(FlippingCube), 3, 3));
@@ -155,7 +155,7 @@ void Scene::loadScene(std::string path)
 		{
 			engine->addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm"));
 			cube->scale({ 3,0.2,5 });
-			cube->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
+			cube->translate({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
 			engine->createNewPhysicsComponent(cube);
 		}
 	}
