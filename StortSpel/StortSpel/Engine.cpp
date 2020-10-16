@@ -163,7 +163,7 @@ void Engine::addMeshComponent(MeshComponent* component)
 void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
 {
 	std::vector<Component*> tempComponentVector;
-	PhysicsComponent* physComp = new PhysicsComponent(&Physics::get());
+	PhysicsComponent* physComp = new PhysicsComponent();
 	MeshComponent* meshComponent = nullptr;
 	bool found = false;
 
