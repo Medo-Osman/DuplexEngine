@@ -27,7 +27,7 @@ public:
 		this->m_endPos = endPos;
 		this->m_travelTime = travelTime;
 
-		m_transform->translation(m_startPos);
+		m_transform->setPosition(m_startPos);
 	}
 
 	~SweepingComponent() {}
@@ -36,10 +36,10 @@ public:
 		m_time += dt;
 		
 		if (swap == false) // Move from start to end pos
-			m_transform->translation(Vector3(XMVectorLerp(m_startPos, m_endPos, ParametricBlend(m_time / m_travelTime))));
+			m_transform->setPosition(Vector3(XMVectorLerp(m_startPos, m_endPos, ParametricBlend(m_time / m_travelTime))));
 
 		else // Move from end to start pos
-			m_transform->translation(Vector3(XMVectorLerp(m_endPos, m_startPos, ParametricBlend(m_time / m_travelTime))));
+			m_transform->setPosition(Vector3(XMVectorLerp(m_endPos, m_startPos, ParametricBlend(m_time / m_travelTime))));
 
 
 		if (m_time >= m_travelTime)

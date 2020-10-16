@@ -264,17 +264,17 @@ void Engine::initialize()
 	if (addEntity("meshPlayer"))
 	{
 		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
-		m_entities["meshPlayer"]->translation({ 5, 10.f, 0 });
+		m_entities["meshPlayer"]->setPosition({ 5, 10.f, 0 });
 
 		//Point Light
 		addComponent(m_entities["meshPlayer"], "testLight", new LightComponent());
-		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->translation({ 0,1.f,-5 });
+		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setPosition({ 0,1.f,-5 });
 		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
 		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setIntensity(1.0f);
 
 		//Spot Light
 		addComponent(m_entities["meshPlayer"], "spotlightTest2", new SpotLightComponent());
-		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->translation({ 0,1.f,0 });
+		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setPosition({ 0,1.f,0 });
 		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
 		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setIntensity(3.f);
 

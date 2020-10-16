@@ -17,7 +17,7 @@ private:
 	Quaternion m_startRot;
 	Quaternion m_endRot;
 	bool m_doOnce = true;
-	Matrix temp;
+	XMMATRIX temp;
 
 	float ParametricBlend(float t)
 	{

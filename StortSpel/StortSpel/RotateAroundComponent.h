@@ -52,10 +52,10 @@ public:
 		m_pos = XMVector3TransformCoord(m_offset,  m_rotationMatrix * m_rotation * m_originTransformMatrix);
 
 		//Set rotation of the mesh that rotates, so that it matches the parent
-		m_transform->setQuaternion(Quaternion::CreateFromRotationMatrix(m_rotation));
+		m_transform->setRotationQuat(Quaternion::CreateFromRotationMatrix(m_rotation));
 
 		//Set the position around the parent position, according to proper rotation and radius
-		m_transform->translation(m_pos);
+		m_transform->setPosition(m_pos);
 
 
 	}
