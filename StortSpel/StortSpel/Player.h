@@ -10,8 +10,10 @@
 enum class PlayerState
 {
     IDLE,
-    DO_JUMP,
     JUMPING,
+    FALLING,
+    DASH,
+    ROLL,
 };
 
 using namespace DirectX;
@@ -19,22 +21,55 @@ using namespace DirectX;
 class Player : public InputObserver
 {
 private:
-    const float FALL_MULTIPLIER = 2.5f;
-    const float MAX_FALL = 0.005f;
-    const float GRAVITY_MODIFIER = -0.07f;
-    const float INITAL_JUMP_VELOCITY = 0.05f;
+    //CONTROLLER CONFIG
+    const float CAPSULE_HEIGHT = 1.75f;
+    const float CAPSULE_RADIUS = 0.5f;
+
+    //WALK CONFIG
+    const float PLAYER_SPEED = 10.f;
     DirectX::XMVECTOR m_movementVector;
+
+    //JUMP CONFIG
+    const float FALL_MULTIPLIER = 1.1f;
+    const float JUMP_DISTANCE = 8.f;
+    const float JUMP_SPEED = 20.0f;
+    const int ALLOWED_NR_OF_JUMPS = 2;
+    int m_jumps;
+
+
+    //DASH CONFIG
+    const float DASH_TRAVEL_DISTANCE = 15.f;
+    const int DASH_SPEED = 10.0f;
+    bool m_hasDashed;
+
+    //Roll CONFIG
+    const float ROLL_TRAVEL_DISTANCE = 15.f;
+    const int ROLL_SPEED = 10.0f;
+    const float GRAVITY = 900.f;
+    const float ROLL_HEIGHT = 0.3f;
+    const float ROLL_RADIUS = 0.2f;
+
+
+
+    float m_currentDistance;
+    Vector3 m_moveDirection;
+    PlayerState m_state;
+    float angleY;
     Entity* m_playerEntity = nullptr;
     Transform* m_cameraTransform;
-    const float m_playerSpeed = 0.007f;
-    float angleY;
-    float m_height;
-    int m_jumps;
-    PlayerState m_state;
 
     void setStates(std::vector<State> states);
     CharacterControllerComponent* m_controller;
+    void handleRotation(const float& dt);
+    void playerStateLogic(const float& dt);
 
+    bool canRoll();
+    void roll();
+    bool canDash();
+    void dash();
+    void jump();
+    void prepDistVariables();
+  
 public:
     Player();
 

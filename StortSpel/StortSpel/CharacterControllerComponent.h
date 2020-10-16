@@ -4,7 +4,8 @@
 #include"Entity.h"
 #include"Physics.h"
 
-class CharacterControllerComponent : public Component
+
+class CharacterControllerComponent : public Component, public PxControllerBehaviorCallback
 {
 private:
 	Physics* m_physicsPtr;
@@ -33,7 +34,7 @@ public:
 	void initController(Transform* transform, float height, float radius, XMFLOAT3 transformOffset, std::string material = "default")
 	{
 		m_transform = transform;
-		m_controller = m_physicsPtr->addCapsuleController(m_transform->getTranslation(), height, radius, material);
+		m_controller = m_physicsPtr->addCapsuleController(m_transform->getTranslation(), height, radius, material, this);
 		m_transformOffset = transformOffset;
 	}
 
@@ -89,5 +90,19 @@ public:
 	bool checkGround(Vector3 origin, Vector3 unitDirection, float distance)
 	{
 		return m_physicsPtr->castRay(origin, unitDirection, distance);
+	}
+
+	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxShape& shape, const PxActor& actor)
+	{
+		return PxControllerBehaviorFlags();
+	}
+	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxController& controller)
+	{
+		return PxControllerBehaviorFlags();
+
+	}
+	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxObstacle& obstacle)
+	{
+		return PxControllerBehaviorFlags();
 	}
 };

@@ -294,8 +294,9 @@ public:
 
 	}
 
+
 	//Manager
-	PxController* addCapsuleController(XMFLOAT3 position, float height, float radius, std::string materialName)
+	PxController* addCapsuleController(XMFLOAT3 position, float height, float radius, std::string materialName, PxControllerBehaviorCallback* controlBehavior)
 	{
 		PxController* capsuleController = nullptr;
 		PxCapsuleControllerDesc ccd;
@@ -316,7 +317,7 @@ public:
 
 		//Callbacks
 		ccd.reportCallback = NULL;
-		ccd.behaviorCallback = NULL;
+		ccd.behaviorCallback = controlBehavior;
 
 		//Actor
 		ccd.density = 10.0;

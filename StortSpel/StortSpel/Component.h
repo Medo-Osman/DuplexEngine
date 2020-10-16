@@ -1,7 +1,6 @@
 #pragma once
 #include "3DPCH.h"
 #include <string>
-
 enum class ComponentType { MESH, AUDIO, PHYSICS, TEST, INVALID, UNASSIGNED, ROTATEAROUND, LIGHT};
 
 class Component
@@ -17,7 +16,6 @@ public:
 		m_type = ComponentType::UNASSIGNED;
 	}
 	virtual ~Component() {}
-
 
 	// Operators
 	bool operator==(const Component& otherComponent)
