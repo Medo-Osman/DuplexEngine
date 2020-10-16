@@ -159,10 +159,10 @@ void Engine::addMeshComponent(MeshComponent* component)
 	m_meshComponentMap[m_MeshCount] = component;
 }
 
-void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false)
+void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
 {
 	std::vector<Component*> tempComponentVector;
-	PhysicsComponent* physComp = new PhysicsComponent(&ApplicationLayer::getInstance().m_physics);
+	PhysicsComponent* physComp = new PhysicsComponent(&Physics::get());
 	MeshComponent* meshComponent = nullptr;
 	bool found = false;
 
@@ -238,6 +238,7 @@ std::map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 void Engine::buildTestStage()
 {
 	// Cube 1
+	
 	Entity* cube1 = addEntity("cube1");
 	if (cube1)
 	{
@@ -313,7 +314,7 @@ void Engine::buildTestStage()
 		cubeSphereBB->scaleUniform({ 3.f });
 		cubeSphereBB->move({ -10.f, 5.f, 5.f });
 		cubeSphereBB->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		addComponent(cubeSphereBB, "physics", new PhysicsComponent(&ApplicationLayer::getInstance().m_physics));
+		addComponent(cubeSphereBB, "physics", new PhysicsComponent(&Physics::get()));
 		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(cubeSphereBB->getComponent("physics"));
 		physicsComp->initActor(cubeSphereBB, false);
 		physicsComp->addSphereShape(2.f);
@@ -442,7 +443,7 @@ void Engine::initialize()
 
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
 		//createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
-		m_entities["meshPlayer"]->addComponent("physics", new PhysicsComponent(&ApplicationLayer::getInstance().m_physics));
+		m_entities["meshPlayer"]->addComponent("physics", new PhysicsComponent(&Physics::get()));
 		PhysicsComponent* pc = static_cast<PhysicsComponent*>(m_entities["meshPlayer"]->getComponent("physics"));
 		pc->initActor(m_entities["meshPlayer"], true);
 		pc->addBoxShape({ 1.f, 1.f, 1.f }, "human");

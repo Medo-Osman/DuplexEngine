@@ -49,7 +49,8 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		ShowWindow(m_window, showCmd);
 	}
 	//PhysX
-	m_physics.init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
+	m_physics = &Physics::get();
+	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
 
 	Engine::get().initialize();
 	m_enginePtr = &Engine::get();
@@ -112,13 +113,13 @@ void ApplicationLayer::applicationLoop()
 
 			m_input.readBuffers();
 			m_enginePtr->update(m_dt);
-			m_physics.update(m_dt);
+			m_physics->update(m_dt);
 			AudioHandler::get().update(m_dt);
 			m_enginePtr->update(m_dt);
 			m_rendererPtr->render();
 		}
 	}
-	m_physics.release();
+	m_physics->release();
 }
 
 

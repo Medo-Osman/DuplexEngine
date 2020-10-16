@@ -71,8 +71,8 @@ public:
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 
 	void addMeshComponent(MeshComponent* component);
-	void createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique);
-	void addLightComponent(LightComponent* component);
+	void createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false);
+	void addLightComponent(LightComponent* component); 
 	void removeLightComponent(LightComponent* component);
 
 	std::map<unsigned int long, MeshComponent*>* getMeshComponentMap();
