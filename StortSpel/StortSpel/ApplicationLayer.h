@@ -36,6 +36,6 @@ public:
 
 	const HWND& getWindow() { return m_window; }
 	Input m_input;
-	Physics m_physics;
+	Physics* m_physics;
 
 };

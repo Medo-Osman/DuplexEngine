@@ -105,6 +105,12 @@
     <ClCompile Include="Timer.cpp">
       <Filter>Source Files\Application</Filter>
     </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Source Files\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>Source Files\Graphic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">
@@ -215,11 +221,17 @@
     <ClInclude Include="Timer.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
-    <ClInclude Include="MovingPlatformComponent.h">
+    <ClInclude Include="FlippingComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="FlippingPlatformComponent.h">
+    <ClInclude Include="SweepingComponent.h">
       <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>Source Files\Graphic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

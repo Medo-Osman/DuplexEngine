@@ -193,6 +193,8 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="ResourceHandler.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform.cpp" />
@@ -206,7 +208,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
-    <ClInclude Include="FlippingPlatformComponent.h" />
+    <ClInclude Include="FlippingComponent.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="LightStructs.h" />
     <ClInclude Include="Material.h" />
@@ -218,7 +220,9 @@
     <ClInclude Include="InputStructs.h" />
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="MeshResource.h" />
-    <ClInclude Include="MovingPlatformComponent.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="SweepingComponent.h" />
     <ClInclude Include="PhysicsComponent.h" />
     <ClInclude Include="PhysicsMaterial.h" />
     <ClInclude Include="Renderer.h" />

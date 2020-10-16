@@ -159,10 +159,10 @@ void Engine::addMeshComponent(MeshComponent* component)
 	m_meshComponentMap[m_MeshCount] = component;
 }
 
-void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false)
+void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
 {
 	std::vector<Component*> tempComponentVector;
-	PhysicsComponent* physComp = new PhysicsComponent(&ApplicationLayer::getInstance().m_physics);
+	PhysicsComponent* physComp = new PhysicsComponent(&Physics::get());
 	MeshComponent* meshComponent = nullptr;
 	bool found = false;
 
@@ -238,6 +238,7 @@ std::map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 void Engine::buildTestStage()
 {
 	// Cube 1
+	
 	Entity* cube1 = addEntity("cube1");
 	if (cube1)
 	{
@@ -313,7 +314,7 @@ void Engine::buildTestStage()
 		cubeSphereBB->scaleUniform({ 3.f });
 		cubeSphereBB->translate({ -10.f, 5.f, 5.f });
 		cubeSphereBB->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		addComponent(cubeSphereBB, "physics", new PhysicsComponent(&ApplicationLayer::getInstance().m_physics));
+		addComponent(cubeSphereBB, "physics", new PhysicsComponent(&Physics::get()));
 		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(cubeSphereBB->getComponent("physics"));
 		physicsComp->initActor(cubeSphereBB, false);
 		physicsComp->addSphereShape(2.f);
@@ -328,7 +329,7 @@ void Engine::buildTestStage()
 		addComponent(testXwing, "xwingtestmesh",
 			new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
 		addComponent(testXwing, "xwingtestmove",
-			new MovingPlatformComponent(dynamic_cast<Transform*>(testXwing), Vector3(0, 10, -5), Vector3(0, 10, 100), 20));
+			new SweepingComponent(dynamic_cast<Transform*>(testXwing), Vector3(0, 10, -5), Vector3(0, 10, 100), 20));
 	}
 	// Rotating Cube
 	Entity* rotatingCube = addEntity("RotatingCube");
@@ -369,7 +370,7 @@ void Engine::buildTestStage()
 		FlippingCube->translate({ 5.f, 0.f, 15.f });
 		FlippingCube->scale({ 4, 1, 4 });
 		addComponent(FlippingCube, "flipp",
-			new FlippingPlatformComponent(dynamic_cast<Transform*>(FlippingCube), 3, 3));
+			new FlippingComponent(dynamic_cast<Transform*>(FlippingCube), 3, 3));
 	}
 
 	// Platforms
@@ -464,7 +465,7 @@ void Engine::initialize()
 
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
 		//createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
-		m_entities["meshPlayer"]->addComponent("physics", new PhysicsComponent(&ApplicationLayer::getInstance().m_physics));
+		m_entities["meshPlayer"]->addComponent("physics", new PhysicsComponent(&Physics::get()));
 		PhysicsComponent* pc = static_cast<PhysicsComponent*>(m_entities["meshPlayer"]->getComponent("physics"));
 		pc->initActor(m_entities["meshPlayer"], true);
 		pc->addBoxShape({ 1.f, 1.f, 1.f }, "human");
