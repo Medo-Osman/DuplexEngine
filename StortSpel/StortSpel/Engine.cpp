@@ -402,7 +402,7 @@ void Engine::buildTestStage()
 		addComponent(m_entities["RotatingCube"], "mesh",
 			new MeshComponent("testCube_pCube1.lrm"));
 		addComponent(m_entities["RotatingCube"], "rotate",
-			new RotateAroundComponent(centerCube->getTranslation(), centerCube->getRotationMatrix(), dynamic_cast<Transform*>(m_entities["RotatingCube"]), 5));
+			new RotateAroundComponent(centerCube, centerCube->getRotationMatrix(), m_entities["RotatingCube"], 5));
 		
 	}
 
