@@ -43,14 +43,17 @@ void Renderer::release()
 
 Renderer::~Renderer()
 {
+
 	for (std::pair<ShaderProgramsEnum, ShaderProgram*> element : m_compiledShaders)
 	{
 		delete element.second;
 	}
+
 }
 
 HRESULT Renderer::initialize(const HWND& window)
 {
+
 	HRESULT hr;
 	m_window = window;
 	
@@ -61,7 +64,6 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	//Get swapchian buffer
 	hr = m_swapChainPtr->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)m_swapChainBufferPtr.GetAddressOf());
-
 	if (!SUCCEEDED(hr)) return hr;
 
 	//Get Debugger
@@ -74,11 +76,12 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	hr = createDepthStencil();
 	if (!SUCCEEDED(hr)) return hr;
-
+	
 	compileAllShaders(&m_compiledShaders, m_devicePtr.Get(), m_dContextPtr.Get(), m_depthStencilViewPtr.Get());
 
 	createViewPort(m_defaultViewport, m_settings.width, m_settings.height);
 	rasterizerSetup();
+
 
 
 
@@ -126,7 +129,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_devicePtr->CreateDepthStencilState(&skyboxDSD, &skyboxDSSPtr);
 	/////////////////////////////////////////////////
 
-	// ImGui initialization
+	 //ImGui initialization
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -136,6 +139,9 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
+
+	//m_swapChainPtr->Release();
+	//m_swapChainBufferPtr->Release();
 
 	return hr;
 }
@@ -156,7 +162,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.BufferDesc.RefreshRate.Numerator = 60; //IF vSync is enabled and fullscreen, this specifies the max refreshRate
 	sChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	sChainDesc.SampleDesc.Quality = 0;
-	sChainDesc.SampleDesc.Count = 8;
+	sChainDesc.SampleDesc.Count = 2;
 	sChainDesc.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_DISCARD; //What to do with buffer when swap occur
 	sChainDesc.OutputWindow = m_window;
 
@@ -192,7 +198,7 @@ HRESULT Renderer::createDepthStencil()
 	depthTextureDesc.MipLevels = 1;
 	depthTextureDesc.MiscFlags = 0;
 	depthTextureDesc.SampleDesc.Quality = 0;
-	depthTextureDesc.SampleDesc.Count = 8;
+	depthTextureDesc.SampleDesc.Count = 2;
 	depthTextureDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
 
 	hr = m_devicePtr->CreateTexture2D(&depthTextureDesc, 0, &m_depthStencilBufferPtr);
@@ -245,11 +251,7 @@ void Renderer::rasterizerSetup()
 
 void Renderer::update(const float& dt)
 {
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
 
-	//ImGui::ShowDemoWindow();
 }
 
 void Renderer::render()

@@ -79,6 +79,8 @@ using namespace DirectX;
 #pragma comment (lib, "gdi32")
 #pragma comment (lib, "d3dcompiler.lib")
 
+#include "PerformanceTester.h"
+
 //Defines
 #define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = nullptr; } }
 #define SAFE_DELETE(a) if( (a) != NULL ) delete (a); (a) = NULL;

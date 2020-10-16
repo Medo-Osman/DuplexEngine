@@ -24,7 +24,7 @@ void Scene::loadScene(std::string path)
 	}*/
 
 	//tent
-	entity = engine->addEntity("tent");
+	/*entity = engine->addEntity("tent");
 	if (entity)
 	{
 		m_entities["tent"] = entity;
@@ -33,23 +33,23 @@ void Scene::loadScene(std::string path)
 		entity->move({ -10.f, 0.f, 0.f });
 
 		engine->createNewPhysicsComponent(entity, true, "", PxGeometryType::eBOX, "default", false);
-	}
+	}*/
 
 	//floor
 	entity = engine->addEntity("floor");
 	if (entity)
 	{
 		m_entities["floor"] = entity;
-		engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"T_CircusTent_D.png" })));
+		engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm"));// , Material({ L"T_CircusTent_D.png" })));
 		entity->scale({ 300,0.1,300 });
 		entity->move({ 0,-0.6,0 });
 		engine->createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	Material gridTest = Material({ L"T_GridTestTex.bmp" });
+	//Material gridTest = Material({ L"T_GridTestTex.bmp" });
 
 	//Cube 2
-	entity = engine->addEntity("cube-test2");
+	/*entity = engine->addEntity("cube-test2");
 	if (entity)
 	{
 
@@ -59,10 +59,10 @@ void Scene::loadScene(std::string path)
 		entity->move({ 0.f, 5.f, 5.f });
 		entity->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
 		engine->createNewPhysicsComponent(entity, true, "", PxGeometryType::eSPHERE, "default", false);
-	}
+	}*/
 
 	//Cube with sphere shape
-	entity = engine->addEntity("cube-test3");
+	/*entity = engine->addEntity("cube-test3");
 	if (entity)
 	{
 
@@ -75,20 +75,20 @@ void Scene::loadScene(std::string path)
 		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
 		physicsComp->initActor(entity, false);
 		physicsComp->addSphereShape(2.f);
-	}
+	}*/
 
 
-	entity = engine->addEntity("testXwing");
+	/*entity = engine->addEntity("testXwing");
 	if (entity)
 	{
 
 		m_entities["testXwing"] = entity;
 		engine->addComponent(entity, "xwingtestmesh", new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
 		entity->move({ 15.f, 1.5f, -3.f });
-	}
+	}*/
 
 	// Platforms
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 100; i++)
 	{
 		entity = engine->addEntity("cube-test" + std::to_string(i));
 
@@ -104,17 +104,17 @@ void Scene::loadScene(std::string path)
 	}
 
 	// Rotating Cube
-	Entity* centerCube = engine->addEntity("centerCube");
+	/*Entity* centerCube = engine->addEntity("centerCube");
 	if (centerCube)
 	{
 		engine->addComponent(centerCube, "mesh",
 			new MeshComponent("testCube_pCube1.lrm"));
 		centerCube->move({ 0.f, 5.f, 0.f });
 		centerCube->rotate({ 0.5f, 0, 0 });
-	}
+	}*/
 
 	// Rotating Cube
-	m_entities["RotatingCube"] = engine->addEntity("RotatingCube");
+	/*m_entities["RotatingCube"] = engine->addEntity("RotatingCube");
 	if (m_entities["RotatingCube"])
 	{
 
@@ -123,7 +123,7 @@ void Scene::loadScene(std::string path)
 		engine->addComponent(m_entities["RotatingCube"], "rotate",
 			new RotateAroundComponent(centerCube->getTranslation(), centerCube->getRotationMatrix(), dynamic_cast<Transform*>(m_entities["RotatingCube"]), 5));
 
-	}
+	}*/
 
 	// Skybox
 	m_entities["SkyBox"] = engine->addEntity("SkyBox");
