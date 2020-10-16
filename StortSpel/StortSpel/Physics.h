@@ -15,13 +15,22 @@ private:
 	PxPvd* m_PvdPtr;
 	PxCpuDispatcher* m_dispatcherPtr;
 	PxScene* m_scenePtr;
-	PxControllerManager* m_controllManager;
 
 	std::map<std::string, PxMaterial*> m_defaultMaterials;
 	std::map<std::string, PxGeometry*> m_sharedGeometry;
 	std::map<std::string, PxShape*> m_sharedShapes;
 
 	bool m_recordMemoryAllocations = true;
+
+	Physics()
+	{
+		m_foundationPtr = nullptr;
+		m_physicsPtr = nullptr;
+		m_PvdPtr = nullptr;
+		m_dispatcherPtr = nullptr;
+		m_scenePtr = nullptr;
+		m_controllManager = nullptr;
+	}
 
 	void loadDefaultMaterials()
 	{
@@ -65,14 +74,12 @@ private:
 	}
 
 public:
-	Physics()
+	Physics(const Physics&) = delete;
+	void operator=(Physics const&) = delete;
+	static Physics& get()
 	{
-		m_foundationPtr = nullptr;
-		m_physicsPtr = nullptr;
-		m_PvdPtr = nullptr;
-		m_dispatcherPtr = nullptr;
-		m_scenePtr = nullptr;
-		m_controllManager = nullptr;
+		static Physics instance;
+		return instance;
 	}
 
 	~Physics()
@@ -115,8 +122,6 @@ public:
 		sceneDesc.cpuDispatcher = m_dispatcherPtr;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
 		m_scenePtr = m_physicsPtr->createScene(sceneDesc);
-
-		m_controllManager = PxCreateControllerManager(*m_scenePtr);
 
 		PxPvdSceneClient* pvdClient = m_scenePtr->getScenePvdClient();
 		if (pvdClient)
@@ -329,5 +334,4 @@ public:
 		capsule->setRadius(radius);
 
 	}
-
 };
