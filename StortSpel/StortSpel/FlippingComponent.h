@@ -2,7 +2,7 @@
 #include "Component.h"
 #include "Transform.h"
 
-class FlippingPlatformComponent : public Component
+class FlippingComponent : public Component
 {
 private:
 	// Input stuff:
@@ -26,16 +26,16 @@ private:
 	}
 
 public:
-	FlippingPlatformComponent(Transform* transform, float upTime, float downTime, float flipSpeed = 0.5f)
+	FlippingComponent(Transform* transform, float upTime, float downTime, float flipSpeed = 0.5f)
 	{
-		m_type = ComponentType::FLIPPINGPLATFORM;
+		m_type = ComponentType::FLIPPING;
 		this->m_transform = transform;
 		this->m_upTime = upTime;
 		this->m_downTime = downTime;
 		this->m_flipSpeed = flipSpeed;
 	}
 
-	~FlippingPlatformComponent() {}
+	~FlippingComponent() {}
 	virtual void update(float dt) override
 	{
 		m_time += dt;

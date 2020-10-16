@@ -326,7 +326,7 @@ void Engine::buildTestStage()
 		addComponent(testXwing, "xwingtestmesh",
 			new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
 		addComponent(testXwing, "xwingtestmove",
-			new MovingPlatformComponent(dynamic_cast<Transform*>(testXwing), Vector3(0, 10, -5), Vector3(0, 10, 100), 20));
+			new SweepingComponent(dynamic_cast<Transform*>(testXwing), Vector3(0, 10, -5), Vector3(0, 10, 100), 20));
 	}
 	// Rotating Cube
 	Entity* rotatingCube = addEntity("RotatingCube");
@@ -367,7 +367,7 @@ void Engine::buildTestStage()
 		FlippingCube->move({ 5.f, 0.f, 15.f });
 		FlippingCube->scale({ 4, 1, 4 });
 		addComponent(FlippingCube, "flipp",
-			new FlippingPlatformComponent(dynamic_cast<Transform*>(FlippingCube), 3, 3));
+			new FlippingComponent(dynamic_cast<Transform*>(FlippingCube), 3, 3));
 	}
 
 	// Platforms

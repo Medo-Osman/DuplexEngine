@@ -215,10 +215,10 @@
     <ClInclude Include="Timer.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
-    <ClInclude Include="MovingPlatformComponent.h">
+    <ClInclude Include="FlippingComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="FlippingPlatformComponent.h">
+    <ClInclude Include="SweepingComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
   </ItemGroup>

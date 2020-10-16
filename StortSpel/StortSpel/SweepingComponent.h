@@ -2,7 +2,7 @@
 #include "Component.h"
 #include "Transform.h"
 
-class MovingPlatformComponent : public Component
+class SweepingComponent : public Component
 {
 private:
 	Transform* m_transform;
@@ -19,9 +19,9 @@ private:
 	}
 
 public:
-	MovingPlatformComponent(Transform* transform, Vector3 startPos, Vector3 endPos, float travelTime)
+	SweepingComponent(Transform* transform, Vector3 startPos, Vector3 endPos, float travelTime)
 	{
-		m_type = ComponentType::MOVINGPLATFORM;
+		m_type = ComponentType::SWEEPING;
 		this->m_transform = transform;
 		this->m_startPos = startPos;
 		this->m_endPos = endPos;
@@ -30,7 +30,7 @@ public:
 		m_transform->translation(m_startPos);
 	}
 
-	~MovingPlatformComponent() {}
+	~SweepingComponent() {}
 	virtual void update(float dt) override
 	{
 		m_time += dt;
