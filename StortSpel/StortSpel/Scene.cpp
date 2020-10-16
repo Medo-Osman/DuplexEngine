@@ -148,11 +148,18 @@ void Scene::loadScene(std::string path)
 		floor->scale({ 20, 2, 20 });
 		engine->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
-	//								 Pos:					Rot:	Other:
-	createParisWheel		(engine, Vector3(-17.5, 7, 23), -30,	20);
-	createStaticPlatform	(engine, Vector3(7, 4, 17),		0,		"SquarePlatform.lrm");
-	createStaticPlatform	(engine, Vector3(10, 7, 27),	30,		"SquarePlatform.lrm");
-	createStaticPlatform	(engine, Vector3(16.5, 11, 36),	14,		"SquarePlatform.lrm");
+	//								 Pos:						Rot:					Scale:					Other:
+	createStaticPlatform	(engine, Vector3(7.5, 0.5, 17.5),	Vector3(0, 0, 0),		Vector3(5, 1, 15),		"testCube_pCube1.lrm");
+	createStaticPlatform	(engine, Vector3(7.5, 4, 24.5),		Vector3(0, 0, 0),		Vector3(5, 6, 1),		"testCube_pCube1.lrm");
+	createStaticPlatform	(engine, Vector3(7.5, 7.5, 31.5),	Vector3(0, 0, 0),		Vector3(5, 1, 15),		"testCube_pCube1.lrm");
+	createStaticPlatform	(engine, Vector3(2.5, 7.5, 36.5),	Vector3(0, 0, 0),		Vector3(5, 1, 5),		"testCube_pCube1.lrm");
+	createStaticPlatform	(engine, Vector3(-7, 10, 36.5),		Vector3(0, 90, 0),		Vector3(1, 1, 1),		"SquarePlatform.lrm");
+	createStaticPlatform	(engine, Vector3(-19, 7.5, 36.5),	Vector3(0, 0, 0),		Vector3(10, 1, 5),		"testCube_pCube1.lrm");
+
+	//createParisWheel		(engine, Vector3(-17.5, 7, 23), -30,	20);
+	//createStaticPlatform	(engine, Vector3(7, 4, 17),		0,		"SquarePlatform.lrm");
+	//createStaticPlatform	(engine, Vector3(10, 7, 27),	30,		"SquarePlatform.lrm");
+	//createStaticPlatform	(engine, Vector3(16.5, 11, 36),	14,		"SquarePlatform.lrm");
 	//createFlippingPlatform	(engine, Vector3(7, 3, 15));
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -223,17 +230,18 @@ void Scene::createFlippingPlatform(Engine*& engine, Vector3 position, float upTi
 	nrOfFlippingPlatforms++;
 }
 
-void Scene::createStaticPlatform(Engine*& engine, Vector3 position, float rotation, std::string meshName)
+void Scene::createStaticPlatform(Engine*& engine, Vector3 position, Vector3 rotation, Vector3 scale, std::string meshName)
 {
-	Entity* staticPlatform = engine->addEntity("StaticPlatform-" + std::to_string(nrOfStaticPlatforms));
+	Entity* staticPlatform = engine->addEntity("StaticPlatform-" + std::to_string(m_nrOfStaticPlatforms));
 	if (staticPlatform)
 	{
 		engine->addComponent(staticPlatform, "mesh",
 			new MeshComponent(meshName.c_str(), Material({ L"GrayTexture.png" })));
 
-		staticPlatform->setRotation(0, XMConvertToRadians(rotation), 0);
-		staticPlatform->setPosition({ position });
+		staticPlatform->setPosition(position);
+		staticPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+		staticPlatform->setScale(scale);
 		engine->createNewPhysicsComponent(staticPlatform);
 	}
-	nrOfStaticPlatforms++;
+	m_nrOfStaticPlatforms++;
 }
