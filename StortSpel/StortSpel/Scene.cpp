@@ -14,7 +14,7 @@ void Scene::loadScene(std::string path)
 {
 	Engine* engine = &Engine::get();
 	Entity* entity;
-
+	/*
 	Entity* cube1 = engine->addEntity("cube1");
 	if (cube1)
 	{
@@ -50,7 +50,7 @@ void Scene::loadScene(std::string path)
 	}
 
 	// Tent
-	/*Entity* tent = addEntity("tent");
+	Entity* tent = addEntity("tent");
 	if (tent)
 	{
 		addComponent(tent, "mesh", new MeshComponent("BigTopTent_Cylinder.lrm", Material({ L"T_CircusTent_D.png" })));
@@ -58,17 +58,6 @@ void Scene::loadScene(std::string path)
 		tent->move({ -10.f, 0.f, 0.f });
 
 		this->createNewPhysicsComponent(tent, true, "");
-	}*/
-
-	// Floor
-	Material gridTest = Material({ L"T_GridTestTex.bmp" });
-	Entity* floor = engine->addEntity("floor");
-	if (floor)
-	{
-		engine->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		floor->scale({ 300, 2,300 });
-		floor->translate({ 0,-2,0 });
-		engine->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
 	// Flying Cube
@@ -134,19 +123,7 @@ void Scene::loadScene(std::string path)
 			new RotateAroundComponent(dynamic_cast<Transform*>(rotatingCube), rotatingCube->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube3), 2, 40.f, 180.f));
 		rotatingCube3->scale({ 0.5f, 0.5f, 0.5f });
 	}
-
-	// Flipping Cube 
-	Entity* FlippingCube = engine->addEntity("FlippingCube");
-	if (FlippingCube)
-	{
-		engine->addComponent(FlippingCube, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
-		FlippingCube->translate({ 5.f, 0.f, 15.f });
-		FlippingCube->scale({ 4, 1, 4 });
-		engine->addComponent(FlippingCube, "flipp",
-			new FlippingComponent(dynamic_cast<Transform*>(FlippingCube), 3, 3));
-	}
-
+	
 	// Platforms
 	for (int i = 0; i < 5; i++)
 	{
@@ -159,6 +136,26 @@ void Scene::loadScene(std::string path)
 			engine->createNewPhysicsComponent(cube);
 		}
 	}
+	*/
+	/////////////////////////////////////////////////////////////////////////////////////
+	
+	Entity* floor = engine->addEntity("floor"); // Floor:
+	if (floor)
+	{
+		engine->addComponent(floor, "mesh", 
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"T_GridTestTex.bmp" })));
+
+		floor->scale({ 20, 2, 20 });
+		engine->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+	//								 Pos:					Rot:	Other:
+	createParisWheel		(engine, Vector3(-17.5, 7, 23), -30,	20);
+	createStaticPlatform	(engine, Vector3(7, 4, 17),		0,		"SquarePlatform.lrm");
+	createStaticPlatform	(engine, Vector3(10, 7, 27),	30,		"SquarePlatform.lrm");
+	createStaticPlatform	(engine, Vector3(16.5, 11, 36),	14,		"SquarePlatform.lrm");
+	//createFlippingPlatform	(engine, Vector3(7, 3, 15));
+
+	/////////////////////////////////////////////////////////////////////////////////////
 
 	m_entities["SkyBox"] = engine->addEntity("SkyBox");
 	if (m_entities["SkyBox"])
@@ -172,4 +169,71 @@ void Scene::loadScene(std::string path)
 
 void Scene::updateScene(const float& dt)
 {
+}
+
+
+// Private functions:
+void Scene::createParisWheel(Engine*& engine, Vector3 position, float rotation, float rotationSpeed, int nrOfPlatforms)
+{
+	Entity* ParisWheel = engine->addEntity("ParisWheel-" + std::to_string(nrOfParisWheels));
+	if (ParisWheel)
+	{
+		engine->addComponent(ParisWheel, "mesh",
+			new MeshComponent("ParisWheel.lrm", Material({ L"GrayTexture.png" })));
+		ParisWheel->setPosition(position);
+		ParisWheel->setRotation(0, XMConvertToRadians(rotation), 0);
+	}
+	
+	Entity* center = engine->addEntity("Empty-" + std::to_string(nrOfParisWheels));
+	if (center)
+	{
+		center->setRotation(0, XMConvertToRadians(rotation), XMConvertToRadians(90));
+		center->setPosition(position);
+	}
+
+	float test = 360 / nrOfPlatforms;
+	for (int i = 0; i < 360; i+= test)
+	{
+		Entity* ParisWheelPlatform = engine->addEntity("ParisWheelPlatform-" + std::to_string(nrOfParisWheels) + "_" + std::to_string(i));
+		if (ParisWheelPlatform)
+		{
+			engine->addComponent(ParisWheelPlatform, "mesh",
+				new MeshComponent("ParisWheelPlatform.lrm", Material({ L"GrayTexture.png" })));
+			engine->addComponent(ParisWheelPlatform, "rotate",
+				new RotateAroundComponent(center, center->getRotationMatrix(), ParisWheelPlatform, 12, rotationSpeed, i));
+			ParisWheelPlatform->setRotation(0, XMConvertToRadians(rotation), 0);
+		}
+	}
+	nrOfParisWheels++;
+}
+
+void Scene::createFlippingPlatform(Engine*& engine, Vector3 position, float upTime, float downTime)
+{
+	Entity* flippingPlatform = engine->addEntity("FlippingCube-" + std::to_string(nrOfFlippingPlatforms));
+	if (flippingPlatform)
+	{
+		engine->addComponent(flippingPlatform, "mesh",
+			new MeshComponent("SquarePlatform.lrm", Material({ L"GrayTexture.png" })));
+		engine->addComponent(flippingPlatform, "flipp",
+			new FlippingComponent(flippingPlatform, upTime, downTime));
+
+		//flippingPlatform->setRotation(0, XMConvertToRadians(180), 0);
+		flippingPlatform->setPosition({ position });
+	}
+	nrOfFlippingPlatforms++;
+}
+
+void Scene::createStaticPlatform(Engine*& engine, Vector3 position, float rotation, std::string meshName)
+{
+	Entity* staticPlatform = engine->addEntity("StaticPlatform-" + std::to_string(nrOfStaticPlatforms));
+	if (staticPlatform)
+	{
+		engine->addComponent(staticPlatform, "mesh",
+			new MeshComponent(meshName.c_str(), Material({ L"GrayTexture.png" })));
+
+		staticPlatform->setRotation(0, XMConvertToRadians(rotation), 0);
+		staticPlatform->setPosition({ position });
+		engine->createNewPhysicsComponent(staticPlatform);
+	}
+	nrOfStaticPlatforms++;
 }

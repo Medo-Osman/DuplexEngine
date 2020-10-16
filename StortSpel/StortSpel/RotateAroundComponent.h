@@ -14,6 +14,7 @@ private:
 	float m_angle = 0.f;
 	float m_radius = 0.f;
 	float m_rotationSpeed = 20.f;
+	bool m_lockRotationToParent;
 
 	// Other:
 	Vector3 m_pos;
@@ -22,7 +23,7 @@ private:
 	XMMATRIX m_rotationMatrix;
 
 public:
-	RotateAroundComponent(Transform* origin, XMMATRIX originRotationAxis, Transform* transform, float radius, float rotationSpeed = 20.f, float startAngle = 0.f)
+	RotateAroundComponent(Transform* origin, XMMATRIX originRotationAxis, Transform* transform, float radius, float rotationSpeed = 20.f, float startAngle = 0.f, bool lockRotationToParent = false)
 	{
 		m_type = ComponentType::ROTATEAROUND;
 		this->m_originTransform = origin;
@@ -33,6 +34,7 @@ public:
 		this->m_angle		  = startAngle;
 		this->m_radius		  = radius;
 		this->m_rotationSpeed = rotationSpeed;
+		this->m_lockRotationToParent = lockRotationToParent;
 	}
 
 	~RotateAroundComponent() {}
@@ -52,7 +54,8 @@ public:
 		m_pos = XMVector3TransformCoord(m_offset,  m_rotationMatrix * m_rotation * m_originTransformMatrix);
 
 		//Set rotation of the mesh that rotates, so that it matches the parent
-		m_transform->setRotationQuat(Quaternion::CreateFromRotationMatrix(m_rotation));
+		if (m_lockRotationToParent == true)
+			m_transform->setRotationQuat(Quaternion::CreateFromRotationMatrix(m_rotation));
 
 		//Set the position around the parent position, according to proper rotation and radius
 		m_transform->setPosition(m_pos);
