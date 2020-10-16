@@ -289,8 +289,8 @@ void Engine::buildTestStage()
 	if (floor)
 	{
 		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		floor->scale({ 300,0.1,300 });
-		floor->translate({ 0,-0.55,0 });
+		floor->scale({ 300, 2,300 });
+		floor->translate({0,-2,0 });
 		this->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
@@ -325,6 +325,51 @@ void Engine::buildTestStage()
 	{
 		addComponent(testXwing, "xwingtestmesh", new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
 		testXwing->translate({ 0.f, 1.5f, 20.f });
+		addComponent(testXwing, "xwingtestmesh",
+			new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
+		addComponent(testXwing, "xwingtestmove",
+			new MovingPlatformComponent(dynamic_cast<Transform*>(testXwing), Vector3(0, 10, -5), Vector3(0, 10, 100), 20));
+	}
+	// Rotating Cube
+	Entity* rotatingCube = addEntity("RotatingCube");
+	if (rotatingCube)
+	{
+		addComponent(rotatingCube, "mesh",
+			new MeshComponent("testCube_pCube1.lrm"));
+		addComponent(rotatingCube, "rotate",
+			new RotateAroundComponent(dynamic_cast<Transform*>(testXwing), testXwing->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube), 5));
+	}
+	// Rotating Cube 2
+	Entity* rotatingCube2 = addEntity("RotatingCube2");
+	if (rotatingCube2)
+	{
+		addComponent(rotatingCube2, "mesh",
+			new MeshComponent("testCube_pCube1.lrm"));
+		addComponent(rotatingCube2, "rotate",
+			new RotateAroundComponent(dynamic_cast<Transform*>(rotatingCube), rotatingCube->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube2), 2, 40.f));
+		rotatingCube2->scale({ 0.5f, 0.5f, 0.5f });
+	}
+	// Rotating Cube 3
+	Entity* rotatingCube3 = addEntity("RotatingCube3");
+	if (rotatingCube3)
+	{
+		addComponent(rotatingCube3, "mesh",
+			new MeshComponent("testCube_pCube1.lrm"));
+		addComponent(rotatingCube3, "rotate",
+			new RotateAroundComponent(dynamic_cast<Transform*>(rotatingCube), rotatingCube->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube3), 2, 40.f, 180.f));
+		rotatingCube3->scale({ 0.5f, 0.5f, 0.5f });
+	}
+	
+	// Flipping Cube 
+	Entity* FlippingCube = addEntity("FlippingCube");
+	if (FlippingCube)
+	{
+		addComponent(FlippingCube, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
+		FlippingCube->translate({ 5.f, 0.f, 15.f });
+		FlippingCube->scale({ 4, 1, 4 });
+		addComponent(FlippingCube, "flipp",
+			new FlippingPlatformComponent(dynamic_cast<Transform*>(FlippingCube), 3, 3));
 	}
 
 	// Platforms

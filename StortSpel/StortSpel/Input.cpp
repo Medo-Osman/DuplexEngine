@@ -8,7 +8,7 @@ bool Input::fillInputDataUsingKey(const char& key, const bool& wasPressed, const
 		if (wasPressed)
 		{
 			int action = m_contexts[i]->getAction(key);
-			if (action != -1 && !m_contexts[i]->getMute())
+			if (action != -1)
 			{
 				m_currentInputData.actionData.emplace_back(Action(action));
 				foundContext = true;
@@ -18,7 +18,7 @@ bool Input::fillInputDataUsingKey(const char& key, const bool& wasPressed, const
 		if (!foundContext && !isMouse)
 		{
 			int state = m_contexts[i]->getState(key);
-			if (state != -1 && !m_contexts[i]->getMute())
+			if (state != -1)
 			{
 				if (wasPressed)
 					m_currentInputData.stateData.emplace_back(State(state));
@@ -54,10 +54,6 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 		if (key == VK_ESCAPE)
 			uMsg = WM_DESTROY;
 
-		if (key == VK_TAB)
-		{
-			m_contexts[0]->setMute(!m_contexts[0]->getMute());
-		}
 		return 0;
 	}
 	case WM_KEYUP:
@@ -232,7 +228,7 @@ void Input::readBuffers()
 			for (std::vector<int>::size_type i = 0; i < m_contexts.size() && !foundContext; i++) 
 			{
 				Range rangeState = Range(m_contexts[i]->getRange(charConverted));
-				if (rangeState != -1 && !m_contexts[i]->getMute())
+				if (rangeState != -1)
 				{
 					MousePos pos = mouseEvnt.getPos();
 					this->m_currentInputData.rangeData.emplace_back(rangeState, pos);

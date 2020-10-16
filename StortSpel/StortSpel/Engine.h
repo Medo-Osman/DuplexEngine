@@ -5,6 +5,8 @@
 #include "MeshComponent.h"
 #include "TestComponent.h"
 #include "RotateAroundComponent.h"
+#include "MovingPlatformComponent.h"
+#include "FlippingPlatformComponent.h"
 #include "PhysicsComponent.h"
 #include "AudioHandler.h"
 #include "AudioComponent.h"
