@@ -17,9 +17,10 @@
 class PerformanceTester
 {
 private:
-	Timer internalTimer;
+	Timer m_internalTimer;
+	double m_sampleFrequency = 10.f / 60.f; //10 times a second
 
-	float frameRate = 0;
+	float m_frameRate = 0;
 
 	float checkRam()
 	{
@@ -70,7 +71,7 @@ private:
 	}
 
 	PerformanceTester() {
-		internalTimer.start();
+		m_internalTimer.start();
 	};
 
 	std::vector<float> fps;
@@ -100,17 +101,17 @@ public:
 		ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
 		ImGui::SetNextWindowSize(ImVec2(250.f, 60.f));
 
-		double time = internalTimer.timeElapsed();
-		if (time >= 10.f/60.f)
+		double time = m_internalTimer.timeElapsed();
+		if (time >= m_sampleFrequency)
 		{
-			frameRate = 1.f / dt;
-			internalTimer.restart();
+			m_frameRate = 1.f / dt;
+			m_internalTimer.restart();
 		}
 			
 		ImGui::Begin("Counter", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 		ImGui::Text("RAM: %d Mb", (int)ram);
 		ImGui::Text("VRAM: %d Mb", (int)vram);
-		ImGui::Text("%.0f FPS: ", frameRate);
+		ImGui::Text("%.0f FPS ", m_frameRate);
 		ImGui::End();
 	}
 };

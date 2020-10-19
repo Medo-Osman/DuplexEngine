@@ -16,8 +16,6 @@ ApplicationLayer::ApplicationLayer()
 ApplicationLayer::~ApplicationLayer()
 {
 	std::cout << "Memory upon shutdown: " << std::endl;
-	PerformanceTester::get().runPerformanceTestPrint();
-	//system("pause");
 }
 
 bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd)
@@ -139,6 +137,7 @@ void ApplicationLayer::applicationLoop()
 			m_physics->update(m_dt);
 			m_enginePtr->update(m_dt);
 
+			PerformanceTester::get().runPerformanceTestsGui(m_dt);
 
 			m_rendererPtr->update(m_dt);
 			m_scenemanager.updateScene(m_dt);

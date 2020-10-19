@@ -30,7 +30,6 @@ void Scene::loadScene(std::string path)
 		cube2->translate({ 10.f, 0.5f, 0.f });
 		cube2->scaleUniform({ -2.f });
 	}
-	PerformanceTester::get().runPerformanceTestPrint();
 
 	// Cube 3
 	Entity* cube3 = engine->addEntity("cube3");
@@ -96,7 +95,6 @@ void Scene::loadScene(std::string path)
 		physicsComp->initActor(cubeSphereBB, false);
 		physicsComp->addSphereShape(2.f);
 	}
-	PerformanceTester::get().runPerformanceTestPrint();
 
 	// XWing
 	Entity* testXwing = engine->addEntity("testXwing");
@@ -161,10 +159,8 @@ void Scene::loadScene(std::string path)
 			engine->createNewPhysicsComponent(cube);
 		}
 	}
-	PerformanceTester::get().runPerformanceTestPrint();
 	Material skyboxMat;
 	skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-	PerformanceTester::get().runPerformanceTestPrint();
 
 
 	m_entities["SkyBox"] = engine->addEntity("SkyBox");
@@ -174,7 +170,6 @@ void Scene::loadScene(std::string path)
 		engine->addComponent(m_entities["SkyBox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
 	}
-	PerformanceTester::get().runPerformanceTestPrint();
 }
 
 void Scene::updateScene(const float& dt)
