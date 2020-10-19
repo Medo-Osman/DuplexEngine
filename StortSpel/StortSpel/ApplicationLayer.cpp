@@ -18,6 +18,7 @@ ApplicationLayer::~ApplicationLayer()
 {
 	std::cout << "Memory upon shutdown: " << std::endl;
 	PerformanceTester::get().runPerformanceTestPrint();
+	//system("pause");
 }
 
 bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd)
@@ -40,6 +41,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	rawIDevice.usUsage = 0x02;
 	rawIDevice.dwFlags = 0;
 	rawIDevice.hwndTarget = NULL;
+
 	if (RegisterRawInputDevices(&rawIDevice, 1, sizeof(rawIDevice)) == FALSE)
 		return false;
 	m_rendererPtr = &Renderer::get();//new Renderer();

@@ -12,10 +12,14 @@
 #include <string>
 #include <iostream>
 #include <string>
+#include "Timer.h"
 
 class PerformanceTester
 {
 private:
+	Timer internalTimer;
+
+	float frameRate = 0;
 
 	float checkRam()
 	{
@@ -65,7 +69,9 @@ private:
 		return vram;
 	}
 
-	PerformanceTester() {};
+	PerformanceTester() {
+		internalTimer.start();
+	};
 
 	std::vector<float> fps;
 
@@ -91,16 +97,20 @@ public:
 		float vram = checkVram();
 		float ram = checkRam();
 		
-
 		ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
 		ImGui::SetNextWindowSize(ImVec2(250.f, 60.f));
 
-
-
+		double time = internalTimer.timeElapsed();
+		if (time >= 10.f/60.f)
+		{
+			frameRate = 1.f / dt;
+			internalTimer.restart();
+		}
+			
 		ImGui::Begin("Counter", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 		ImGui::Text("RAM: %d Mb", (int)ram);
 		ImGui::Text("VRAM: %d Mb", (int)vram);
-		ImGui::Text("%f deltaTime", dt);
+		ImGui::Text("%.0f FPS: ", frameRate);
 		ImGui::End();
 	}
 };

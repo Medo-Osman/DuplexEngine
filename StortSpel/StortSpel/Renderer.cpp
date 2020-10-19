@@ -17,8 +17,7 @@ void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
 
 void Renderer::release()
 {
-	m_devicePtr.Get()->Release();
-	m_dContextPtr->Release();
+	
 	m_swapChainPtr->Release();
 	m_debugPtr->Release();
 	m_rTargetViewPtr->Release();
@@ -43,12 +42,23 @@ void Renderer::release()
 
 Renderer::~Renderer()
 {
+	m_devicePtr = nullptr;
+	//m_dContextPtr.Reset();
+	//m_swapChainPtr.Reset();
 
+
+
+	skyboxDSSPtr->Release();
 	for (std::pair<ShaderProgramsEnum, ShaderProgram*> element : m_compiledShaders)
 	{
 		delete element.second;
 	}
 
+
+	HRESULT hr = this->m_debugPtr->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+	assert(SUCCEEDED(hr));
+	Microsoft::WRL::ComPtr< ID3D11Debug > m_deviceDebug;
+	m_debugPtr.Reset();
 }
 
 HRESULT Renderer::initialize(const HWND& window)
@@ -73,6 +83,7 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	hr = m_devicePtr->CreateRenderTargetView(m_swapChainBufferPtr.Get(), 0, m_rTargetViewPtr.GetAddressOf());
 	if (!SUCCEEDED(hr)) return hr;
+	int var = m_swapChainBufferPtr.Reset();
 
 	hr = createDepthStencil();
 	if (!SUCCEEDED(hr)) return hr;
@@ -140,8 +151,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
 
-	//m_swapChainPtr->Release();
-	//m_swapChainBufferPtr->Release();
+
 
 	return hr;
 }
@@ -329,7 +339,7 @@ void Renderer::render()
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-	m_swapChainPtr->Present(0, 0);
+	m_swapChainPtr->Present(1, 0);
 }
 
 ID3D11Device* Renderer::getDevice()
