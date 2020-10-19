@@ -46,9 +46,6 @@
     <Filter Include="Source Files\Application\Input\Context">
       <UniqueIdentifier>{9427d680-6062-452d-8ee0-7d381c1aa292}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\ImGui">
-      <UniqueIdentifier>{b83ae7b9-ec91-43b6-be4f-ef7939f0fe08}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -105,32 +102,14 @@
     <ClCompile Include="Material.cpp">
       <Filter>Source Files\Graphic</Filter>
     </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>Source Files\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Timer.cpp">
       <Filter>Source Files\Application</Filter>
     </ClCompile>
-    <ClCompile Include="..\3rd-Party\ImGui\imgui.cpp">
-      <Filter>Source Files\ImGui</Filter>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Source Files\Graphic</Filter>
     </ClCompile>
-    <ClCompile Include="..\3rd-Party\ImGui\imgui_demo.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rd-Party\ImGui\imgui_draw.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rd-Party\ImGui\imgui_impl_dx11.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rd-Party\ImGui\imgui_widgets.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rd-Party\ImGui\imgui_impl_win32.cpp">
-      <Filter>Source Files\ImGui</Filter>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>Source Files\Graphic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -239,47 +218,26 @@
     <ClInclude Include="LightStructs.h">
       <Filter>Source Files\Graphic</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Source Files\Game</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneManager.h">
-      <Filter>Source Files\Game</Filter>
-    </ClInclude>
     <ClInclude Include="Timer.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rd-Party\ImGui\imconfig.h">
-      <Filter>Source Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\3rd-Party\ImGui\imgui.h">
-      <Filter>Source Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\3rd-Party\ImGui\imgui_impl_dx11.h">
-      <Filter>Source Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\3rd-Party\ImGui\imgui_impl_win32.h">
-      <Filter>Source Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\3rd-Party\ImGui\imgui_internal.h">
-      <Filter>Source Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\3rd-Party\ImGui\imstb_rectpack.h">
-      <Filter>Source Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\3rd-Party\ImGui\imstb_textedit.h">
-      <Filter>Source Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\3rd-Party\ImGui\imstb_truetype.h">
-      <Filter>Source Files\ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ProjectileShooterComponent.h">
+    <ClInclude Include="CharacterControllerComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="ProjectileComponent.h">
+    <ClInclude Include="FlippingComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="SweepingComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="PerformanceTester.h">
       <Filter>Source Files\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>Source Files\Graphic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

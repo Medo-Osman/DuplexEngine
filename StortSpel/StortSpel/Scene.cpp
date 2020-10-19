@@ -15,118 +15,151 @@ void Scene::loadScene(std::string path)
 	Engine* engine = &Engine::get();
 	Entity* entity;
 
-	//player
-	/*m_player = engine->addEntity("m_player");
-	if (m_player)
+	Entity* cube1 = engine->addEntity("cube1");
+	if (cube1)
 	{
-		engine->addComponent(m_player, "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
-		m_entities["m_player"]->translation({ 5, 10.f, 0 });
+		engine->addComponent(cube1, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
+		cube1->scaleUniform({ -1.f });
+	}
+
+	// Cube 2
+	Entity* cube2 = engine->addEntity("cube2");
+	if (cube2)
+	{
+		engine->addComponent(cube2, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
+		cube2->translate({ 10.f, 0.5f, 0.f });
+		cube2->scaleUniform({ -2.f });
+	}
+	PerformanceTester::get().runPerformanceTestPrint();
+
+	// Cube 3
+	Entity* cube3 = engine->addEntity("cube3");
+	if (cube3)
+	{
+		engine->addComponent(cube3, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture3m.png" })));
+		cube3->translate({ 20.f, 1.f, 0.f });
+		cube3->scaleUniform({ -3.f });
+	}
+
+	// Cube 4
+	Entity* cube4 = engine->addEntity("cube4");
+	if (cube4)
+	{
+		engine->addComponent(cube4, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture4m.png" })));
+		cube4->translate({ 30.f, 1.5f, 0.f });
+		cube4->scaleUniform({ -4.f });
+	}
+
+	// Tent
+	/*Entity* tent = addEntity("tent");
+	if (tent)
+	{
+		addComponent(tent, "mesh", new MeshComponent("BigTopTent_Cylinder.lrm", Material({ L"T_CircusTent_D.png" })));
+		tent->rotate({ XMConvertToRadians(-90.f), 0.f, 0.f });
+		tent->move({ -10.f, 0.f, 0.f });
+
+		this->createNewPhysicsComponent(tent, true, "");
 	}*/
 
-	PerformanceTester::get().runPerformanceTestPrint();
-	//tent
-	entity = engine->addEntity("tent");
-	if (entity)
-	{
-		m_entities["tent"] = entity;
-		engine->addComponent(entity, "mesh", new MeshComponent("BigTopTent_Cylinder.lrm", Material({ L"T_CircusTent_D.png" })));
-		entity->rotate({ XMConvertToRadians(-90.f), 0.f, 0.f });
-		entity->move({ -10.f, 0.f, 0.f });
-
-		//engine->createNewPhysicsComponent(entity, true, "", PxGeometryType::eBOX, "default", false);
-	}
-	PerformanceTester::get().runPerformanceTestPrint();
-
-	//floor
-	entity = engine->addEntity("floor");
-	if (entity)
-	{
-		m_entities["floor"] = entity;
-		engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::DEFAULT, Material({ L"T_CircusTent_D.png" })));
-		entity->scale({ 300,0.1,300 });
-		entity->move({ 0,-0.6,0 });
-		engine->createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
-	}
-
+	// Floor
 	Material gridTest = Material({ L"T_GridTestTex.bmp" });
-
-	//Cube 2
-	entity = engine->addEntity("cube-test2");
-	if (entity)
+	Entity* floor = engine->addEntity("floor");
+	if (floor)
 	{
-
-		m_entities["cube-test2"] = entity;
-		engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		entity->scaleUniform({ 3.f });
-		entity->move({ 0.f, 5.f, 5.f });
-		entity->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		engine->createNewPhysicsComponent(entity, true, "", PxGeometryType::eSPHERE, "default", false);
+		engine->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+		floor->scale({ 300, 2,300 });
+		floor->translate({ 0,-2,0 });
+		engine->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	//Cube with sphere shape
-	entity = engine->addEntity("cube-test3");
-	if (entity)
+	// Flying Cube
+	Entity* cube = engine->addEntity("cube-test2");
+	if (cube)
 	{
+		engine->addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+		cube->scaleUniform({ 3.f });
+		cube->translate({ 0.f, 5.f, 5.f });
+		cube->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
+		engine->createNewPhysicsComponent(cube, true, "", PxGeometryType::eSPHERE);
+	}
 
-		m_entities["cube-test3"] = entity;
-		engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-		entity->scaleUniform({ 3.f });
-		entity->move({ -10.f, 5.f, 5.f });
-		entity->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		engine->addComponent(entity, "physics", new PhysicsComponent(&Physics::get()));
-		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
-		physicsComp->initActor(entity, false);
+	// Cube with sphere shape
+	Entity* cubeSphereBB = engine->addEntity("cube-test3");
+	if (cubeSphereBB)
+	{
+		engine->addComponent(cubeSphereBB, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+		cubeSphereBB->scaleUniform({ 3.f });
+		cubeSphereBB->translate({ -10.f, 5.f, 5.f });
+		cubeSphereBB->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
+		engine->addComponent(cubeSphereBB, "physics", new PhysicsComponent());
+		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(cubeSphereBB->getComponent("physics"));
+		physicsComp->initActor(cubeSphereBB, false);
 		physicsComp->addSphereShape(2.f);
 	}
 	PerformanceTester::get().runPerformanceTestPrint();
 
-
-	/*entity = engine->addEntity("testXwing");
-	if (entity)
+	// XWing
+	Entity* testXwing = engine->addEntity("testXwing");
+	if (testXwing)
 	{
+		engine->addComponent(testXwing, "xwingtestmesh",
+			new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
+		engine->addComponent(testXwing, "xwingtestmove",
+			new SweepingComponent(dynamic_cast<Transform*>(testXwing), Vector3(0, 10, -5), Vector3(0, 10, 100), 20));
+	}
+	// Rotating Cube
+	Entity* rotatingCube = engine->addEntity("RotatingCube");
+	if (rotatingCube)
+	{
+		engine->addComponent(rotatingCube, "mesh",
+			new MeshComponent("testCube_pCube1.lrm"));
+		engine->addComponent(rotatingCube, "rotate",
+			new RotateAroundComponent(dynamic_cast<Transform*>(testXwing), testXwing->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube), 5));
+	}
+	// Rotating Cube 2
+	Entity* rotatingCube2 = engine->addEntity("RotatingCube2");
+	if (rotatingCube2)
+	{
+		engine->addComponent(rotatingCube2, "mesh",
+			new MeshComponent("testCube_pCube1.lrm"));
+		engine->addComponent(rotatingCube2, "rotate",
+			new RotateAroundComponent(dynamic_cast<Transform*>(rotatingCube), rotatingCube->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube2), 2, 40.f));
+		rotatingCube2->scale({ 0.5f, 0.5f, 0.5f });
+	}
+	// Rotating Cube 3
+	Entity* rotatingCube3 = engine->addEntity("RotatingCube3");
+	if (rotatingCube3)
+	{
+		engine->addComponent(rotatingCube3, "mesh",
+			new MeshComponent("testCube_pCube1.lrm"));
+		engine->addComponent(rotatingCube3, "rotate",
+			new RotateAroundComponent(dynamic_cast<Transform*>(rotatingCube), rotatingCube->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube3), 2, 40.f, 180.f));
+		rotatingCube3->scale({ 0.5f, 0.5f, 0.5f });
+	}
 
-		m_entities["testXwing"] = entity;
-		engine->addComponent(entity, "xwingtestmesh", new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
-		entity->move({ 15.f, 1.5f, -3.f });
-	}*/
+	// Flipping Cube 
+	Entity* FlippingCube = engine->addEntity("FlippingCube");
+	if (FlippingCube)
+	{
+		engine->addComponent(FlippingCube, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
+		FlippingCube->translate({ 5.f, 0.f, 15.f });
+		FlippingCube->scale({ 4, 1, 4 });
+		engine->addComponent(FlippingCube, "flipp",
+			new FlippingComponent(dynamic_cast<Transform*>(FlippingCube), 3, 3));
+	}
 
 	// Platforms
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 5; i++)
 	{
-		entity = engine->addEntity("cube-test" + std::to_string(i));
-
-		m_entities["cube-test"] = entity;
-		if (entity)
+		Entity* cube = engine->addEntity("cube-test" + std::to_string(i));
+		if (cube)
 		{
-			engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm"));
-			entity->scale({ 3,0.2,5 });
-			entity->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
-			//defualt values for this function
-			engine->createNewPhysicsComponent(entity,false, "", PxGeometryType::eBOX, "default", false);
+			engine->addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm"));
+			cube->scale({ 3,0.2,5 });
+			cube->translate({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
+			engine->createNewPhysicsComponent(cube);
 		}
-	}
-	PerformanceTester::get().runPerformanceTestPrint();
-
-	// Rotating Cube
-	Entity* centerCube = engine->addEntity("centerCube");
-	if (centerCube)
-	{
-		engine->addComponent(centerCube, "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
-		centerCube->move({ 0.f, 5.f, 0.f });
-		centerCube->rotate({ 0.5f, 0, 0 });
-	}
-
-	// Rotating Cube
-	m_entities["RotatingCube"] = engine->addEntity("RotatingCube");
-	if (m_entities["RotatingCube"])
-	{
-
-		engine->addComponent(m_entities["RotatingCube"], "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
-		engine->addComponent(m_entities["RotatingCube"], "rotate",
-			new RotateAroundComponent(centerCube->getTranslation(), centerCube->getRotationMatrix(), dynamic_cast<Transform*>(m_entities["RotatingCube"]), 5));
-
 	}
 	PerformanceTester::get().runPerformanceTestPrint();
 	Material skyboxMat;
@@ -134,7 +167,6 @@ void Scene::loadScene(std::string path)
 	PerformanceTester::get().runPerformanceTestPrint();
 
 
-	// Skybox
 	m_entities["SkyBox"] = engine->addEntity("SkyBox");
 	if (m_entities["SkyBox"])
 	{

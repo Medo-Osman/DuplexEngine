@@ -262,6 +262,7 @@ void Renderer::rasterizerSetup()
 void Renderer::update(const float& dt)
 {
 
+	
 }
 
 void Renderer::render()

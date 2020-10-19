@@ -4,8 +4,8 @@
 #include"Renderer.h"
 #include "Engine.h"
 #include"AudioHandler.h"
-#include "SceneManager.h"
 #include"Timer.h"
+#include "SceneManager.h"
 
 #include <windows.h>
 #include <fcntl.h>
@@ -21,8 +21,8 @@ private:
 	Renderer* m_rendererPtr;
 	HWND m_window;
 	Engine* m_enginePtr;
-	SceneManager m_sceneManager;
-	float m_time;
+	SceneManager m_scenemanager;
+
 	Timer m_timer;
 	float m_dt;
 

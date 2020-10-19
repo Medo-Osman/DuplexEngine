@@ -1,7 +1,6 @@
 #include"3DPCH.h"
 #include"ApplicationLayer.h"
 
-
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 ApplicationLayer::ApplicationLayer()
@@ -35,7 +34,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	AudioHandler::get().initialize(m_window);
 
 	//SoundEffect sound(AudioHandler::get().getAudioEngine()->get(), L"../res/audio/NightAmbienceSimple_02.wav");
-
+	
 	RAWINPUTDEVICE rawIDevice;
 	rawIDevice.usUsagePage = 0x01;
 	rawIDevice.usUsage = 0x02;
@@ -51,7 +50,6 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		initOK = true;
 		ShowWindow(m_window, showCmd);
 	}
-
 	//PhysX
 	m_physics = &Physics::get();
 	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
@@ -59,7 +57,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	Engine::get().initialize();
 	m_enginePtr = &Engine::get();
 
-	m_sceneManager.initalize();
+	m_scenemanager.initalize();
 
 	srand(static_cast <unsigned> (time(0)));
 
@@ -138,36 +136,26 @@ void ApplicationLayer::applicationLoop()
 			ImGui::NewFrame();
 
 			m_input.readBuffers();
-			m_sceneManager.updateScene(m_dt);
-			m_enginePtr->update(m_dt);
 			m_physics->update(m_dt);
-			AudioHandler::get().update(m_dt);
 			m_enginePtr->update(m_dt);
 
-			PerformanceTester::get().runPerformanceTestsGui(m_dt);
 
 			m_rendererPtr->update(m_dt);
+			m_scenemanager.updateScene(m_dt);
+			AudioHandler::get().update(m_dt);
 			m_rendererPtr->render();
 
 		}
 	}
 	m_physics->release();
-
-	// ImGui Cleanup
-	ImGui_ImplDX11_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
 }
 
-extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	ApplicationLayer* g_ApplicationLayer = &ApplicationLayer::getInstance();
 	g_ApplicationLayer->m_input.handleMessages(hwnd, uMsg, wParam, lParam);
-
-	if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
-		return true;
-
 	switch (uMsg)
 	{
 	case WM_DEVICECHANGE:

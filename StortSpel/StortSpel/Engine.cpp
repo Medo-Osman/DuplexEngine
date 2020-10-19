@@ -1,6 +1,7 @@
 #include "3DPCH.h"
 #include "Engine.h"
 #include"ApplicationLayer.h"
+#include"CharacterControllerComponent.h"
 
 Engine::Engine()
 {
@@ -16,7 +17,7 @@ void Engine::updateLightData()
 	for (auto light : m_lightComponentMap)
 	{
 		Matrix parentTransform = XMMatrixTranslationFromVector(getEntity(light.second->getParentEntityIdentifier())->getTranslation());
-
+		
 		Vector3 offsetFromParent = light.second->getTranslation();
 
 		Matrix parentRotation = getEntity(light.second->getParentEntityIdentifier())->getRotationMatrix();
@@ -43,7 +44,7 @@ void Engine::updateLightData()
 			spotLight.intensity = spotLightComponent->getIntensity();
 			spotLight.coneFactor = spotLightComponent->getConeFactor();
 			spotLight.direction = Vector3(XMVector3TransformCoord(XMVectorSet(spotLightComponent->getDirection().x, spotLightComponent->getDirection().y, spotLightComponent->getDirection().z, 0),parentRotation));
-
+			
 			lightInfo.spotLights[nrSpotLights++] = spotLight;
 			lightInfo.nrOfSpotLights = nrSpotLights;
 		}
@@ -120,6 +121,7 @@ void Engine::update(const float& dt)
 	}
 	AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
 	ac->setVolume(nightVolume);
+
 }
 Settings Engine::getSettings() const
 {
@@ -158,10 +160,10 @@ void Engine::addMeshComponent(MeshComponent* component)
 	m_meshComponentMap[m_MeshCount] = component;
 }
 
-void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false)
+void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
 {
 	std::vector<Component*> tempComponentVector;
-	PhysicsComponent* physComp = new PhysicsComponent(&Physics::get());
+	PhysicsComponent* physComp = new PhysicsComponent();
 	MeshComponent* meshComponent = nullptr;
 	bool found = false;
 
@@ -202,11 +204,11 @@ void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic = false, std
 	if (!found)
 		ErrorLogger::get().logError("Trying to add physic component without any meshcomponent!. Can't use this helper function.");
 
-
+	
 	entity->addComponent("physics", physComp);
 	physComp->initActorAndShape(entity, meshComponent, geometryType, dynamic, materialName, isUnique);
 }
-
+	
 void Engine::addLightComponent(LightComponent* component)
 {
 	if (m_lightCount < 8)
@@ -236,6 +238,7 @@ std::map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 
 void Engine::buildTestStage()
 {
+	// Cube 1
 	
 }
 
@@ -262,17 +265,17 @@ void Engine::initialize()
 	if (addEntity("meshPlayer"))
 	{
 		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
-		m_entities["meshPlayer"]->translation({ 5, 10.f, 0 });
+		m_entities["meshPlayer"]->setPosition({ 5, 10.f, 0 });
 
 		//Point Light
 		addComponent(m_entities["meshPlayer"], "testLight", new LightComponent());
-		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->translation({ 0,1.f,-5 });
+		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setPosition({ 0,1.f,-5 });
 		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
 		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setIntensity(1.0f);
 
 		//Spot Light
 		addComponent(m_entities["meshPlayer"], "spotlightTest2", new SpotLightComponent());
-		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->translation({ 0,1.f,0 });
+		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setPosition({ 0,1.f,0 });
 		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
 		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setIntensity(3.f);
 
@@ -288,12 +291,11 @@ void Engine::initialize()
 		}
 
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
-		//createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
-		m_entities["meshPlayer"]->addComponent("physics", new PhysicsComponent(&Physics::get()));
-		PhysicsComponent* pc = static_cast<PhysicsComponent*>(m_entities["meshPlayer"]->getComponent("physics"));
-		pc->initActor(m_entities["meshPlayer"], true);
-		pc->addBoxShape({ 1.f, 1.f, 1.f }, "human");
-		pc->controllRotation(false);
+		m_entities["meshPlayer"]->addComponent("CCC", new CharacterControllerComponent());
+		CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(m_entities["meshPlayer"]->getComponent("CCC"));
+		pc->initController(m_entities["meshPlayer"], 1.75f, 0.5, {0.f, -1.45f, 0.f}, "human");
+
+
 		m_player->setPlayerEntity(m_entities["meshPlayer"]);
 
 		addComponent(m_entities["meshPlayer"], "audio", new AudioComponent(L"Explosion.wav", false, 0.5f));
