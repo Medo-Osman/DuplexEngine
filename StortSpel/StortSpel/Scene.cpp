@@ -142,26 +142,47 @@ void Scene::loadScene(std::string path)
 	Entity* floor = engine->addEntity("floor"); // Floor:
 	if (floor)
 	{
+		m_entities["floor"] = floor;
 		engine->addComponent(floor, "mesh", 
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"T_GridTestTex.bmp" })));
 
 		floor->scale({ 20, 2, 20 });
 		engine->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
-	//								 Pos:						Rot:					Scale:					Other:
+// 1st:								 Pos:						Rot:					Scale:					Other:
 	createStaticPlatform	(engine, Vector3(7.5, 0.5, 17.5),	Vector3(0, 0, 0),		Vector3(5, 1, 15),		"testCube_pCube1.lrm");
 	createStaticPlatform	(engine, Vector3(7.5, 4, 24.5),		Vector3(0, 0, 0),		Vector3(5, 6, 1),		"testCube_pCube1.lrm");
 	createStaticPlatform	(engine, Vector3(7.5, 7.5, 31.5),	Vector3(0, 0, 0),		Vector3(5, 1, 15),		"testCube_pCube1.lrm");
 	createStaticPlatform	(engine, Vector3(2.5, 7.5, 36.5),	Vector3(0, 0, 0),		Vector3(5, 1, 5),		"testCube_pCube1.lrm");
 	createStaticPlatform	(engine, Vector3(-7, 10, 36.5),		Vector3(0, 90, 0),		Vector3(1, 1, 1),		"SquarePlatform.lrm");
-	createStaticPlatform	(engine, Vector3(-19, 7.5, 36.5),	Vector3(0, 0, 0),		Vector3(10, 1, 5),		"testCube_pCube1.lrm");
+	//createStaticPlatform	(engine, Vector3(-19, 7.5, 36.5),	Vector3(0, 0, 0),		Vector3(10, 1, 5),		"testCube_pCube1.lrm");
+
+// 2nd:								 Pos:						Rot:					Scale:					Other:
+	createStaticPlatform	(engine, Vector3(-7.5, -4, 9.5),	Vector3(0, 0, 0),		Vector3(5, 6, 1),		"testCube_pCube1.lrm");
+	createStaticPlatform	(engine, Vector3(-7.5, -6.5, 25),	Vector3(0, 0, 0),		Vector3(5, 1, 30),		"testCube_pCube1.lrm");
+	createStaticPlatform	(engine, Vector3(-7.5, -5.5, 23),	Vector3(0, 0, 0),		Vector3(5, 1, 1),		"testCube_pCube1.lrm");
+	createStaticPlatform	(engine, Vector3(-7.5, -5.5, 33),	Vector3(0, 0, 0),		Vector3(5, 1, 1),		"testCube_pCube1.lrm");
+	createStaticPlatform	(engine, Vector3(-7.5, -2, 46),		Vector3(0, 0, 0),		Vector3(1, 1, 1),		"SquarePlatform.lrm");
+	createStaticPlatform	(engine, Vector3(-5, 2.5, 53.5),	Vector3(0, 45, 0),		Vector3(1, 1, 1),		"SquarePlatform.lrm");
+	createStaticPlatform	(engine, Vector3(2, 7.5, 56),		Vector3(0, 90, 0),		Vector3(1, 1, 1),		"SquarePlatform.lrm");
+	createStaticPlatform	(engine, Vector3(12, 7.5, 56),		Vector3(0, 0, 0),		Vector3(5, 1, 5),		"testCube_pCube1.lrm");
+
+	Entity* staticPlatform = engine->addEntity("abc");
+	if (staticPlatform)
+	{
+		m_entities["abc"] = staticPlatform;
+		engine->addComponent(staticPlatform, "mesh",
+			new MeshComponent("SquarePlatform.lrm", Material({ L"GrayTexture.png" })));
+
+		staticPlatform->setPosition(0, 10, 0);
+		staticPlatform->setRotation(0, 0, 0);
+		staticPlatform->setScale(1, 1, 1);
+		engine->createNewPhysicsComponent(staticPlatform);
+	}
 
 	//createParisWheel		(engine, Vector3(-17.5, 7, 23), -30,	20);
-	//createStaticPlatform	(engine, Vector3(7, 4, 17),		0,		"SquarePlatform.lrm");
-	//createStaticPlatform	(engine, Vector3(10, 7, 27),	30,		"SquarePlatform.lrm");
-	//createStaticPlatform	(engine, Vector3(16.5, 11, 36),	14,		"SquarePlatform.lrm");
 	//createFlippingPlatform	(engine, Vector3(7, 3, 15));
-
+	int stop = 0;
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	m_entities["SkyBox"] = engine->addEntity("SkyBox");
@@ -182,6 +203,7 @@ void Scene::updateScene(const float& dt)
 // Private functions:
 void Scene::createParisWheel(Engine*& engine, Vector3 position, float rotation, float rotationSpeed, int nrOfPlatforms)
 {
+	nrOfParisWheels++;
 	Entity* ParisWheel = engine->addEntity("ParisWheel-" + std::to_string(nrOfParisWheels));
 	if (ParisWheel)
 	{
@@ -211,11 +233,11 @@ void Scene::createParisWheel(Engine*& engine, Vector3 position, float rotation, 
 			ParisWheelPlatform->setRotation(0, XMConvertToRadians(rotation), 0);
 		}
 	}
-	nrOfParisWheels++;
 }
 
 void Scene::createFlippingPlatform(Engine*& engine, Vector3 position, float upTime, float downTime)
 {
+	nrOfFlippingPlatforms++;
 	Entity* flippingPlatform = engine->addEntity("FlippingCube-" + std::to_string(nrOfFlippingPlatforms));
 	if (flippingPlatform)
 	{
@@ -227,21 +249,22 @@ void Scene::createFlippingPlatform(Engine*& engine, Vector3 position, float upTi
 		//flippingPlatform->setRotation(0, XMConvertToRadians(180), 0);
 		flippingPlatform->setPosition({ position });
 	}
-	nrOfFlippingPlatforms++;
 }
 
-void Scene::createStaticPlatform(Engine*& engine, Vector3 position, Vector3 rotation, Vector3 scale, std::string meshName)
+void Scene::createStaticPlatform(Engine* engine, Vector3 position, Vector3 rotation, Vector3 scale, std::string meshName)
 {
+	m_nrOfStaticPlatforms++;
+	//std::string test = "StaticPlatform-" + std::to_string(m_nrOfStaticPlatforms);
 	Entity* staticPlatform = engine->addEntity("StaticPlatform-" + std::to_string(m_nrOfStaticPlatforms));
 	if (staticPlatform)
 	{
+		m_entities["StaticPlatform-" + std::to_string(m_nrOfStaticPlatforms)] = staticPlatform;
 		engine->addComponent(staticPlatform, "mesh",
 			new MeshComponent(meshName.c_str(), Material({ L"GrayTexture.png" })));
-
+		
 		staticPlatform->setPosition(position);
 		staticPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 		staticPlatform->setScale(scale);
 		engine->createNewPhysicsComponent(staticPlatform);
 	}
-	m_nrOfStaticPlatforms++;
 }

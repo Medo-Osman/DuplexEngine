@@ -12,7 +12,7 @@ private:
 	int nrOfFlippingPlatforms = 0;
 	void createFlippingPlatform(Engine*& engine, Vector3 position, float upTime = 3, float downTime = 3);
 	int m_nrOfStaticPlatforms = 0;
-	void createStaticPlatform(Engine*& engine, Vector3 position, Vector3 rotation, Vector3 scale, std::string meshName);
+	void createStaticPlatform(Engine* engine, Vector3 position, Vector3 rotation, Vector3 scale, std::string meshName);
 
 public:
 	Scene();
