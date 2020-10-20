@@ -96,6 +96,7 @@ void Scene::loadScene(std::string path)
 		physicsComp->addSphereShape(2.f);
 	}
 
+
 	// XWing
 	Entity* testXwing = engine->addEntity("testXwing");
 	if (testXwing)
@@ -139,10 +140,14 @@ void Scene::loadScene(std::string path)
 	Entity* FlippingCube = engine->addEntity("FlippingCube");
 	if (FlippingCube)
 	{
+		FlippingCube->setPosition({ 5.f, 0.f, 15.f });
+		FlippingCube->scale({ 4, 1, 4 });
 		engine->addComponent(FlippingCube, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
-		FlippingCube->translate({ 5.f, 0.f, 15.f });
-		FlippingCube->scale({ 4, 1, 4 });
+		engine->createNewPhysicsComponent(FlippingCube, true);
+		PhysicsComponent* pc = static_cast<PhysicsComponent*>(FlippingCube->getComponent("physics"));
+		pc->makeKinematic();
+
 		engine->addComponent(FlippingCube, "flipp",
 			new FlippingComponent(dynamic_cast<Transform*>(FlippingCube), 3, 3));
 	}
