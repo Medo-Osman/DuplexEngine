@@ -338,8 +338,15 @@ public:
 
 	}
 
+
+	//Kinematic Actor
 	void makeActorKinematic(PxRigidBody* actor)
 	{
 		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
+	}
+
+	void kinematicMove(PxRigidDynamic* actor, XMFLOAT3 destination, XMFLOAT4 quatRot)
+	{
+		actor->setKinematicTarget(PxTransform(destination.x, destination.y, destination.z, PxQuat(quatRot.x, quatRot.y, quatRot.z, quatRot.w)));
 	}
 };

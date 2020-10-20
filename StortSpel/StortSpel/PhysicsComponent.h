@@ -56,6 +56,7 @@ private:
 		return createdGeometry;
 	}
 
+
 	bool canAddGeometry(bool needsToBeStatic = false)
 	{
 		ErrorLogger* e = &ErrorLogger::get();
@@ -150,6 +151,14 @@ public:
 				m_physicsPtr->makeActorKinematic(static_cast<PxRigidBody*>(this->m_actor));
 		}
 
+	}
+
+	void kinematicMove(XMFLOAT3 destination, XMFLOAT4 quaternionRotation = {0.f, 0.f, 0.f, 0.f })
+	{
+		if (m_kinematic && m_dynamic)
+			m_physicsPtr->kinematicMove(static_cast<PxRigidDynamic*>(m_actor), destination, quaternionRotation);
+		else
+			ErrorLogger::get().logError(L"Trying to kinematicMove actor that is not kinematic and/or dynamic");
 	}
 
 	void initActor(Entity* entity, bool dynamic)
