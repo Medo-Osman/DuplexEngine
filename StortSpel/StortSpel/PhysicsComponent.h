@@ -4,6 +4,7 @@
 #include"Physics.h"
 #include"MeshComponent.h"
 
+
 class PhysicsComponent : public Component
 {
 private:
@@ -15,6 +16,7 @@ private:
 	std::vector<PxShape*> m_shapes;
 	bool m_dynamic;
 	bool m_controllRotation;
+	bool m_kinematic;
 
 
 	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, LRM_VERTEX vertexArray[], const int vertexCount)
@@ -88,6 +90,7 @@ public:
 		m_physicsPtr = &Physics::get();
 		m_dynamic = false;
 		m_controllRotation = true;
+		m_kinematic = false;
 	}
 	~PhysicsComponent()
 	{
@@ -97,7 +100,7 @@ public:
 		m_shape = nullptr;
 	}
 
-	void initActorAndShape(Entity* entity, MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
+	void initActorAndShape(Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
 	{
 		m_dynamic = dynamic;
 		m_transform = entity;
@@ -135,6 +138,17 @@ public:
 			}
 		}
 		
+
+	}
+
+	void makeKinematic()
+	{
+		if (!this->m_kinematic)
+		{
+			m_kinematic = true;
+			if(m_dynamic)
+				m_physicsPtr->makeActorKinematic(static_cast<PxRigidBody*>(this->m_actor));
+		}
 
 	}
 
@@ -193,7 +207,7 @@ public:
 	}
 
 
-	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, MeshComponent* meshComponent, std::string materialName, bool unique)
+	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool unique)
 	{
 		XMFLOAT3 min, max;
 		PxGeometry* bb = nullptr;

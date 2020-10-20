@@ -45,6 +45,7 @@ private:
 
 	PxRigidActor* createDynamicActor(PxVec3 pos, PxQuat rot)
 	{
+		
 		return m_physicsPtr->createRigidDynamic(PxTransform(pos, rot));
 	}
 
@@ -335,5 +336,10 @@ public:
 		PxCapsuleController* capsule = static_cast<PxCapsuleController*>(controller);
 		capsule->setRadius(radius);
 
+	}
+
+	void makeActorKinematic(PxRigidBody* actor)
+	{
+		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
 	}
 };

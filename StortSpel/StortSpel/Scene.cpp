@@ -96,6 +96,7 @@ void Scene::loadScene(std::string path)
 		physicsComp->addSphereShape(2.f);
 	}
 
+
 	// XWing
 	Entity* testXwing = engine->addEntity("testXwing");
 	if (testXwing)
