@@ -45,6 +45,8 @@ public:
 	{
 		Component::setComponentMapPointer(componentMap);
 		m_physicsComponent = dynamic_cast<PhysicsComponent*>(this->findSiblingComponentOfType(ComponentType::PHYSICS));
+		if (m_physicsComponent)
+			m_physicsComponent->setSlide(true);
 	}
 
 	~FlippingComponent() {}
@@ -61,6 +63,7 @@ public:
 				temp = XMMatrixRotationRollPitchYaw(XMConvertToRadians(180), XMConvertToRadians(0), XMConvertToRadians(0));
 				this->m_endRot = Quaternion::CreateFromRotationMatrix(m_transform->getRotationMatrix() * temp);
 				m_doOnce = false;
+
 			}
 
 			m_alpha += m_flipSpeed * dt; //               0          180

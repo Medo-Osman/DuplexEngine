@@ -202,12 +202,13 @@ public:
 		actor->attachShape(*shape);
 	}
 
-	PxRigidActor* createRigidActor(const XMFLOAT3 &position, const XMFLOAT4& quaternion, const bool &dynamic)
+	PxRigidActor* createRigidActor(const XMFLOAT3 &position, const XMFLOAT4& quaternion, const bool &dynamic, void* physicsComponentPtr)
 	{
 		PxVec3 pos(position.x, position.y, position.z);
 		PxQuat quat(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
 		PxRigidActor* actor = dynamic ? createDynamicActor(pos, quat) : createStaticActor(pos, quat);
+		actor->userData = physicsComponentPtr;
 		m_scenePtr->addActor(*actor);
 		return actor;
 	}

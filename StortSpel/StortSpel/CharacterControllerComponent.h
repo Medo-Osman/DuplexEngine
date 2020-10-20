@@ -2,6 +2,8 @@
 #include"3DPCH.h"
 #include"Component.h"
 #include"Physics.h"
+#include"PhysicsComponent.h"
+
 
 class CharacterControllerComponent : public Component, public PxControllerBehaviorCallback
 {
@@ -94,7 +96,8 @@ public:
 
 	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxShape& shape, const PxActor& actor) //Controller colides with shapes
 	{
-		return PxControllerBehaviorFlags();
+		return static_cast<PhysicsComponent*>(actor.userData)->getBehaviorFlag();
+
 	}
 	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxController& controller)
 	{

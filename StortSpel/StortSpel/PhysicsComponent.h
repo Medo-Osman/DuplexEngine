@@ -17,7 +17,7 @@ private:
 	bool m_dynamic;
 	bool m_controllRotation;
 	bool m_kinematic;
-
+	bool m_slide;
 
 	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, LRM_VERTEX vertexArray[], const int vertexCount)
 	{
@@ -92,6 +92,7 @@ public:
 		m_dynamic = false;
 		m_controllRotation = true;
 		m_kinematic = false;
+		m_slide = false;
 	}
 	~PhysicsComponent()
 	{
@@ -108,7 +109,7 @@ public:
 		XMFLOAT3 scale = entity->getScaling() * meshComponent->getScaling();
 		std::string name = meshComponent->getFilePath() + std::to_string(geometryType);
 		PxGeometry* geometry;
-		m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), m_transform->getRotation(), dynamic);
+		m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), m_transform->getRotation(), dynamic, this);
 		bool addGeom = true;
 
 		if (this->canAddGeometry())
@@ -142,6 +143,19 @@ public:
 
 	}
 
+	PxControllerBehaviorFlag::Enum getBehaviorFlag()
+	{
+		PxControllerBehaviorFlag::Enum flag;
+		m_slide ? flag = PxControllerBehaviorFlag::eCCT_SLIDE : flag = PxControllerBehaviorFlag::eCCT_CAN_RIDE_ON_OBJECT;
+
+		return flag;
+	}
+
+	void setSlide(bool shouldSlide)
+	{
+		m_slide = shouldSlide;
+	}
+
 	void makeKinematic()
 	{
 		if (!this->m_kinematic)
@@ -167,7 +181,7 @@ public:
 		m_transform = entity;
 		if (!m_actor)
 		{
-			m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), entity->getRotation(), dynamic);
+			m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), entity->getRotation(), dynamic, this);
 		}
 		else
 		{
