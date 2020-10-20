@@ -39,6 +39,16 @@
 //PhysX
 #include"PxPhysicsAPI.h"
 
+// ImGui includes
+#include "../3rd-Party/ImGui/imconfig.h"
+#include "../3rd-Party/ImGui/imgui.h"
+#include "../3rd-Party/ImGui/imgui_impl_dx11.h"
+#include "../3rd-Party/ImGui/imgui_impl_win32.h"
+#include "../3rd-Party/ImGui/imgui_internal.h"
+#include "../3rd-Party/ImGui/imstb_rectpack.h"
+#include "../3rd-Party/ImGui/imstb_textedit.h"
+#include "../3rd-Party/ImGui/imstb_truetype.h"
+
 // Singletons
 //#include "ResourceHandler.h"
 #include "ErrorLogger.h"
@@ -68,6 +78,8 @@ using namespace DirectX;
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "gdi32")
 #pragma comment (lib, "d3dcompiler.lib")
+
+#include "PerformanceTester.h"
 
 //Defines
 #define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = nullptr; } }

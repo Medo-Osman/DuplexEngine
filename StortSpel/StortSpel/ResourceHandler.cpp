@@ -34,9 +34,19 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath,
 		if (fileExtension == L"dds" || fileExtension == L"DDS")
 		{
 			if (isCubeMap == true)
-				hr = CreateDDSTextureFromFileEx(m_devicePtr, path.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
+			{
+				PerformanceTester::get().runPerformanceTestPrint();
+				//Memory leak in here
+				//Microsoft::WRL::ComPtr<ID3D11Resource> tex;
+				hr = CreateDDSTextureFromFileEx(m_devicePtr, path.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, nullptr, &srv, nullptr);
+				//int n = tex.Reset();
+				PerformanceTester::get().runPerformanceTestPrint();
+				assert(SUCCEEDED(hr));
+			}
 			else
-				hr = CreateDDSTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
+				PerformanceTester::get().runPerformanceTestPrint();
+				hr = CreateDDSTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv); //Generates memory that is not released
+				PerformanceTester::get().runPerformanceTestPrint();
 		}
 		else
 			hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);

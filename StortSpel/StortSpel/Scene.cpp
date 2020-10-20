@@ -160,12 +160,14 @@ void Scene::loadScene(std::string path)
 			engine->createNewPhysicsComponent(cube);
 		}
 	}
+	Material skyboxMat;
+	skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+
 
 	m_entities["SkyBox"] = engine->addEntity("SkyBox");
 	if (m_entities["SkyBox"])
 	{
-		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		
 		engine->addComponent(m_entities["SkyBox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
 	}
