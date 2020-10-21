@@ -5,7 +5,7 @@
 #include"CharacterControllerComponent.h"
 #include "AudioHandler.h"
 #include "audioComponent.h"
-#include <cmath>
+#include "GUIHandler.h"
 
 enum class PlayerState
 {
@@ -57,6 +57,11 @@ private:
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
 
+    // Score
+    int m_score;
+    int m_scoreLabelGUIIndex;
+    int m_scoreGUIIndex;
+
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
     void playerStateLogic(const float& dt);
@@ -75,7 +80,9 @@ public:
     void setPlayerEntity(Entity* entity);
 
     void setCameraTranformPtr(Transform* transform);
+    void incrementScore();
 
+    int getScore();
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
 };

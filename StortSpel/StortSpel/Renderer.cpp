@@ -126,6 +126,28 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_devicePtr->CreateDepthStencilState(&skyboxDSD, &skyboxDSSPtr);
 	/////////////////////////////////////////////////
 
+	CD3D11_RASTERIZER_DESC rastDesc(
+		D3D11_FILL_SOLID,
+		D3D11_CULL_NONE,
+		FALSE,
+		D3D11_DEFAULT_DEPTH_BIAS,
+		D3D11_DEFAULT_DEPTH_BIAS_CLAMP,
+		D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
+		TRUE,
+		FALSE,
+		TRUE,
+		TRUE
+	);
+
+	hr = m_devicePtr->CreateRasterizerState(&rastDesc, m_spriteRasterizerState.ReleaseAndGetAddressOf());
+	if (FAILED(hr))
+	{
+		ErrorLogger::get().logError("Error, failed to create sprite rasterizer state!");
+		assert(SUCCEEDED(hr) && "Error, failed to create sprite rasterizer state!");
+	}
+
+	GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
+
 	return hr;
 }
 
@@ -267,9 +289,6 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
-	// For Texture Testing only
-	//ID3D11ShaderResourceView* srv = ResourceHandler::get().loadTexture(L"T_CircusTent_D.png");
-	//m_dContextPtr->PSSetShaderResources(0, 1, &srv);
 	// Skybox constant buffer:
 	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
 	skyboxMVP constantBufferSkyboxStruct;
@@ -279,6 +298,9 @@ void Renderer::render()
 	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(W * V * P);
 	m_skyboxConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferSkyboxStruct);
 
+	// Mesh WVP buffer, needs to be set every frame bacause of SpriteBatch(GUIHandler)
+	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
 		ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum();
@@ -287,7 +309,7 @@ void Renderer::render()
 			m_compiledShaders[meshShaderEnum]->setShaders();
 			m_currentSetShaderProg = meshShaderEnum;
 		}
-			
+		
 		
 		Material* meshMatPtr = component.second->getMaterialPtr();
 		if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
@@ -307,6 +329,10 @@ void Renderer::render()
 
 		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
+
+	//GUI
+	m_dContextPtr->RSSetState(this->m_spriteRasterizerState.Get());
+	GUIHandler::get().render();
 
 	m_swapChainPtr->Present(0, 0);
 }

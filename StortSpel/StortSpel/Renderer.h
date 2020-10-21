@@ -4,6 +4,7 @@
 #include "ShaderProgram.h"
 #include "ShaderEnums.h"
 #include "Engine.h"
+#include "GUIHandler.h"
 //#include "LightComponent.h"
 
 
@@ -23,6 +24,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_depthStencilBufferPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_spriteRasterizerState;
 
 	
 

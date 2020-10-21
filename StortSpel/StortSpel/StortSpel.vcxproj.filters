@@ -46,6 +46,9 @@
     <Filter Include="Source Files\Application\Input\Context">
       <UniqueIdentifier>{9427d680-6062-452d-8ee0-7d381c1aa292}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Graphic\GUI">
+      <UniqueIdentifier>{7155dc50-d617-41f6-a310-ab0c68149543}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -110,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="SceneManager.cpp">
       <Filter>Source Files\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIHandler.cpp">
+      <Filter>Source Files\Graphic\GUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -235,6 +241,15 @@
     </ClInclude>
     <ClInclude Include="SceneManager.h">
       <Filter>Source Files\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIHandler.h">
+      <Filter>Source Files\Graphic\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIElement.h">
+      <Filter>Source Files\Graphic\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIText.h">
+      <Filter>Source Files\Graphic\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
