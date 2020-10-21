@@ -15,6 +15,7 @@ Player::Player()
 	m_state = PlayerState::IDLE;
 	m_score = 0;
 	GUITextStyle style;
+	style.position.y = 70.f;
 	style.scale = { 0.5f };
 	m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
 	style.position.x = 160.f;
