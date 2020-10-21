@@ -126,26 +126,6 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_devicePtr->CreateDepthStencilState(&skyboxDSD, &skyboxDSSPtr);
 	/////////////////////////////////////////////////
 
-	CD3D11_RASTERIZER_DESC rastDesc(
-		D3D11_FILL_SOLID,
-		D3D11_CULL_NONE,
-		FALSE,
-		D3D11_DEFAULT_DEPTH_BIAS,
-		D3D11_DEFAULT_DEPTH_BIAS_CLAMP,
-		D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
-		TRUE,
-		FALSE,
-		TRUE,
-		TRUE
-	);
-
-	hr = m_devicePtr->CreateRasterizerState(&rastDesc, m_spriteRasterizerState.ReleaseAndGetAddressOf());
-	if (FAILED(hr))
-	{
-		ErrorLogger::get().logError("Error, failed to create sprite rasterizer state!");
-		assert(SUCCEEDED(hr) && "Error, failed to create sprite rasterizer state!");
-	}
-
 	GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
 
 	return hr;
@@ -331,7 +311,6 @@ void Renderer::render()
 	}
 
 	//GUI
-	m_dContextPtr->RSSetState(this->m_spriteRasterizerState.Get());
 	GUIHandler::get().render();
 
 	m_swapChainPtr->Present(0, 0);
