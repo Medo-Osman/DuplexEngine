@@ -1,4 +1,4 @@
-Texture2D<float4> inputTex : register(t0);
+Texture2DMS<float4> inputTex : register(t0);
 RWTexture2D<float4> outputTex : register(u0);
 
 [numthreads(8, 8, 1)]
@@ -15,7 +15,7 @@ void main(uint3 gruoupId : SV_GroupID, uint3 groupThredId : SV_GroupThreadID, ui
         float4 intensity = lerp(hIntensity0, hIntensity1, 0.5);
 
         // Thresholding on Downsample
-        if (length(intensity.rgb) > 1.f)
+        if (length(intensity.rgb) > 1.45f)
             outputTex[pixelIndex] = float4(intensity.rgb, 1.0);
         else
             outputTex[pixelIndex] = float4(0.f, 0.f, 0.f, 1.0);

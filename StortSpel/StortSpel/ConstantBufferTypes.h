@@ -50,3 +50,13 @@ struct skyboxMVP
 {
     XMMATRIX mvpMatrix; //Model/view/projection
 };
+
+const int BLUR_RADIUS = 8;
+
+struct CS_BLUR_CBUFFER
+{
+    float weights[BLUR_RADIUS];
+    int radius;
+    int direction;
+    XMFLOAT2 pad;
+};

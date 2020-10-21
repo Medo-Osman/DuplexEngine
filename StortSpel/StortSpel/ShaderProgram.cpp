@@ -301,6 +301,10 @@ void ShaderProgram::inputLayoutSetup(VertexLayoutType inputLayoutType, Microsoft
 		input_element_desc = Layouts::LRMVertexLayout;
 		layoutArraySize = ARRAYSIZE(Layouts::LRMVertexLayout);
 		break;
+	case VertexLayoutType::renderQuadVertexLayout:
+		input_element_desc = Layouts::renderQuadVertexLayout;
+		layoutArraySize = ARRAYSIZE(Layouts::renderQuadVertexLayout);
+		break;
 	default:
 		m_inputLayout = nullptr;
 		return;

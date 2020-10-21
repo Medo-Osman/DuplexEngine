@@ -252,6 +252,15 @@
     <FxCompile Include="DownSampleShader.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
+    <FxCompile Include="BlurShader.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="CombinePassVertex.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="CombinePassPixel.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
