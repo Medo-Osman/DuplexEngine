@@ -4,7 +4,7 @@
 class Scene
 {
 private:
-	std::unordered_map<std::string, Entity*> m_entities;
+	//std::unordered_map<std::string, Entity*> m_entities;
 	//Entity* m_player;
 	//std::vector<
 	int nrOfParisWheels = 0;
@@ -12,7 +12,7 @@ private:
 	int nrOfFlippingPlatforms = 0;
 	void createFlippingPlatform(Engine*& engine, Vector3 position, float upTime = 3, float downTime = 3);
 	int m_nrOfStaticPlatforms = 0;
-	void createStaticPlatform(Engine* engine, Vector3 position, Vector3 rotation, Vector3 scale, std::string meshName);
+	void createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 scale, std::string meshPath);
 
 public:
 	Scene();
