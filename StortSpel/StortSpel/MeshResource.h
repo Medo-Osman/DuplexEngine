@@ -14,6 +14,7 @@ private:
 	XMFLOAT3 m_min, m_max;
 	
 public:
+	int vertCount = 0;
 	~MeshResource()
 	{
 		SAFE_DELETE(m_vertexArray);
@@ -51,6 +52,8 @@ public:
 		{
 			m_vertexArray[i] = vertexArray[i];
 		}
+
+		vertCount = nrOfVertecies;
 	}
 
 	LRM_VERTEX* getVertexArray()

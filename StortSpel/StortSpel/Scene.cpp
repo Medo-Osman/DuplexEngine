@@ -38,13 +38,13 @@ void Scene::loadScene(std::string path)
 	}
 	m_nrOfStaticPlatforms++;
 //---------------------------------------------------------------------------------------------------------------------
-	position = { 7.5, 4, 24.5 }; rotation = { 0, 0, 0 }; scale = { 5, 6, 1 }; meshPath = "testCube_pCube1.lrm";
+	/*position = { 7.5, 4, 24.5 }; rotation = { 0, 0, 0 }; scale = { 5, 6, 1 }; meshPath = "testCube_pCube1.lrm";
 	Entity* staticPlatform1 = engine->addEntity("StaticPlatform-" + std::to_string(m_nrOfStaticPlatforms));
 	if (staticPlatform1)
 	{
 		engine->addComponent(staticPlatform1, "mesh", new MeshComponent(meshPath.c_str(), Material({ L"GrayTexture.png" }))); staticPlatform1->setPosition(position); staticPlatform1->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z)); staticPlatform1->setScale(scale); engine->createNewPhysicsComponent(staticPlatform1);
 	}
-	m_nrOfStaticPlatforms++;
+	m_nrOfStaticPlatforms++;*/
 //---------------------------------------------------------------------------------------------------------------------
 	position = { 7.5, 7.5, 31.5 }; rotation = { 0, 0, 0 }; scale = { 5, 1, 15 }; meshPath = "testCube_pCube1.lrm";
 	Entity* staticPlatform2 = engine->addEntity("StaticPlatform-" + std::to_string(m_nrOfStaticPlatforms));
@@ -61,12 +61,25 @@ void Scene::loadScene(std::string path)
 		engine->addComponent(staticPlatform3, "mesh", new MeshComponent(meshPath.c_str(), Material({ L"GrayTexture.png" }))); staticPlatform3->setPosition(position); staticPlatform3->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z)); staticPlatform3->setScale(scale); engine->createNewPhysicsComponent(staticPlatform3);
 	}
 	m_nrOfStaticPlatforms++;
-//---------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------- always cube
 	position = { -7, 10, 36.5 }; rotation = { 0, 90, 0 }; scale = { 1, 1, 1 }; meshPath = "SquarePlatform.lrm";
-	Entity* staticPlatform4 = engine->addEntity("StaticPlatform-" + std::to_string(m_nrOfStaticPlatforms));
+	Entity* staticPlatform4 = engine->addEntity("banana");
 	if (staticPlatform4)
 	{
-		engine->addComponent(staticPlatform4, "mesh", new MeshComponent(meshPath.c_str(), Material({ L"GrayTexture.png" }))); staticPlatform4->setPosition(position); staticPlatform4->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z)); staticPlatform4->setScale(scale); engine->createNewPhysicsComponent(staticPlatform4);
+		std::string print;
+		print = "\nAttempting to spawn: " + meshPath + "\n";
+		OutputDebugStringA(print.c_str());
+
+		Material mat = Material({ L"GrayTexture.png" });
+		MeshComponent* newComp = new MeshComponent(meshPath.c_str(), mat);
+		engine->addComponent(staticPlatform4, "mesh1", newComp); staticPlatform4->setPosition(position); staticPlatform4->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z)); staticPlatform4->setScale(scale); engine->createNewPhysicsComponent(staticPlatform4);
+		
+		//MeshComponent* comp = dynamic_cast<MeshComponent*>(staticPlatform4->getComponent("mesh1"));
+		//if (comp)
+		//{
+		//	print = meshPath + " : " + std::to_string(comp->getMeshResourcePtr()->vertCount) + "\n"; //should be around 300
+		//	OutputDebugStringA(print.c_str());
+		//}
 	}
 	m_nrOfStaticPlatforms++;
 //---------------------------------------------------------------------------------------------------------------------
