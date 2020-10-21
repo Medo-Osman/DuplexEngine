@@ -13,6 +13,8 @@ Player::Player()
 	m_cameraTransform = nullptr;
 	m_controller = nullptr;
 	m_state = PlayerState::IDLE;
+	Physics::get().Attach(this);
+	m_speedModifier = 1.f;
 }
 
 void Player::setStates(std::vector<State> states)
@@ -82,7 +84,7 @@ float lerp(const float& a, const float &b, const float &t)
 
 void Player::playerStateLogic(const float& dt)
 {
-	Vector3 finalMovement = XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt;
+	Vector3 finalMovement = XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED  * m_speedModifier * dt;
 
 	switch (m_state)
 	{
@@ -150,6 +152,14 @@ void Player::playerStateLogic(const float& dt)
 
 void Player::updatePlayer(const float& dt)
 {
+	if (m_speedModifier > 1.001f)
+	{
+		m_speedModifierTime += dt;
+		if (m_speedModifierDuration <= m_speedModifierTime)
+		{
+			m_speedModifier = 1.f;
+		}
+	}
 	if(m_state != PlayerState::ROLL)
 		handleRotation(dt);
 
@@ -206,6 +216,19 @@ void Player::inputUpdate(InputData& inputData)
 			break;
 		default:
 			break;
+		}
+	}
+}
+
+void Player::sendPhysicsMessage(PhysicsData& physicsData)
+{
+	if (physicsData.message == "pickup")
+	{
+		if (physicsData.stringData == "speed")
+		{
+			m_speedModifier = physicsData.floatData;
+			m_speedModifierDuration = physicsData.intData;
+			m_speedModifierTime = 0;
 		}
 	}
 }

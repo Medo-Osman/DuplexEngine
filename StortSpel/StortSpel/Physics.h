@@ -6,7 +6,36 @@ static physx::PxDefaultErrorCallback gDefaultErrorCallback;
 static physx::PxDefaultAllocator gDefaultAllocatorCallback;
 using namespace physx;
 
-class Physics : public PxSimulationEventCallback
+
+struct PhysicsData
+{
+	std::string message;
+	std::string stringData;
+	float floatData;
+	int intData;
+	PhysicsData()
+	{
+		message = "";
+		stringData = "";
+		floatData = 0;
+		intData = 0;
+	}
+};
+class PhysicsObserver {
+public:
+	PhysicsObserver() {};
+	virtual ~PhysicsObserver() {};
+	virtual void sendPhysicsMessage(PhysicsData& physicsData) = 0;
+};
+
+class PhysicsSubject {
+public:
+	virtual ~PhysicsSubject() {};
+	virtual void Attach(PhysicsObserver* observer) = 0;
+	virtual void Detach(PhysicsObserver* observer) = 0;
+};
+
+class Physics : public PxSimulationEventCallback, public PhysicsSubject
 {
 private:
 	const char* m_host = "localhost";
@@ -20,6 +49,8 @@ private:
 	std::map<std::string, PxMaterial*> m_defaultMaterials;
 	std::map<std::string, PxGeometry*> m_sharedGeometry;
 	std::map<std::string, PxShape*> m_sharedShapes;
+
+	std::vector<PhysicsObserver*> m_observers;
 
 	bool m_recordMemoryAllocations = true;
 
@@ -75,6 +106,8 @@ private:
 		return geometryHolder;
 	}
 
+
+
 public:
 	Physics(const Physics&) = delete;
 	void operator=(Physics const&) = delete;
@@ -99,6 +132,20 @@ public:
 		delete m_dispatcherPtr;
 		PxCloseExtensions();
 		m_foundationPtr->release();
+	}
+
+	void Attach(PhysicsObserver* observer)
+	{
+		m_observers.push_back(observer);
+	}
+
+	void Detach(PhysicsObserver* observer)
+	{
+		bool detatched = false;
+		for (std::vector<int>::size_type i = 0; i < m_observers.size() || !detatched; i++) {
+			if (m_observers[i] == observer)
+				m_observers.erase(m_observers.begin() + i);
+		}
 	}
 
 	void init(const XMFLOAT3 &gravity = {0.0f, -9.81f, 0.0f}, const int &nrOfThreads = 1)
@@ -158,8 +205,23 @@ public:
 				continue;
 
 			//Checks
+			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor())
+			{
+				for (size_t i = 0; i < m_observers.size(); i++)
+				{
+					m_observers[i]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData));
+				}
+			}
 		}
 	}
+
+	void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) {}
+	void onWake(PxActor** actors, PxU32 count) {}
+	void onSleep(PxActor** actors, PxU32 count) {}
+	void onContact(const PxContactPairHeader & pairHeader, const PxContactPair * pairs, PxU32 nbPairs) {}
+	void onAdvance(const PxRigidBody* const* bodyBuffer, const PxTransform * poseBuffer, const PxU32 count) {}
+
+
 	PxShape* getSharedShape(const std::string &name)
 	{
 		if (m_sharedShapes.find(name) != m_sharedShapes.end())
@@ -168,7 +230,7 @@ public:
 		return nullptr;
 	}
 
-	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometry* geometry, const std::string &materialName, const bool &unique, const XMFLOAT3 &scale = { 1, 1, 1 })
+	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometry* geometry, const std::string &materialName, const bool &unique, const XMFLOAT3 &scale = { 1, 1, 1 }, const bool trigger = false)
 	{
 		physx::PxMaterial* physicsMaterial = getMaterialByName(materialName);
 		PxGeometryHolder scaledGeometry = *geometry;
@@ -182,11 +244,16 @@ public:
 
 
 		PxShape* shape = m_physicsPtr->createShape(scaledGeometry.any(), *physicsMaterial, unique);
+		if (trigger)
+		{
+			shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
+			shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);
+		}
 		actor->attachShape(*shape);
 		return shape;
 	}
 
-	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometryHolder geometry, const std::string &materialName, const bool &unique, const XMFLOAT3 &scale = { 1, 1, 1 })
+	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometryHolder geometry, const std::string &materialName, const bool &unique, const XMFLOAT3 &scale = { 1, 1, 1 }, const bool trigger = false)
 	{
 		physx::PxMaterial* physicsMaterial = getMaterialByName(materialName);
 		if (physicsMaterial == nullptr)
@@ -196,6 +263,12 @@ public:
 		}
 
 		PxShape* shape = m_physicsPtr->createShape(geometry.any(), *physicsMaterial, unique);
+		if (trigger)
+		{
+			shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
+			shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);
+		}
+
 		actor->attachShape(*shape);
 		return shape;
 	}

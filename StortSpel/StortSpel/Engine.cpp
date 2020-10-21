@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include"ApplicationLayer.h"
 #include"CharacterControllerComponent.h"
+#include"TriggerComponent.h"
 
 Engine::Engine()
 {
@@ -306,6 +307,14 @@ void Engine::initialize()
 		ErrorLogger::get().logError("No player model added or already exists when adding");
 	}
 	m_player->setCameraTranformPtr(m_camera.getTransform());
+
+	//TriggerEntity
+	Entity* triggerEntity = addEntity("TriggerEntity");
+	triggerEntity->setPosition(0, 2.f, 10);
+	addComponent(triggerEntity, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+	addComponent(triggerEntity, "trigger", new TriggerComponent());
+	static_cast<TriggerComponent*>(triggerEntity->getComponent("trigger"))->initTrigger(triggerEntity, { 1, 1, 1 });
+	
 
 	Entity* audioTestDelete = addEntity("deleteTestAudio");
 	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));

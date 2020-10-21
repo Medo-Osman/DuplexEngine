@@ -6,6 +6,7 @@
 #include "AudioHandler.h"
 #include "audioComponent.h"
 #include <cmath>
+#include"Physics.h"
 
 enum class PlayerState
 {
@@ -18,7 +19,7 @@ enum class PlayerState
 
 using namespace DirectX;
 
-class Player : public InputObserver
+class Player : public InputObserver, public PhysicsObserver
 {
 private:
     //CONTROLLER CONFIG
@@ -48,6 +49,9 @@ private:
     const float ROLL_HEIGHT = 0.3f;
     const float ROLL_RADIUS = 0.2f;
 
+    float m_speedModifier;
+    int m_speedModifierDuration;
+    float m_speedModifierTime;
 
     float m_angleY;
     float m_currentDistance;
@@ -67,6 +71,7 @@ private:
     void dash();
     void jump();
     void prepDistVariables();
+    
   
 public:
     Player();
@@ -78,4 +83,5 @@ public:
 
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
+    void sendPhysicsMessage(PhysicsData& physicsData);
 };

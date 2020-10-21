@@ -27,7 +27,7 @@ private:
 public:
 	CharacterControllerComponent()
 	{
-		m_type = ComponentType::PHYSICS;
+		m_type = ComponentType::CHARACTERCONTROLLER;
 		m_transform = nullptr;
 		m_controller = nullptr;
 		m_physicsPtr = &Physics::get();
