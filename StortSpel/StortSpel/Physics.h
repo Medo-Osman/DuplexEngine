@@ -6,7 +6,7 @@ static physx::PxDefaultErrorCallback gDefaultErrorCallback;
 static physx::PxDefaultAllocator gDefaultAllocatorCallback;
 using namespace physx;
 
-class Physics
+class Physics : public PxSimulationEventCallback
 {
 private:
 	const char* m_host = "localhost";
@@ -123,6 +123,7 @@ public:
 		m_dispatcherPtr = PxDefaultCpuDispatcherCreate(nrOfThreads);
 		sceneDesc.cpuDispatcher = m_dispatcherPtr;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+		sceneDesc.simulationEventCallback = this;
 		m_scenePtr = m_physicsPtr->createScene(sceneDesc);
 		m_controllManager = PxCreateControllerManager(*m_scenePtr);
 
@@ -147,6 +148,18 @@ public:
 		}
 	}
 
+
+	void onTrigger(PxTriggerPair* pairs, PxU32 count) //Will currently check for collisions with player and said trigger shape.
+	{
+		for (PxU32 i = 0; i < count; i++)
+		{
+			// ignore pairs when shapes have been deleted
+			if (pairs[i].flags & (PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER | PxTriggerPairFlag::eREMOVED_SHAPE_OTHER))
+				continue;
+
+			//Checks
+		}
+	}
 	PxShape* getSharedShape(const std::string &name)
 	{
 		if (m_sharedShapes.find(name) != m_sharedShapes.end())
