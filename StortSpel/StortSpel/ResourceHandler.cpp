@@ -75,13 +75,6 @@ ID3D11ShaderResourceView* ResourceHandler::loadErrorTexture()
 
 MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 {
-	std::string print;
-	/*print = "\n";
-	OutputDebugStringA(print.c_str());*/
-
-	print = std::string(path)+"\n";
-	OutputDebugStringA(print.c_str());
-
 
 	isResourceHandlerReady();
 	int num = m_meshCache.count(path);
@@ -89,8 +82,6 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	auto it = m_meshCache.find(path);
 	if (it != m_meshCache.end())
 	{
-		print = "Resource found file: " + std::string(path) + " : " + std::to_string(0) + "\n\n"; //should be around 300
-		OutputDebugStringA(print.c_str());
 
 		// returns the buffers
 		return m_meshCache[path];
@@ -181,9 +172,6 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 
 	m_meshCache[path]->setMinMax(min, max);
 	m_meshCache[path]->storeVertexArray(vertexArray, vertexCount);
-
-	print = "Resource handler did not find and has to load in: " + std::string(path) + " : " + std::to_string(vertexCount) + "\n\n"; //should be around 300
-	OutputDebugStringA(print.c_str());
 
 	delete[] vertexArray;
 	delete[] indexArray;
