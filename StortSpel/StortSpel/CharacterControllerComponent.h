@@ -97,7 +97,6 @@ public:
 	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxShape& shape, const PxActor& actor) //Controller colides with shapes
 	{
 		return static_cast<PhysicsComponent*>(actor.userData)->getBehaviorFlag();
-
 	}
 	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxController& controller)
 	{

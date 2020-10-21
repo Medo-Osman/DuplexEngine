@@ -158,13 +158,25 @@ public:
 
 	void makeKinematic()
 	{
-		if (!this->m_kinematic)
+		if (!m_kinematic)
 		{
 			m_kinematic = true;
 			if(m_dynamic)
 				m_physicsPtr->makeActorKinematic(static_cast<PxRigidBody*>(this->m_actor));
 		}
 
+	}
+
+	void makeKinematicDynamic(float newMass)
+	{
+		if (m_kinematic)
+		{
+			if (m_dynamic)
+			{
+				m_physicsPtr->makeKinematicActorDynamic(static_cast<PxRigidBody*>(m_actor), newMass);
+				m_kinematic = false;
+			}
+		}
 	}
 
 	void kinematicMove(XMFLOAT3 destination, XMFLOAT4 quaternionRotation = {0.f, 0.f, 0.f, 0.f })
