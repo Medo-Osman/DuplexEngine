@@ -29,12 +29,17 @@ public:
 
 		m_physicsData.message = "pickup";
 		m_physicsData.stringData = "speed";
-		m_physicsData.floatData = 10;
-		m_physicsData.intData = 10;
+		m_physicsData.floatData = 5;
+		m_physicsData.intData = 8;
+	}
+	~TriggerComponent()
+	{
+		m_physicsPtr->removeActor(m_actor);
 	}
 
 	void initTrigger(Transform* transform, XMFLOAT3 boxExtends)
 	{
+		m_physicsData.entityIdentifier = m_parentEntityIdentifier;
 		m_geometryHolder = PxBoxGeometry(1.f, 1.f, 1.f);
 		m_transform = transform;
 		m_actor = m_physicsPtr->createRigidActor(transform->getTranslation(), transform->getRotation(), true, &m_physicsData);

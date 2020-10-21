@@ -8,6 +8,7 @@ Engine::Engine()
 {
 	m_settings.width = m_startWidth;
 	m_settings.height = m_startHeight;
+	Physics::get().Attach(this, false, true);
 }
 
 void Engine::updateLightData()
@@ -65,6 +66,19 @@ Engine& Engine::get()
 	return instance;
 }
 
+void Engine::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
+{
+	std::vector<Component*> vec;
+	m_entities[physicsData.entityIdentifier]->getComponentsOfType(vec, ComponentType::MESH);
+	for (size_t i = 0; i < vec.size(); i++)
+	{
+		int id = static_cast<MeshComponent*>(vec[i])->getRenderId();
+		m_meshComponentMap.erase(id);
+	}
+	this->removeEntity(physicsData.entityIdentifier);
+	removed = true;
+}
+
 Entity* Engine::getEntity(std::string key)
 {
 	if (m_entities.find(key) != m_entities.end())
@@ -83,6 +97,12 @@ Entity* Engine::addEntity(std::string identifier)
 	m_entities[identifier] = new Entity(identifier);
 
 	return m_entities[identifier];
+}
+
+void Engine::removeEntity(std::string identifier)
+{
+	delete m_entities[identifier];
+	m_entities.erase(identifier);
 }
 
 Engine::~Engine()

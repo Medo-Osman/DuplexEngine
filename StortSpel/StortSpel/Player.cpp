@@ -13,7 +13,7 @@ Player::Player()
 	m_cameraTransform = nullptr;
 	m_controller = nullptr;
 	m_state = PlayerState::IDLE;
-	Physics::get().Attach(this);
+	Physics::get().Attach(this, true, false);
 	m_speedModifier = 1.f;
 }
 
@@ -220,17 +220,22 @@ void Player::inputUpdate(InputData& inputData)
 	}
 }
 
-void Player::sendPhysicsMessage(PhysicsData& physicsData)
+void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEntityBeRemoved)
 {
-	if (physicsData.message == "pickup")
+	if (!shouldTriggerEntityBeRemoved)
 	{
-		if (physicsData.stringData == "speed")
+		if (physicsData.message == "pickup")
 		{
-			m_speedModifier = physicsData.floatData;
-			m_speedModifierDuration = physicsData.intData;
-			m_speedModifierTime = 0;
+			if (physicsData.stringData == "speed")
+			{
+				m_speedModifier = physicsData.floatData;
+				m_speedModifierDuration = physicsData.intData;
+				m_speedModifierTime = 0;
+				shouldTriggerEntityBeRemoved = true;
+			}
 		}
 	}
+
 }
 
 void Player::jump()

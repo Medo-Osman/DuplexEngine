@@ -83,5 +83,5 @@ public:
 
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
-    void sendPhysicsMessage(PhysicsData& physicsData);
+    void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
 };
