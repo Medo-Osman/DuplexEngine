@@ -4,7 +4,7 @@
 
 Renderer::Renderer()
 {
-	m_rTargetViewsArray = new ID3D11RenderTargetView * [8];
+	//m_rTargetViewsArray = new ID3D11RenderTargetView * [8];
 	
 	//Variables
 
@@ -20,16 +20,23 @@ void Renderer::release()
 	
 	m_swapChainPtr->Release();
 	m_debugPtr->Release();
-	m_rTargetViewPtr->Release();
 	m_swapChainBufferPtr->Release();
 	m_depthStencilBufferPtr->Release();
 	m_depthStencilViewPtr->Release();
 	m_depthStencilStatePtr->Release();
+
+	m_geometryShaderResourceView->Release();
+	m_geometryUnorderedAccessView->Release();
+
+	m_downSampledShaderResourceView->Release();
+	m_downSampledUnorderedAccessView->Release();
+
 	//m_vertexShaderConstantBuffer.release();
 	m_rasterizerStatePtr->Release();
 
-	m_rTargetViewPtr->Release();
-	for (int i = 0; i < 8; i++)
+	m_finalRenderTargetViewPtr->Release();
+	m_geometryRenderTargetViewPtr->Release();
+	/*for (int i = 0; i < 8; i++)
 	{
 		if (m_rTargetViewsArray != nullptr)
 		{
@@ -37,7 +44,7 @@ void Renderer::release()
 		}
 	}
 
-	delete[] m_rTargetViewsArray;
+	delete[] m_rTargetViewsArray;*/
 }
 
 Renderer::~Renderer()
@@ -81,13 +88,44 @@ HRESULT Renderer::initialize(const HWND& window)
 	if (!SUCCEEDED(hr)) return hr;
 
 
-	hr = m_devicePtr->CreateRenderTargetView(m_swapChainBufferPtr.Get(), 0, m_rTargetViewPtr.GetAddressOf());
+	hr = m_devicePtr->CreateRenderTargetView(m_swapChainBufferPtr.Get(), 0, m_finalRenderTargetViewPtr.GetAddressOf());
 	if (!SUCCEEDED(hr)) return hr;
 	int var = m_swapChainBufferPtr.Reset();
 
 	hr = createDepthStencil();
 	if (!SUCCEEDED(hr)) return hr;
 	
+	D3D11_TEXTURE2D_DESC textureDesc = { 0 };
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.Width = m_settings.width;
+	textureDesc.Height = m_settings.height;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.MipLevels = 1;
+	textureDesc.ArraySize = 1;
+	textureDesc.SampleDesc.Count = 2;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	ID3D11Texture2D* geometryTexture;
+
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &geometryTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateRenderTargetView(geometryTexture, 0, m_geometryRenderTargetViewPtr.GetAddressOf());
+	if (!SUCCEEDED(hr)) return hr;
+	
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	hr = m_devicePtr->CreateShaderResourceView(geometryTexture, &srvDesc, &m_geometryShaderResourceView);
+	if (!SUCCEEDED(hr)) return hr;
+
+	geometryTexture->Release();
+
+	initializeBloomFilter();
+
 	compileAllShaders(&m_compiledShaders, m_devicePtr.Get(), m_dContextPtr.Get(), m_depthStencilViewPtr.Get());
 
 	createViewPort(m_defaultViewport, m_settings.width, m_settings.height);
@@ -139,6 +177,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	skyboxDSD.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	m_devicePtr->CreateDepthStencilState(&skyboxDSD, &skyboxDSSPtr);
 	/////////////////////////////////////////////////
+
+	initRenderQuad();
 
 	GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
 
@@ -218,8 +258,7 @@ HRESULT Renderer::createDepthStencil()
 
 	//Binding rendertarget and depth target to pipline
 //Best practice to use an array even if only using one rendertarget
-	m_rTargetViewsArray[0] = m_rTargetViewPtr.Get();
-	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
+	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
 
 	//Depth stencil state desc
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
@@ -244,6 +283,216 @@ void Renderer::createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const 
 	viewPort.Height = (float)height;
 	viewPort.MinDepth = 0.0f;
 	viewPort.MaxDepth = 1.0f;
+}
+
+HRESULT Renderer::initializeBloomFilter()
+{
+	D3D11_TEXTURE2D_DESC textureDesc = { 0 };
+	ID3D11Texture2D* downSampledTexture;
+	ID3D11Texture2D* blurTexture;
+	LPCWSTR downSampleShaderName = L"DownSampleShader.hlsl";
+	LPCWSTR blurShaderName = L"BlurShader.hlsl";
+
+	HRESULT hr;
+
+	m_blurBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_blurData, 1);
+	calculateBloomWeights();
+
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.MipLevels = 1;
+	textureDesc.ArraySize = 1;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	textureDesc.Width = m_settings.width / 2;
+	textureDesc.Height = m_settings.height / 2;
+	textureDesc.SampleDesc.Count = 1;
+
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &downSampledTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &blurTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+	hr = m_devicePtr->CreateShaderResourceView(downSampledTexture, &srvDesc, &m_downSampledShaderResourceView);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateShaderResourceView(blurTexture, &srvDesc, &m_blurShaderResourceView);
+	if (!SUCCEEDED(hr)) return hr;
+
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+
+	uavDesc.Format = textureDesc.Format;
+	uavDesc.ViewDimension = D3D11_UAV_DIMENSION::D3D11_UAV_DIMENSION_TEXTURE2D;
+	uavDesc.Texture2D.MipSlice = 0;
+
+	hr = m_devicePtr->CreateUnorderedAccessView(downSampledTexture, &uavDesc, &m_downSampledUnorderedAccessView);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateUnorderedAccessView(blurTexture, &uavDesc, &m_blurUnorderedAccessView);
+	if (!SUCCEEDED(hr)) return hr;
+
+	downSampledTexture->Release();
+	blurTexture->Release();
+
+	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined( DEBUG ) || defined( _DEBUG )
+	flags |= D3DCOMPILE_DEBUG;
+#endif
+
+	hr = D3DCompileFromFile(
+		downSampleShaderName,
+		nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"main",
+		"cs_5_0",
+		flags,
+		0,
+		Blob.GetAddressOf(),
+		errorBlob.GetAddressOf());
+
+	if (FAILED(hr)) {
+		if (errorBlob) {
+			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+			errorBlob->Release();
+		}
+		if (Blob) { Blob->Release(); }
+		assert(false);
+	}
+
+	hr = m_devicePtr->CreateComputeShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, m_CSDownSample.GetAddressOf());
+	assert(SUCCEEDED(hr));
+
+	hr = D3DCompileFromFile(
+		blurShaderName,
+		nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"main",
+		"cs_5_0",
+		flags,
+		0,
+		Blob.GetAddressOf(),
+		errorBlob.GetAddressOf());
+
+	if (FAILED(hr)) {
+		if (errorBlob) {
+			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+			errorBlob->Release();
+		}
+		if (Blob) { Blob->Release(); }
+		assert(false);
+	}
+
+	hr = m_devicePtr->CreateComputeShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, m_CSBlurr.GetAddressOf());
+	assert(SUCCEEDED(hr));
+}
+
+void Renderer::calculateBloomWeights()
+{
+	this->m_blurData.direction = 0;
+	this->m_blurData.radius = BLUR_RADIUS;
+	// Blur Pass Calculate Weights
+	float sigma = this->m_weightSigma;
+	float twoSigmaSq = 2 * sigma * sigma;
+
+	// Used to normalize the weights
+	float sum = 0.f;
+	for (size_t i = 0; i < BLUR_RADIUS; ++i)
+	{
+		this->m_blurData.weights[i] = (1.f / 2 * sigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
+		// Add 2 times to sum because we only compute half of the curve(1 dimension)
+		sum += 2 * this->m_blurData.weights[i];
+	}
+	// First weight has been added twice, subtract one
+	sum -= this->m_blurData.weights[0];
+
+	// We normalize all entries using the sum so that the entire kernel gives us a sum of coefficients = 0
+	float normalizationFactor = 1.f / sum;
+	for (size_t i = 0; i < BLUR_RADIUS; ++i)
+		this->m_blurData.weights[i] *= normalizationFactor;
+}
+
+void Renderer::downSamplePass()
+{
+	m_dContextPtr->OMSetRenderTargets(1, &nullRtv, NULL);
+
+	m_dContextPtr->VSSetShader(NULL, NULL, 0);
+	m_dContextPtr->GSSetShader(NULL, NULL, 0);
+
+	m_dContextPtr->PSSetShader(NULL, NULL, 0);
+
+	m_dContextPtr->CSSetShader(m_CSDownSample.Get(), 0, 0);
+	m_dContextPtr->CSSetShaderResources(0, 1, m_geometryShaderResourceView.GetAddressOf());
+	m_dContextPtr->CSSetUnorderedAccessViews(0, 1, m_downSampledUnorderedAccessView.GetAddressOf(), 0);
+	m_dContextPtr->Dispatch(m_settings.width / 16, m_settings.height / 16, 1);
+
+	m_dContextPtr->CSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &nullUav, 0);
+}
+
+void Renderer::blurPass()
+{
+	UINT offset = 0;
+	int vertexCount = 6;
+	
+
+	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
+	m_dContextPtr->CSSetShader(m_CSBlurr.Get(), 0, 0);
+
+	ID3D11ShaderResourceView* blurSRVs[] = { m_downSampledShaderResourceView.Get(), m_blurShaderResourceView.Get() };
+
+	ID3D11UnorderedAccessView* blurUAVs[] = { m_blurUnorderedAccessView.Get(), m_downSampledUnorderedAccessView.Get() };
+	UINT cOffset = -1;
+
+	for (UINT i = 0; i < 2; i++)
+	{
+		// Blur Constant Buffer
+		this->m_blurData.direction = i;
+		this->m_blurBuffer.updateBuffer(m_dContextPtr.Get(), &m_blurData);
+		this->m_dContextPtr->CSSetConstantBuffers(0, 1, m_blurBuffer.GetAddressOf());
+
+		// Set Rescources
+		this->m_dContextPtr->CSSetShaderResources(0, 1, &blurSRVs[this->m_blurData.direction]);
+		this->m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &blurUAVs[this->m_blurData.direction], &cOffset);
+
+		// Dispatch Shader
+		this->m_dContextPtr->Dispatch(m_settings.width / 16, m_settings.height / 16, 1);
+
+		// Unbind Unordered Access View and Shader Resource View
+		this->m_dContextPtr->CSSetShaderResources(0, 1, &this->nullSrv);
+		this->m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &this->nullUav, &cOffset);
+
+	}
+
+	m_dContextPtr->IASetVertexBuffers(0, 1, m_renderQuadBuffer.GetAddressOf(), m_renderQuadBuffer.getStridePointer(), &offset);
+	m_compiledShaders[ShaderProgramsEnum::BLOOM_COMBINE]->setShaders();
+	m_currentSetShaderProg = ShaderProgramsEnum::BLOOM_COMBINE;
+	m_dContextPtr->OMSetRenderTargets(1, m_finalRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
+	m_dContextPtr->PSSetShaderResources(0, 1, m_geometryShaderResourceView.GetAddressOf());
+	m_dContextPtr->PSSetShaderResources(1, 1, m_downSampledShaderResourceView.GetAddressOf());
+	m_dContextPtr->Draw(vertexCount, 0);
+	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+
+}
+
+void Renderer::initRenderQuad()
+{
+	std::vector<PositionTextureVertex> fullScreenQuad;
+
+	fullScreenQuad.push_back({ XMFLOAT3(-1.f, 1.f, 0.f), XMFLOAT2(0.f, 0.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(1.f, -1.f, 0.f), XMFLOAT2(1.f, 1.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(-1.f, -1.f, 0.f), XMFLOAT2(0.f, 1.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(-1.f, 1.f, 0.f), XMFLOAT2(0.f, 0.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(1.f, 1.f, 0.f), XMFLOAT2(1.f, 0.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(1.f, -1.f, 0.f), XMFLOAT2(1.f, 1.f) });
+
+	m_renderQuadBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_VERTEX_BUFFER, fullScreenQuad.data(), fullScreenQuad.size());
 }
 
 void Renderer::rasterizerSetup()
@@ -272,15 +521,16 @@ void Renderer::render()
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
 
 	//Clear the context of render and depth target
-	m_dContextPtr->OMGetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, m_rTargetViewsArray, m_depthStencilViewPtr.GetAddressOf());
-	for (UINT i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+	//m_dContextPtr->OMGetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, m_rTargetViewsArray, m_depthStencilViewPtr.GetAddressOf());
+	/*for (UINT i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
 	{
 		if (m_rTargetViewsArray[i] != NULL)
 		{
 			m_dContextPtr->ClearRenderTargetView(m_rTargetViewsArray[i], m_clearColor);
 		}
-	}
-
+	}*/
+	m_dContextPtr->ClearRenderTargetView(m_geometryRenderTargetViewPtr.Get(), m_clearColor);
+	m_dContextPtr->ClearRenderTargetView(m_finalRenderTargetViewPtr.Get(), m_clearColor);
 	if (m_depthStencilViewPtr)
 	{
 		m_dContextPtr->ClearDepthStencilView(m_depthStencilViewPtr.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
@@ -291,8 +541,8 @@ void Renderer::render()
 	UINT offset = 0;
 
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
-	m_rTargetViewsArray[0] = m_rTargetViewPtr.Get();
-	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
+	//m_rTargetViewsArray[0] = m_finalRenderTargetViewPtr.Get();
+	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
 	// Skybox constant buffer:
@@ -336,6 +586,12 @@ void Renderer::render()
 		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
 
+	// [ Bloom Filter ]
+
+	downSamplePass();
+	blurPass();
+
+
 	//GUI
 	GUIHandler::get().render();
 
@@ -355,7 +611,6 @@ ID3D11DeviceContext* Renderer::getDContext()
 {
 	return m_dContextPtr.Get();
 }
-
 
 ID3D11DepthStencilView* Renderer::getDepthStencilView()
 {

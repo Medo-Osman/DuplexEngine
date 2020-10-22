@@ -73,28 +73,35 @@ void Player::handleRotation(const float &dt)
 	if (Vector3(m_movementVector).LengthSquared() > 0) //Only update when moving
 		m_angleY = XMVectorGetY(XMVector3AngleBetweenNormals(XMVectorSet(0, 0, 1, 0), m_movementVector));
 
-	//if this vector has posisitv value the character is facing the positiv x axis, fixed to check against z axis and not camera forward
-	if (XMVectorGetY(XMVector3Cross(m_movementVector, XMVectorSet(0, 0, 1, 0))) > 0.0f)
+	if (Vector3(m_movementVector).LengthSquared() > 0)
 	{
-		m_angleY = -m_angleY;
+		//This is the current rotation in quaternions
+		currentRotation = m_playerEntity->getRotation();
+		currentRotation.Normalize();
+
+		auto cameraRot = m_cameraTransform->getRotation();
+		auto offset = Vector4(XMVector3AngleBetweenNormals(XMVector3Normalize(m_movementVector), m_cameraTransform->getForwardVector()));
+		
+		//if this vector has posisitv value the character is facing the positiv x axis, checks movementVec against cameraForward
+		if (XMVectorGetY(XMVector3Cross(m_movementVector, m_cameraTransform->getForwardVector())) > 0.0f)
+		{
+			//m_angleY = -m_angleY;
+			offset.y = -offset.y;
+		}
+
+		//This is the angleY target quaternion
+		targetRot = Quaternion(0, cameraRot.y, 0, cameraRot.w) * Quaternion::CreateFromYawPitchRoll(offset.y, 0, 0);//Quaternion::CreateFromYawPitchRoll(m_angleY, 0, 0);
+		targetRot.Normalize();
+	
+		//Land somewhere in between target and current
+		slerped = Quaternion::Slerp(currentRotation, targetRot, dt / 0.08f);
+		slerped.Normalize();
+
+		//Display slerped result
+		m_playerEntity->setRotationQuat(slerped);
+
 	}
-
-	//This is the current rotation in quaternions
-	currentRotation = m_playerEntity->getRotation();
-
-
-	currentRotation.Normalize();
-
-	//This is the angleY target quaternion
-	targetRot = Quaternion::CreateFromYawPitchRoll(m_angleY, 0, 0);
-	targetRot.Normalize();
-
-	//Land somewhere in between target and current
-	slerped = Quaternion::Slerp(currentRotation, targetRot, dt / 0.05f);
-	slerped.Normalize();
-
-	//Display slerped result
-	m_playerEntity->setRotationQuat(slerped);
+	//m_playerEntity->
 }
 
 float lerp(const float& a, const float &b, const float &t)
@@ -104,7 +111,8 @@ float lerp(const float& a, const float &b, const float &t)
 
 void Player::playerStateLogic(const float& dt)
 {
-	Vector3 finalMovement = XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED  * m_currentSpeedModifier * dt;
+
+	m_finalMovement = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt) + Vector3(0, m_finalMovement.y, 0);
 
 	switch (m_state)
 	{
@@ -119,8 +127,9 @@ void Player::playerStateLogic(const float& dt)
 		{
 			m_currentDistance += ROLL_SPEED * dt;
 			Vector3 move = m_moveDirection * ROLL_SPEED * dt;
-			move.y = -GRAVITY * dt;
-			m_controller->move(move, dt);
+			move.y += -GRAVITY * dt;
+			m_finalMovement += move;
+			//m_controller->move(move, dt);
 		}
 		break;
 	case PlayerState::DASH:
@@ -132,7 +141,8 @@ void Player::playerStateLogic(const float& dt)
 		else
 		{
 			m_currentDistance += DASH_TRAVEL_DISTANCE * DASH_SPEED * dt;
-			m_controller->move(m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt, dt);
+			m_finalMovement += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt;
+			//m_controller->move(m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt, dt);
 		}
 		break;
 	case PlayerState::FALLING:
@@ -144,30 +154,32 @@ void Player::playerStateLogic(const float& dt)
 		}
 		else
 		{
-			finalMovement.y = -JUMP_SPEED * FALL_MULTIPLIER * dt;
-			m_controller->move(finalMovement, dt);
+			//finalMovement.y += finalMovement.y - 1.f*dt;//-JUMP_SPEED * FALL_MULTIPLIER * dt;
+			//m_controller->move(finalMovement, dt);
 		}
 		break;
 	case PlayerState::JUMPING:
-		if (m_currentDistance >= JUMP_DISTANCE)
+		m_finalMovement.y = JUMP_SPEED * dt;// * dt;
+
+		m_currentDistance += JUMP_SPEED * dt;
+
+		if (m_currentDistance > JUMP_DISTANCE)
 		{
+			m_currentDistance = 0.f;
 			m_state = PlayerState::FALLING;
 		}
-		else
-		{
-			m_currentDistance += JUMP_SPEED * dt;
-			finalMovement.y = JUMP_SPEED * dt;
-		}
-		m_controller->move(finalMovement, dt);
 
 		break;
 	case PlayerState::IDLE:
-		finalMovement.y = -GRAVITY * dt;
-		m_controller->move(finalMovement, dt);
+
 		break;
 	default:
 		break;
 	}
+
+	if (m_finalMovement.y > -MAX_FALL_SPEED * dt)
+		m_finalMovement += Vector3(0, -GRAVITY * dt, 0);
+	m_controller->move(m_finalMovement, dt);
 }
 
 void Player::updatePlayer(const float& dt)
