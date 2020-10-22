@@ -49,7 +49,7 @@ void ShaderProgram::compileShaders(VertexLayoutType inputLayoutType)
 	Microsoft::WRL::ComPtr<ID3DBlob> Blob = NULL;
 	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = NULL;
 
-	UINT flags = D3DCOMPILE_OPTIMIZATION_LEVEL3;
+	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
 #if defined( DEBUG ) || defined( _DEBUG )
 	flags |= D3DCOMPILE_DEBUG;
 #endif
@@ -117,9 +117,6 @@ void ShaderProgram::compileShaders(VertexLayoutType inputLayoutType)
 		hr = m_devicePtr->CreatePixelShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, m_PS.GetAddressOf());
 		assert(SUCCEEDED(hr));
 	}
-
-	SAFE_RELEASE(Blob);
-	SAFE_RELEASE(errorBlob);
 }
 
 void ShaderProgram::addRenderTarget(Microsoft::WRL::ComPtr<ID3D11RenderTargetView>& rtv)

@@ -15,7 +15,7 @@ ApplicationLayer::ApplicationLayer()
 
 ApplicationLayer::~ApplicationLayer()
 {
-	std::cout << "Memory upon shutdown: " << std::endl;
+
 }
 
 bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd)
@@ -38,7 +38,6 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	rawIDevice.usUsage = 0x02;
 	rawIDevice.dwFlags = 0;
 	rawIDevice.hwndTarget = NULL;
-
 	if (RegisterRawInputDevices(&rawIDevice, 1, sizeof(rawIDevice)) == FALSE)
 		return false;
 	m_rendererPtr = &Renderer::get();//new Renderer();
@@ -95,21 +94,6 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 		NULL						// Additional application data
 	);
 	assert(_d3d11Window);
-
-	RedirectIOToConsole();
-}
-
-void ApplicationLayer::RedirectIOToConsole()
-{
-	AllocConsole();
-	HANDLE stdHandle;
-	int hConsole;
-	FILE* fp;
-	stdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-	hConsole = _open_osfhandle((long)stdHandle, _O_TEXT);
-	fp = _fdopen(hConsole, "w");
-
-	freopen_s(&fp, "CONOUT$", "w", stdout);
 }
 
 void ApplicationLayer::applicationLoop()
@@ -125,25 +109,15 @@ void ApplicationLayer::applicationLoop()
 		}
 		else // Render/Logic Loop
 		{
-
 			this->m_dt = (float)m_timer.timeElapsed();
 			m_timer.restart();
-
-			ImGui_ImplDX11_NewFrame();
-			ImGui_ImplWin32_NewFrame();
-			ImGui::NewFrame();
 
 			m_input.readBuffers();
 			m_physics->update(m_dt);
 			m_enginePtr->update(m_dt);
-
-			PerformanceTester::get().runPerformanceTestsGui(m_dt);
-
-			m_rendererPtr->update(m_dt);
 			m_scenemanager.updateScene(m_dt);
 			AudioHandler::get().update(m_dt);
 			m_rendererPtr->render();
-
 		}
 	}
 	m_physics->release();

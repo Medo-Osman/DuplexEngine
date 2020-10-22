@@ -20,7 +20,6 @@ public:
 		SAFE_DELETE(m_vertexArray);
 		//m_vertexBuffer.release();
 		//m_indexBuffer.release();
-		delete[] m_vertexArray;
 	}
 	
 	Buffer<LRM_VERTEX>& getVertexBuffer() { return m_vertexBuffer; }

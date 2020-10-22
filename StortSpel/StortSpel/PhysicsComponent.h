@@ -4,7 +4,6 @@
 #include"Physics.h"
 #include"MeshComponent.h"
 
-
 class PhysicsComponent : public Component
 {
 private:
@@ -16,8 +15,7 @@ private:
 	std::vector<PxShape*> m_shapes;
 	bool m_dynamic;
 	bool m_controllRotation;
-	bool m_kinematic;
-	bool m_slide;
+
 
 	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, LRM_VERTEX vertexArray[], const int vertexCount)
 	{
@@ -56,7 +54,6 @@ private:
 		return createdGeometry;
 	}
 
-
 	bool canAddGeometry(bool needsToBeStatic = false)
 	{
 		ErrorLogger* e = &ErrorLogger::get();
@@ -91,8 +88,6 @@ public:
 		m_physicsPtr = &Physics::get();
 		m_dynamic = false;
 		m_controllRotation = true;
-		m_kinematic = false;
-		m_slide = false;
 	}
 	~PhysicsComponent()
 	{
@@ -102,14 +97,14 @@ public:
 		m_shape = nullptr;
 	}
 
-	void initActorAndShape(Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
+	void initActorAndShape(Entity* entity, MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
 	{
 		m_dynamic = dynamic;
 		m_transform = entity;
 		XMFLOAT3 scale = entity->getScaling() * meshComponent->getScaling();
 		std::string name = meshComponent->getFilePath() + std::to_string(geometryType);
 		PxGeometry* geometry;
-		m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), m_transform->getRotation(), dynamic, this);
+		m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), m_transform->getRotation(), dynamic);
 		bool addGeom = true;
 
 		if (this->canAddGeometry())
@@ -143,57 +138,13 @@ public:
 
 	}
 
-	PxControllerBehaviorFlag::Enum getBehaviorFlag()
-	{
-		PxControllerBehaviorFlag::Enum flag;
-		m_slide ? flag = PxControllerBehaviorFlag::eCCT_SLIDE : flag = PxControllerBehaviorFlag::eCCT_CAN_RIDE_ON_OBJECT;
-
-		return flag;
-	}
-
-	void setSlide(bool shouldSlide)
-	{
-		m_slide = shouldSlide;
-	}
-
-	void makeKinematic()
-	{
-		if (!m_kinematic)
-		{
-			m_kinematic = true;
-			if(m_dynamic)
-				m_physicsPtr->makeActorKinematic(static_cast<PxRigidBody*>(this->m_actor));
-		}
-
-	}
-
-	void makeKinematicDynamic(float newMass)
-	{
-		if (m_kinematic)
-		{
-			if (m_dynamic)
-			{
-				m_physicsPtr->makeKinematicActorDynamic(static_cast<PxRigidBody*>(m_actor), newMass);
-				m_kinematic = false;
-			}
-		}
-	}
-
-	void kinematicMove(XMFLOAT3 destination, XMFLOAT4 quaternionRotation = {0.f, 0.f, 0.f, 0.f })
-	{
-		if (m_kinematic && m_dynamic)
-			m_physicsPtr->kinematicMove(static_cast<PxRigidDynamic*>(m_actor), destination, quaternionRotation);
-		else
-			ErrorLogger::get().logError(L"Trying to kinematicMove actor that is not kinematic and/or dynamic");
-	}
-
 	void initActor(Entity* entity, bool dynamic)
 	{
 		m_dynamic = dynamic;
 		m_transform = entity;
 		if (!m_actor)
 		{
-			m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), entity->getRotation(), dynamic, this);
+			m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), entity->getRotation(), dynamic);
 		}
 		else
 		{
@@ -242,7 +193,7 @@ public:
 	}
 
 
-	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool unique)
+	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, MeshComponent* meshComponent, std::string materialName, bool unique)
 	{
 		XMFLOAT3 min, max;
 		PxGeometry* bb = nullptr;

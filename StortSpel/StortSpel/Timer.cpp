@@ -20,7 +20,7 @@ double Timer::timeElapsed() const
 	}
 	else
 	{
-		auto elapsed = std::chrono::duration<double, std::ratio<60>>(m_stopTime - m_startTime);
+		auto elapsed = std::chrono::duration<double, std::ratio<1>>(m_stopTime - m_startTime);
 		return elapsed.count() + this->m_timeAdd;
 	}
 }

@@ -45,7 +45,6 @@ private:
 
 	PxRigidActor* createDynamicActor(PxVec3 pos, PxQuat rot)
 	{
-		
 		return m_physicsPtr->createRigidDynamic(PxTransform(pos, rot));
 	}
 
@@ -202,13 +201,12 @@ public:
 		actor->attachShape(*shape);
 	}
 
-	PxRigidActor* createRigidActor(const XMFLOAT3 &position, const XMFLOAT4& quaternion, const bool &dynamic, void* physicsComponentPtr)
+	PxRigidActor* createRigidActor(const XMFLOAT3 &position, const XMFLOAT4& quaternion, const bool &dynamic)
 	{
 		PxVec3 pos(position.x, position.y, position.z);
 		PxQuat quat(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
 		PxRigidActor* actor = dynamic ? createDynamicActor(pos, quat) : createStaticActor(pos, quat);
-		actor->userData = physicsComponentPtr;
 		m_scenePtr->addActor(*actor);
 		return actor;
 	}
@@ -337,23 +335,5 @@ public:
 		PxCapsuleController* capsule = static_cast<PxCapsuleController*>(controller);
 		capsule->setRadius(radius);
 
-	}
-
-
-	//Kinematic Actor
-	void makeActorKinematic(PxRigidBody* actor)
-	{
-		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
-	}
-
-	void makeKinematicActorDynamic(PxRigidBody* actor, float newMass)
-	{
-		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, false);
-		actor->setMass(newMass);
-	}
-
-	void kinematicMove(PxRigidDynamic* actor, XMFLOAT3 destination, XMFLOAT4 quatRot)
-	{
-		actor->setKinematicTarget(PxTransform(destination.x, destination.y, destination.z, PxQuat(quatRot.x, quatRot.y, quatRot.z, quatRot.w)));
 	}
 };
