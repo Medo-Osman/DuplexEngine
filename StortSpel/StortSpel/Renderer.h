@@ -35,8 +35,7 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11ComputeShader> m_CSDownSample = NULL;
 	Microsoft::WRL::ComPtr<ID3D11ComputeShader> m_CSBlurr = NULL;
-	LPCWSTR downSampleShaderName = L"DownSampleShader.hlsl";
-	LPCWSTR blurShaderName = L"BlurShader.hlsl";
+	
 	Microsoft::WRL::ComPtr<ID3DBlob> Blob = NULL;
 	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = NULL;
 
@@ -92,7 +91,9 @@ private:
 	void rasterizerSetup();
 	
 	void createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const int& height) const;
+	HRESULT initializeBloomFilter();
 	void calculateBloomWeights();
+	void downSamplePass();
 	void blurPass();
 	void initRenderQuad();
 	Renderer(); //{};
