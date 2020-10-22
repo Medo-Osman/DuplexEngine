@@ -21,7 +21,6 @@ void Renderer::release()
 	m_dContextPtr->Release();
 	m_swapChainPtr->Release();
 	m_debugPtr->Release();
-	m_finalRenderTargetViewPtr->Release();
 	m_swapChainBufferPtr->Release();
 	m_depthStencilBufferPtr->Release();
 	m_depthStencilViewPtr->Release();
@@ -375,13 +374,7 @@ void Renderer::blurPass()
 {
 	UINT offset = 0;
 	int vertexCount = 6;
-	m_dContextPtr->IASetVertexBuffers(0, 1, m_renderQuadBuffer.GetAddressOf(), m_renderQuadBuffer.getStridePointer(), &offset);
-	m_compiledShaders[ShaderProgramsEnum::BLOOM_COMBINE]->setShaders();
-	m_currentSetShaderProg = ShaderProgramsEnum::BLOOM_COMBINE;
-	m_dContextPtr->OMSetRenderTargets(1, m_finalRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
-	m_dContextPtr->PSSetShaderResources(0, 1, m_geometryShaderResourceView.GetAddressOf());
-	m_dContextPtr->PSSetShaderResources(1, 1, m_downSampledShaderResourceView.GetAddressOf());
-	m_dContextPtr->Draw(vertexCount, 0);
+	
 
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
 	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
@@ -411,6 +404,16 @@ void Renderer::blurPass()
 		this->m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &this->nullUav, &cOffset);
 
 	}
+
+	m_dContextPtr->IASetVertexBuffers(0, 1, m_renderQuadBuffer.GetAddressOf(), m_renderQuadBuffer.getStridePointer(), &offset);
+	m_compiledShaders[ShaderProgramsEnum::BLOOM_COMBINE]->setShaders();
+	m_currentSetShaderProg = ShaderProgramsEnum::BLOOM_COMBINE;
+	m_dContextPtr->OMSetRenderTargets(1, m_finalRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
+	m_dContextPtr->PSSetShaderResources(0, 1, m_geometryShaderResourceView.GetAddressOf());
+	m_dContextPtr->PSSetShaderResources(1, 1, m_downSampledShaderResourceView.GetAddressOf());
+	m_dContextPtr->Draw(vertexCount, 0);
+	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+
 }
 
 void Renderer::initRenderQuad()
