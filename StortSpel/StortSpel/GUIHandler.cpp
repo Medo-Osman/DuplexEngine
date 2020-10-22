@@ -39,7 +39,7 @@ void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext)
 int GUIHandler::addGUIText(std::string textString, std::wstring fontName, GUITextStyle style)
 {
 	// Font L"squirk.spritefont"
-	if (!m_fonts.count(fontName))
+	if (m_fonts.find(fontName) == m_fonts.end())
 	{
 		std::wstring path = m_FONTS_PATH + fontName;
 		m_fonts[fontName] = new SpriteFont(m_device, path.c_str());
