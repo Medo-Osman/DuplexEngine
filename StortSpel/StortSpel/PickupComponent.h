@@ -8,10 +8,9 @@ class PickupComponent : public TriggerComponent
 private:
 
 public:
-	PickupComponent(Transform* transform, PickupType pickupType, float modifierValue, int duration)
+	PickupComponent(PickupType pickupType, float modifierValue, int duration)
 		:TriggerComponent()
 	{
-		initTrigger(transform, { 1.f, 1.f, 1.f });
 		m_physicsData.triggerType = TriggerType::PICKUP;
 		m_physicsData.assosiatedTriggerEnum = (int)pickupType;
 		m_physicsData.floatData = modifierValue;

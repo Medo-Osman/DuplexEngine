@@ -112,7 +112,7 @@ float lerp(const float& a, const float &b, const float &t)
 void Player::playerStateLogic(const float& dt)
 {
 
-	m_finalMovement = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt) + Vector3(0, m_finalMovement.y, 0);
+	m_finalMovement = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt * this->m_currentSpeedModifier) + Vector3(0, m_finalMovement.y, 0);
 
 	switch (m_state)
 	{
