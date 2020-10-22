@@ -4,6 +4,7 @@
 #include "ShaderProgram.h"
 #include "ShaderEnums.h"
 #include "Engine.h"
+#include "Scene.h"
 //#include "LightComponent.h"
 
 
@@ -56,6 +57,7 @@ private:
 	HWND m_window;
 	Settings m_settings;
 	Camera* m_camera = nullptr;
+	
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 
 	

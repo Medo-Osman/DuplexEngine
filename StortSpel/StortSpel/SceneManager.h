@@ -2,7 +2,7 @@
 #include "Scene.h"
 
 
-class SceneManager
+class SceneManager : public InputObserver
 {
 private:
 	Scene* m_currentScene;
@@ -13,5 +13,7 @@ public:
 	
 	void initalize();
 	void updateScene(const float &dt);
+
+	void inputUpdate(InputData& inputData);
 
 };

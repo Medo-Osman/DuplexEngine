@@ -86,6 +86,7 @@ public:
 	{
 		m_type = ComponentType::PHYSICS;
 		m_physicsPtr = nullptr;
+		m_physicsPtr = &Physics::get();
 		m_dynamic = false;
 		m_controllRotation = true;
 	}

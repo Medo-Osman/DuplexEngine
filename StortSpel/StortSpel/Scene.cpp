@@ -2,8 +2,13 @@
 #include "Scene.h"
 
 
+
 Scene::Scene()
 {
+	m_player = Engine::get().getPlayerPtr();
+
+	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
+	addMeshComponent(meshComponent);
 }
 
 Scene::~Scene()
@@ -15,38 +20,42 @@ void Scene::loadScene(std::string path)
 	Engine* engine = &Engine::get();
 	Entity* entity;
 
-	Entity* cube1 = engine->addEntity("cube1");
-	if (cube1)
+	entity = addEntity("cube1");
+	if (entity)
 	{
-		engine->addComponent(cube1, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
-		cube1->scaleUniform({ -1.f });
+		m_entities["cube1"] = entity;
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
+		entity->scaleUniform({ -1.f });
 	}
 
 	// Cube 2
-	Entity* cube2 = engine->addEntity("cube2");
-	if (cube2)
+	entity = addEntity("cube2");
+	if (entity)
 	{
-		engine->addComponent(cube2, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
-		cube2->move({ 10.f, 0.5f, 0.f });
-		cube2->scaleUniform({ -2.f });
+		m_entities["cube2"] = entity;
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
+		entity->move({ 10.f, 0.5f, 0.f });
+		entity->scaleUniform({ -2.f });
 	}
 
 	// Cube 3
-	Entity* cube3 = engine->addEntity("cube3");
-	if (cube3)
+	entity = addEntity("cube3");
+	if (entity)
 	{
-		engine->addComponent(cube3, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture3m.png" })));
-		cube3->move({ 20.f, 1.f, 0.f });
-		cube3->scaleUniform({ -3.f });
+		m_entities["cube3"] = entity;
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture3m.png" })));
+		entity->move({ 20.f, 1.f, 0.f });
+		entity->scaleUniform({ -3.f });
 	}
 
 	// Cube 4
-	Entity* cube4 = engine->addEntity("cube4");
-	if (cube4)
+	entity = addEntity("cube4");
+	if (entity)
 	{
-		engine->addComponent(cube4, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture4m.png" })));
-		cube4->move({ 30.f, 1.5f, 0.f });
-		cube4->scaleUniform({ -4.f });
+		m_entities["cube4"] = entity;
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture4m.png" })));
+		entity->move({ 30.f, 1.5f, 0.f });
+		entity->scaleUniform({ -4.f });
 	}
 
 	// Tent
@@ -62,114 +71,364 @@ void Scene::loadScene(std::string path)
 
 	// Floor
 	Material gridTest = Material({ L"T_GridTestTex.bmp" });
-	Entity* floor = engine->addEntity("floor");
-	if (floor)
+	entity = addEntity("floor");
+	if (entity)
 	{
-		engine->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		floor->scale({ 300, 2,300 });
-		floor->move({ 0,-2,0 });
-		engine->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+		m_entities["floor"] = entity;
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+		entity->scale({ 300, 2,300 });
+		entity->move({ 0,-2,0 });
+		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
 	// Flying Cube
-	Entity* cube = engine->addEntity("cube-test2");
-	if (cube)
+	entity = addEntity("cube-test2");
+	if (entity)
 	{
-		engine->addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		cube->scaleUniform({ 3.f });
-		cube->move({ 0.f, 5.f, 5.f });
-		cube->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		engine->createNewPhysicsComponent(cube, true, "", PxGeometryType::eSPHERE);
+		m_entities["cube-test2"] = entity;
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+		entity->scaleUniform({ 3.f });
+		entity->move({ 0.f, 5.f, 5.f });
+		entity->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
+		createNewPhysicsComponent(entity, true, "", PxGeometryType::eSPHERE);
 	}
 
 	// Cube with sphere shape
-	Entity* cubeSphereBB = engine->addEntity("cube-test3");
-	if (cubeSphereBB)
+	entity = addEntity("cube-test3");
+	if (entity)
 	{
-		engine->addComponent(cubeSphereBB, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-		cubeSphereBB->scaleUniform({ 3.f });
-		cubeSphereBB->move({ -10.f, 5.f, 5.f });
-		cubeSphereBB->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		engine->addComponent(cubeSphereBB, "physics", new PhysicsComponent(&Physics::get()));
-		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(cubeSphereBB->getComponent("physics"));
-		physicsComp->initActor(cubeSphereBB, false);
+		m_entities["cube-test3"] = entity;
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+		entity->scaleUniform({ 3.f });
+		entity->move({ -10.f, 5.f, 5.f });
+		entity->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
+		addComponent(entity, "physics", new PhysicsComponent(&Physics::get()));
+		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
+		physicsComp->initActor(entity, false);
 		physicsComp->addSphereShape(2.f);
 	}
 
 	// XWing
-	Entity* testXwing = engine->addEntity("testXwing");
+	Entity* testXwing = addEntity("testXwing");
 	if (testXwing)
 	{
-		engine->addComponent(testXwing, "xwingtestmesh",
+		m_entities["testXwing"] = entity;
+		addComponent(testXwing, "xwingtestmesh",
 			new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
-		engine->addComponent(testXwing, "xwingtestmove",
+		addComponent(testXwing, "xwingtestmove",
 			new SweepingComponent(dynamic_cast<Transform*>(testXwing), Vector3(0, 10, -5), Vector3(0, 10, 100), 20));
 	}
 	// Rotating Cube
-	Entity* rotatingCube = engine->addEntity("RotatingCube");
+	Entity* rotatingCube = addEntity("RotatingCube");
 	if (rotatingCube)
 	{
-		engine->addComponent(rotatingCube, "mesh",
+		m_entities["RotatingCube"] = entity;
+		addComponent(rotatingCube, "mesh",
 			new MeshComponent("testCube_pCube1.lrm"));
-		engine->addComponent(rotatingCube, "rotate",
+		addComponent(rotatingCube, "rotate",
 			new RotateAroundComponent(dynamic_cast<Transform*>(testXwing), testXwing->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube), 5));
 	}
 	// Rotating Cube 2
-	Entity* rotatingCube2 = engine->addEntity("RotatingCube2");
+	Entity* rotatingCube2 = addEntity("RotatingCube2");
 	if (rotatingCube2)
 	{
-		engine->addComponent(rotatingCube2, "mesh",
+		m_entities["RotatingCube2"] = entity;
+		addComponent(rotatingCube2, "mesh",
 			new MeshComponent("testCube_pCube1.lrm"));
-		engine->addComponent(rotatingCube2, "rotate",
+		addComponent(rotatingCube2, "rotate",
 			new RotateAroundComponent(dynamic_cast<Transform*>(rotatingCube), rotatingCube->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube2), 2, 40.f));
 		rotatingCube2->scale({ 0.5f, 0.5f, 0.5f });
 	}
 	// Rotating Cube 3
-	Entity* rotatingCube3 = engine->addEntity("RotatingCube3");
+	Entity* rotatingCube3 = addEntity("RotatingCube3");
 	if (rotatingCube3)
 	{
-		engine->addComponent(rotatingCube3, "mesh",
+		m_entities["RotatingCube3"] = entity;
+		addComponent(rotatingCube3, "mesh",
 			new MeshComponent("testCube_pCube1.lrm"));
-		engine->addComponent(rotatingCube3, "rotate",
+		addComponent(rotatingCube3, "rotate",
 			new RotateAroundComponent(dynamic_cast<Transform*>(rotatingCube), rotatingCube->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube3), 2, 40.f, 180.f));
 		rotatingCube3->scale({ 0.5f, 0.5f, 0.5f });
 	}
 
 	// Flipping Cube 
-	Entity* FlippingCube = engine->addEntity("FlippingCube");
-	if (FlippingCube)
+	entity = addEntity("FlippingCube");
+	if (entity)
 	{
-		engine->addComponent(FlippingCube, "mesh",
+		m_entities["FlippingCube"] = entity;
+		addComponent(entity, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
-		FlippingCube->move({ 5.f, 0.f, 15.f });
-		FlippingCube->scale({ 4, 1, 4 });
-		engine->addComponent(FlippingCube, "flipp",
-			new FlippingComponent(dynamic_cast<Transform*>(FlippingCube), 3, 3));
+		entity->move({ 5.f, 0.f, 15.f });
+		entity->scale({ 4, 1, 4 });
+		addComponent(entity, "flipp",
+			new FlippingComponent(dynamic_cast<Transform*>(entity), 3, 3));
 	}
 
 	// Platforms
 	for (int i = 0; i < 5; i++)
 	{
-		Entity* cube = engine->addEntity("cube-test" + std::to_string(i));
-		if (cube)
+		entity = addEntity("cube-test" + std::to_string(i));
+		m_entities["cube-test"] = entity;
+		if (entity)
 		{
-			engine->addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm"));
-			cube->scale({ 3,0.2,5 });
-			cube->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
-			engine->createNewPhysicsComponent(cube);
+			addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm"));
+			entity->scale({ 3,0.2,5 });
+			entity->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
+			createNewPhysicsComponent(entity);
 		}
 	}
 
-	m_entities["SkyBox"] = engine->addEntity("SkyBox");
+	m_entities["SkyBox"] = addEntity("SkyBox");
 	if (m_entities["SkyBox"])
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		engine->addComponent(m_entities["SkyBox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		addComponent(m_entities["SkyBox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
 	}
+
+	Entity* audioTestDelete = addEntity("deleteTestAudio");
+	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+	delete m_entities["deleteTestAudio"];
+	m_entities.erase("deleteTestAudio");
+
+	// Audio test
+	Entity* audioTest = addEntity("audioTest");
+	addComponent(audioTest,"testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	m_nightSlide = 0.01f;
+	m_nightVolume = 0.2f;
+
+
+
+}
+
+void Scene::loadLobby()
+{
+	Engine* engine = &Engine::get();
+	Entity* entity;
+
+	Material gridTest = Material({ L"T_GridTestTex.bmp" });
+	entity = addEntity("floor");
+	if (entity)
+	{
+		m_entities["floor"] = entity;
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+		entity->scale({ 300, 2,300 });
+		entity->move({ 0,-2,0 });
+		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	entity = addEntity("walls");
+	if (entity)
+	{
+		m_entities["walls"] = entity;
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
+		entity->scale({ 30, -30, 30});
+		entity->move({ 0,8,0 });
+	}
+
+	//Point Light
+	addComponent(m_player->getPlayerEntity(),"testLight", new LightComponent());
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translation({ 0,1.f,-5 });
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
+
+	//Spot Light
+	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translation({ 0,1.f,0 });
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
+
+	//Tests and demonstration how to add and remove lights
+	for (int i = 0; i < 8; i++)
+	{
+		addComponent(m_player->getPlayerEntity(),"lightTest" + std::to_string(i), new LightComponent());
+	}
+
+	for (int i = 0; i < 8; i++)
+	{
+		removeLightComponent(static_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("lightTest" + std::to_string(i))));
+	}
+
+	Entity* audioTestDelete = addEntity("deleteTestAudio");
+	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+	delete m_entities["deleteTestAudio"];
+	m_entities.erase("deleteTestAudio");
+
+	// Audio test
+	Entity* audioTest = addEntity("audioTest");
+	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	m_nightSlide = 0.01f;
+	m_nightVolume = 0.2f;
+
 }
 
 void Scene::updateScene(const float& dt)
 {
+	// AUDIO TEST
+	m_nightVolume += dt * m_nightSlide;
+	if (m_nightVolume < 0.f)
+	{
+		m_nightVolume = 0.f;
+		m_nightSlide = -m_nightSlide;
+	}
+	else if (m_nightVolume > 0.2f)
+	{
+		m_nightVolume = 0.2f;
+		m_nightSlide = -m_nightSlide;
+	}
+	AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
+	ac->setVolume(m_nightVolume);
 }
+
+Entity* Scene::getEntity(std::string key)
+{
+	if (key == PLAYER_ENTITY_NAME)
+		return m_player->getPlayerEntity();
+	else if (m_entities.find(key) != m_entities.end())
+		return m_entities.at(key);
+	else
+		return nullptr;
+}
+
+Entity* Scene::addEntity(std::string identifier)
+{
+
+	//if (m_entities)
+	//{
+	if (m_entities.find(identifier) != m_entities.end())// If one with that name is already found
+	{
+		return nullptr;
+	}
+
+
+	m_entities[identifier] = new Entity(identifier);
+
+	return m_entities[identifier];
+	//}
+}
+
+bool Scene::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
+{
+	entity->addComponent(componentIdentifier, component);
+
+	if (component->getType() == ComponentType::MESH)
+	{
+		MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
+
+		addMeshComponent(meshComponent);
+	}
+
+	if (component->getType() == ComponentType::LIGHT)
+	{
+		LightComponent* lightComponent = dynamic_cast<LightComponent*>(component);
+
+		addLightComponent(lightComponent);
+	}
+
+	return true;
+}
+
+void Scene::addMeshComponent(MeshComponent* component)
+{
+	component->setRenderId(++m_meshCount);
+	m_meshComponentMap[m_meshCount] = component;
+}
+
+void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
+{
+	std::vector<Component*> tempComponentVector;
+	PhysicsComponent* physComp = new PhysicsComponent(&Physics::get());
+	MeshComponent* meshComponent = nullptr;
+	bool found = false;
+
+	entity->getComponentsOfType(tempComponentVector, ComponentType::MESH);
+
+	if (meshName != "")
+	{
+		for (std::size_t i = 0; i < tempComponentVector.size() && !found; ++i) {
+			MeshComponent* currentMesh = static_cast<MeshComponent*>(tempComponentVector[i]);
+			if (currentMesh->getFilePath() == meshName)
+			{
+				meshComponent = currentMesh;
+				found = true;
+			}
+		}
+
+		if (!found)
+		{
+			ErrorLogger::get().logError(("When creating new physics component, meshResource " + meshName + " does not exist. ->").c_str());
+
+			if (tempComponentVector.size() > 0)
+			{
+				ErrorLogger::get().logError("Using first meshComponent.");
+				meshComponent = static_cast<MeshComponent*>(tempComponentVector[0]);
+				found = true;
+			}
+
+		}
+	}
+	else
+	{
+		if (tempComponentVector.size() > 0)
+		{
+			meshComponent = static_cast<MeshComponent*>(tempComponentVector[0]);
+			found = true;
+		}
+	}
+	if (!found)
+		ErrorLogger::get().logError("Trying to add physic component without any meshcomponent!. Can't use this helper function.");
+
+	
+	entity->addComponent("physics", physComp);
+	physComp->initActorAndShape(entity, meshComponent, geometryType, dynamic, materialName, isUnique);
+}
+
+void Scene::addLightComponent(LightComponent* component)
+{
+	if (m_lightCount < 8)
+	{
+		component->setLightID(component->getIdentifier());
+		m_lightComponentMap[component->getIdentifier()] = component;
+	}
+	else
+		ErrorLogger::get().logError("Maximum lights achieved, failed to add one.");
+}
+
+void Scene::removeLightComponent(LightComponent* component)
+{
+	getEntity(component->getParentEntityIdentifier())->removeComponent(component);
+	
+	int nrOfErased = m_lightComponentMap.erase(component->getIdentifier());
+	if (nrOfErased > 0) //if it deleted more than 0 elements
+	{
+		m_lightCount -= nrOfErased;
+	}
+}
+
+void Scene::removeLightComponentFromMap(LightComponent* component)
+{
+
+
+	int nrOfErased = m_lightComponentMap.erase(component->getIdentifier());
+	if (nrOfErased > 0) //if it deleted more than 0 elements
+	{
+		m_lightCount -= nrOfErased;
+	}
+}
+
+std::unordered_map<std::string, Entity*>* Scene::getEntityMap()
+{
+	return &m_entities;
+}
+
+std::unordered_map<std::string, LightComponent*>* Scene::getLightMap()
+{
+	return &m_lightComponentMap;
+}
+
+std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMap()
+{
+	return &m_meshComponentMap;
+}
+
