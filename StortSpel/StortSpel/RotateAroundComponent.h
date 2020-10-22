@@ -47,9 +47,9 @@ public:
 			m_angle = 360.f;
 		}
 
-		m_offset		  = Vector3(m_radius, 0, 0);
+		m_offset				= Vector3(m_radius, 0, 0);
 		m_originTransformMatrix = XMMatrixTranslationFromVector(m_originTransform->getTranslation());
-		m_rotationMatrix  = XMMatrixRotationY(XMConvertToRadians(m_angle));
+		m_rotationMatrix		= XMMatrixRotationY(XMConvertToRadians(m_angle));
 
 		m_pos = XMVector3TransformCoord(m_offset,  m_rotationMatrix * m_rotation * m_originTransformMatrix);
 
