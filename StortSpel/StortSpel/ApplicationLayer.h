@@ -5,6 +5,12 @@
 #include "Engine.h"
 #include"AudioHandler.h"
 #include"Timer.h"
+#include "SceneManager.h"
+
+#include <windows.h>
+#include <fcntl.h>
+#include <io.h>
+#include <iostream>
 
 
 class ApplicationLayer
@@ -15,6 +21,7 @@ private:
 	Renderer* m_rendererPtr;
 	HWND m_window;
 	Engine* m_enginePtr;
+	SceneManager m_scenemanager;
 
 	Timer m_timer;
 	float m_dt;
@@ -22,6 +29,8 @@ private:
 	int width, height;
 
 	void createWin32Window(const HINSTANCE hInstance, const wchar_t* windowTitle, HWND& _d3d11Window);
+
+	void RedirectIOToConsole();
 public:
 	static ApplicationLayer& getInstance()
 	{
@@ -36,6 +45,6 @@ public:
 
 	const HWND& getWindow() { return m_window; }
 	Input m_input;
-	Physics m_physics;
+	Physics* m_physics;
 
 };

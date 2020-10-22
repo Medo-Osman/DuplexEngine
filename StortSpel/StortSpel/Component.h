@@ -2,7 +2,7 @@
 #include "3DPCH.h"
 #include <string>
 
-enum class ComponentType { MESH, AUDIO, PHYSICS, TEST, INVALID, UNASSIGNED, ROTATEAROUND, LIGHT};
+enum class ComponentType { MESH, AUDIO, PHYSICS, TEST, INVALID, UNASSIGNED, ROTATEAROUND, LIGHT, SWEEPING, FLIPPING};
 
 class Component
 {
@@ -10,14 +10,15 @@ protected:
 	ComponentType m_type;
 	std::string m_parentEntityIdentifier;
 	std::string m_identifier;
+	std::unordered_map<std::string, Component*> *m_siblingComponentsPtr;
 
 public:
 	Component()
 	{
 		m_type = ComponentType::UNASSIGNED;
+		m_siblingComponentsPtr = nullptr;
 	}
 	virtual ~Component() {}
-
 
 	// Operators
 	bool operator==(const Component& otherComponent)
@@ -37,6 +38,28 @@ public:
 	std::string getIdentifier()
 	{
 		return m_identifier;
+	}
+
+	Component* findSiblingComponentOfType(ComponentType type)
+	{
+		Component* componentPtr = nullptr;
+		if (m_siblingComponentsPtr)
+		{
+			for (std::pair<std::string, Component*> component : *m_siblingComponentsPtr)
+			{
+				if (component.second->getType() == type)
+				{
+					componentPtr = component.second;
+				}
+			}
+		}
+
+		return componentPtr;
+	}
+
+	virtual void setComponentMapPointer(std::unordered_map<std::string, Component*>* componentMap)
+	{
+		m_siblingComponentsPtr = componentMap;
 	}
 
 	void setParentEntityIdentifier(std::string newParentEntity)

@@ -17,8 +17,7 @@ void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
 
 void Renderer::release()
 {
-	m_devicePtr.Get()->Release();
-	m_dContextPtr->Release();
+	
 	m_swapChainPtr->Release();
 	m_debugPtr->Release();
 	m_swapChainBufferPtr->Release();
@@ -50,14 +49,28 @@ void Renderer::release()
 
 Renderer::~Renderer()
 {
+	m_devicePtr = nullptr;
+	//m_dContextPtr.Reset();
+	//m_swapChainPtr.Reset();
+
+
+
+	skyboxDSSPtr->Release();
 	for (std::pair<ShaderProgramsEnum, ShaderProgram*> element : m_compiledShaders)
 	{
 		delete element.second;
 	}
+
+
+	HRESULT hr = this->m_debugPtr->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+	assert(SUCCEEDED(hr));
+	Microsoft::WRL::ComPtr< ID3D11Debug > m_deviceDebug;
+	m_debugPtr.Reset();
 }
 
 HRESULT Renderer::initialize(const HWND& window)
 {
+
 	HRESULT hr;
 	m_window = window;
 	
@@ -68,7 +81,6 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	//Get swapchian buffer
 	hr = m_swapChainPtr->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)m_swapChainBufferPtr.GetAddressOf());
-
 	if (!SUCCEEDED(hr)) return hr;
 
 	//Get Debugger
@@ -78,6 +90,7 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	hr = m_devicePtr->CreateRenderTargetView(m_swapChainBufferPtr.Get(), 0, m_finalRenderTargetViewPtr.GetAddressOf());
 	if (!SUCCEEDED(hr)) return hr;
+	int var = m_swapChainBufferPtr.Reset();
 
 	hr = createDepthStencil();
 	if (!SUCCEEDED(hr)) return hr;
@@ -117,6 +130,7 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	createViewPort(m_defaultViewport, m_settings.width, m_settings.height);
 	rasterizerSetup();
+
 
 
 
@@ -165,6 +179,19 @@ HRESULT Renderer::initialize(const HWND& window)
 	/////////////////////////////////////////////////
 
 	initRenderQuad();
+
+	GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
+
+	 //ImGui initialization
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	//ImGui::SetCurrentContext(imguictx);
+
+	ImGui::StyleColorsDark();
+
+	ImGui_ImplWin32_Init(window);
+	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
 
 	return hr;
 }
@@ -483,6 +510,7 @@ void Renderer::rasterizerSetup()
 
 void Renderer::update(const float& dt)
 {
+
 	
 }
 
@@ -517,9 +545,6 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
-	// For Texture Testing only
-	//ID3D11ShaderResourceView* srv = ResourceHandler::get().loadTexture(L"T_CircusTent_D.png");
-	//m_dContextPtr->PSSetShaderResources(0, 1, &srv);
 	// Skybox constant buffer:
 	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
 	skyboxMVP constantBufferSkyboxStruct;
@@ -529,6 +554,9 @@ void Renderer::render()
 	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(W * V * P);
 	m_skyboxConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferSkyboxStruct);
 
+	// Mesh WVP buffer, needs to be set every frame bacause of SpriteBatch(GUIHandler)
+	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
 		ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum();
@@ -537,7 +565,7 @@ void Renderer::render()
 			m_compiledShaders[meshShaderEnum]->setShaders();
 			m_currentSetShaderProg = meshShaderEnum;
 		}
-			
+		
 		
 		Material* meshMatPtr = component.second->getMaterialPtr();
 		if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
@@ -563,7 +591,15 @@ void Renderer::render()
 	downSamplePass();
 	blurPass();
 
-	m_swapChainPtr->Present(0, 0);
+
+	//GUI
+	GUIHandler::get().render();
+
+	// Render ImGui
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+	m_swapChainPtr->Present(1, 0);
 }
 
 ID3D11Device* Renderer::getDevice()

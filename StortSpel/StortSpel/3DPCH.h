@@ -23,6 +23,7 @@
 #include <stack>
 #include <iostream>
 #include <chrono>
+#include <cmath>
 
 // DirectX 11
 #include <d3d11.h>
@@ -36,8 +37,22 @@
 #include <DirectXColors.h>
 #include <Audio.h>
 #include <Dbt.h>
+#include <SpriteBatch.h>
+#include <SpriteFont.h>
+#include <CommonStates.h>
+
 //PhysX
 #include"PxPhysicsAPI.h"
+
+// ImGui includes
+#include "../3rd-Party/ImGui/imconfig.h"
+#include "../3rd-Party/ImGui/imgui.h"
+#include "../3rd-Party/ImGui/imgui_impl_dx11.h"
+#include "../3rd-Party/ImGui/imgui_impl_win32.h"
+#include "../3rd-Party/ImGui/imgui_internal.h"
+#include "../3rd-Party/ImGui/imstb_rectpack.h"
+#include "../3rd-Party/ImGui/imstb_textedit.h"
+#include "../3rd-Party/ImGui/imstb_truetype.h"
 
 // Singletons
 //#include "ResourceHandler.h"
@@ -59,6 +74,7 @@
 #include <WICTextureLoader.h>
 #include<DDSTextureLoader.h>
 using namespace DirectX;
+using namespace SimpleMath;
 
 //Include light structures
 #include "LightStructs.h"
@@ -68,6 +84,8 @@ using namespace DirectX;
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "gdi32")
 #pragma comment (lib, "d3dcompiler.lib")
+
+#include "PerformanceTester.h"
 
 //Defines
 #define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = nullptr; } }

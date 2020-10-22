@@ -13,7 +13,9 @@ public:
 		m_actionMapping[' '] = Action::JUMP;
 		m_actionMapping['O'] = Action::PLAYSOUND;
 		m_actionMapping['P'] = Action::PLAYSOUND;
-		//m_actionMapping[(char)'m_rp'] = Action::USE; Example of using mouse for action, m_rp is right mouse pressed.
+		m_actionMapping['Z'] = Action::DASH;
+		m_actionMapping['X'] = Action::ROLL;
+		m_actionMapping[(char)'m_rp'] = Action::USE; // Example of using mouse for action, m_rp is right mouse pressed.
 
 		//States
 		m_stateMapping['W'] = State::WALK_FORWARD;

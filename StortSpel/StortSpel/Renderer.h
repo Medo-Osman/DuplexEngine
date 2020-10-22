@@ -4,6 +4,7 @@
 #include "ShaderProgram.h"
 #include "ShaderEnums.h"
 #include "Engine.h"
+#include "GUIHandler.h"
 //#include "LightComponent.h"
 
 

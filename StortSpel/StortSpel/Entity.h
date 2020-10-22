@@ -34,6 +34,8 @@ public:
 		newComponent->setIdentifier(newComponentName);
 		newComponent->setParentEntityIdentifier(m_identifier);
 		m_components[newComponentName] = newComponent;
+		m_components[newComponentName]->setComponentMapPointer(&m_components);
+
 	}
 	
 	void removeComponent(Component* component)
