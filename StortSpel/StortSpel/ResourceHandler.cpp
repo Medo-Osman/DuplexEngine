@@ -231,7 +231,7 @@ void ResourceHandler::Destroy()
 		m_meshCache.erase(it++);
 	}*/
 
-	for (std::pair<const char*, MeshResource*> element : m_meshCache)
+	for (std::pair<std::string, MeshResource*> element : m_meshCache)
 	{
 		delete element.second;
 	}

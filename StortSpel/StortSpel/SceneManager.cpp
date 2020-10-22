@@ -3,7 +3,8 @@
 
 SceneManager::SceneManager()
 {
-
+	m_currentScene = nullptr;
+	m_nextScene = nullptr;
 }
 
 SceneManager::~SceneManager()
@@ -14,16 +15,18 @@ SceneManager::~SceneManager()
 
 void SceneManager::initalize()
 {
+	// Start Scene
 	m_currentScene = new Scene();
 	m_currentScene->loadLobby();
+
+	// Next Scene
+	m_nextScene = new Scene();
+	m_nextScene->loadScene("test");
+
 	//Update currentScene in engine
 	Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
-
-	//m_nextScene = new Scene();
-	//m_nextScene->loadScene("playTest");
-	
 }
 
 void SceneManager::updateScene(const float &dt)

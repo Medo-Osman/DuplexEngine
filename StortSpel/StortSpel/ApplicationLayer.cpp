@@ -56,6 +56,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	m_enginePtr = &Engine::get();
 
 	m_scenemanager.initalize();
+	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 
 	srand(static_cast <unsigned> (time(0)));
 

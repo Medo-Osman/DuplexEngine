@@ -33,7 +33,7 @@ private:
 	const std::wstring m_TEXTURES_PATH = L"../res/textures/";
 	const std::wstring m_ERROR_TEXTURE_NAME = L"error_dun_gofed.jpg";
 	// Models
-	std::unordered_map<const char*, MeshResource*> m_meshCache;
+	std::unordered_map < std::string, MeshResource* > m_meshCache;
 	const std::string m_MODELS_PATH = "../res/models/";
 	const std::string m_ERROR_MODEL_NAME = "error.lrm";
 	// Audio

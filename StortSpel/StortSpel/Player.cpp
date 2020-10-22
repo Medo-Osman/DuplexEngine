@@ -69,6 +69,9 @@ void Player::updatePlayer(const float& dt)
 
 	//Display slerped result
 	m_playerEntity->setQuaternion(slerped);
+
+	//Update Entity Components
+	m_playerEntity->update(dt);
 }
 
 void Player::setPlayerEntity(Entity* entity)
@@ -102,5 +105,4 @@ void Player::inputUpdate(InputData& inputData)
 			}
 		}
 	}
-
 }

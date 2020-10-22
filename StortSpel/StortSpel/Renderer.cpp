@@ -240,7 +240,6 @@ void Renderer::update(const float& dt)
 
 void Renderer::render()
 {
-	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
 	//Update camera position for pixel shader buffer
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
@@ -298,14 +297,13 @@ void Renderer::render()
 			m_currentSetMaterialId = meshMatPtr->getMaterialId();
 		}
 
-		//	std::unordered_map<unsigned int long, MeshComponent*>* m_meshComponentMap;
+		// Get Entity map from Engine
+		std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
 	
-		Entity* parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
+		Entity* parentEntity;
 
 		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
-		{
 			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
-		}
 		else
 			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 

@@ -23,7 +23,6 @@ void Scene::loadScene(std::string path)
 	entity = addEntity("cube1");
 	if (entity)
 	{
-		m_entities["cube1"] = entity;
 		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
 		entity->scaleUniform({ -1.f });
 	}
@@ -32,7 +31,6 @@ void Scene::loadScene(std::string path)
 	entity = addEntity("cube2");
 	if (entity)
 	{
-		m_entities["cube2"] = entity;
 		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
 		entity->move({ 10.f, 0.5f, 0.f });
 		entity->scaleUniform({ -2.f });
@@ -42,7 +40,6 @@ void Scene::loadScene(std::string path)
 	entity = addEntity("cube3");
 	if (entity)
 	{
-		m_entities["cube3"] = entity;
 		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture3m.png" })));
 		entity->move({ 20.f, 1.f, 0.f });
 		entity->scaleUniform({ -3.f });
@@ -52,7 +49,6 @@ void Scene::loadScene(std::string path)
 	entity = addEntity("cube4");
 	if (entity)
 	{
-		m_entities["cube4"] = entity;
 		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture4m.png" })));
 		entity->move({ 30.f, 1.5f, 0.f });
 		entity->scaleUniform({ -4.f });
@@ -74,7 +70,6 @@ void Scene::loadScene(std::string path)
 	entity = addEntity("floor");
 	if (entity)
 	{
-		m_entities["floor"] = entity;
 		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
 		entity->scale({ 300, 2,300 });
 		entity->move({ 0,-2,0 });
@@ -85,7 +80,6 @@ void Scene::loadScene(std::string path)
 	entity = addEntity("cube-test2");
 	if (entity)
 	{
-		m_entities["cube-test2"] = entity;
 		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
 		entity->scaleUniform({ 3.f });
 		entity->move({ 0.f, 5.f, 5.f });
@@ -97,7 +91,6 @@ void Scene::loadScene(std::string path)
 	entity = addEntity("cube-test3");
 	if (entity)
 	{
-		m_entities["cube-test3"] = entity;
 		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
 		entity->scaleUniform({ 3.f });
 		entity->move({ -10.f, 5.f, 5.f });
@@ -112,7 +105,6 @@ void Scene::loadScene(std::string path)
 	Entity* testXwing = addEntity("testXwing");
 	if (testXwing)
 	{
-		m_entities["testXwing"] = entity;
 		addComponent(testXwing, "xwingtestmesh",
 			new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
 		addComponent(testXwing, "xwingtestmove",
@@ -122,7 +114,6 @@ void Scene::loadScene(std::string path)
 	Entity* rotatingCube = addEntity("RotatingCube");
 	if (rotatingCube)
 	{
-		m_entities["RotatingCube"] = entity;
 		addComponent(rotatingCube, "mesh",
 			new MeshComponent("testCube_pCube1.lrm"));
 		addComponent(rotatingCube, "rotate",
@@ -132,7 +123,6 @@ void Scene::loadScene(std::string path)
 	Entity* rotatingCube2 = addEntity("RotatingCube2");
 	if (rotatingCube2)
 	{
-		m_entities["RotatingCube2"] = entity;
 		addComponent(rotatingCube2, "mesh",
 			new MeshComponent("testCube_pCube1.lrm"));
 		addComponent(rotatingCube2, "rotate",
@@ -143,7 +133,6 @@ void Scene::loadScene(std::string path)
 	Entity* rotatingCube3 = addEntity("RotatingCube3");
 	if (rotatingCube3)
 	{
-		m_entities["RotatingCube3"] = entity;
 		addComponent(rotatingCube3, "mesh",
 			new MeshComponent("testCube_pCube1.lrm"));
 		addComponent(rotatingCube3, "rotate",
@@ -155,7 +144,6 @@ void Scene::loadScene(std::string path)
 	entity = addEntity("FlippingCube");
 	if (entity)
 	{
-		m_entities["FlippingCube"] = entity;
 		addComponent(entity, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
 		entity->move({ 5.f, 0.f, 15.f });
@@ -168,7 +156,6 @@ void Scene::loadScene(std::string path)
 	for (int i = 0; i < 5; i++)
 	{
 		entity = addEntity("cube-test" + std::to_string(i));
-		m_entities["cube-test"] = entity;
 		if (entity)
 		{
 			addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm"));
@@ -211,7 +198,6 @@ void Scene::loadLobby()
 	entity = addEntity("floor");
 	if (entity)
 	{
-		m_entities["floor"] = entity;
 		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
 		entity->scale({ 300, 2,300 });
 		entity->move({ 0,-2,0 });
@@ -221,7 +207,6 @@ void Scene::loadLobby()
 	entity = addEntity("walls");
 	if (entity)
 	{
-		m_entities["walls"] = entity;
 		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
 		entity->scale({ 30, -30, 30});
 		entity->move({ 0,8,0 });

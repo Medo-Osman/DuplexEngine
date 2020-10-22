@@ -143,19 +143,21 @@ void Engine::initialize()
 		assert(false);
 	}
 	
-	m_player = new Player();
-	
 	m_camera.setProjectionMatrix(80.f,  (float)m_settings.width/(float)m_settings.height, 0.01f, 1000.0f);
+	
+	// Player
+	m_player = new Player();
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
+
+	// - Entity
 	Entity* playerEntity = new Entity(PLAYER_ENTITY_NAME);
-	m_player->setPlayerEntity(playerEntity);
-
-	addComponentToPlayer("mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
 	playerEntity->translation({ 5, 10.f, 0 });
-
-
-
 	playerEntity->scaleUniform(0.02f);
+
+	// - Mesh Componenet
+	playerEntity->addComponent("mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
+
+	// - Physics Componenet
 	//createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
 	playerEntity->addComponent("physics", new PhysicsComponent(&Physics::get()));
 	PhysicsComponent* pc = static_cast<PhysicsComponent*>(playerEntity->getComponent("physics"));
@@ -163,14 +165,16 @@ void Engine::initialize()
 	pc->addBoxShape({ 1.f, 1.f, 1.f }, "human");
 	pc->controllRotation(false);
 
-	//addComponent(m_entities["meshPlayer"], "audioLoop", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+	// - Camera Follow Transform ptr
 	m_player->setCameraTranformPtr(m_camera.getTransform());
+
+	// - set player Entity
+	m_player->setPlayerEntity(playerEntity);
 
 }
 
 void Engine::updateLightData()
 {
-
 	lightBufferStruct lightInfo;
 	int nrPointLights = 0;
 	int nrSpotLights = 0;
@@ -178,9 +182,7 @@ void Engine::updateLightData()
 	for (auto light : *m_lightComponentMap)
 	{
 		if ((light.second->getParentEntityIdentifier()) == PLAYER_ENTITY_NAME)
-		{
 			tempEntity = m_player->getPlayerEntity();
-		}
 		else
 			tempEntity = m_entities->at(light.second->getParentEntityIdentifier());
 
