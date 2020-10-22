@@ -335,8 +335,16 @@ void Engine::initialize()
 	triggerEntity->setPosition(0, 2.f, 10);
 	addComponent(triggerEntity, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
 	addComponent(triggerEntity, "trigger", new PickupComponent(triggerEntity, PickupType::SPEED, 8.f, 10));
-	static_cast<TriggerComponent*>(triggerEntity->getComponent("trigger"))->initTrigger(triggerEntity, { 1, 1, 1 });
+	//static_cast<TriggerComponent*>(triggerEntity->getComponent("trigger"))->initTrigger(triggerEntity, { 1, 1, 1 });
 	addComponent(triggerEntity, "rotate", new RotateComponent(triggerEntity, { 0.f, 1.f, 0.f }));
+
+	//ScoreEntity
+	Entity* scoreEntity = addEntity("ScoreEntity");
+	scoreEntity->setPosition(10, 2.f, 10);
+	addComponent(scoreEntity, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST));
+	addComponent(scoreEntity, "trigger", new PickupComponent(scoreEntity, PickupType::SCORE, 8.f, 10));
+	static_cast<TriggerComponent*>(scoreEntity->getComponent("trigger"))->initTrigger(scoreEntity, { 1, 1, 1 });
+	addComponent(scoreEntity, "rotate", new RotateComponent(scoreEntity, { 0.f, 1.f, 0.f }));
 	
 
 	Entity* audioTestDelete = addEntity("deleteTestAudio");

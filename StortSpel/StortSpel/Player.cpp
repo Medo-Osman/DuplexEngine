@@ -1,7 +1,7 @@
 #include "3DPCH.h"
 #include "Player.h"
 #include"Pickup.h"
-#include"Speed.h"
+#include"SpeedPickup.h"
 
 Player::Player()
 {
@@ -224,6 +224,7 @@ void Player::setPlayerEntity(Entity* entity)
 {
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
+	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
 }
 
 void Player::setCameraTranformPtr(Transform* transform)
@@ -234,6 +235,12 @@ void Player::setCameraTranformPtr(Transform* transform)
 void Player::incrementScore()
 {
 	m_score++;
+	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+}
+
+void Player::increaseScoreBy(int value)
+{
+	m_score += value;
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
 }
 
@@ -319,8 +326,17 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 					m_pickupPointer->onPickup(m_playerEntity, duration);
 				}
 			}
+			
+			if((PickupType)physicsData.assosiatedTriggerEnum == PickupType::SCORE)
+			{
+				int amount = (int)physicsData.floatData;
+				this->increaseScoreBy(amount);
+				m_audioComponent->playSound();
+				shouldTriggerEntityBeRemoved = true;
+			}
 
 		}
+		
 	}
 
 }

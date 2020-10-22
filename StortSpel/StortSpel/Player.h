@@ -74,6 +74,8 @@ private:
     int m_score;
     int m_scoreLabelGUIIndex;
     int m_scoreGUIIndex;
+    std::wstring m_scoreSound = L"OnPickup.wav";
+    AudioComponent* m_audioComponent;
 
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
@@ -96,6 +98,8 @@ public:
 
     void setCameraTranformPtr(Transform* transform);
     void incrementScore();
+
+    void increaseScoreBy(int value);
 
     int getScore();
     Entity* getPlayerEntity() const;
