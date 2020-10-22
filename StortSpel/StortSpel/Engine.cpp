@@ -353,10 +353,11 @@ void Engine::initialize()
 	//m_entities.erase("deleteTestAudio");
 
 	// Audio test
-	//Entity* audioTest = addEntity("audioTest");
-	//addComponent(audioTest, "testSound", new AudioComponent(L"GoodSongYes.wav", true, 0.2f));
-	//nightSlide = 0.01f;
-	//nightVolume = 0.2f;
+	Entity* audioTest = addEntity("audioTest");
+	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	nightSlide = 0.01f;
+	nightVolume = 0.2f;
+
 
 	// Temp entity init
 	addEntity("first");
