@@ -97,6 +97,7 @@ void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpe
 {
 	Engine* engine = &Engine::get();
 	nrOfParisWheels++;
+
 	Entity* ParisWheel = engine->addEntity("ParisWheel-" + std::to_string(nrOfParisWheels));
 	if (ParisWheel)
 	{
@@ -142,8 +143,13 @@ void Scene::createFlippingPlatform(Vector3 position, Vector3 rotation, float upT
 		flippingPlatform->setPosition({ position });
 		flippingPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 
+		engine->createNewPhysicsComponent(FlippingCube, true);
+		PhysicsComponent* pc = static_cast<PhysicsComponent*>(FlippingCube->getComponent("physics"));
+		pc->makeKinematic();
+
 		engine->addComponent(flippingPlatform, "flipp",
 			new FlippingComponent(flippingPlatform, upTime, downTime));
+
 	}
 }
 
@@ -161,6 +167,7 @@ void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 sca
 		staticPlatform->setPosition(position);
 		staticPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 		staticPlatform->setScale(scale);
+
 		engine->createNewPhysicsComponent(staticPlatform);
 	}
 }

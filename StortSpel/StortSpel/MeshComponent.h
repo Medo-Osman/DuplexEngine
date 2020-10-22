@@ -25,11 +25,11 @@ public:
 
 	~MeshComponent() {}
 
-	void setRenderId(unsigned long int id) { m_renderId = id; }
+	void setRenderId(const unsigned long int id) { m_renderId = id; }
 
-	MeshResource* getMeshResourcePtr() { return m_resourcePointer; }
-	ShaderProgramsEnum getShaderProgEnum() { return m_shaderProgEnum; }
-	const std::string& getFilePath() { return m_filePath; }
+	MeshResource* getMeshResourcePtr() const { return m_resourcePointer; }
+	ShaderProgramsEnum getShaderProgEnum() const { return m_shaderProgEnum; }
+	const std::string& getFilePath() const { return m_filePath; }
 	
 	Material* getMaterialPtr();
 

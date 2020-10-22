@@ -13,6 +13,14 @@ Player::Player()
 	m_cameraTransform = nullptr;
 	m_controller = nullptr;
 	m_state = PlayerState::IDLE;
+	m_score = 0;
+	GUITextStyle style;
+	style.position.y = 70.f;
+	style.scale = { 0.5f };
+	m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
+	style.position.x = 160.f;
+	style.color = Colors::Yellow;
+	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
 }
 
 void Player::setStates(std::vector<State> states)
@@ -178,6 +186,17 @@ void Player::setCameraTranformPtr(Transform* transform)
 	m_cameraTransform = transform;
 }
 
+void Player::incrementScore()
+{
+	m_score++;
+	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+}
+
+int Player::getScore()
+{
+	return m_score;
+}
+
 Entity* Player::getPlayerEntity() const
 {
 	return m_playerEntity;
@@ -214,6 +233,10 @@ void Player::inputUpdate(InputData& inputData)
 		case ROLL:
 			if (canRoll())
 				roll();
+			break;
+		case USE:
+			incrementScore();
+
 			break;
 		default:
 			break;
