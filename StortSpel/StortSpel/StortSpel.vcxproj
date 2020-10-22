@@ -221,6 +221,7 @@
     <ClCompile Include="Component.h" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Entity.h" />
+    <ClCompile Include="GUIHandler.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="Pickup.cpp" />
@@ -257,6 +258,9 @@
     <ClInclude Include="ConstantBufferTypes.h" />
     <ClInclude Include="FlippingComponent.h" />
     <ClInclude Include="Pickup.h" />
+    <ClInclude Include="GUIElement.h" />
+    <ClInclude Include="GUIHandler.h" />
+    <ClInclude Include="GUIText.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="LightStructs.h" />
     <ClInclude Include="Material.h" />

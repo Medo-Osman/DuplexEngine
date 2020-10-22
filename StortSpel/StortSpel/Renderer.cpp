@@ -140,6 +140,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_devicePtr->CreateDepthStencilState(&skyboxDSD, &skyboxDSSPtr);
 	/////////////////////////////////////////////////
 
+	GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
+
 	 //ImGui initialization
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -150,8 +152,6 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
-
-
 
 	return hr;
 }
@@ -295,9 +295,6 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(1, m_rTargetViewsArray, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
-	// For Texture Testing only
-	//ID3D11ShaderResourceView* srv = ResourceHandler::get().loadTexture(L"T_CircusTent_D.png");
-	//m_dContextPtr->PSSetShaderResources(0, 1, &srv);
 	// Skybox constant buffer:
 	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
 	skyboxMVP constantBufferSkyboxStruct;
@@ -307,6 +304,9 @@ void Renderer::render()
 	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(W * V * P);
 	m_skyboxConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferSkyboxStruct);
 
+	// Mesh WVP buffer, needs to be set every frame bacause of SpriteBatch(GUIHandler)
+	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
 		ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum();
@@ -315,7 +315,7 @@ void Renderer::render()
 			m_compiledShaders[meshShaderEnum]->setShaders();
 			m_currentSetShaderProg = meshShaderEnum;
 		}
-			
+		
 		
 		Material* meshMatPtr = component.second->getMaterialPtr();
 		if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
@@ -335,6 +335,9 @@ void Renderer::render()
 
 		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
+
+	//GUI
+	GUIHandler::get().render();
 
 	// Render ImGui
 	ImGui::Render();

@@ -51,6 +51,9 @@
     </Filter>
     <Filter Include="Source Files\Game\Pickup">
       <UniqueIdentifier>{a81dda99-e14d-47d7-a78e-4c92e59eaf8a}</UniqueIdentifier>
+	</Filter>
+    <Filter Include="Source Files\Graphic\GUI">
+      <UniqueIdentifier>{7155dc50-d617-41f6-a310-ab0c68149543}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -137,6 +140,9 @@
     </ClCompile>
     <ClCompile Include="Pickup.cpp">
       <Filter>Source Files\Game\Pickup</Filter>
+	</ClCompile>
+    <ClCompile Include="GUIHandler.cpp">
+      <Filter>Source Files\Graphic\GUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -304,6 +310,15 @@
     </ClInclude>
     <ClInclude Include="Speed.h">
       <Filter>Source Files\Game\Pickup</Filter>
+	</ClInclude>
+    <ClInclude Include="GUIHandler.h">
+      <Filter>Source Files\Graphic\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIElement.h">
+      <Filter>Source Files\Graphic\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIText.h">
+      <Filter>Source Files\Graphic\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

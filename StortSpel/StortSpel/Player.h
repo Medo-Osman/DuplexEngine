@@ -9,6 +9,8 @@
 #include"Physics.h"
 #include"Pickup.h"
 
+#include "GUIHandler.h"
+
 enum class PlayerState
 {
     IDLE,
@@ -65,9 +67,13 @@ private:
     Entity* m_playerEntity;
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
-
     Pickup* m_pickupPointer;
 
+
+    // Score
+    int m_score;
+    int m_scoreLabelGUIIndex;
+    int m_scoreGUIIndex;
 
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
@@ -89,7 +95,9 @@ public:
     void setPlayerEntity(Entity* entity);
 
     void setCameraTranformPtr(Transform* transform);
+    void incrementScore();
 
+    int getScore();
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);

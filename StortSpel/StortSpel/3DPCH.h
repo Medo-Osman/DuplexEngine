@@ -23,6 +23,7 @@
 #include <stack>
 #include <iostream>
 #include <chrono>
+#include <cmath>
 
 // DirectX 11
 #include <d3d11.h>
@@ -36,6 +37,10 @@
 #include <DirectXColors.h>
 #include <Audio.h>
 #include <Dbt.h>
+#include <SpriteBatch.h>
+#include <SpriteFont.h>
+#include <CommonStates.h>
+
 //PhysX
 #include"PxPhysicsAPI.h"
 
@@ -69,6 +74,7 @@
 #include <WICTextureLoader.h>
 #include<DDSTextureLoader.h>
 using namespace DirectX;
+using namespace SimpleMath;
 
 //Include light structures
 #include "LightStructs.h"
