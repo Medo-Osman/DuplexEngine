@@ -267,6 +267,7 @@
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="MeshResource.h" />
     <ClInclude Include="PerformanceTester.h" />
+    <ClInclude Include="RotateComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SweepingComponent.h" />
