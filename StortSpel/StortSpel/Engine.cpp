@@ -143,8 +143,8 @@ void Engine::update(const float& dt)
 		nightVolume = 0.2f;
 		nightSlide = -nightSlide;
 	}
-	AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
-	ac->setVolume(nightVolume);
+	//AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
+	//ac->setVolume(nightVolume);
 
 }
 Settings Engine::getSettings() const
