@@ -76,6 +76,7 @@ Entity* Engine::addEntity(std::string identifier)
 {
 	if (m_entities.find(identifier) != m_entities.end())// If one with that name is already found
 	{
+		ErrorLogger::get().logError("identical entity");
 		return nullptr;
 	}
 
@@ -307,14 +308,14 @@ void Engine::initialize()
 	}
 	m_player->setCameraTranformPtr(m_camera.getTransform());
 
-	Entity* audioTestDelete = addEntity("deleteTestAudio");
-	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
-	delete m_entities["deleteTestAudio"];
-	m_entities.erase("deleteTestAudio");
+	//Entity* audioTestDelete = addEntity("deleteTestAudio");
+	//addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+	//delete m_entities["deleteTestAudio"];
+	//m_entities.erase("deleteTestAudio");
 
 	// Audio test
 	Entity* audioTest = addEntity("audioTest");
-	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	addComponent(audioTest, "testSound", new AudioComponent(L"GoodSongYes.wav", true, 0.2f));
 	nightSlide = 0.01f;
 	nightVolume = 0.2f;
 

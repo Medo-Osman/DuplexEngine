@@ -85,11 +85,14 @@ ID3D11ShaderResourceView* ResourceHandler::loadErrorTexture()
 
 MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 {
+
 	isResourceHandlerReady();
-	
+	int num = m_meshCache.count(path);
 	// checks if the mesh is in the cache 
-	if (m_meshCache.find(path) != m_meshCache.end())
+	auto it = m_meshCache.find(path);
+	if (it != m_meshCache.end())
 	{
+
 		// returns the buffers
 		return m_meshCache[path];
 	}
@@ -241,7 +244,7 @@ void ResourceHandler::Destroy()
 		m_meshCache.erase(it++);
 	}*/
 
-	for (std::pair<const char*, MeshResource*> element : m_meshCache)
+	for (auto element : m_meshCache)
 	{
 		delete element.second;
 	}
