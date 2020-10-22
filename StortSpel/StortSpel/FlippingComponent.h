@@ -66,7 +66,8 @@ public:
 
 			m_alpha += m_flipSpeed * dt; //                    0          180
 			slerpedRotation = Quaternion::Slerp(m_startRot, m_endRot, ParametricBlend(m_alpha));
-			m_physicsComponent ? m_physicsComponent->kinematicMove({ m_transform->getTranslation() }, slerpedRotation) : m_transform->setRotationQuat(slerpedRotation);
+			m_physicsComponent ? m_physicsComponent->kinematicMove(m_transform->getTranslation(), slerpedRotation) : 
+																   m_transform->setRotationQuat(slerpedRotation);
 			//m_transform->setRotationQuat(Quaternion::Slerp(m_startRot, m_endRot, ParametricBlend(m_alpha)));
 
 			if (m_alpha >= 1)

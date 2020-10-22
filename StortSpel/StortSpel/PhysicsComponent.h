@@ -179,7 +179,7 @@ public:
 		}
 	}
 
-	void kinematicMove(XMFLOAT3 destination, XMFLOAT4 quaternionRotation = {0.f, 0.f, 0.f, 0.f })
+	void kinematicMove(XMFLOAT3 destination, XMFLOAT4 quaternionRotation = {0.f, 0.f, 0.f, 1.f })
 	{
 		if (m_kinematic && m_dynamic)
 			m_physicsPtr->kinematicMove(static_cast<PxRigidDynamic*>(m_actor), destination, quaternionRotation);

@@ -32,7 +32,7 @@ private:
     //JUMP CONFIG
     const float FALL_MULTIPLIER = 1.1f;
     //const float JUMP_DISTANCE = 30.f; //deprecated
-    const float JUMP_SPEED = 15.f;
+    const float JUMP_SPEED = 10.f;
     const float JUMP_DISTANCE = 3.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
@@ -45,7 +45,7 @@ private:
     //Roll CONFIG
     const float ROLL_TRAVEL_DISTANCE = 15.f;
     const float ROLL_SPEED = 10.0f;
-    const float GRAVITY = 0.02f;
+    const float GRAVITY = 0.375f;
     const float MAX_FALL_SPEED = 9.82f;
     const float ROLL_HEIGHT = 0.3f;
     const float ROLL_RADIUS = 0.2f;

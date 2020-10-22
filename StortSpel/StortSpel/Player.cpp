@@ -144,7 +144,7 @@ void Player::playerStateLogic(const float& dt)
 		}
 		break;
 	case PlayerState::JUMPING:
-		m_finalMovement.y = JUMP_SPEED*dt;// * dt;
+		m_finalMovement.y = JUMP_SPEED * dt;// * dt;
 
 		m_currentDistance += JUMP_SPEED * dt;
 
@@ -162,7 +162,7 @@ void Player::playerStateLogic(const float& dt)
 		break;
 	}
 
-	if (m_finalMovement.y > -MAX_FALL_SPEED*dt)
+	if (m_finalMovement.y > -MAX_FALL_SPEED * dt)
 		m_finalMovement += Vector3(0, -GRAVITY * dt, 0);
 	m_controller->move(m_finalMovement, dt);
 }
