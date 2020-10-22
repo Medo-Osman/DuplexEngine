@@ -1,6 +1,7 @@
 #include "3DPCH.h"
 #include "Player.h"
-
+#include"Pickup.h"
+#include"SpeedPickup.h"
 
 Player::Player()
 {
@@ -13,6 +14,18 @@ Player::Player()
 	m_cameraTransform = nullptr;
 	m_controller = nullptr;
 	m_state = PlayerState::IDLE;
+
+	Physics::get().Attach(this, true, false);
+	m_currentSpeedModifier = 1.f;
+	m_speedModifierTime = 0;
+	if (!Pickup::hasInitPickupArray())
+	{
+		std::vector<Pickup*> vec;
+		vec.emplace_back(new SpeedPickup());
+		Pickup::initPickupArray(vec);
+	}
+
+	//GUI
 	m_score = 0;
 	GUITextStyle style;
 	style.position.y = 70.f;
@@ -21,6 +34,7 @@ Player::Player()
 	style.position.x = 160.f;
 	style.color = Colors::Yellow;
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
+
 }
 
 void Player::setStates(std::vector<State> states)
@@ -97,7 +111,8 @@ float lerp(const float& a, const float &b, const float &t)
 
 void Player::playerStateLogic(const float& dt)
 {
-	m_finalMovement = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt) + Vector3(0, m_finalMovement.y, 0);
+
+	m_finalMovement = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt * this->m_currentSpeedModifier) + Vector3(0, m_finalMovement.y, 0);
 
 	switch (m_state)
 	{
@@ -169,6 +184,48 @@ void Player::playerStateLogic(const float& dt)
 
 void Player::updatePlayer(const float& dt)
 {
+	if (m_pickupPointer)
+	{
+		switch (m_pickupPointer->getPickupType())
+		{
+		case PickupType::SPEED:
+			m_speedModifierTime += dt;
+			if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
+			{
+				m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
+			}
+			m_pickupPointer->update(dt);
+			if(m_pickupPointer->isDepleted())
+			{
+				if (m_goalSpeedModifier > 0.f)
+				{
+					m_goalSpeedModifier *= -1;;
+					m_speedModifierTime = 0.f;
+				}
+				
+				if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
+				{
+					m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
+					m_currentSpeedModifier = max(1.0f, m_currentSpeedModifier);
+				}
+
+				if(m_pickupPointer->shouldDestroy())
+				{
+					m_pickupPointer->onRemove();
+					m_pickupPointer = nullptr;
+					m_currentSpeedModifier = 1.f;
+				}
+			}
+			break;
+		case PickupType::SCORE:
+
+			break;
+		default:
+			break;
+		}
+	}
+
+
 	if(m_state != PlayerState::ROLL)
 		handleRotation(dt);
 
@@ -179,6 +236,7 @@ void Player::setPlayerEntity(Entity* entity)
 {
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
+	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
 }
 
 void Player::setCameraTranformPtr(Transform* transform)
@@ -189,6 +247,12 @@ void Player::setCameraTranformPtr(Transform* transform)
 void Player::incrementScore()
 {
 	m_score++;
+	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+}
+
+void Player::increaseScoreBy(int value)
+{
+	m_score += value;
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
 }
 
@@ -242,6 +306,51 @@ void Player::inputUpdate(InputData& inputData)
 			break;
 		}
 	}
+}
+
+void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEntityBeRemoved)
+{
+	if (!shouldTriggerEntityBeRemoved)
+	{
+		if (physicsData.triggerType == TriggerType::PICKUP)
+		{
+			if (m_pickupPointer == nullptr)
+			{
+				bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
+				int duration = physicsData.intData;
+				switch ((PickupType)physicsData.assosiatedTriggerEnum)
+				{
+				case PickupType::SPEED:
+					m_currentSpeedModifier = 1.f;
+					m_goalSpeedModifier = physicsData.floatData;
+					m_speedModifierTime = 0;
+					shouldTriggerEntityBeRemoved = true;
+					break;
+				case PickupType::SCORE:
+					addPickupByAssosiatedID = false;
+					break;
+				default:
+					break;
+				}
+				if (addPickupByAssosiatedID)
+				{
+					m_pickupPointer = Pickup::getPickupByID(physicsData.assosiatedTriggerEnum);
+					m_pickupPointer->onPickup(m_playerEntity, duration);
+				}
+			}
+			
+			if((PickupType)physicsData.assosiatedTriggerEnum == PickupType::SCORE)
+			{
+				int amount = (int)physicsData.floatData;
+				this->increaseScoreBy(amount);
+				m_audioComponent->playSound();
+				shouldTriggerEntityBeRemoved = true;
+			}
+
+		}
+		
+	}
+
 }
 
 void Player::jump()

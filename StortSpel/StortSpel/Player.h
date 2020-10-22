@@ -5,6 +5,10 @@
 #include"CharacterControllerComponent.h"
 #include "AudioHandler.h"
 #include "audioComponent.h"
+#include <cmath>
+#include"Physics.h"
+#include"Pickup.h"
+
 #include "GUIHandler.h"
 
 enum class PlayerState
@@ -18,7 +22,7 @@ enum class PlayerState
 
 using namespace DirectX;
 
-class Player : public InputObserver
+class Player : public InputObserver, public PhysicsObserver
 {
 private:
     //CONTROLLER CONFIG
@@ -50,6 +54,13 @@ private:
     const float ROLL_HEIGHT = 0.3f;
     const float ROLL_RADIUS = 0.2f;
 
+    float m_currentSpeedModifier;
+    float m_goalSpeedModifier;
+    int m_speedModifierDuration;
+    float m_speedModifierTime;
+    const float FOR_FULL_EFFECT_TIME = 2.f;
+
+
 
     float m_angleY;
     float m_currentDistance;
@@ -58,6 +69,8 @@ private:
     Entity* m_playerEntity;
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
+    Pickup* m_pickupPointer;
+
     Vector3 m_finalMovement = Vector3();
     float m_previousVerticalMovement = 0.f;
 
@@ -65,6 +78,8 @@ private:
     int m_score;
     int m_scoreLabelGUIIndex;
     int m_scoreGUIIndex;
+    std::wstring m_scoreSound = L"OnPickup.wav";
+    AudioComponent* m_audioComponent;
 
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
@@ -76,6 +91,8 @@ private:
     void dash();
     void jump();
     void prepDistVariables();
+
+    
   
 public:
     Player();
@@ -86,7 +103,10 @@ public:
     void setCameraTranformPtr(Transform* transform);
     void incrementScore();
 
+    void increaseScoreBy(int value);
+
     int getScore();
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
+    void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
 };

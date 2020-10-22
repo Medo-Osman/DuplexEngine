@@ -6,7 +6,40 @@ static physx::PxDefaultErrorCallback gDefaultErrorCallback;
 static physx::PxDefaultAllocator gDefaultAllocatorCallback;
 using namespace physx;
 
-class Physics
+
+struct PhysicsData
+{
+	TriggerType triggerType;
+	int assosiatedTriggerEnum;
+	std::string stringData;
+	float floatData;
+	int intData;
+	std::string entityIdentifier;
+	PhysicsData()
+	{
+		triggerType = TriggerType::UNDEFINED;
+		assosiatedTriggerEnum = 0;
+		stringData = "";
+		floatData = 0;
+		intData = 0;
+		entityIdentifier = "";
+	}
+};
+class PhysicsObserver {
+public:
+	PhysicsObserver() {};
+	virtual ~PhysicsObserver() {};
+	virtual void sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity) = 0;
+};
+
+class PhysicsSubject {
+public:
+	virtual ~PhysicsSubject() {};
+	virtual void Attach(PhysicsObserver* observer, bool reactOnTrigger, bool reactOnRemove) = 0;
+	virtual void Detach(PhysicsObserver* observer, bool reactOnTrigger, bool reactOnRemove) = 0;
+};
+
+class Physics : public PxSimulationEventCallback, public PhysicsSubject
 {
 private:
 	const char* m_host = "localhost";
@@ -20,6 +53,11 @@ private:
 	std::map<std::string, PxMaterial*> m_defaultMaterials;
 	std::map<std::string, PxGeometry*> m_sharedGeometry;
 	std::map<std::string, PxShape*> m_sharedShapes;
+
+	std::vector<PhysicsObserver*> m_reactOnTriggerObservers;
+	std::vector<PhysicsObserver*> m_reactOnRemoveObservers;
+
+	std::vector<PxActor*> m_actorsToRemoveAfterSimulation;
 
 	bool m_recordMemoryAllocations = true;
 
@@ -75,6 +113,8 @@ private:
 		return geometryHolder;
 	}
 
+
+
 public:
 	Physics(const Physics&) = delete;
 	void operator=(Physics const&) = delete;
@@ -101,6 +141,35 @@ public:
 		m_foundationPtr->release();
 	}
 
+	void Attach(PhysicsObserver* observer, bool reactOnTrigger, bool reactOnRemove)
+	{
+		if(reactOnTrigger)
+			m_reactOnTriggerObservers.push_back(observer);
+		if (reactOnRemove)
+			m_reactOnRemoveObservers.push_back(observer);
+	}
+
+	void Detach(PhysicsObserver* observer, bool reactOnTrigger, bool reactOnRemove)
+	{
+		bool detatched = false;
+		if (reactOnTrigger)
+		{
+			for (std::vector<int>::size_type i = 0; i < m_reactOnTriggerObservers.size() || !detatched; i++) {
+				if (m_reactOnTriggerObservers[i] == observer)
+					m_reactOnTriggerObservers.erase(m_reactOnTriggerObservers.begin() + i);
+			}
+		}
+
+		if (reactOnRemove)
+		{
+			for (std::vector<int>::size_type i = 0; i < m_reactOnRemoveObservers.size() || !detatched; i++) {
+				if (m_reactOnRemoveObservers[i] == observer)
+					m_reactOnRemoveObservers.erase(m_reactOnRemoveObservers.begin() + i);
+			}
+		}
+
+	}
+
 	void init(const XMFLOAT3 &gravity = {0.0f, -9.81f, 0.0f}, const int &nrOfThreads = 1)
 	{
 		m_foundationPtr = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
@@ -123,6 +192,7 @@ public:
 		m_dispatcherPtr = PxDefaultCpuDispatcherCreate(nrOfThreads);
 		sceneDesc.cpuDispatcher = m_dispatcherPtr;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+		sceneDesc.simulationEventCallback = this;
 		m_scenePtr = m_physicsPtr->createScene(sceneDesc);
 		m_controllManager = PxCreateControllerManager(*m_scenePtr);
 
@@ -147,6 +217,42 @@ public:
 		}
 	}
 
+
+	void onTrigger(PxTriggerPair* pairs, PxU32 count) //Will currently check for collisions with player and said trigger shape.
+	{
+		for (PxU32 i = 0; i < count; i++)
+		{
+			bool shouldBeRemoved = false;
+			// ignore pairs when shapes have been deleted
+			if (pairs[i].flags & (PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER | PxTriggerPairFlag::eREMOVED_SHAPE_OTHER))
+				continue;
+
+			//Checks
+			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor())
+			{
+				for (size_t i = 0; i < m_reactOnTriggerObservers.size(); i++)
+				{
+					m_reactOnTriggerObservers[i]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), shouldBeRemoved);
+					if (shouldBeRemoved)
+					{
+						bool stopLoop = false;
+						for (size_t i = 0; i < m_reactOnRemoveObservers.size() && !stopLoop; i++)
+						{
+							m_reactOnRemoveObservers[i]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), stopLoop);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) {}
+	void onWake(PxActor** actors, PxU32 count) {}
+	void onSleep(PxActor** actors, PxU32 count) {}
+	void onContact(const PxContactPairHeader & pairHeader, const PxContactPair * pairs, PxU32 nbPairs) {}
+	void onAdvance(const PxRigidBody* const* bodyBuffer, const PxTransform * poseBuffer, const PxU32 count) {}
+
+
 	PxShape* getSharedShape(const std::string &name)
 	{
 		if (m_sharedShapes.find(name) != m_sharedShapes.end())
@@ -155,7 +261,7 @@ public:
 		return nullptr;
 	}
 
-	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometry* geometry, const std::string &materialName, const bool &unique, const XMFLOAT3 &scale = { 1, 1, 1 })
+	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometry* geometry, const std::string &materialName, const bool &unique, const XMFLOAT3 &scale = { 1, 1, 1 }, const bool trigger = false)
 	{
 		physx::PxMaterial* physicsMaterial = getMaterialByName(materialName);
 		PxGeometryHolder scaledGeometry = *geometry;
@@ -169,11 +275,16 @@ public:
 
 
 		PxShape* shape = m_physicsPtr->createShape(scaledGeometry.any(), *physicsMaterial, unique);
+		if (trigger)
+		{
+			shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
+			shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);
+		}
 		actor->attachShape(*shape);
 		return shape;
 	}
 
-	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometryHolder geometry, const std::string &materialName, const bool &unique, const XMFLOAT3 &scale = { 1, 1, 1 })
+	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometryHolder geometry, const std::string &materialName, const bool &unique, const XMFLOAT3 &scale = { 1, 1, 1 }, const bool trigger = false)
 	{
 		physx::PxMaterial* physicsMaterial = getMaterialByName(materialName);
 		if (physicsMaterial == nullptr)
@@ -183,6 +294,12 @@ public:
 		}
 
 		PxShape* shape = m_physicsPtr->createShape(geometry.any(), *physicsMaterial, unique);
+		if (trigger)
+		{
+			shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
+			shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);
+		}
+
 		actor->attachShape(*shape);
 		return shape;
 	}
@@ -200,6 +317,11 @@ public:
 	void addShapeToActor(PxRigidActor* actor, PxShape* shape)
 	{
 		actor->attachShape(*shape);
+	}
+
+	void removeActor(PxActor* actor)
+	{
+		m_actorsToRemoveAfterSimulation.emplace_back(actor);
 	}
 
 	PxRigidActor* createRigidActor(const XMFLOAT3 &position, const XMFLOAT4& quaternion, const bool &dynamic, void* physicsComponentPtr)
@@ -227,7 +349,6 @@ public:
 	{
 		actor->setGlobalPose(PxTransform(pos.x, pos.y, pos.z, PxQuat(rotQ.x, rotQ.y, rotQ.z, rotQ.w)));
 	}
-
 
 
 	void setMassOfActor(PxRigidActor* actor, const float &weight)
@@ -264,6 +385,11 @@ public:
 		m_scenePtr->simulate(dt);
 		m_scenePtr->fetchResults(true);
 
+		for (size_t i = 0; i < m_actorsToRemoveAfterSimulation.size(); i++)
+		{
+			m_scenePtr->removeActor(*m_actorsToRemoveAfterSimulation[i], false);
+		}
+		m_actorsToRemoveAfterSimulation.clear();
 	}
 
 	PxGeometry* getGeometry(const std::string &geometryName)

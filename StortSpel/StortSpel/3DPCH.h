@@ -92,3 +92,8 @@ using namespace SimpleMath;
 #define SAFE_DELETE(a) if( (a) != NULL ) delete (a); (a) = NULL;
 
 
+enum class TriggerType
+{
+	UNDEFINED,
+	PICKUP,
+};

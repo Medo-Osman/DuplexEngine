@@ -2,11 +2,15 @@
 #include "Engine.h"
 #include"ApplicationLayer.h"
 #include"CharacterControllerComponent.h"
+#include"TriggerComponent.h"
+#include"RotateComponent.h"
+#include"PickupComponent.h"
 
 Engine::Engine()
 {
 	m_settings.width = m_startWidth;
 	m_settings.height = m_startHeight;
+	Physics::get().Attach(this, false, true);
 }
 
 void Engine::updateLightData()
@@ -64,6 +68,19 @@ Engine& Engine::get()
 	return instance;
 }
 
+void Engine::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
+{
+	std::vector<Component*> vec;
+	m_entities[physicsData.entityIdentifier]->getComponentsOfType(vec, ComponentType::MESH);
+	for (size_t i = 0; i < vec.size(); i++)
+	{
+		int id = static_cast<MeshComponent*>(vec[i])->getRenderId();
+		m_meshComponentMap.erase(id);
+	}
+	this->removeEntity(physicsData.entityIdentifier);
+	removed = true;
+}
+
 Entity* Engine::getEntity(std::string key)
 {
 	if (m_entities.find(key) != m_entities.end())
@@ -83,6 +100,12 @@ Entity* Engine::addEntity(std::string identifier)
 	m_entities[identifier] = new Entity(identifier);
 
 	return m_entities[identifier];
+}
+
+void Engine::removeEntity(std::string identifier)
+{
+	delete m_entities[identifier];
+	m_entities.erase(identifier);
 }
 
 Engine::~Engine()
@@ -120,8 +143,8 @@ void Engine::update(const float& dt)
 		nightVolume = 0.2f;
 		nightSlide = -nightSlide;
 	}
-	AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
-	ac->setVolume(nightVolume);
+	//AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
+	//ac->setVolume(nightVolume);
 
 }
 Settings Engine::getSettings() const
@@ -308,6 +331,22 @@ void Engine::initialize()
 	}
 	m_player->setCameraTranformPtr(m_camera.getTransform());
 
+	//TriggerEntity
+	Entity* triggerEntity = addEntity("TriggerEntity");
+	triggerEntity->setPosition(0, 10.f, 10);
+	addComponent(triggerEntity, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+	addComponent(triggerEntity, "trigger", new PickupComponent(PickupType::SPEED, 8.f, 10));
+	static_cast<TriggerComponent*>(triggerEntity->getComponent("trigger"))->initTrigger(triggerEntity, { 1, 1, 1 });
+	addComponent(triggerEntity, "rotate", new RotateComponent(triggerEntity, { 0.f, 1.f, 0.f }));
+
+	//ScoreEntity
+	Entity* scoreEntity = addEntity("ScoreEntity");
+	scoreEntity->setPosition(10, 10.f, 10);
+	addComponent(scoreEntity, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST));
+	addComponent(scoreEntity, "trigger", new PickupComponent(PickupType::SCORE, 8.f, 10));
+	static_cast<TriggerComponent*>(scoreEntity->getComponent("trigger"))->initTrigger(scoreEntity, { 1, 1, 1 });
+	addComponent(scoreEntity, "rotate", new RotateComponent(scoreEntity, { 0.f, 1.f, 0.f }));
+	
 	//Entity* audioTestDelete = addEntity("deleteTestAudio");
 	//addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
 	//delete m_entities["deleteTestAudio"];
@@ -318,6 +357,7 @@ void Engine::initialize()
 	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
 	nightSlide = 0.01f;
 	nightVolume = 0.2f;
+
 
 	// Temp entity init
 	addEntity("first");
