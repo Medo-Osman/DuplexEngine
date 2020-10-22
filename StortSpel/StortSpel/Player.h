@@ -7,6 +7,7 @@
 #include "audioComponent.h"
 #include <cmath>
 #include"Physics.h"
+#include"Pickup.h"
 
 enum class PlayerState
 {
@@ -49,9 +50,13 @@ private:
     const float ROLL_HEIGHT = 0.3f;
     const float ROLL_RADIUS = 0.2f;
 
-    float m_speedModifier;
+    float m_currentSpeedModifier;
+    float m_goalSpeedModifier;
     int m_speedModifierDuration;
     float m_speedModifierTime;
+    const float FOR_FULL_EFFECT_TIME = 2.f;
+
+
 
     float m_angleY;
     float m_currentDistance;
@@ -60,6 +65,9 @@ private:
     Entity* m_playerEntity;
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
+
+    Pickup* m_pickupPointer;
+
 
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
@@ -71,6 +79,7 @@ private:
     void dash();
     void jump();
     void prepDistVariables();
+
     
   
 public:

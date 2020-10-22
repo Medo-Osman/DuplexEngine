@@ -223,6 +223,7 @@
     <ClCompile Include="Entity.h" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
+    <ClCompile Include="Pickup.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Input_Keyboard.cpp" />
@@ -255,6 +256,7 @@
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
     <ClInclude Include="FlippingComponent.h" />
+    <ClInclude Include="Pickup.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="LightStructs.h" />
     <ClInclude Include="Material.h" />
@@ -267,9 +269,11 @@
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="MeshResource.h" />
     <ClInclude Include="PerformanceTester.h" />
+    <ClInclude Include="PickupComponent.h" />
     <ClInclude Include="RotateComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="Speed.h" />
     <ClInclude Include="SweepingComponent.h" />
     <ClInclude Include="PhysicsComponent.h" />
     <ClInclude Include="PhysicsMaterial.h" />

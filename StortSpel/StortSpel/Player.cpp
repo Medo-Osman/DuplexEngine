@@ -1,6 +1,7 @@
 #include "3DPCH.h"
 #include "Player.h"
-
+#include"Pickup.h"
+#include"Speed.h"
 
 Player::Player()
 {
@@ -14,7 +15,14 @@ Player::Player()
 	m_controller = nullptr;
 	m_state = PlayerState::IDLE;
 	Physics::get().Attach(this, true, false);
-	m_speedModifier = 1.f;
+	m_currentSpeedModifier = 1.f;
+	m_speedModifierTime = 0;
+	if (!Pickup::hasInitPickupArray())
+	{
+		std::vector<Pickup*> vec;
+		vec.emplace_back(new SpeedPickup());
+		Pickup::initPickupArray(vec);
+	}
 }
 
 void Player::setStates(std::vector<State> states)
@@ -84,7 +92,7 @@ float lerp(const float& a, const float &b, const float &t)
 
 void Player::playerStateLogic(const float& dt)
 {
-	Vector3 finalMovement = XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED  * m_speedModifier * dt;
+	Vector3 finalMovement = XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED  * m_currentSpeedModifier * dt;
 
 	switch (m_state)
 	{
@@ -152,14 +160,48 @@ void Player::playerStateLogic(const float& dt)
 
 void Player::updatePlayer(const float& dt)
 {
-	if (m_speedModifier > 1.001f)
+	if (m_pickupPointer)
 	{
-		m_speedModifierTime += dt;
-		if (m_speedModifierDuration <= m_speedModifierTime)
+		switch (m_pickupPointer->getPickupType())
 		{
-			m_speedModifier = 1.f;
+		case PickupType::SPEED:
+			m_speedModifierTime += dt;
+			if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
+			{
+				m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
+			}
+			m_pickupPointer->update(dt);
+			if(m_pickupPointer->isDepleted())
+			{
+				if (m_goalSpeedModifier > 0.f)
+				{
+					m_goalSpeedModifier *= -1;;
+					m_speedModifierTime = 0.f;
+				}
+				
+				if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
+				{
+					m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
+					m_currentSpeedModifier = max(1.0f, m_currentSpeedModifier);
+				}
+
+				if(m_pickupPointer->shouldDestroy())
+				{
+					m_pickupPointer->onRemove();
+					m_pickupPointer = nullptr;
+					m_currentSpeedModifier = 1.f;
+				}
+			}
+			break;
+		case PickupType::SCORE:
+
+			break;
+		default:
+			break;
 		}
 	}
+
+
 	if(m_state != PlayerState::ROLL)
 		handleRotation(dt);
 
@@ -224,15 +266,33 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 {
 	if (!shouldTriggerEntityBeRemoved)
 	{
-		if (physicsData.message == "pickup")
+		if (physicsData.triggerType == TriggerType::PICKUP)
 		{
-			if (physicsData.stringData == "speed")
+			if (m_pickupPointer == nullptr)
 			{
-				m_speedModifier = physicsData.floatData;
-				m_speedModifierDuration = physicsData.intData;
-				m_speedModifierTime = 0;
-				shouldTriggerEntityBeRemoved = true;
+				bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
+				int duration = physicsData.intData;
+				switch ((PickupType)physicsData.assosiatedTriggerEnum)
+				{
+				case PickupType::SPEED:
+					m_currentSpeedModifier = 1.f;
+					m_goalSpeedModifier = physicsData.floatData;
+					m_speedModifierTime = 0;
+					shouldTriggerEntityBeRemoved = true;
+					break;
+				case PickupType::SCORE:
+					addPickupByAssosiatedID = false;
+					break;
+				default:
+					break;
+				}
+				if (addPickupByAssosiatedID)
+				{
+					m_pickupPointer = Pickup::getPickupByID(physicsData.assosiatedTriggerEnum);
+					m_pickupPointer->onPickup(m_playerEntity, duration);
+				}
 			}
+
 		}
 	}
 

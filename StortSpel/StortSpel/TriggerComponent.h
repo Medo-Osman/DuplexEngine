@@ -4,14 +4,11 @@
 #include"Physics.h"
 #include"Transform.h"
 
-enum class TriggerType
-{
-	PICKUP,
-};
+
 
 class TriggerComponent : public Component
 {
-private:
+protected:
 	Physics* m_physicsPtr;
 	Transform* m_transform;
 	PxRigidActor* m_actor;
@@ -25,16 +22,19 @@ public:
 	{
 		m_type = ComponentType::TRIGGER;
 		m_transform = nullptr;
+		m_actor = nullptr;
 		m_physicsPtr = &Physics::get();
 
-		m_physicsData.message = "pickup";
-		m_physicsData.stringData = "speed";
-		m_physicsData.floatData = 5;
-		m_physicsData.intData = 8;
+		m_physicsData.triggerType = TriggerType::UNDEFINED;
+		m_physicsData.assosiatedTriggerEnum = 1;
+		m_physicsData.stringData = "";
+		m_physicsData.floatData = 0;
+		m_physicsData.intData = 0;
 	}
 	~TriggerComponent()
 	{
-		m_physicsPtr->removeActor(m_actor);
+		if(m_actor)
+			m_physicsPtr->removeActor(m_actor);
 	}
 
 	void initTrigger(Transform* transform, XMFLOAT3 boxExtends)
@@ -46,7 +46,7 @@ public:
 		m_physicsPtr->createAndSetShapeForActor(m_actor, m_geometryHolder, "default", false, {1, 1, 1}, true);
 	}
 
-	void update(float dt)
+	virtual void update(float dt)
 	{
 		m_physicsPtr->setPosition(m_actor, m_transform->getTranslation());
 	}

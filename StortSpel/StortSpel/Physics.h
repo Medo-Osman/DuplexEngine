@@ -9,14 +9,16 @@ using namespace physx;
 
 struct PhysicsData
 {
-	std::string message;
+	TriggerType triggerType;
+	int assosiatedTriggerEnum;
 	std::string stringData;
 	float floatData;
 	int intData;
 	std::string entityIdentifier;
 	PhysicsData()
 	{
-		message = "";
+		triggerType = TriggerType::UNDEFINED;
+		assosiatedTriggerEnum = 0;
 		stringData = "";
 		floatData = 0;
 		intData = 0;

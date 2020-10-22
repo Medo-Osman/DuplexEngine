@@ -3,6 +3,8 @@
 #include"ApplicationLayer.h"
 #include"CharacterControllerComponent.h"
 #include"TriggerComponent.h"
+#include"RotateComponent.h"
+#include"PickupComponent.h"
 
 Engine::Engine()
 {
@@ -332,8 +334,9 @@ void Engine::initialize()
 	Entity* triggerEntity = addEntity("TriggerEntity");
 	triggerEntity->setPosition(0, 2.f, 10);
 	addComponent(triggerEntity, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-	addComponent(triggerEntity, "trigger", new TriggerComponent());
+	addComponent(triggerEntity, "trigger", new PickupComponent(triggerEntity, PickupType::SPEED, 8.f, 10));
 	static_cast<TriggerComponent*>(triggerEntity->getComponent("trigger"))->initTrigger(triggerEntity, { 1, 1, 1 });
+	addComponent(triggerEntity, "rotate", new RotateComponent(triggerEntity, { 0.f, 1.f, 0.f }));
 	
 
 	Entity* audioTestDelete = addEntity("deleteTestAudio");
