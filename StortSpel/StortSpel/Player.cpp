@@ -299,7 +299,6 @@ void Player::inputUpdate(InputData& inputData)
 				roll();
 			break;
 		case USE:
-			incrementScore();
 
 			break;
 		default:
