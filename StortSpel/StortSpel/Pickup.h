@@ -7,6 +7,7 @@ enum class PickupType
 {
 	SPEED,
 	SCORE,
+	COUNT,
 };
 
 

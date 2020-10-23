@@ -1,5 +1,8 @@
 #include "3DPCH.h"
 #include "Scene.h"
+#include"PickupComponent.h"
+#include"RotateComponent.h"
+#include"Pickup.h"
 
 
 Scene::Scene()
@@ -10,10 +13,69 @@ Scene::~Scene()
 {
 }
 
+void Scene::loadPickups()
+{
+	Engine* engine = &Engine::get();
+	Entity* entity;
+
+
+	addPickup(Vector3(-30, 30, 105));
+	addPickup(Vector3(8.5, 40, 172));
+}
+
+void Scene::loadScore()
+{
+	addScore(Vector3(0, 9, 20));
+	addScore(Vector3(0, 15, 45));
+
+
+	addScore(Vector3(-16.54, 15.5, 105));
+	addScore(Vector3(16.54, 30, 105));
+	addScore(Vector3(-30, 40, 146));
+	addScore(Vector3(8.5, 18, 159.5));
+	addScore(Vector3(-11, 40, 222.5));
+}
+
+void Scene::addScore(const Vector3& position, const int tier, std::string name)
+{
+	Engine* engine = &Engine::get();
+	Entity* pickupPtr;
+	if (name == "")
+		name = "score_" + std::to_string(m_nrOfScore++);
+
+	pickupPtr = engine->addEntity(name);
+	pickupPtr->setPosition(position);
+	engine->addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST));
+	engine->addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
+	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger(pickupPtr, { 1, 1, 1 });
+	engine->addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
+}
+
+void Scene::addPickup(const Vector3& position, const int tier, std::string name)
+{
+	int nrOfPickups = (int)PickupType::COUNT - 1; //-1 due to Score being in pickupTypes
+	int pickupEnum = rand() % nrOfPickups;
+
+	Engine* engine = &Engine::get();
+	Entity* pickupPtr;
+	if (name == "")
+		name = "pickup_" + std::to_string(m_nrOfPickups++);
+
+	pickupPtr = engine->addEntity(name);
+	pickupPtr->setPosition(position);
+	engine->addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+	engine->addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, 1.f, 6));
+	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger(pickupPtr, { 1, 1, 1 });
+	engine->addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
+}
+
 void Scene::loadScene(std::string path)
 {
 	Engine* engine = &Engine::get();
 	Entity* entity;
+
+	this->loadPickups();
+	this->loadScore();
 
 
 	Entity* floor = engine->addEntity("floor"); // Floor:

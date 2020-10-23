@@ -16,6 +16,12 @@ private:
 	int m_nrOfSweepingPlatforms = 0;
 	void createSweepingPlatform(Vector3 startPos, Vector3 endPos);
 
+	int m_nrOfPickups = 0;
+	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
+	void loadPickups();
+	void loadScore();
+	int m_nrOfScore = 0;
+	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
 public:
 	Scene();
 	~Scene();
