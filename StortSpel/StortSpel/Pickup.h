@@ -5,7 +5,6 @@
 
 enum class PickupType
 {
-	DEFAULT,
 	SPEED,
 	SCORE,
 };
@@ -40,7 +39,7 @@ public:
 
 	static Pickup* getPickupByID(int ID)
 	{
-		return PICKUP_VECTOR[ID - 1];
+		return PICKUP_VECTOR[ID];
 	}
 
 //END OF STATIC
@@ -51,7 +50,7 @@ protected:
 	std::wstring m_whileActiveSound = L"";
 	std::wstring m_depletedSound = L"OnDepleted.wav";
 
-	PickupType m_pickupType = PickupType::DEFAULT;
+	PickupType m_pickupType = PickupType::SPEED;
 	std::vector<AudioComponent*> m_audioComponents;
 	Entity* m_entityToDoEffectsOn;
 

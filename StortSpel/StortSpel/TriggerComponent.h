@@ -40,7 +40,7 @@ public:
 	void initTrigger(Transform* transform, XMFLOAT3 boxExtends)
 	{
 		m_physicsData.entityIdentifier = m_parentEntityIdentifier;
-		m_geometryHolder = PxBoxGeometry(1.f, 1.f, 1.f);
+		m_geometryHolder = PxBoxGeometry(boxExtends.x, boxExtends.y, boxExtends.z);
 		m_transform = transform;
 		m_actor = m_physicsPtr->createRigidActor(transform->getTranslation(), transform->getRotation(), true, &m_physicsData);
 		m_physicsPtr->createAndSetShapeForActor(m_actor, m_geometryHolder, "default", false, {1, 1, 1}, true);

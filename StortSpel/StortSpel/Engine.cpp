@@ -335,7 +335,7 @@ void Engine::initialize()
 	Entity* triggerEntity = addEntity("TriggerEntity");
 	triggerEntity->setPosition(0, 10.f, 10);
 	addComponent(triggerEntity, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-	addComponent(triggerEntity, "trigger", new PickupComponent(PickupType::SPEED, 3.f, 6));
+	addComponent(triggerEntity, "trigger", new PickupComponent(PickupType::SPEED, 1.5f, 6));
 	static_cast<TriggerComponent*>(triggerEntity->getComponent("trigger"))->initTrigger(triggerEntity, { 1, 1, 1 });
 	addComponent(triggerEntity, "rotate", new RotateComponent(triggerEntity, { 0.f, 1.f, 0.f }));
 
