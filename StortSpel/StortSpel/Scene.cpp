@@ -160,6 +160,27 @@ void Scene::loadScene(std::string path)
 		}
 	}
 
+	Entity* skelTest = engine->addEntity("skeleton-test");
+	if (skelTest)
+	{
+		AnimatedMeshComponent* a1 = new AnimatedMeshComponent("skelTestStairs_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a1->translate({ 0.f, 0.f, 0.f });
+		engine->addComponent(skelTest, "skeleton mesh", a1);
+		
+		AnimatedMeshComponent* a2 = new AnimatedMeshComponent("testTania_tania_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a2->scaleUniform(0.02f);
+		a2->translate({ 8.f, 0.f, 0.f });
+		engine->addComponent(skelTest, "skeleton mesh", a2);
+		
+		AnimatedMeshComponent* a4 = new AnimatedMeshComponent("skelTestBaked_pCube1.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a4->translate({ 16.f, 0.f, 0.f });
+		engine->addComponent(skelTest, "skeleton animation test", a4);
+		
+		a4->playAnimation("skelTestBaked",true);
+
+		skelTest->translate({ 0.f, 1.5f, -20.f });
+	}
+
 	m_entities["SkyBox"] = engine->addEntity("SkyBox");
 	if (m_entities["SkyBox"])
 	{

@@ -203,6 +203,7 @@
   <ItemGroup>
     <ClInclude Include="3DPCH.h" />
     <ClInclude Include="AnimatedMeshComponent.h" />
+    <ClInclude Include="AnimationResource.h" />
     <ClInclude Include="ApplicationLayer.h" />
     <ClInclude Include="AudioComponent.h" />
     <ClInclude Include="AudioHandler.h" />

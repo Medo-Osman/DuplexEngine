@@ -245,6 +245,9 @@
     <ClInclude Include="SceneManager.h">
       <Filter>Source Files\Graphic</Filter>
     </ClInclude>
+    <ClInclude Include="AnimationResource.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">

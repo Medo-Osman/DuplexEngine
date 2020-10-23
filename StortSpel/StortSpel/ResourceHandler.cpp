@@ -148,10 +148,11 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	m_meshCache[path]->getVertexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount, false, sizeof(float) * nrOfFloatsInVertex);
 	m_meshCache[path]->getIndexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
 
+	LRM_VERTEX* vertexArray2 = (LRM_VERTEX*)vertexArray;
 	XMFLOAT3 min = { 99999, 99999, 99999 }, max = { -99999, -99999, -99999 };
 	for (int i = 0; i < vertexCount; i++)
 	{
-		XMFLOAT3 currentPos = vertexArray[i].pos;
+		XMFLOAT3 currentPos = vertexArray2[i].pos;
 		if (currentPos.x >= max.x)
 			max.x = currentPos.x;
 		if (currentPos.y >= max.y)
@@ -169,7 +170,7 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	}
 
 	m_meshCache[path]->setMinMax(min, max);
-	m_meshCache[path]->storeVertexArray(vertexArray, vertexCount);
+	m_meshCache[path]->storeVertexArray(vertexArray2, vertexCount);
 
 	delete[] vertexArray;
 	delete[] indexArray;
@@ -193,16 +194,15 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 	std::string modelPath = m_MODELS_PATH + path;
 	std::ifstream fileStream(modelPath, std::ifstream::in | std::ifstream::binary);
 	
-	std::string thisPath = m_MODELS_PATH + path;
-	size_t i = thisPath.rfind('.', thisPath.length());
-	std::string fileExtension = thisPath.substr(i + 1, thisPath.length() - i);
+	size_t i = modelPath.rfind('.', modelPath.length());
+	std::string fileExtension = modelPath.substr(i + 1, modelPath.length() - i);
 	bool correctFileType = (fileExtension == "lrsm" || fileExtension == "LRSM");
 	
 		// Check filestream failure
 	if (!fileStream || !correctFileType)
 	{
 		// Error message
-		std::string errormsg("loadLRMMesh failed to open filestream: "); errormsg.append(path);
+		std::string errormsg("loadLRSMMesh failed to open filestream: "); errormsg.append(path);
 		ErrorLogger::get().logError(errormsg.c_str());
 		// Properly clear and close file buffer
 		fileStream.clear();
@@ -243,7 +243,7 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 	fileStream.read(&overByte, 1);
 	if (!fileStream.eof())
 	{
-		std::string errormsg("loadLRMMesh : Filestream did not reach end of: "); errormsg.append(path);
+		std::string errormsg("loadLRSMMesh : Filestream did not reach end of: "); errormsg.append(path);
 		ErrorLogger::get().logError(errormsg.c_str());
 		return nullptr;
 	}
@@ -267,6 +267,100 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 
 	//Return the pointer of the new entry
 	return m_meshCache[path];
+}
+
+AnimationResource* ResourceHandler::loadAnimation(std::string path)
+{
+	// checks if the animation is in the cache 
+	if (m_animationCache.find(path) != m_animationCache.end())
+	{
+		// returns the resource
+		return m_animationCache[path];
+	}
+
+	// or loads the mesh and makes new buffers
+	std::string animationPath = m_ANIMATION_PATH + path;
+	std::ifstream fileStream(animationPath, std::ifstream::in | std::ifstream::binary);
+
+	size_t i = animationPath.rfind('.', animationPath.length());
+	std::string fileExtension = animationPath.substr(i + 1, animationPath.length() - i);
+	bool correctFileType = (fileExtension == "lra" || fileExtension == "LRA");
+
+	// Check filestream failure
+	if (!fileStream || !correctFileType)
+	{
+		// Error message
+		std::string errormsg("loadAnimation failed to open filestream: "); errormsg.append(path);
+		ErrorLogger::get().logError(errormsg.c_str());
+		// Properly clear and close file buffer
+		fileStream.clear();
+		fileStream.close();
+
+		return nullptr;
+	}
+
+	float timeSpan;
+	fileStream.read((char*)&timeSpan, sizeof(float));
+
+	std::uint32_t frameCount;
+	fileStream.read((char*)&frameCount, sizeof(std::uint32_t));
+
+	std::uint32_t jointCount;
+	fileStream.read((char*)&jointCount, sizeof(std::uint32_t));
+
+	std::uint32_t dataSize = (sizeof(float) + sizeof(JOINT_TRANSFORM) * jointCount) * frameCount;
+
+	char* animData = new char[dataSize];
+	fileStream.read(animData, dataSize);
+	
+	//ANIMATION_FRAME* animationFrameArray = new ANIMATION_FRAME[frameCount];
+	//fileStream.read((char*)&animationFrameArray[0], sizeof(ANIMATION_FRAME) * frameCount);
+
+	// Make sure all data was read
+	char overByte;
+	fileStream.read(&overByte, 1);
+	if (!fileStream.eof())
+	{
+		std::string errormsg("loadAnimation : Filestream did not reach end of: "); errormsg.append(path);
+		ErrorLogger::get().logError(errormsg.c_str());
+		return nullptr;
+	}
+	
+	AnimationResource* animation = new AnimationResource();
+	
+	animation->setTimeSpan(timeSpan);
+	animation->setFrameCount(frameCount);
+	animation->setJointCount(jointCount);
+	
+	ANIMATION_FRAME** animationFramesArray = animation->getFrames();
+	*animationFramesArray = new ANIMATION_FRAME[frameCount];
+	
+	int offset = 0;
+	for (int u = 0; u < frameCount; u++)
+	{
+		//memcpy(&animations.at(i).frames.at(u).timeStamp, animData + offset, sizeof(float));
+		memcpy(&(*animationFramesArray)[u].timeStamp, animData + offset, sizeof(float));
+
+		offset += sizeof(float);
+
+		(*animationFramesArray)[u].jointTransforms = new JOINT_TRANSFORM[jointCount];
+
+		for (int b = 0; b < jointCount; b++)
+		{
+			//memcpy(&animations.at(i).frames.at(u).jointTransforms[b], animData + offset, sizeof(JointTransformValues));
+			memcpy(&(*animationFramesArray)[u].jointTransforms[b], animData + offset, sizeof(JOINT_TRANSFORM));
+			
+			offset += sizeof(JOINT_TRANSFORM);
+		}
+
+	}
+
+	// Close filestream
+	fileStream.close();
+
+	delete[] animData;
+
+	return animation;
 }
 
 SoundEffect* ResourceHandler::loadSound(const WCHAR* soundPath, AudioEngine* audioEngine)
