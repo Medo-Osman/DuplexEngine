@@ -121,8 +121,8 @@ Engine::~Engine()
 
 void Engine::update(const float& dt)
 {
-	m_camera.update(dt);
 	m_player->updatePlayer(dt);
+	m_camera.update(dt);
 
 	for (auto& entity : m_entities)
 	{
@@ -301,7 +301,7 @@ void Engine::initialize()
 		addComponent(m_entities["meshPlayer"], "spotlightTest2", new SpotLightComponent());
 		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setPosition({ 0,1.f,0 });
 		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
-		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setIntensity(3.f);
+		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setIntensity(0.2f);
 
 		//Tests and demonstration how to add and remove lights
 		for (int i = 0; i < 8; i++)
