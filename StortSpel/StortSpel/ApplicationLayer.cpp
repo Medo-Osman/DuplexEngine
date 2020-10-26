@@ -114,9 +114,13 @@ void ApplicationLayer::applicationLoop()
 			this->m_dt = (float)m_timer.timeElapsed();
 			m_timer.restart();
 
+			// Start a new ImGui frame
+			ImGui_ImplDX11_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ImGui::NewFrame();
+
 			m_input.readBuffers();
 			m_sceneManager.updateScene(m_dt);
-			m_enginePtr->update(m_dt);
 			m_physics->update(m_dt);
 			AudioHandler::get().update(m_dt);
 			m_enginePtr->update(m_dt);

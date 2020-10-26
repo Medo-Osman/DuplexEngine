@@ -2,6 +2,11 @@
 //#include "MeshComponent.h"
 #include"Renderer.h"
 
+#ifndef STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#endif
+
 Renderer::Renderer()
 {
 	m_rTargetViewsArray = new ID3D11RenderTargetView * [8];
@@ -83,16 +88,24 @@ HRESULT Renderer::initialize(const HWND& window)
 
 
 	//Setup samplerstate
-	D3D11_SAMPLER_DESC samplerStateDesc;
-	ZeroMemory(&samplerStateDesc, sizeof(D3D11_SAMPLER_DESC));
-	samplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	//D3D11_SAMPLER_DESC samplerStateDesc;
+	//ZeroMemory(&samplerStateDesc, sizeof(D3D11_SAMPLER_DESC));
+	//samplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	//samplerStateDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerStateDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerStateDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerStateDesc.MipLODBias = 0.0f;
+	//samplerStateDesc.MaxAnisotropy = 1;
+	//samplerStateDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	//samplerStateDesc.MinLOD = 0;
+	//samplerStateDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	D3D11_SAMPLER_DESC samplerStateDesc = {};
 	samplerStateDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerStateDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerStateDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerStateDesc.MipLODBias = 0.0f;
-	samplerStateDesc.MaxAnisotropy = 1;
-	samplerStateDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerStateDesc.MinLOD = 0;
+	samplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerStateDesc.MaxAnisotropy = 16;
 	samplerStateDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_psSamplerState);
@@ -112,6 +125,9 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_dContextPtr->PSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
 
 	m_dContextPtr->PSSetConstantBuffers(2, 1, m_perObjectConstantBuffer.GetAddressOf());
+
+	m_currentMaterialConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &MATERIAL_CONST_BUFFER(), 1);
+	m_dContextPtr->PSSetConstantBuffers(3, 1, m_currentMaterialConstantBuffer.GetAddressOf());
 
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
@@ -134,8 +150,140 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	ImGui::StyleColorsDark();
 
+	ImGuiStyle* style = &ImGui::GetStyle();
+	ImVec4* colors = style->Colors;
+
+	colors[ImGuiCol_Text] = ImVec4(0.92f, 0.92f, 0.92f, 1.00f);
+	colors[ImGuiCol_TextDisabled] = ImVec4(0.44f, 0.44f, 0.44f, 1.00f);
+	colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
+	colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
+	colors[ImGuiCol_Border] = ImVec4(0.51f, 0.36f, 0.15f, 1.00f);
+	colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_FrameBg] = ImVec4(0.11f, 0.11f, 0.11f, 1.00f);
+	colors[ImGuiCol_FrameBgHovered] = ImVec4(0.51f, 0.36f, 0.15f, 1.00f);
+	colors[ImGuiCol_FrameBgActive] = ImVec4(0.78f, 0.55f, 0.21f, 1.00f);
+	colors[ImGuiCol_TitleBg] = ImVec4(0.51f, 0.36f, 0.15f, 1.00f);
+	colors[ImGuiCol_TitleBgActive] = ImVec4(0.91f, 0.64f, 0.13f, 1.00f);
+	colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
+	colors[ImGuiCol_MenuBarBg] = ImVec4(0.11f, 0.11f, 0.11f, 1.00f);
+	colors[ImGuiCol_ScrollbarBg] = ImVec4(0.06f, 0.06f, 0.06f, 0.53f);
+	colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.21f, 0.21f, 0.21f, 1.00f);
+	colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.47f, 0.47f, 0.47f, 1.00f);
+	colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.81f, 0.83f, 0.81f, 1.00f);
+	colors[ImGuiCol_CheckMark] = ImVec4(0.78f, 0.55f, 0.21f, 1.00f);
+	colors[ImGuiCol_SliderGrab] = ImVec4(0.91f, 0.64f, 0.13f, 1.00f);
+	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.91f, 0.64f, 0.13f, 1.00f);
+	colors[ImGuiCol_Button] = ImVec4(0.51f, 0.36f, 0.15f, 1.00f);
+	colors[ImGuiCol_ButtonHovered] = ImVec4(0.91f, 0.64f, 0.13f, 1.00f);
+	colors[ImGuiCol_ButtonActive] = ImVec4(0.78f, 0.55f, 0.21f, 1.00f);
+	colors[ImGuiCol_Header] = ImVec4(0.51f, 0.36f, 0.15f, 1.00f);
+	colors[ImGuiCol_HeaderHovered] = ImVec4(0.91f, 0.64f, 0.13f, 1.00f);
+	colors[ImGuiCol_HeaderActive] = ImVec4(0.93f, 0.65f, 0.14f, 1.00f);
+	colors[ImGuiCol_Separator] = ImVec4(0.21f, 0.21f, 0.21f, 1.00f);
+	colors[ImGuiCol_SeparatorHovered] = ImVec4(0.91f, 0.64f, 0.13f, 1.00f);
+	colors[ImGuiCol_SeparatorActive] = ImVec4(0.78f, 0.55f, 0.21f, 1.00f);
+	colors[ImGuiCol_ResizeGrip] = ImVec4(0.21f, 0.21f, 0.21f, 1.00f);
+	colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.91f, 0.64f, 0.13f, 1.00f);
+	colors[ImGuiCol_ResizeGripActive] = ImVec4(0.78f, 0.55f, 0.21f, 1.00f);
+	colors[ImGuiCol_Tab] = ImVec4(0.51f, 0.36f, 0.15f, 1.00f);
+	colors[ImGuiCol_TabHovered] = ImVec4(0.91f, 0.64f, 0.13f, 1.00f);
+	colors[ImGuiCol_TabActive] = ImVec4(0.78f, 0.55f, 0.21f, 1.00f);
+	colors[ImGuiCol_TabUnfocused] = ImVec4(0.07f, 0.10f, 0.15f, 0.97f);
+	colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.14f, 0.26f, 0.42f, 1.00f);
+	colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+	colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+	colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+	colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+	colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+	colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+	colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
+	style->FramePadding = ImVec2(4, 2);
+	style->ItemSpacing = ImVec2(10, 2);
+	style->IndentSpacing = 12;
+	style->ScrollbarSize = 10;
+
+	style->WindowRounding = 4;
+	style->FrameRounding = 4;
+	style->PopupRounding = 4;
+	style->ScrollbarRounding = 6;
+	style->GrabRounding = 4;
+	style->TabRounding = 4;
+
+	style->WindowTitleAlign = ImVec2(1.0f, 0.5f);
+	style->WindowMenuButtonPosition = ImGuiDir_Right;
+
+	style->DisplaySafeAreaPadding = ImVec2(4, 4);
+
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
+
+	D3D11_TEXTURE2D_DESC skyIBLDesc;
+	//ZeroMemory(&skyIBLDesc, sizeof(skyIBLDesc));
+	skyIBLDesc.Width = 64;
+	skyIBLDesc.Height = 64;
+	skyIBLDesc.MipLevels = 1;
+	skyIBLDesc.ArraySize = 6;
+	skyIBLDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	skyIBLDesc.Usage = D3D11_USAGE_DEFAULT;
+	skyIBLDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	skyIBLDesc.CPUAccessFlags = 0;
+	skyIBLDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
+	skyIBLDesc.SampleDesc.Count = 1;
+	skyIBLDesc.SampleDesc.Quality = 0;
+
+	stbi_set_flip_vertically_on_load(true);
+	int width, height, nrComponents;
+	float* data = stbi_loadf("newport_loft.hdr", &width, &height, &nrComponents, 0);
+	ID3D11Texture2D* hdrTexture = NULL;
+	//if (data)
+	//{
+	//	D3D11_TEXTURE2D_DESC envMapDesc;
+
+	//	int maxMipLevels = 5;
+
+	//	envMapDesc.Width = 256;
+	//	envMapDesc.Height = 256;
+	//	envMapDesc.MipLevels = maxMipLevels;
+	//	envMapDesc.ArraySize = 6;
+	//	envMapDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	//	envMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	//	envMapDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	//	envMapDesc.CPUAccessFlags = 0;
+	//	envMapDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
+	//	envMapDesc.SampleDesc.Count = 1;
+	//	envMapDesc.SampleDesc.Quality = 0;
+
+	//	D3D11_SHADER_RESOURCE_VIEW_DESC envMapSRVDesc;
+	//	ZeroMemory(&envMapSRVDesc, sizeof(envMapSRVDesc));
+	//	envMapSRVDesc.Format = skyIBLDesc.Format;
+	//	envMapSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+	//	envMapSRVDesc.TextureCube.MostDetailedMip = 0;
+	//	envMapSRVDesc.TextureCube.MipLevels = maxMipLevels;
+
+	//	hr = m_devicePtr->CreateTexture2D(&envMapDesc, 0, &hdrTexture);
+
+	//	//glGenTextures(1, &hdrTexture);
+	//	//glBindTexture(GL_TEXTURE_2D, hdrTexture);
+	//	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data);
+
+	//	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//	
+
+	//	stbi_image_free(data);
+	//}
+	//else
+	//{
+	//	std::cout << "Failed to load HDR image." << std::endl;
+	//}
 
 	return hr;
 }
@@ -245,11 +393,7 @@ void Renderer::rasterizerSetup()
 
 void Renderer::update(const float& dt)
 {
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
 
-	//ImGui::ShowDemoWindow();
 }
 
 void Renderer::render()
@@ -309,6 +453,14 @@ void Renderer::render()
 		{
 			meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
 			m_currentSetMaterialId = meshMatPtr->getMaterialId();
+
+			MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+			currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+			currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+			currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+			currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+
+			m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 		}
 			
 		perObjectMVP constantBufferPerObjectStruct;
@@ -345,3 +497,13 @@ ID3D11DepthStencilView* Renderer::getDepthStencilView()
 {
 	return m_depthStencilViewPtr.Get();
 }
+
+
+//void Renderer::tempTextureScreenshot(ID3D11Resource texture, int width, int height)
+//{
+//	std::string fileName = "textureScreenshot.png";
+//	int components = 3;
+//	size_t bufferSize = components * sizeof(byte) * width * height;
+//
+//	DirectX::D3DX11SaveTextureToFile(m_dContextPtr, texture, _In_ D3DX11_IMAGE_FILE_FORMAT DestFormat, _In_ LPCTSTR pDestFile);
+//}

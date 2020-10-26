@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include "ConstantBufferTypes.h"
 #include "ShaderProgram.h"
 #include "ShaderEnums.h"
@@ -29,6 +30,7 @@ private:
 	Buffer<lightBufferStruct> m_lightBuffer;
 	Buffer<cameraBufferStruct> m_cameraBuffer;
 	Buffer<skyboxMVP> m_skyboxConstantBuffer;
+	Buffer<MATERIAL_CONST_BUFFER> m_currentMaterialConstantBuffer;
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
@@ -69,6 +71,20 @@ private:
 	void createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const int& height) const;
 	Renderer(); //{};
 
+	// Environment Map data
+	//IBL
+	ID3D11Texture2D* skyIBLtex;
+	//ID3D11RenderTargetView* skyIBLRTV[6];
+	ID3D11ShaderResourceView* skyIBLSRV;
+
+	ID3D11Texture2D* envMaptex;
+	//ID3D11RenderTargetView* envMapRTV[6];
+	ID3D11ShaderResourceView* envMapSRV;
+
+	ID3D11Texture2D* brdfLUTtex;
+	//ID3D11RenderTargetView* brdfLUTRTV;
+	ID3D11ShaderResourceView* brdfLUTSRV;
+
 public:
 	Renderer(const Renderer&) = delete;
 	void operator=(Renderer const&) = delete;
@@ -89,4 +105,5 @@ public:
 	ID3D11DeviceContext* getDContext();
 	ID3D11DepthStencilView* getDepthStencilView();
 
+	//void tempTextureScreenshot(ID3D11Resource texture);
 };

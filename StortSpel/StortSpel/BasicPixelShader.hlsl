@@ -109,7 +109,7 @@ lightComputeResult computeLightFactor(ps_in input)
         finalColor = saturate(finalColor + (diffuseLightFactor * spotLights[j].color * attenuationFactor));
     }
     
-    finalColor = finalColor + saturate(dot(skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
+    //finalColor = finalColor + saturate(dot(skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
     
     result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel));
     
@@ -120,6 +120,7 @@ float4 main(ps_in input) : SV_TARGET
 {
     lightComputeResult lightResult = computeLightFactor(input);
    
-    return float4(lightResult.lightColor, 1);
+    //return float4(lightResult.lightColor, 1);
+    return float4(0.8, 0.8, 0.8, 1);
 
 }

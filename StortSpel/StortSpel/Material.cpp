@@ -9,7 +9,6 @@ Material::Material()
 		this->m_textureArray.push_back(errorTexturePtr);
 	
 	this->m_materialConstData.UVScale = 1.0f;
-	this->m_materialConstData.reflectance = 0.15f;
 }
 
 Material::Material(std::initializer_list<const WCHAR*> fileNames)
@@ -20,7 +19,6 @@ Material::Material(std::initializer_list<const WCHAR*> fileNames)
 		addTexture(fileName);
 	}
 	this->m_materialConstData.UVScale = 1.0f;
-	this->m_materialConstData.reflectance = 0.15f;
 }
 
 Material::Material(const Material& other)
@@ -105,12 +103,27 @@ void Material::setUVScale(float scale)
 	this->m_materialConstData.UVScale = scale;
 }
 
-void Material::setReflectance(float reflectance)
+void Material::setRoughness(float roughness)
 {
-	this->m_materialConstData.reflectance = reflectance;
+	this->m_materialConstData.roughness = roughness;
+}
+
+void Material::setMetallic(float metallic)
+{
+	this->m_materialConstData.metallic = metallic;
+}
+
+void Material::setTextured(int textured)
+{
+	this->m_materialConstData.textured = textured;
 }
 
 unsigned int long Material::getMaterialId()
 {
 	return m_materialId;
+}
+
+MATERIAL_CONST_BUFFER Material::getMaterialParameters()
+{
+	return this->m_materialConstData;
 }

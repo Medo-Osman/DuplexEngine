@@ -58,7 +58,8 @@ void ShaderProgram::compileShaders(VertexLayoutType inputLayoutType)
 
 	if (m_shaderFiles[ShaderType::Vertex] != L"null" && m_shaderFiles[ShaderType::Vertex] != L"")
 	{
-		hr = D3DCompileFromFile(m_shaderFiles[ShaderType::Vertex], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", flags, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
+		//hr = D3DCompileFromFile(m_shaderFiles[ShaderType::Vertex], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", flags, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
+		hr = D3DCompileFromFile(m_shaderFiles[ShaderType::Vertex], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", D3DCOMPILE_DEBUG, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
 
 		if (FAILED(hr))
 			errorBlobCheck(errorBlob);

@@ -69,6 +69,15 @@ void Player::updatePlayer(const float& dt)
 
 	//Display slerped result
 	m_playerEntity->setQuaternion(slerped);
+
+	// ImGui debugging
+	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+	ImGui::SetNextWindowSize(ImVec2(350.0f, 50.0f));
+	ImGui::Begin("Player stats");
+
+	ImGui::Text("Position = %f, %f, %f", this->getPlayerEntity()->getTranslation().x, this->getPlayerEntity()->getTranslation().y, this->getPlayerEntity()->getTranslation().z);
+
+	ImGui::End();
 }
 
 void Player::setPlayerEntity(Entity* entity)

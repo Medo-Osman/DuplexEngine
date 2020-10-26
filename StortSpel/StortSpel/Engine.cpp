@@ -120,7 +120,21 @@ void Engine::update(const float& dt)
 	}
 	AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
 	ac->setVolume(nightVolume);
+
+	// (ImGui) Material Test Settings
+
+	//Entity* testEntity = dynamic_cast<Entity*>(m_entities["testXwing"]);
+	//static float testValue = 0.0f;
+
+	//ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+	//ImGui::SetNextWindowSize(ImVec2(500.0f, 500.0f));
+	//ImGui::Begin("Material Test Settings");
+
+	//ImGui::SliderFloat("Test Slider", &testValue, 0.0f, 1.0f, "%.3f");
+
+	//ImGui::End();
 }
+
 Settings Engine::getSettings() const
 {
 	return m_settings;
@@ -262,30 +276,30 @@ void Engine::initialize()
 	if (addEntity("meshPlayer"))
 	{
 		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
-		m_entities["meshPlayer"]->translation({ 5, 10.f, 0 });
+		m_entities["meshPlayer"]->translation({ 5, 3.f, -20.f });
 
 		//Point Light
-		addComponent(m_entities["meshPlayer"], "testLight", new LightComponent());
-		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->translation({ 0,1.f,-5 });
-		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
-		dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setIntensity(1.0f);
+		//addComponent(m_entities["meshPlayer"], "testLight", new LightComponent());
+		//dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->translation({ 0, 1.f, 5 });
+		//dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
+		//dynamic_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent("testLight"))->setIntensity(1.0f);
 
-		//Spot Light
-		addComponent(m_entities["meshPlayer"], "spotlightTest2", new SpotLightComponent());
-		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->translation({ 0,1.f,0 });
-		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
-		dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setIntensity(3.f);
+		////Spot Light
+		//addComponent(m_entities["meshPlayer"], "spotlightTest2", new SpotLightComponent());
+		//dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->translation({ 0,1.f,0 });
+		//dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+		//dynamic_cast<SpotLightComponent*>(m_entities["meshPlayer"]->getComponent("spotlightTest2"))->setIntensity(3.f);
 
 		//Tests and demonstration how to add and remove lights
-		for (int i = 0; i < 8; i++)
-		{
-			addComponent(m_entities["meshPlayer"], std::string("lightTest")+std::to_string(i), new LightComponent());
-		}
+		//for (int i = 0; i < 8; i++)
+		//{
+		//	addComponent(m_entities["meshPlayer"], std::string("lightTest")+std::to_string(i), new LightComponent());
+		//}
 
-		for (int i = 0; i < 8; i++)
-		{
-			removeLightComponent(static_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent(std::string("lightTest") + std::to_string(i))));
-		}
+		//for (int i = 0; i < 8; i++)
+		//{
+		//	removeLightComponent(static_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent(std::string("lightTest") + std::to_string(i))));
+		//}
 
 		m_entities["meshPlayer"]->scaleUniform(0.02f);
 		//createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");

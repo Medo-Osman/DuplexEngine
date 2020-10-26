@@ -42,97 +42,205 @@ void Scene::loadScene(std::string path)
 		m_entities["floor"] = entity;
 		engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"T_CircusTent_D.png" })));
 		entity->scale({ 300,0.1,300 });
-		entity->move({ 0,-0.6,0 });
+		entity->move({ 0, -3, 0 });
 		engine->createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
 	Material gridTest = Material({ L"T_GridTestTex.bmp" });
 
-	//Cube 2
-	entity = engine->addEntity("cube-test2");
-	if (entity)
-	{
+	////Cube 2
+	//entity = engine->addEntity("cube-test2");
+	//if (entity)
+	//{
 
-		m_entities["cube-test2"] = entity;
-		engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		entity->scaleUniform({ 3.f });
-		entity->move({ 0.f, 5.f, 5.f });
-		entity->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		engine->createNewPhysicsComponent(entity, true, "", PxGeometryType::eSPHERE, "default", false);
-	}
+	//	m_entities["cube-test2"] = entity;
+	//	engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+	//	entity->scaleUniform({ 3.f });
+	//	entity->move({ 0.f, 5.f, 5.f });
+	//	entity->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
+	//	engine->createNewPhysicsComponent(entity, true, "", PxGeometryType::eSPHERE, "default", false);
+	//}
 
-	//Cube with sphere shape
-	entity = engine->addEntity("cube-test3");
-	if (entity)
-	{
+	////Cube with sphere shape
+	//entity = engine->addEntity("cube-test3");
+	//if (entity)
+	//{
 
-		m_entities["cube-test3"] = entity;
-		engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-		entity->scaleUniform({ 3.f });
-		entity->move({ -10.f, 5.f, 5.f });
-		entity->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		engine->addComponent(entity, "physics", new PhysicsComponent(&Physics::get()));
-		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
-		physicsComp->initActor(entity, false);
-		physicsComp->addSphereShape(2.f);
-	}
+	//	m_entities["cube-test3"] = entity;
+	//	engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+	//	entity->scaleUniform({ 3.f });
+	//	entity->move({ -10.f, 5.f, 5.f });
+	//	entity->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
+	//	engine->addComponent(entity, "physics", new PhysicsComponent(&Physics::get()));
+	//	PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
+	//	physicsComp->initActor(entity, false);
+	//	physicsComp->addSphereShape(2.f);
+	//}
 
 
-	entity = engine->addEntity("testXwing");
-	if (entity)
-	{
+	//entity = engine->addEntity("testXwing");
+	//if (entity)
+	//{
 
-		m_entities["testXwing"] = entity;
-		engine->addComponent(entity, "xwingtestmesh", new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
-		entity->move({ 15.f, 1.5f, -3.f });
-	}
+	//	m_entities["testXwing"] = entity;
+	//	engine->addComponent(entity, "xwingtestmesh", new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
+	//	entity->move({ 15.f, 1.5f, -3.f });
+	//}
 
-	// Platforms
-	for (int i = 0; i < 5; i++)
-	{
-		entity = engine->addEntity("cube-test" + std::to_string(i));
+	//// Platforms
+	//for (int i = 0; i < 5; i++)
+	//{
+	//	entity = engine->addEntity("cube-test" + std::to_string(i));
 
-		m_entities["cube-test"] = entity;
-		if (entity)
-		{
-			engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm"));
-			entity->scale({ 3,0.2,5 });
-			entity->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
-			//defualt values for this function
-			engine->createNewPhysicsComponent(entity,false, "", PxGeometryType::eBOX, "default", false);
-		}
-	}
+	//	m_entities["cube-test"] = entity;
+	//	if (entity)
+	//	{
+	//		engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm"));
+	//		entity->scale({ 3,0.2,5 });
+	//		entity->move({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
+	//		//defualt values for this function
+	//		engine->createNewPhysicsComponent(entity,false, "", PxGeometryType::eBOX, "default", false);
+	//	}
+	//}
 
-	// Rotating Cube
-	Entity* centerCube = engine->addEntity("centerCube");
-	if (centerCube)
-	{
-		engine->addComponent(centerCube, "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
-		centerCube->move({ 0.f, 5.f, 0.f });
-		centerCube->rotate({ 0.5f, 0, 0 });
-	}
+	//// Rotating Cube
+	//Entity* centerCube = engine->addEntity("centerCube");
+	//if (centerCube)
+	//{
+	//	engine->addComponent(centerCube, "mesh",
+	//		new MeshComponent("testCube_pCube1.lrm"));
+	//	centerCube->move({ 0.f, 5.f, 0.f });
+	//	centerCube->rotate({ 0.5f, 0, 0 });
+	//}
 
-	// Rotating Cube
-	m_entities["RotatingCube"] = engine->addEntity("RotatingCube");
-	if (m_entities["RotatingCube"])
-	{
+	//// Rotating Cube
+	//m_entities["RotatingCube"] = engine->addEntity("RotatingCube");
+	//if (m_entities["RotatingCube"])
+	//{
 
-		engine->addComponent(m_entities["RotatingCube"], "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
-		engine->addComponent(m_entities["RotatingCube"], "rotate",
-			new RotateAroundComponent(centerCube->getTranslation(), centerCube->getRotationMatrix(), dynamic_cast<Transform*>(m_entities["RotatingCube"]), 5));
+	//	engine->addComponent(m_entities["RotatingCube"], "mesh",
+	//		new MeshComponent("testCube_pCube1.lrm"));
+	//	engine->addComponent(m_entities["RotatingCube"], "rotate",
+	//		new RotateAroundComponent(centerCube->getTranslation(), centerCube->getRotationMatrix(), dynamic_cast<Transform*>(m_entities["RotatingCube"]), 5));
 
-	}
+	//}
 
 	// Skybox
 	m_entities["SkyBox"] = engine->addEntity("SkyBox");
 	if (m_entities["SkyBox"])
 	{
 		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		skyboxMat.addTexture(L"skybox1.dds", true);
 		engine->addComponent(m_entities["SkyBox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
+	}
+
+	int xCounter = 0;
+	int yCounter = 0;
+
+	// PBR Test
+	for (size_t i = 0; i < 25; i++)
+	{
+		std::string currentSphereName = ("PBRSphere" + std::to_string(i));
+		m_entities[currentSphereName] = engine->addEntity(currentSphereName);
+		if (m_entities[currentSphereName])
+		{
+			entity = m_entities[currentSphereName];
+			Material PBRMat;
+			PBRMat.addTexture(L"skybox1IR.dds", true);
+			PBRMat.addTexture(L"skybox1.dds", true);
+			PBRMat.addTexture(L"ibl_brdf_lut.png");
+
+			xCounter++;
+
+			if (i % 5 == 0)
+			{
+				yCounter++;
+				xCounter = 0;
+			}
+			PBRMat.setMetallic(yCounter * 0.2f - 0.2f);
+			PBRMat.setRoughness(xCounter * 0.18 + 0.1);
+			PBRMat.setTextured(0);
+
+			engine->addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMat));
+
+			float moveDistance = 5.f;
+			entity->move({ moveDistance * xCounter, moveDistance * yCounter - 3.f, 0.f });
+			entity->rotate({ 1.5708, 0.f, 0.f });
+		}
+	}
+
+	std::wstring materialNames[7] = {
+		L"Bronze_Quilt/bronze_quilt",
+		L"Coastline_Flat_Stone_Wall_Mixed/coastline_flat_stone_wall_mixed",
+		L"Japanese_Temple_Wood_Ceiling/japanese_temple_wood_ceiling",
+		L"Metal_Grinded/metal_grinded",
+		L"Steel_Battered/steel_battered",
+		L"Terracotta_Glossy/terracotta_glossy",
+		L"Wood_American_Cherry/wood_american_cherry"
+	};
+
+	for (size_t i = 0; i < 7; i++)
+	{
+		std::string currentSphereName = ("PBRSphereMaterial" + std::to_string(i));
+		m_entities[currentSphereName] = engine->addEntity(currentSphereName);
+		if (m_entities[currentSphereName])
+		{
+			entity = m_entities[currentSphereName];
+			Material PBRMat;
+			PBRMat.addTexture(L"skybox1IR.dds", true);
+			PBRMat.addTexture(L"skybox1.dds", true);
+			PBRMat.addTexture(L"ibl_brdf_lut.png");
+
+			PBRMat.addTexture((materialNames[i] + L"_Base_Color.dds").c_str());
+			PBRMat.addTexture((materialNames[i] + L"_Normal.dds").c_str());
+			PBRMat.addTexture((materialNames[i] + L"_Roughness.dds").c_str());
+			PBRMat.addTexture((materialNames[i] + L"_Metallic.dds").c_str());
+			PBRMat.addTexture((materialNames[i] + L"_Ambient_Occlusion.dds").c_str());
+
+			PBRMat.setTextured(1);
+
+			engine->addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMat));
+
+			float moveDistance = -5.f;
+			entity->move({ moveDistance * i + 30.f, 2.f, 20.f });
+			entity->rotate({ 1.5708, 0.f, 0.f });
+		}
+	}
+
+	XMVECTOR pointLightPositions[4] =
+	{
+		{ 0.f, 5.f, 10.f},
+		{ 20.f, 5.f, 10.f},
+		{ 0.f, 25.f, 10.f},
+		{ 20.f, 25.f, 10.f},
+	};
+
+	float lightIntensity = 500.f;
+
+	float pointLightIntensities[4] =
+	{
+		lightIntensity,
+		lightIntensity,
+		lightIntensity,
+		lightIntensity,
+	};
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		std::string currentPointLightName = ("PointLight" + std::to_string(i));
+		m_entities[currentPointLightName] = engine->addEntity(currentPointLightName);
+		if (m_entities[currentPointLightName])
+		{
+			entity = m_entities[currentPointLightName];
+			std::string currentPointLightComponentName = ("PointLightTestPointLight" + std::to_string(i));
+			engine->addComponent(m_entities[currentPointLightName], currentPointLightComponentName, new LightComponent());
+			dynamic_cast<LightComponent*>(m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->translation(XMFLOAT3(0.f, 0.f, 0.f));
+			dynamic_cast<LightComponent*>(m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setColor(XMFLOAT3(1, 1, 1));
+			dynamic_cast<LightComponent*>(m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setIntensity(pointLightIntensities[i]);
+			//engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"T_CircusTent_D.png" })));
+			entity->move(pointLightPositions[i]);
+		}
 	}
 }
 
