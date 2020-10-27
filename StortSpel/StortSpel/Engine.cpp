@@ -152,11 +152,11 @@ void Engine::initialize()
 	// - Entity
 	Entity* playerEntity = new Entity(PLAYER_ENTITY_NAME);
 	playerEntity->setPosition({ 5, 10.f, 0 });
-	playerEntity->scaleUniform(0.02f);
+	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
 	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Running4.1_Cube.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-	playerEntity->addComponent(m_entities["meshPlayer"], "mesh", animMeshComp);
+	playerEntity->addComponent("mesh", animMeshComp);
 
 	animMeshComp->playAnimation("Running4.1", true);
 	//a4->setAnimationSpeed(0.05f);
