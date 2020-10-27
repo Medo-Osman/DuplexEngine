@@ -131,12 +131,25 @@ void Scene::loadScene(std::string path)
 	createFlippingPlatform(Vector3(-11, 37.7, 200), Vector3(0, 180, 0), 2, 2);
 	createStaticPlatform(Vector3(-11, 37.7, 215), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-11, 37.7, 222.5), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
-	createSweepingPlatform(Vector3(-5, 37.7, 228), Vector3(-5, 50, 270));
-	createSweepingPlatform(Vector3(-11, 37.7, 228), Vector3(-11, 50, 270));
-	createSweepingPlatform(Vector3(-17, 37.7, 228), Vector3(-17, 50, 270));
+
+	createSweepingPlatform(Vector3(-5, 37.7, 228), Vector3(-5, 43.85, 246));
+	createSweepingPlatform(Vector3(-17, 43.85, 246), Vector3(-17, 37.7, 228));
+	createSweepingPlatform(Vector3(-5, 43.85, 251), Vector3(-5, 50, 270));
+	createSweepingPlatform(Vector3(-17, 50, 270), Vector3(-17, 43.85, 251));
+
 	createStaticPlatform(Vector3(-11, 50, 275), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-11, 51.68, 282.02), Vector3(-20, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-11, 53.4, 289), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+
+	Entity* clownMask = engine->addEntity("ClownMask");
+	if (clownMask)
+	{
+		engine->addComponent(clownMask, "mesh",
+			new MeshComponent("ClownMask_ClownEye_R1.lrm", Material({ L"GrayTexture.png" })));
+
+		clownMask->setPosition(Vector3(-11.5, 60, 290));
+		clownMask->setRotation(XMConvertToRadians(7), XMConvertToRadians(180), XMConvertToRadians(0));
+	}
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	Entity* skybox = engine->addEntity("SkyBox");
@@ -145,7 +158,6 @@ void Scene::loadScene(std::string path)
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		engine->addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-
 	}
 }
 
@@ -256,6 +268,6 @@ void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)
 		static_cast<PhysicsComponent*>(sweepingPlatform->getComponent("physics"))->makeKinematic();
 
 		engine->addComponent(sweepingPlatform, "sweep",
-			new SweepingComponent(sweepingPlatform, startPos, endPos, 5));
+			new SweepingComponent(sweepingPlatform, startPos, endPos, 3));
 	}
 }
