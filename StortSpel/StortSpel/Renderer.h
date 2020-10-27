@@ -50,6 +50,9 @@ private:
 	Buffer<lightBufferStruct> m_lightBuffer;
 	Buffer<cameraBufferStruct> m_cameraBuffer;
 	Buffer<skyboxMVP> m_skyboxConstantBuffer;
+	Buffer<MATERIAL_CONST_BUFFER> m_currentMaterialConstantBuffer;
+
+	// Blur stuff
 	Buffer<CS_BLUR_CBUFFER> m_blurBuffer;
 	Buffer<PositionTextureVertex> m_renderQuadBuffer;
 

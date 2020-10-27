@@ -572,6 +572,14 @@ void Renderer::render()
 		{
 			meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
 			m_currentSetMaterialId = meshMatPtr->getMaterialId();
+
+			MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+			currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+			currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+			currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+			currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+
+			m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 		}
 			
 		perObjectMVP constantBufferPerObjectStruct;

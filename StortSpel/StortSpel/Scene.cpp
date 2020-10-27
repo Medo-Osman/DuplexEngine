@@ -147,6 +147,20 @@ void Scene::loadScene(std::string path)
 		engine->addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
 	}
+
+	Entity* testCube = engine->addEntity("testCube");
+	if (testCube)
+	{
+		Material testPBRMat;
+
+		testPBRMat.setMetallic(1.f);
+		testPBRMat.setRoughness(0.f);
+
+		engine->addComponent(testCube, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::PBRTEST, testPBRMat));
+
+		testCube->setPosition( { 0, 10, 0 } );
+		testCube->setScale( { 5, 5, 5 } );
+	}
 }
 
 void Scene::updateScene(const float& dt)
