@@ -9,6 +9,7 @@ private:
 	Scene* m_currentScene;
 	Scene* m_nextScene;
 	bool m_gameStarted;
+	bool m_swapScene;
 public:
 	SceneManager();
 	~SceneManager();

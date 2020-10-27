@@ -6,6 +6,7 @@ SceneManager::SceneManager()
 	m_currentScene = nullptr;
 	m_nextScene = nullptr;
 	m_gameStarted = false;
+	m_swapScene = false;
 	Physics::get().Attach(this, true, false);
 }
 
@@ -34,6 +35,9 @@ void SceneManager::initalize()
 
 void SceneManager::updateScene(const float &dt)
 {
+	if (m_swapScene)
+		swapScenes();
+
 	m_currentScene->updateScene(dt);
 }
 
@@ -54,6 +58,8 @@ void SceneManager::inputUpdate(InputData& inputData)
 	}
 }
 
+
+//Can't swap scenes when using onTrigger function due to it being triggered in physx simulations, ie it could result in a crash and is not best practice. 
 void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity)
 {
 	if (physicsData.triggerType == TriggerType::EVENT)
@@ -75,13 +81,14 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 			default:
 				break;
 			}
-			this->swapScenes();
+			m_swapScene = true;
 		}
 	}
 }
 
 void SceneManager::swapScenes()
 {
+	m_swapScene = false;
 	Physics::get().Detach(m_currentScene, false, true);
 
 	// Swap
@@ -96,4 +103,6 @@ void SceneManager::swapScenes()
 
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
+
+	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
 }

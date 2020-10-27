@@ -9,6 +9,7 @@ Scene::Scene()
 	// Player
 	m_player = Engine::get().getPlayerPtr();
 	m_entities[PLAYER_ENTITY_NAME] = m_player->getPlayerEntity();
+	m_sceneEntryPosition = { 0, 0, 0 };
 
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
@@ -99,7 +100,7 @@ void Scene::loadScene(std::string path)
 
 	loadPickups();
 	loadScore();
-
+	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
 	Entity* floor = addEntity("floor"); // Floor:
 	if (floor)
@@ -117,7 +118,7 @@ void Scene::loadScene(std::string path)
 	{
 		addComponent(goalTrigger, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"T_GridTestTex.bmp" })));
-		goalTrigger->setPosition({ 0, 10, 20 });
+		goalTrigger->setPosition(Vector3(-11, 53.4, 289));
 
 		addComponent(goalTrigger, "trigger",
 			new TriggerComponent());
@@ -289,7 +290,6 @@ void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 sca
 void Scene::loadLobby()
 {
 	Entity* entity;
-
 	Material gridTest = Material({ L"T_GridTestTex.bmp" });
 	entity = addEntity("floor");
 	if (entity)
@@ -337,6 +337,9 @@ void Scene::loadArena()
 {
 	Engine* engine = &Engine::get();
 	Entity* entity;
+
+	m_sceneEntryPosition = Vector3(33.f, 3.f, 2.f);
+
 
 	Material gridTest = Material({ L"T_GridTestTex.bmp" });
 	entity = addEntity("floor");
@@ -430,6 +433,11 @@ void Scene::updateScene(const float& dt)
 	}
 	AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
 	ac->setVolume(m_nightVolume);*/
+}
+
+Vector3 Scene::getEntryPosition()
+{
+	return m_sceneEntryPosition;
 }
 
 Entity* Scene::getEntity(std::string key)

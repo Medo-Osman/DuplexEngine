@@ -37,6 +37,11 @@ Player::Player()
 
 }
 
+Player::~Player()
+{
+	
+}
+
 void Player::setStates(std::vector<State> states)
 {
 	m_movementVector = XMVECTOR();
@@ -229,6 +234,10 @@ void Player::updatePlayer(const float& dt)
 		handleRotation(dt);
 
 	playerStateLogic(dt);
+
+	ImGui::Begin("Player Information", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+	ImGui::Text("Player Position: (%d %d, %d)", (int)this->getPlayerEntity()->getTranslation().x, (int)this->getPlayerEntity()->getTranslation().y, (int)this->getPlayerEntity()->getTranslation().z);
+	ImGui::End();
 }
 
 void Player::setPlayerEntity(Entity* entity)

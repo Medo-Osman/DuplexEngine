@@ -96,6 +96,7 @@ private:
   
 public:
     Player();
+    ~Player();
 
     void updatePlayer(const float& dt);
     void setPlayerEntity(Entity* entity);

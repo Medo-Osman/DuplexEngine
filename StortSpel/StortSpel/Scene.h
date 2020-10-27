@@ -25,6 +25,7 @@ private:
 	void createSweepingPlatform(Vector3 startPos, Vector3 endPos);
 
 	Player* m_player;
+	Vector3 m_sceneEntryPosition;
 	
 	float m_nightVolume;
 	float m_nightSlide;
@@ -52,6 +53,7 @@ public:
 	void loadLobby();
 	void loadArena();
 	void updateScene(const float &dt);
+	Vector3 getEntryPosition();
 
 	Entity* getEntity(std::string key);
 	Entity* addEntity(std::string identifier);
