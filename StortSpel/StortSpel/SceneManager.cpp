@@ -5,6 +5,7 @@ SceneManager::SceneManager()
 {
 	m_currentScene = nullptr;
 	m_nextScene = nullptr;
+	m_gameStarted = false;
 }
 
 SceneManager::~SceneManager()
@@ -22,11 +23,7 @@ void SceneManager::initalize()
 	Physics::get().Attach(m_currentScene, false, true);
 
 	// Next Scene
-	m_nextScene = new Scene();
-	m_nextScene->loadScene("test");
-	//m_nextScene->loadArena();
-	
-	
+	m_nextScene = nullptr;
 
 	// Update currentScene in engine
 	Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
@@ -45,7 +42,13 @@ void SceneManager::inputUpdate(InputData& inputData)
 	{
 		if (inputData.actionData[i] == SWAP_SCENES)
 		{
-			swapScenes();
+			if (!m_gameStarted)
+			{
+				m_nextScene = new Scene();
+				m_nextScene->loadScene("test");
+				swapScenes();
+				m_gameStarted = true;
+			}
 		}
 	}
 }
@@ -55,10 +58,9 @@ void SceneManager::swapScenes()
 	Physics::get().Detach(m_currentScene, false, true);
 
 	// Swap
-	Scene* temp;
-	temp = m_currentScene;
+	delete m_currentScene;
 	m_currentScene = m_nextScene;
-	m_nextScene = temp;
+	m_nextScene = nullptr;
 
 	// Update currentScene in engine
 	Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
