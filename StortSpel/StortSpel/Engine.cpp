@@ -1,17 +1,35 @@
 #include "3DPCH.h"
 #include "Engine.h"
 #include"ApplicationLayer.h"
+#include"CharacterControllerComponent.h"
+#include"TriggerComponent.h"
+#include"RotateComponent.h"
+#include"PickupComponent.h"
 
 Engine::Engine()
 {
 	m_settings.width = m_startWidth;
 	m_settings.height = m_startHeight;
+	Physics::get().Attach(this, false, true);
 }
 
 Engine& Engine::get()
 {
 	static Engine instance;
 	return instance;
+}
+
+void Engine::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
+{
+	std::vector<Component*> vec;
+	m_entities[physicsData.entityIdentifier]->getComponentsOfType(vec, ComponentType::MESH);
+	for (size_t i = 0; i < vec.size(); i++)
+	{
+		int id = static_cast<MeshComponent*>(vec[i])->getRenderId();
+		m_meshComponentMap.erase(id);
+	}
+	this->removeEntity(physicsData.entityIdentifier);
+	removed = true;
 }
 
 Engine::~Engine()
@@ -27,8 +45,8 @@ Engine::~Engine()
 
 void Engine::update(const float& dt)
 {
-	m_camera.update(dt);
 	m_player->updatePlayer(dt);
+	m_camera.update(dt);
 
 	for (auto& entity : *m_entities)
 	{
@@ -96,6 +114,12 @@ void Engine::removeLightComponentFromPlayer(LightComponent* component)
 	//m_currentScene->removeLightComponentFromMap(component);
 }
 
+void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
+{
+	std::vector<Component*> tempComponentVector;
+	PhysicsComponent* physComp = new PhysicsComponent();
+	MeshComponent* meshComponent = nullptr;
+	bool found = false;
 
 
 std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()

@@ -14,10 +14,13 @@ private:
 	XMFLOAT3 m_min, m_max;
 	
 public:
+	int vertCount = 0;
 	~MeshResource()
 	{
+		SAFE_DELETE(m_vertexArray);
 		//m_vertexBuffer.release();
 		//m_indexBuffer.release();
+		delete[] m_vertexArray;
 	}
 	
 	Buffer<LRM_VERTEX>& getVertexBuffer() { return m_vertexBuffer; }
@@ -50,6 +53,8 @@ public:
 		{
 			m_vertexArray[i] = vertexArray[i];
 		}
+
+		vertCount = nrOfVertecies;
 	}
 
 	LRM_VERTEX* getVertexArray()

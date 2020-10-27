@@ -95,9 +95,8 @@ void Camera::inputUpdate(InputData& inputData)
 			else if (rotationF3.x < -XM_PI)
 				rotationF3.y += XM_PI * 2.0f;
 
-
 			m_rotation = XMLoadFloat3(&rotationF3);
-			m_transform.rotate(m_rotation);
+			m_transform.setRotation(m_rotation);
 		}
 	}
 }

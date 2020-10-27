@@ -156,6 +156,12 @@ struct LRM_VERTEX
 	XMFLOAT3 bitangent;
 };
 
+struct PositionTextureVertex
+{
+	XMFLOAT3 pos;
+	XMFLOAT2 texCoord;
+};
+
 struct TEST
 {
 	XMFLOAT3 pos;

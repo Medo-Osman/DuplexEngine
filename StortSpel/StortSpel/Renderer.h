@@ -4,6 +4,7 @@
 #include "ShaderProgram.h"
 #include "ShaderEnums.h"
 #include "Engine.h"
+#include "GUIHandler.h"
 #include "Scene.h"
 //#include "LightComponent.h"
 
@@ -11,27 +12,50 @@
 
 class Renderer
 {
+
 private:
 	//Pointers
-	ID3D11RenderTargetView** m_rTargetViewsArray;
+	//ID3D11RenderTargetView** m_rTargetViewsArray;
 	Microsoft::WRL::ComPtr<ID3D11Device> m_devicePtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_dContextPtr = NULL;
 	Microsoft::WRL::ComPtr<IDXGISwapChain> m_swapChainPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11Debug> m_debugPtr = NULL;
 
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_rTargetViewPtr = NULL;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_geometryRenderTargetViewPtr = NULL;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_finalRenderTargetViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_swapChainBufferPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_depthStencilBufferPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
 
+	// Bloom stuff
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_downSampledShaderResourceView = NULL;
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_downSampledUnorderedAccessView = NULL;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_geometryShaderResourceView = NULL;
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_geometryUnorderedAccessView = NULL;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_blurShaderResourceView = NULL;
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_blurUnorderedAccessView = NULL;
+
+	Microsoft::WRL::ComPtr<ID3D11ComputeShader> m_CSDownSample = NULL;
+	Microsoft::WRL::ComPtr<ID3D11ComputeShader> m_CSBlurr = NULL;
 	
+	Microsoft::WRL::ComPtr<ID3DBlob> Blob = NULL;
+	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob = NULL;
+
+	ID3D11RenderTargetView* nullRtv = nullptr;
+	ID3D11ShaderResourceView* nullSrv = nullptr;
+	ID3D11UnorderedAccessView* nullUav = nullptr;
 
 	//Buffer<cbVSWVPMatrix> m_vertexShaderConstantBuffer;
 	Buffer<perObjectMVP> m_perObjectConstantBuffer;
 	Buffer<lightBufferStruct> m_lightBuffer;
 	Buffer<cameraBufferStruct> m_cameraBuffer;
 	Buffer<skyboxMVP> m_skyboxConstantBuffer;
+	Buffer<CS_BLUR_CBUFFER> m_blurBuffer;
+	Buffer<PositionTextureVertex> m_renderQuadBuffer;
+
+	CS_BLUR_CBUFFER m_blurData;
+	float m_weightSigma = 5.f;
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
@@ -69,8 +93,13 @@ private:
 	HRESULT createDeviceAndSwapChain();
 	HRESULT createDepthStencil();
 	void rasterizerSetup();
-
+	
 	void createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const int& height) const;
+	HRESULT initializeBloomFilter();
+	void calculateBloomWeights();
+	void downSamplePass();
+	void blurPass();
+	void initRenderQuad();
 	Renderer(); //{};
 
 public:

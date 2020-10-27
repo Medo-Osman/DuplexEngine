@@ -21,7 +21,7 @@ struct Settings
 
 const std::string PLAYER_ENTITY_NAME = "playerEntity";
 
-class Engine
+class Engine : public PhysicsObserver
 {
 
 private:
@@ -55,6 +55,8 @@ private:
 	
 public:
 	static Engine& get();
+
+	void sendPhysicsMessage(PhysicsData& physicsData, bool& removed);
 
 	void initialize();
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
