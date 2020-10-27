@@ -10,7 +10,7 @@ public:
 	SpeedPickup()
 		:Pickup(PickupType::SPEED)
 	{
-		m_whileActiveSound = L"wind.wav";
+		m_whileActiveSound = L"SpeedSound.wav";
 	}
 	virtual void update(const float& dt)
 	{
