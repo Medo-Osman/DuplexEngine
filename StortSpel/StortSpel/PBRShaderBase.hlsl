@@ -128,7 +128,7 @@ float4 main(ps_in input) : SV_TARGET
 	float3 N = normalize(input.normal);
 	float3 V = normalize(cameraPosition - input.worldPos);
 	
-	float3 albedo = float3(1.0, 1.0, 1.0);
+	float3 albedo = float3(1.0, 0.0, 0.0);
 	float3 metallic = materialMetallic;
 	float roughness = materialRoughness;
 	float ao = 1.0f;
