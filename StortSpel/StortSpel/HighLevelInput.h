@@ -8,7 +8,8 @@ enum Action
 	DASH,
 	ROLL,
 	USE,
-	PLAYSOUND
+	PLAYSOUND,
+	SWAP_SCENES
 };
 
 enum State

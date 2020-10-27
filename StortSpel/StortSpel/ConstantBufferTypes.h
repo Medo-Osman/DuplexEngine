@@ -55,3 +55,13 @@ struct skeletonAnimationCBuffer
 {
     XMMATRIX boneMatrixPallet[30]; // 30 is currently the max number of bones, this can be changed later if needed
 };
+
+const int BLUR_RADIUS = 8;
+
+struct CS_BLUR_CBUFFER
+{
+    float weights[BLUR_RADIUS];
+    int radius;
+    int direction;
+    XMFLOAT2 pad;
+};

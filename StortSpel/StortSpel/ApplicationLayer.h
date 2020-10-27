@@ -7,6 +7,11 @@
 #include"Timer.h"
 #include "SceneManager.h"
 
+#include <windows.h>
+#include <fcntl.h>
+#include <io.h>
+#include <iostream>
+
 
 class ApplicationLayer
 {
@@ -24,6 +29,8 @@ private:
 	int width, height;
 
 	void createWin32Window(const HINSTANCE hInstance, const wchar_t* windowTitle, HWND& _d3d11Window);
+
+	void RedirectIOToConsole();
 public:
 	static ApplicationLayer& getInstance()
 	{

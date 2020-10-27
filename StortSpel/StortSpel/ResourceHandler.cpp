@@ -34,9 +34,15 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath,
 		if (fileExtension == L"dds" || fileExtension == L"DDS")
 		{
 			if (isCubeMap == true)
-				hr = CreateDDSTextureFromFileEx(m_devicePtr, path.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
+			{
+				//hr = CreateDDSTextureFromFileEx(m_devicePtr, path.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
+				hr = CreateDDSTextureFromFileEx(m_devicePtr, m_dContextPtr, path.c_str(), 5, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
+			}
 			else
+			{
 				hr = CreateDDSTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
+			}
+
 		}
 		else
 			hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
@@ -75,11 +81,14 @@ ID3D11ShaderResourceView* ResourceHandler::loadErrorTexture()
 
 MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 {
+
 	isResourceHandlerReady();
-	
+	int num = m_meshCache.count(path);
 	// checks if the mesh is in the cache 
-	if (m_meshCache.find(path) != m_meshCache.end())
+	auto it = m_meshCache.find(path);
+	if (it != m_meshCache.end())
 	{
+
 		// returns the buffers
 		return m_meshCache[path];
 	}
@@ -422,7 +431,7 @@ void ResourceHandler::Destroy()
 		m_meshCache.erase(it++);
 	}*/
 
-	for (std::pair<const char*, MeshResource*> element : m_meshCache)
+	for (auto element : m_meshCache)
 	{
 		delete element.second;
 	}

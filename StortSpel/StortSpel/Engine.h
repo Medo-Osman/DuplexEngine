@@ -13,70 +13,68 @@
 #include "AudioComponent.h"
 #include "Camera.h"
 
+
 struct Settings
 {
 	int width = 1920;
 	int height = 1080;
 };
 
+const std::string PLAYER_ENTITY_NAME = "playerEntity";
 
 class Engine
 {
-
 private:
 	Engine();
-	Settings m_settings;
+	
 	static const int m_startWidth = 1920;
 	static const int m_startHeight = 1080;
+
+	
+	ID3D11Device* m_devicePtr = NULL;
+	ID3D11DeviceContext* m_dContextPtr = NULL;
 
 	Vector4 m_skyLightDir = Vector4(0, 0.5, -0.5, 0);
 	Vector4 m_skyLightColor = Vector4(1, 1, 1, 1);
 	FLOAT m_skyLightBrightness = 1.5f;
 	FLOAT m_ambientLightLevel = 0.3f;
-	
-	ID3D11Device* m_devicePtr = NULL;
-	ID3D11DeviceContext* m_dContextPtr = NULL;
-
-	float nightVolume;
-	float nightSlide;
 
 	// Entities
-	std::unordered_map<std::string, Entity*> m_entities;
-	
-	Player* m_player = nullptr;
-	Camera m_camera;
-	std::map<unsigned int long, MeshComponent*> m_meshComponentMap;
-	std::map<std::string, LightComponent*> m_lightComponentMap;
+	std::unordered_map<std::string, Entity*>* m_entities;
+	std::unordered_map<unsigned int long, MeshComponent*>* m_meshComponentMap;
+	std::unordered_map<std::string, LightComponent*>* m_lightComponentMap;
 
-	unsigned int long m_MeshCount = 0;
-	unsigned int long m_lightCount = 0;
+	Player* m_player = nullptr;
+	Camera m_camera; 
+	Settings m_settings;
+	
 
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
-
 	void updateLightData();
+
+	
 public:
 	static Engine& get();
 
 	void initialize();
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 
-	Entity* getEntity(std::string key);
-	Entity* addEntity(std::string identifier);
 	~Engine();
 
 	void update(const float &dt);
 
+	void setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities);
+	void setMeshComponentMapPtr(std::unordered_map<unsigned int long, MeshComponent*>* meshComponents);
+	void setLightComponentMapPtr(std::unordered_map<std::string, LightComponent*>* lightComponents);
+
+	bool addComponentToPlayer(std::string componentIdentifier, Component* component);
+	void removeLightComponentFromPlayer(LightComponent* component);
+
+	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
+	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
+	std::unordered_map<std::string, Entity*>* getEntityMap();
+
 	Settings getSettings() const;
 	Camera* getCameraPtr();
-
-	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
-
-	void addMeshComponent(MeshComponent* component);
-	void createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false);
-	void addLightComponent(LightComponent* component); 
-	void removeLightComponent(LightComponent* component);
-
-	std::map<unsigned int long, MeshComponent*>* getMeshComponentMap();
-
-	void buildTestStage();
+	Player* getPlayerPtr();
 };

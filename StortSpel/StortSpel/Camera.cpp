@@ -110,7 +110,8 @@ void Camera::update(const float &dt)
 	//	m_transform.rotate(m_rotation);
 	//	m_newIncrements = false;
 	//}
-	m_position = Engine::get().getEntity("meshPlayer")->getTranslation() + Vector3(0, 2, -5);
+	
+	m_position = Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation() + Vector3(0, 2, -5);
 	
 	this->updateViewMatrix();
 }
@@ -133,7 +134,7 @@ void Camera::updateViewMatrix()
 	
 	XMVECTOR currentRotation = XMQuaternionRotationRollPitchYaw(currentRotationAngleX, currentRotationAngleY, 0);
 
-	XMVECTOR playerPos = Engine::get().getEntity("meshPlayer")->getTranslation();
+	XMVECTOR playerPos = Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation();
 	playerPos += Vector3(0, 1.75f, 0);
 	m_position = playerPos;
 	XMVECTOR offsetVector = Vector3(0, 0, 1) * 5;

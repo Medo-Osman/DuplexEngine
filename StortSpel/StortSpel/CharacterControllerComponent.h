@@ -2,13 +2,14 @@
 #include"3DPCH.h"
 #include"Component.h"
 #include"Physics.h"
+#include"PhysicsComponent.h"
+
 
 class CharacterControllerComponent : public Component, public PxControllerBehaviorCallback
 {
 private:
 	Physics* m_physicsPtr;
 	Transform* m_transform;
-	XMFLOAT3 m_transformOffset;
 
 	PxController* m_controller;
 	bool canUseController() const
@@ -25,18 +26,27 @@ private:
 public:
 	CharacterControllerComponent()
 	{
-		m_type = ComponentType::PHYSICS;
+		m_type = ComponentType::CHARACTERCONTROLLER;
 		m_transform = nullptr;
 		m_controller = nullptr;
 		m_physicsPtr = &Physics::get();
-		m_transformOffset = { 0.f, 0.f, 0.f };
+	}
+	~CharacterControllerComponent()
+	{
+		//this->release();
 	}
 
-	void initController(Transform* transform, const float& height, const float &radius, const XMFLOAT3 &transformOffset, std::string material = "default")
+	void release()
+	{
+		if (m_controller)
+			m_physicsPtr->removeCharacterController(m_controller);
+		m_controller = nullptr;
+	}
+
+	void initController(Transform* transform, const float& height, const float &radius, std::string material = "default")
 	{
 		m_transform = transform;
 		m_controller = m_physicsPtr->addCapsuleController(m_transform->getTranslation(), height, radius, material, this);
-		m_transformOffset = transformOffset;
 	}
 
 	void move(const XMFLOAT3 &moveTowards, const float &dt)
@@ -81,10 +91,10 @@ public:
 	{
 		if (!canUseController())
 			return;
-		PxExtendedVec3 pos = m_controller->getPosition();
-		XMFLOAT3 position = XMFLOAT3((float)pos.x + m_transformOffset.x, (float)pos.y + m_transformOffset.y, (float)pos.z + m_transformOffset.z);
+		PxExtendedVec3 pos = m_controller->getFootPosition();
 
-		m_transform->setPosition(XMFLOAT3(position.x, position.y, position.z ));
+		m_transform->setPosition(XMFLOAT3(pos.x, pos.y, pos.z ));
+		//m_transform->setPosition(XMFLOAT3(position.x, position.y, position.z ));
 	}
 	
 	bool checkGround(const Vector3 &origin, const Vector3 &unitDirection, const float &distance) const
@@ -94,7 +104,7 @@ public:
 
 	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxShape& shape, const PxActor& actor) //Controller colides with shapes
 	{
-		return PxControllerBehaviorFlags();
+		return static_cast<PhysicsComponent*>(actor.userData)->getBehaviorFlag();
 	}
 	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxController& controller)
 	{

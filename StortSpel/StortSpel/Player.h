@@ -6,6 +6,10 @@
 #include "AudioHandler.h"
 #include "audioComponent.h"
 #include <cmath>
+#include"Physics.h"
+#include"Pickup.h"
+
+#include "GUIHandler.h"
 
 enum class PlayerState
 {
@@ -18,7 +22,7 @@ enum class PlayerState
 
 using namespace DirectX;
 
-class Player : public InputObserver
+class Player : public InputObserver, public PhysicsObserver
 {
 private:
     //CONTROLLER CONFIG
@@ -31,8 +35,9 @@ private:
 
     //JUMP CONFIG
     const float FALL_MULTIPLIER = 1.1f;
-    const float JUMP_DISTANCE = 8.f;
-    const float JUMP_SPEED = 20.0f;
+    //const float JUMP_DISTANCE = 30.f; //deprecated
+    const float JUMP_SPEED = 10.f;
+    const float JUMP_DISTANCE = 3.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
 
@@ -44,9 +49,17 @@ private:
     //Roll CONFIG
     const float ROLL_TRAVEL_DISTANCE = 15.f;
     const float ROLL_SPEED = 10.0f;
-    const float GRAVITY = 15.f;
+    const float GRAVITY = 0.375f;
+    const float MAX_FALL_SPEED = 9.82f;
     const float ROLL_HEIGHT = 0.3f;
     const float ROLL_RADIUS = 0.2f;
+
+    float m_currentSpeedModifier;
+    float m_goalSpeedModifier;
+    int m_speedModifierDuration;
+    float m_speedModifierTime;
+    const float FOR_FULL_EFFECT_TIME = 2.f;
+
 
 
     float m_angleY;
@@ -56,6 +69,17 @@ private:
     Entity* m_playerEntity;
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
+    Pickup* m_pickupPointer;
+
+    Vector3 m_finalMovement = Vector3();
+    float m_previousVerticalMovement = 0.f;
+
+    // Score
+    int m_score;
+    int m_scoreLabelGUIIndex;
+    int m_scoreGUIIndex;
+    std::wstring m_scoreSound = L"OnPickup.wav";
+    AudioComponent* m_audioComponent;
 
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
@@ -67,6 +91,8 @@ private:
     void dash();
     void jump();
     void prepDistVariables();
+
+    
   
 public:
     Player();
@@ -75,7 +101,12 @@ public:
     void setPlayerEntity(Entity* entity);
 
     void setCameraTranformPtr(Transform* transform);
+    void incrementScore();
 
+    void increaseScoreBy(int value);
+
+    int getScore();
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
+    void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
 };

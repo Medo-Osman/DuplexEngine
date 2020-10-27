@@ -14,29 +14,40 @@ private:
 	float m_angle = 0.f;
 	float m_radius = 0.f;
 	float m_rotationSpeed = 20.f;
+	bool m_lockRotationToParent;
 
 	// Other:
 	Vector3 m_pos;
 	Vector3 m_offset;
 	XMMATRIX m_originTransformMatrix;
 	XMMATRIX m_rotationMatrix;
+	PhysicsComponent* m_physicsComponent;
 
 public:
-	RotateAroundComponent(Transform* origin, XMMATRIX originRotationAxis, Transform* transform, float radius, float rotationSpeed = 20.f, float startAngle = 0.f)
+	RotateAroundComponent(Transform* origin, XMMATRIX originRotationAxis, Transform* transform, float radius, float rotationSpeed = 20.f, float startAngle = 0.f, bool lockRotationToParent = false)
 	{
 		m_type = ComponentType::ROTATEAROUND;
 		this->m_originTransform = origin;
 
 		//this->m_origin		  = origin;
-		this->m_rotation	  = originRotationAxis;
-		this->m_transform	  = transform;
-		this->m_angle		  = startAngle;
-		this->m_radius		  = radius;
+		this->m_rotation = originRotationAxis;
+		this->m_transform = transform;
+		this->m_angle = startAngle;
+		this->m_radius = radius;
 		this->m_rotationSpeed = rotationSpeed;
+		this->m_lockRotationToParent = lockRotationToParent;
+	}
+
+	void setComponentMapPointer(std::unordered_map<std::string, Component*>* componentMap)
+	{
+		Component::setComponentMapPointer(componentMap);
+		m_physicsComponent = dynamic_cast<PhysicsComponent*>(this->findSiblingComponentOfType(ComponentType::PHYSICS));
+		if (m_physicsComponent)
+			m_physicsComponent->setSlide(false);
 	}
 
 	~RotateAroundComponent() {}
-	virtual void update(float dt) override 
+	virtual void update(float dt) override
 	{
 		// rotate the angle, reste when it hits 0
 		m_angle -= m_rotationSpeed * dt;
@@ -45,18 +56,20 @@ public:
 			m_angle = 360.f;
 		}
 
-		m_offset		  = Vector3(m_radius, 0, 0);
+		m_offset = Vector3(m_radius, 0, 0);
 		m_originTransformMatrix = XMMatrixTranslationFromVector(m_originTransform->getTranslation());
-		m_rotationMatrix  = XMMatrixRotationY(XMConvertToRadians(m_angle));
+		m_rotationMatrix = XMMatrixRotationY(XMConvertToRadians(m_angle));
 
-		m_pos = XMVector3TransformCoord(m_offset,  m_rotationMatrix * m_rotation * m_originTransformMatrix);
+		m_pos = XMVector3TransformCoord(m_offset, m_rotationMatrix * m_rotation * m_originTransformMatrix);
 
 		//Set rotation of the mesh that rotates, so that it matches the parent
-		m_transform->setRotationQuat(Quaternion::CreateFromRotationMatrix(m_rotation));
-
-		//Set the position around the parent position, according to proper rotation and radius
-		m_transform->setPosition(m_pos);
-
+		if (m_lockRotationToParent == true)
+		{
+			m_transform->setRotationQuat(Quaternion::CreateFromRotationMatrix(m_rotation));
+			m_physicsComponent ? m_physicsComponent->kinematicMove(m_pos, Quaternion::CreateFromRotationMatrix(m_rotation)) : m_transform->setPosition(m_pos);
+		}
+		else
+			m_physicsComponent ? m_physicsComponent->kinematicMove(m_pos) : m_transform->setPosition(m_pos);
 
 	}
 };

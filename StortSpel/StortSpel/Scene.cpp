@@ -1,166 +1,154 @@
 #include "3DPCH.h"
 #include "Scene.h"
-
+#include"PickupComponent.h"
+#include"RotateComponent.h"
+#include"Pickup.h"
 
 Scene::Scene()
 {
+	// Player
+	m_player = Engine::get().getPlayerPtr();
+	m_entities[PLAYER_ENTITY_NAME] = m_player->getPlayerEntity();
+
+	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
+	addMeshComponent(meshComponent);
 }
 
 Scene::~Scene()
 {
 }
 
+void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
+{
+	std::vector<Component*> vec;
+	m_entities[physicsData.entityIdentifier]->getComponentsOfType(vec, ComponentType::MESH);
+	for (size_t i = 0; i < vec.size(); i++)
+	{
+		int id = static_cast<MeshComponent*>(vec[i])->getRenderId();
+		m_meshComponentMap.erase(id);
+	}
+	removeEntity(physicsData.entityIdentifier);
+	removed = true;
+}
+
+void Scene::loadPickups()
+{
+	addPickup(Vector3(-30, 30, 105));
+	addPickup(Vector3(8.5, 40, 172));
+}
+
+void Scene::loadScore()
+{
+	addScore(Vector3(0, 9, 20));
+	addScore(Vector3(0, 15, 45));
+
+	addScore(Vector3(-16.54, 15.5, 105));
+	addScore(Vector3(16.54, 30, 105));
+	addScore(Vector3(-30, 40, 146));
+	addScore(Vector3(8.5, 18, 159.5));
+	addScore(Vector3(-11, 40, 222.5));
+}
+
+void Scene::addScore(const Vector3& position, const int tier, std::string name)
+{
+	if (name == "")
+		name = "score_" + std::to_string(m_nrOfScore++);
+
+	Entity* pickupPtr = addEntity(name);
+	pickupPtr->setPosition(position);
+	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST));
+	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
+	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger(pickupPtr, { 1, 1, 1 });
+	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
+}
+
+void Scene::addPickup(const Vector3& position, const int tier, std::string name)
+{
+	int nrOfPickups = (int)PickupType::COUNT - 1; //-1 due to Score being in pickupTypes
+	int pickupEnum = rand() % nrOfPickups;
+
+	Entity* pickupPtr;
+	if (name == "")
+		name = "pickup_" + std::to_string(m_nrOfPickups++);
+
+	pickupPtr = addEntity(name);
+	pickupPtr->setPosition(position);
+	addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, 1.f, 6));
+	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger(pickupPtr, { 1, 1, 1 });
+	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
+}
+
 void Scene::loadScene(std::string path)
 {
-	Engine* engine = &Engine::get();
 	Entity* entity;
 
-	Entity* cube1 = engine->addEntity("cube1");
-	if (cube1)
-	{
-		engine->addComponent(cube1, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
-		cube1->scaleUniform({ -1.f });
-	}
+	loadPickups();
+	loadScore();
 
-	// Cube 2
-	Entity* cube2 = engine->addEntity("cube2");
-	if (cube2)
-	{
-		engine->addComponent(cube2, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
-		cube2->translate({ 10.f, 0.5f, 0.f });
-		cube2->scaleUniform({ -2.f });
-	}
 
-	// Cube 3
-	Entity* cube3 = engine->addEntity("cube3");
-	if (cube3)
-	{
-		engine->addComponent(cube3, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture3m.png" })));
-		cube3->translate({ 20.f, 1.f, 0.f });
-		cube3->scaleUniform({ -3.f });
-	}
-
-	// Cube 4
-	Entity* cube4 = engine->addEntity("cube4");
-	if (cube4)
-	{
-		engine->addComponent(cube4, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture4m.png" })));
-		cube4->translate({ 30.f, 1.5f, 0.f });
-		cube4->scaleUniform({ -4.f });
-	}
-
-	// Tent
-	/*Entity* tent = addEntity("tent");
-	if (tent)
-	{
-		addComponent(tent, "mesh", new MeshComponent("BigTopTent_Cylinder.lrm", Material({ L"T_CircusTent_D.png" })));
-		tent->rotate({ XMConvertToRadians(-90.f), 0.f, 0.f });
-		tent->move({ -10.f, 0.f, 0.f });
-
-		this->createNewPhysicsComponent(tent, true, "");
-	}*/
-
-	// Floor
-	Material gridTest = Material({ L"T_GridTestTex.bmp" });
-	Entity* floor = engine->addEntity("floor");
+	Entity* floor = addEntity("floor"); // Floor:
 	if (floor)
 	{
-		engine->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		floor->scale({ 300, 2,300 });
-		floor->translate({ 0,-2,0 });
-		engine->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+		addComponent(floor, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"T_GridTestTex.bmp" })));
+
+		floor->setPosition({ 0, 6, 0 });
+		floor->scale({ 20, 2, 20 });
+		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	// Flying Cube
-	Entity* cube = engine->addEntity("cube-test2");
-	if (cube)
-	{
-		engine->addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		cube->scaleUniform({ 3.f });
-		cube->translate({ 0.f, 5.f, 5.f });
-		cube->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		engine->createNewPhysicsComponent(cube, true, "", PxGeometryType::eSPHERE);
-	}
+	// Start:
+	createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 9, 29.5), Vector3(0, 0, 0), Vector3(10, 4, 1), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 11.5, 39), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 16, 48.5), Vector3(0, 0, 0), Vector3(10, 8, 1), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 20.5, 58), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	// Left:
+	createStaticPlatform(Vector3(-10.2, 20.5, 73.2), Vector3(0, -45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-16.54, 20.5, 81), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-16.54, 17, 83), Vector3(0, 0, 0), Vector3(5, 6, 1), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-16.54, 13.5, 102.5), Vector3(0, 0, 0), Vector3(5, 1, 40), "testCube_pCube1.lrm");
+	//createStaticPlatform	(Vector3(-16.54, 21.75, 105),	Vector3(0, 0, 0),		Vector3(10, 10.5, 1),	"testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-16.54, 18, 128), Vector3(0, 0, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
+	createStaticPlatform(Vector3(-14, 23, 135), Vector3(0, 45, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
+	createStaticPlatform(Vector3(-7, 28, 137.5), Vector3(0, 90, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
+	createStaticPlatform(Vector3(6, 28, 137.5), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(8.5, 28, 142.5), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	createParisWheel(Vector3(8.5, 28, 159.5), 0, 30, 4);
+	createStaticPlatform(Vector3(8.5, 37.7, 175), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(7.47, 37.7, 180), Vector3(0, -45, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	createFlippingPlatform(Vector3(2.2, 42, 185.5), Vector3(0, -225, 0), 3, 3);
+	createStaticPlatform(Vector3(-3.18, 37.7, 190.61), Vector3(0, -45, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	// Right:
+	createStaticPlatform(Vector3(10.2, 20.5, 73.2), Vector3(0, 45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(16.54, 20.5, 86), Vector3(0, 0, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(16.54, 24, 93), Vector3(0, 0, 0), Vector3(5, 6, 1), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(16.54, 27.5, 100), Vector3(0, 0, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(11.54, 27.5, 105), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	//createStaticPlatform	(Vector3(2, 30, 105),			Vector3(0, 0, 0),		Vector3(1, 1, 1),		"SquarePlatform.lrm");
+	createStaticPlatform(Vector3(-16.54, 27.5, 105), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-30, 27.5, 107.5), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-30, 32.6, 126.4), Vector3(-20, 0, 0), Vector3(5, 1, 30), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-30, 37.7, 145.32), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-30, 42, 160), Vector3(0, 0, 0), Vector3(5, 15, 1), "testCube_pCube1.lrm");
+	createFlippingPlatform(Vector3(-36, 37.7, 160), Vector3(0, 0, 0), 1, 2);
+	createFlippingPlatform(Vector3(-24, 37.7, 160), Vector3(0, 180, 0), 2, 1);
+	createStaticPlatform(Vector3(-30, 37.7, 175), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-23.67, 37.7, 185.3), Vector3(0, 45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
+	// End:
+	createFlippingPlatform(Vector3(-11, 37.7, 200), Vector3(0, 180, 0), 2, 2);
+	createStaticPlatform(Vector3(-11, 37.7, 215), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-11, 37.7, 222.5), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
+	createSweepingPlatform(Vector3(-5, 37.7, 228), Vector3(-5, 50, 270));
+	createSweepingPlatform(Vector3(-11, 37.7, 228), Vector3(-11, 50, 270));
+	createSweepingPlatform(Vector3(-17, 37.7, 228), Vector3(-17, 50, 270));
+	createStaticPlatform(Vector3(-11, 50, 275), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-11, 51.68, 282.02), Vector3(-20, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-11, 53.4, 289), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	/////////////////////////////////////////////////////////////////////////////////////
 
-	// Cube with sphere shape
-	Entity* cubeSphereBB = engine->addEntity("cube-test3");
-	if (cubeSphereBB)
-	{
-		engine->addComponent(cubeSphereBB, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-		cubeSphereBB->scaleUniform({ 3.f });
-		cubeSphereBB->translate({ -10.f, 5.f, 5.f });
-		cubeSphereBB->rotate({ 0.f, XMConvertToRadians(-45.f), XMConvertToRadians(-45.f) });
-		engine->addComponent(cubeSphereBB, "physics", new PhysicsComponent());
-		PhysicsComponent* physicsComp = static_cast<PhysicsComponent*>(cubeSphereBB->getComponent("physics"));
-		physicsComp->initActor(cubeSphereBB, false);
-		physicsComp->addSphereShape(2.f);
-	}
-
-	// XWing
-	Entity* testXwing = engine->addEntity("testXwing");
-	if (testXwing)
-	{
-		engine->addComponent(testXwing, "xwingtestmesh",
-			new MeshComponent("xWingFbx_xwing.lrm", Material({ L"T_tempTestXWing.png" })));
-		engine->addComponent(testXwing, "xwingtestmove",
-			new SweepingComponent(dynamic_cast<Transform*>(testXwing), Vector3(0, 10, -5), Vector3(0, 10, 100), 20));
-	}
-	// Rotating Cube
-	Entity* rotatingCube = engine->addEntity("RotatingCube");
-	if (rotatingCube)
-	{
-		engine->addComponent(rotatingCube, "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
-		engine->addComponent(rotatingCube, "rotate",
-			new RotateAroundComponent(dynamic_cast<Transform*>(testXwing), testXwing->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube), 5));
-	}
-	// Rotating Cube 2
-	Entity* rotatingCube2 = engine->addEntity("RotatingCube2");
-	if (rotatingCube2)
-	{
-		engine->addComponent(rotatingCube2, "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
-		engine->addComponent(rotatingCube2, "rotate",
-			new RotateAroundComponent(dynamic_cast<Transform*>(rotatingCube), rotatingCube->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube2), 2, 40.f));
-		rotatingCube2->scale({ 0.5f, 0.5f, 0.5f });
-	}
-	// Rotating Cube 3
-	Entity* rotatingCube3 = engine->addEntity("RotatingCube3");
-	if (rotatingCube3)
-	{
-		engine->addComponent(rotatingCube3, "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
-		engine->addComponent(rotatingCube3, "rotate",
-			new RotateAroundComponent(dynamic_cast<Transform*>(rotatingCube), rotatingCube->getRotationMatrix(), dynamic_cast<Transform*>(rotatingCube3), 2, 40.f, 180.f));
-		rotatingCube3->scale({ 0.5f, 0.5f, 0.5f });
-	}
-
-	// Flipping Cube 
-	Entity* FlippingCube = engine->addEntity("FlippingCube");
-	if (FlippingCube)
-	{
-		engine->addComponent(FlippingCube, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture2m.png" })));
-		FlippingCube->translate({ 5.f, 0.f, 15.f });
-		FlippingCube->scale({ 4, 1, 4 });
-		engine->addComponent(FlippingCube, "flipp",
-			new FlippingComponent(dynamic_cast<Transform*>(FlippingCube), 3, 3));
-	}
-
-	// Platforms
-	for (int i = 0; i < 5; i++)
-	{
-		Entity* cube = engine->addEntity("cube-test" + std::to_string(i));
-		if (cube)
-		{
-			engine->addComponent(cube, "mesh", new MeshComponent("testCube_pCube1.lrm"));
-			cube->scale({ 3,0.2,5 });
-			cube->translate({ 10.f + (float)i * 3.f, .2f + (float)i, 15.f });
-			engine->createNewPhysicsComponent(cube);
-		}
-	}
-
-	Entity* skelTest = engine->addEntity("skeleton-test");
+	Entity* skelTest = addEntity("skeleton-test");
 	if (skelTest)
 	{
 		/*AnimatedMeshComponent* a1 = new AnimatedMeshComponent("skelTestStairs_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
@@ -174,25 +162,25 @@ void Scene::loadScene(std::string path)
 		
 		AnimatedMeshComponent* a3 = new AnimatedMeshComponent("skelTestStairsAnimation_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 		a3->translate({ 16.f, 0.f, 0.f });
-		engine->addComponent(skelTest, "skeleton animation test1", a3);
+		addComponent(skelTest, "skeleton animation test1", a3);
 
 		a3->playAnimation("skelTestStairsAnimation", true);
 
 		AnimatedMeshComponent* a4 = new AnimatedMeshComponent("Running4.1_Cube.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 		a4->translate({ -8.f, 0.f, 0.f });
-		engine->addComponent(skelTest, "skeleton animation test3", a4);
+		addComponent(skelTest, "skeleton animation test3", a4);
 
 		a4->playAnimation("Running4.1", true);
 
 		AnimatedMeshComponent* a5 = new AnimatedMeshComponent("skelTestBranchAnimation_skelTestBranch.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 		a5->translate({ 35.f, 0.f, 0.f });
-		engine->addComponent(skelTest, "skeleton animation test2", a5);
+		addComponent(skelTest, "skeleton animation test2", a5);
 
 		a5->playAnimation("skelTestBranchAnimation", true);
 
 		/*AnimatedMeshComponent* a6 = new AnimatedMeshComponent("dropkickRigTest2_body_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 		a6->translate({ -13.f, 0.f, 0.f });
-		engine->addComponent(skelTest, "skeleton animation test4", a6);*/
+		addComponent(skelTest, "skeleton animation test4", a6);*/
 
 		//a6->playAnimation("dropkickRigTest2", true);
 		
@@ -201,16 +189,462 @@ void Scene::loadScene(std::string path)
 		skelTest->translate({ 0.f, 1.5f, -20.f });
 	}
 
-	m_entities["SkyBox"] = engine->addEntity("SkyBox");
-	if (m_entities["SkyBox"])
+	Entity* skybox = addEntity("SkyBox");
+	if (skybox)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		engine->addComponent(m_entities["SkyBox"], "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
+	}
+
+	// Lights
+	// - Point Light
+	addComponent(m_player->getPlayerEntity(), "testLight", new LightComponent());
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
+
+	// - Spot Light
+	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
+
+	for (int i = 0; i < 8; i++)
+	{
+		addComponent(m_player->getPlayerEntity(), "lightTest" + std::to_string(i), new LightComponent());
+	}
+}
+
+// Private functions:
+void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpeed, int nrOfPlatforms)
+{
+	nrOfParisWheels++;
+
+	Entity* ParisWheel = addEntity("ParisWheel-" + std::to_string(nrOfParisWheels));
+	if (ParisWheel)
+	{
+		addComponent(ParisWheel, "mesh",
+			new MeshComponent("ParisWheel.lrm", Material({ L"GrayTexture.png" })));
+		ParisWheel->setPosition(position);
+		ParisWheel->setRotation(0, XMConvertToRadians(rotation), 0);
+	}
+
+	Entity* center = addEntity("Empty-" + std::to_string(nrOfParisWheels));
+	if (center)
+	{
+		center->setRotation(0, XMConvertToRadians(rotation), XMConvertToRadians(90));
+		center->setPosition(position);
+	}
+
+	float test = 360 / nrOfPlatforms;
+	for (int i = 0; i < 360; i += test)
+	{
+		Entity* ParisWheelPlatform = addEntity("ParisWheelPlatform-" + std::to_string(nrOfParisWheels) + "_" + std::to_string(i));
+		if (ParisWheelPlatform)
+		{
+			addComponent(ParisWheelPlatform, "mesh",
+				new MeshComponent("ParisWheelPlatform.lrm", Material({ L"GrayTexture.png" })));
+
+			ParisWheelPlatform->setRotation(0, XMConvertToRadians(rotation), 0);
+
+			createNewPhysicsComponent(ParisWheelPlatform, true);
+			static_cast<PhysicsComponent*>(ParisWheelPlatform->getComponent("physics"))->makeKinematic();
+
+			addComponent(ParisWheelPlatform, "rotate",
+				new RotateAroundComponent(center, center->getRotationMatrix(), ParisWheelPlatform, 12, rotationSpeed, i));
+		}
+	}
+}
+
+void Scene::createFlippingPlatform(Vector3 position, Vector3 rotation, float upTime, float downTime)
+{
+	nrOfFlippingPlatforms++;
+
+	Entity* flippingPlatform = addEntity("FlippingCube-" + std::to_string(nrOfFlippingPlatforms));
+	if (flippingPlatform)
+	{
+		addComponent(flippingPlatform, "mesh",
+			new MeshComponent("SquarePlatform.lrm", Material({ L"GrayTexture.png" })));
+
+		flippingPlatform->setPosition({ position });
+		flippingPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+
+		createNewPhysicsComponent(flippingPlatform, true);
+		static_cast<PhysicsComponent*>(flippingPlatform->getComponent("physics"))->makeKinematic();
+
+		addComponent(flippingPlatform, "flipp",
+			new FlippingComponent(flippingPlatform, upTime, downTime));
+	}
+}
+
+void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 scale, std::string meshPath)
+{
+	m_nrOfStaticPlatforms++;
+
+	Entity* staticPlatform = addEntity("StaticPlatform-" + std::to_string(m_nrOfStaticPlatforms));
+	if (staticPlatform)
+	{
+		addComponent(staticPlatform, "mesh",
+			new MeshComponent(meshPath.c_str(), Material({ L"GrayTexture.png" })));
+
+		staticPlatform->setPosition(position);
+		staticPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+		staticPlatform->setScale(scale);
+
+		createNewPhysicsComponent(staticPlatform);
+	}
+}
+
+void Scene::loadLobby()
+{
+	Entity* entity;
+
+	Material gridTest = Material({ L"T_GridTestTex.bmp" });
+	entity = addEntity("floor");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+		entity->scale({ 300, 2,300 });
+		entity->translate({ 0,6,0 });
+		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	entity = addEntity("walls");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
+		entity->scale({ 30, -30, 30});
+		entity->translate({ 0,8,0 });
+	}
+
+	//Point Light
+	addComponent(m_player->getPlayerEntity(),"testLight", new LightComponent());
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
+
+	//Spot Light
+	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
+
+	//Tests and demonstration how to add and remove lights
+	for (int i = 0; i < 8; i++)
+	{
+		addComponent(m_player->getPlayerEntity(),"lightTest" + std::to_string(i), new LightComponent());
+	}
+
+	// Audio test
+	/*Entity* audioTest = addEntity("audioTest");
+	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	m_nightSlide = 0.01f;
+	m_nightVolume = 0.2f;*/
+}
+
+void Scene::loadMaterialTest()
+{
+	Entity* entity;
+
+	std::wstring materialNames[7] = {
+	L"Bronze_Quilt/bronze_quilt",
+	L"Coastline_Flat_Stone_Wall_Mixed/coastline_flat_stone_wall_mixed",
+	L"Japanese_Temple_Wood_Ceiling/japanese_temple_wood_ceiling",
+	L"Metal_Grinded/metal_grinded",
+	L"Steel_Battered/steel_battered",
+	L"Terracotta_Glossy/terracotta_glossy",
+	L"Wood_American_Cherry/wood_american_cherry"
+	};
+
+	for (size_t i = 0; i < 7; i++)
+	{
+		std::string currentSphereName = ("PBRSphereMaterial" + std::to_string(i));
+		m_entities[currentSphereName] = addEntity(currentSphereName);
+		if (m_entities[currentSphereName])
+		{
+			entity = m_entities[currentSphereName];
+			Material PBRMatTextured;
+			PBRMatTextured.addTexture(L"skybox1IR.dds", true);
+			PBRMatTextured.addTexture(L"skybox1.dds", true);
+			PBRMatTextured.addTexture(L"ibl_brdf_lut.png");
+
+			PBRMatTextured.addTexture((materialNames[i] + L"_Base_Color.dds").c_str());
+			PBRMatTextured.addTexture((materialNames[i] + L"_Normal.dds").c_str());
+			PBRMatTextured.addTexture((materialNames[i] + L"_Roughness.dds").c_str());
+			PBRMatTextured.addTexture((materialNames[i] + L"_Metallic.dds").c_str());
+			PBRMatTextured.addTexture((materialNames[i] + L"_Ambient_Occlusion.dds").c_str());
+
+			PBRMatTextured.setTextured(1);
+
+			addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMatTextured));
+
+			float moveDistance = -5.f;
+			entity->translate({ moveDistance * i + 30.f, 2.f, 20.f });
+			entity->rotate({ 1.5708, 0.f, 0.f });
+		}
+	}
+
+	int xCounter = 0;
+	int yCounter = 0;
+
+	for (size_t i = 0; i < 25; i++)
+	{
+		std::string currentSphereName = ("PBRSphere" + std::to_string(i));
+		m_entities[currentSphereName] = addEntity(currentSphereName);
+		if (m_entities[currentSphereName])
+		{
+			entity = m_entities[currentSphereName];
+			Material PBRMatUntextured;
+			PBRMatUntextured.addTexture(L"skybox1IR.dds", true);
+			PBRMatUntextured.addTexture(L"skybox1.dds", true);
+			PBRMatUntextured.addTexture(L"ibl_brdf_lut.png");
+
+			xCounter++;
+
+			if (i % 5 == 0)
+			{
+				yCounter++;
+				xCounter = 0;
+			}
+			PBRMatUntextured.setMetallic(yCounter * 0.2f - 0.2f);
+			PBRMatUntextured.setRoughness(xCounter * 0.18 + 0.1);
+			PBRMatUntextured.setTextured(0);
+
+			addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMatUntextured));
+
+			float moveDistance = 5.f;
+			entity->translate({ moveDistance * xCounter, moveDistance * yCounter - 3.f, 0.f });
+			entity->rotate({ 1.5708, 0.f, 0.f });
+		}
+	}
+
+	Entity* skybox = addEntity("SkyBox");
+	if (skybox)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"skybox1.dds", true);
+		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+
+	}
+
+	XMVECTOR pointLightPositions[4] =
+	{
+		{ 0.f, 5.f, 10.f},
+		{ 20.f, 5.f, 10.f},
+		{ 0.f, 25.f, 10.f},
+		{ 20.f, 25.f, 10.f},
+	};
+
+	float lightIntensity = 500.f;
+
+	float pointLightIntensities[4] =
+	{
+		lightIntensity,
+		lightIntensity,
+		lightIntensity,
+		lightIntensity,
+	};
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		std::string currentPointLightName = ("PointLight" + std::to_string(i));
+		m_entities[currentPointLightName] = addEntity(currentPointLightName);
+		if (m_entities[currentPointLightName])
+		{
+			entity = m_entities[currentPointLightName];
+			std::string currentPointLightComponentName = ("PointLightTestPointLight" + std::to_string(i));
+			addComponent(m_entities[currentPointLightName], currentPointLightComponentName, new LightComponent());
+			dynamic_cast<LightComponent*>(m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setColor(XMFLOAT3(1, 1, 1));
+			dynamic_cast<LightComponent*>(m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setIntensity(pointLightIntensities[i]);
+			//engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"T_CircusTent_D.png" })));
+			entity->translate(pointLightPositions[i]);
+		}
 	}
 }
 
 void Scene::updateScene(const float& dt)
 {
+	// AUDIO TEST
+	/*m_nightVolume += dt * m_nightSlide;
+	if (m_nightVolume < 0.f)
+	{
+		m_nightVolume = 0.f;
+		m_nightSlide = -m_nightSlide;
+	}
+	else if (m_nightVolume > 0.2f)
+	{
+		m_nightVolume = 0.2f;
+		m_nightSlide = -m_nightSlide;
+	}
+	AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
+	ac->setVolume(m_nightVolume);*/
+}
+
+Entity* Scene::getEntity(std::string key)
+{
+	if (key == PLAYER_ENTITY_NAME)
+		return m_player->getPlayerEntity();
+	else if (m_entities.find(key) != m_entities.end())
+		return m_entities.at(key);
+	else
+		return nullptr;
+}
+
+Entity* Scene::addEntity(std::string identifier)
+{
+	if (m_entities.find(identifier) != m_entities.end())// If one with that name is already found
+		return nullptr;
+
+	m_entities[identifier] = new Entity(identifier);
+	return m_entities[identifier];
+}
+
+void Scene::removeEntity(std::string identifier)
+{
+	delete m_entities[identifier];
+	m_entities.erase(identifier);
+}
+
+bool Scene::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
+{
+	entity->addComponent(componentIdentifier, component);
+
+	if (component->getType() == ComponentType::MESH)
+	{
+		MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
+		addMeshComponent(meshComponent);
+	}
+
+	if (component->getType() == ComponentType::LIGHT)
+	{
+		LightComponent* lightComponent = dynamic_cast<LightComponent*>(component);
+		addLightComponent(lightComponent);
+	}
+
+	return true;
+}
+
+void Scene::addMeshComponent(MeshComponent* component)
+{
+	component->setRenderId(++m_meshCount);
+	m_meshComponentMap[m_meshCount] = component;
+}
+
+void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
+{
+	std::vector<Component*> tempComponentVector;
+	PhysicsComponent* physComp = new PhysicsComponent();
+	MeshComponent* meshComponent = nullptr;
+	bool found = false;
+
+	entity->getComponentsOfType(tempComponentVector, ComponentType::MESH);
+
+	if (meshName != "")
+	{
+		for (std::size_t i = 0; i < tempComponentVector.size() && !found; ++i) {
+			MeshComponent* currentMesh = static_cast<MeshComponent*>(tempComponentVector[i]);
+			if (currentMesh->getFilePath() == meshName)
+			{
+				meshComponent = currentMesh;
+				found = true;
+			}
+		}
+
+		if (!found)
+		{
+			ErrorLogger::get().logError(("When creating new physics component, meshResource " + meshName + " does not exist. ->").c_str());
+
+			if (tempComponentVector.size() > 0)
+			{
+				ErrorLogger::get().logError("Using first meshComponent.");
+				meshComponent = static_cast<MeshComponent*>(tempComponentVector[0]);
+				found = true;
+			}
+
+		}
+	}
+	else
+	{
+		if (tempComponentVector.size() > 0)
+		{
+			meshComponent = static_cast<MeshComponent*>(tempComponentVector[0]);
+			found = true;
+		}
+	}
+	if (!found)
+		ErrorLogger::get().logError("Trying to add physic component without any meshcomponent!. Can't use this helper function.");
+
+	
+	entity->addComponent("physics", physComp);
+	physComp->initActorAndShape(entity, meshComponent, geometryType, dynamic, materialName, isUnique);
+}
+
+void Scene::addLightComponent(LightComponent* component)
+{
+	if (m_lightCount < 8)
+	{
+		component->setLightID(component->getIdentifier());
+		m_lightComponentMap[component->getIdentifier()] = component;
+	}
+	else
+		ErrorLogger::get().logError("Maximum lights achieved, failed to add one.");
+}
+
+void Scene::removeLightComponent(LightComponent* component)
+{
+	getEntity(component->getParentEntityIdentifier())->removeComponent(component);
+	
+	int nrOfErased = m_lightComponentMap.erase(component->getIdentifier());
+	if (nrOfErased > 0) //if it deleted more than 0 elements
+	{
+		m_lightCount -= nrOfErased;
+	}
+}
+
+void Scene::removeLightComponentFromMap(LightComponent* component)
+{
+
+
+	int nrOfErased = m_lightComponentMap.erase(component->getIdentifier());
+	if (nrOfErased > 0) //if it deleted more than 0 elements
+	{
+		m_lightCount -= nrOfErased;
+	}
+}
+
+std::unordered_map<std::string, Entity*>* Scene::getEntityMap()
+{
+	return &m_entities;
+}
+
+std::unordered_map<std::string, LightComponent*>* Scene::getLightMap()
+{
+	return &m_lightComponentMap;
+}
+
+std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMap()
+{
+	return &m_meshComponentMap;
+}
+
+void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)
+{
+	m_nrOfSweepingPlatforms++;
+
+	Entity* sweepingPlatform = addEntity("SweepingPlatform-" + std::to_string(m_nrOfSweepingPlatforms));
+	if (sweepingPlatform)
+	{
+		addComponent(sweepingPlatform, "mesh",
+			new MeshComponent("SquarePlatform.lrm", Material({ L"GrayTexture.png" })));
+
+		sweepingPlatform->setPosition(startPos);
+
+		createNewPhysicsComponent(sweepingPlatform, true);
+		static_cast<PhysicsComponent*>(sweepingPlatform->getComponent("physics"))->makeKinematic();
+
+		addComponent(sweepingPlatform, "sweep",
+			new SweepingComponent(sweepingPlatform, startPos, endPos, 5));
+	}
 }
