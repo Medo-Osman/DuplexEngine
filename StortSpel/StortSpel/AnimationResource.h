@@ -17,7 +17,6 @@ struct JOINT_TRANSFORM
 struct ANIMATION_FRAME
 {
 	float timeStamp;
-	//std::vector<JOINT_TRANSFORM> jointTransforms;
 	JOINT_TRANSFORM* jointTransforms;
 };
 
@@ -25,7 +24,7 @@ class AnimationResource
 {
 private:
 
-	friend class ResourceHandler;
+	//friend class ResourceHandler;
 
 	float m_timeSpan;
 	unsigned int m_frameCount;
