@@ -55,6 +55,9 @@
     <Filter Include="Source Files\Graphic\GUI">
       <UniqueIdentifier>{7155dc50-d617-41f6-a310-ab0c68149543}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Game\Scenes">
+      <UniqueIdentifier>{53b5394e-78b2-4920-83da-c0541e6eccba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -114,12 +117,6 @@
     <ClCompile Include="Timer.cpp">
       <Filter>Source Files\Application</Filter>
     </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>Source Files\Graphic</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneManager.cpp">
-      <Filter>Source Files\Graphic</Filter>
-    </ClCompile>
     <ClCompile Include="..\3rd-Party\ImGui\imgui.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
@@ -143,6 +140,12 @@
     </ClCompile>
     <ClCompile Include="GUIHandler.cpp">
       <Filter>Source Files\Graphic\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Source Files\Game\Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>Source Files\Game\Scenes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -263,12 +266,6 @@
     <ClInclude Include="SweepingComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Source Files\Graphic</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneManager.h">
-      <Filter>Source Files\Graphic</Filter>
-    </ClInclude>
     <ClInclude Include="..\3rd-Party\ImGui\imconfig.h">
       <Filter>Source Files\ImGui</Filter>
     </ClInclude>
@@ -319,6 +316,12 @@
     </ClInclude>
     <ClInclude Include="SpeedPickup.h">
       <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>Source Files\Game\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Source Files\Game\Scenes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

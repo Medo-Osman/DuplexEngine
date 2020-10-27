@@ -10,26 +10,12 @@ Engine::Engine()
 {
 	m_settings.width = m_startWidth;
 	m_settings.height = m_startHeight;
-	Physics::get().Attach(this, false, true);
 }
 
 Engine& Engine::get()
 {
 	static Engine instance;
 	return instance;
-}
-
-void Engine::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
-{
-	std::vector<Component*> vec;
-	m_entities[physicsData.entityIdentifier]->getComponentsOfType(vec, ComponentType::MESH);
-	for (size_t i = 0; i < vec.size(); i++)
-	{
-		int id = static_cast<MeshComponent*>(vec[i])->getRenderId();
-		m_meshComponentMap.erase(id);
-	}
-	this->removeEntity(physicsData.entityIdentifier);
-	removed = true;
 }
 
 Engine::~Engine()
@@ -49,9 +35,7 @@ void Engine::update(const float& dt)
 	m_camera.update(dt);
 
 	for (auto& entity : *m_entities)
-	{
 		entity.second->update(dt);
-	}
 
 	updateLightData();
 
@@ -114,14 +98,6 @@ void Engine::removeLightComponentFromPlayer(LightComponent* component)
 	//m_currentScene->removeLightComponentFromMap(component);
 }
 
-void Engine::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
-{
-	std::vector<Component*> tempComponentVector;
-	PhysicsComponent* physComp = new PhysicsComponent();
-	MeshComponent* meshComponent = nullptr;
-	bool found = false;
-
-
 std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 {
 	return m_meshComponentMap;
@@ -175,26 +151,22 @@ void Engine::initialize()
 
 	// - Entity
 	Entity* playerEntity = new Entity(PLAYER_ENTITY_NAME);
-	playerEntity->translation({ 5, 10.f, 0 });
+	playerEntity->setPosition({ 5, 10.f, 0 });
 	playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
 	playerEntity->addComponent("mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
 
 	// - Physics Componenet
-	//createNewPhysicsComponent(m_entities["meshPlayer"], true, "", PxGeometryType::eBOX, "human");
-	playerEntity->addComponent("physics", new PhysicsComponent(&Physics::get()));
-	PhysicsComponent* pc = static_cast<PhysicsComponent*>(playerEntity->getComponent("physics"));
-	pc->initActor(playerEntity, true);
-	pc->addBoxShape({ 1.f, 1.f, 1.f }, "human");
-	pc->controllRotation(false);
+	playerEntity->addComponent("CCC", new CharacterControllerComponent());
+	CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(playerEntity->getComponent("CCC"));
+	pc->initController(playerEntity, 1.75f, 0.5, XMFLOAT3(0,0,0), "human");
 
 	// - Camera Follow Transform ptr
 	m_player->setCameraTranformPtr(m_camera.getTransform());
 
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
-
 }
 
 void Engine::updateLightData()

@@ -15,4 +15,5 @@ public:
 
 	void inputUpdate(InputData& inputData);
 
+	void swapScenes();
 };

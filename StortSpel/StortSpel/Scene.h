@@ -2,7 +2,7 @@
 #include "Player.h"
 #include "Engine.h"
 
-class Scene
+class Scene : public PhysicsObserver
 {
 private:
 	//std::unordered_map<std::string, Entity*> m_entities;
@@ -30,6 +30,8 @@ private:
 	std::unordered_map<std::string, LightComponent*> m_lightComponentMap;
 	
 
+	void sendPhysicsMessage(PhysicsData& physicsData, bool& removed);
+
 	int m_nrOfPickups = 0;
 	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
 	void loadPickups();
@@ -42,10 +44,10 @@ public:
 	void loadScene(std::string path);
 	void loadLobby();
 	void updateScene(const float &dt);
-	
 
 	Entity* getEntity(std::string key);
 	Entity* addEntity(std::string identifier);
+	void removeEntity(std::string identifier);
 
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 	void addMeshComponent(MeshComponent* component);
