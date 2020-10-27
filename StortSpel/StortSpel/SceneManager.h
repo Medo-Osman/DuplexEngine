@@ -6,6 +6,7 @@ class SceneManager : public InputObserver
 private:
 	Scene* m_currentScene;
 	Scene* m_nextScene;
+	bool m_gameStarted;
 public:
 	SceneManager();
 	~SceneManager();
