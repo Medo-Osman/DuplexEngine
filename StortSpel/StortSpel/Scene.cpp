@@ -303,6 +303,87 @@ void Scene::loadLobby()
 	m_nightVolume = 0.2f;*/
 }
 
+void Scene::loadArena()
+{
+	Engine* engine = &Engine::get();
+	Entity* entity;
+
+	Material gridTest = Material({ L"T_GridTestTex.bmp" });
+	entity = addEntity("floor");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+		entity->scale({ 300, 2,300 });
+		entity->setPosition({ 0,-2,0 });
+		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	entity = addEntity("walls");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("BossRoom_pCube15.lrm", Material({ L"DevTexture1m.png" })));
+		entity->setPosition({ 0,8,0 });
+	}
+
+	// Platforms
+	for (int i = 0; i < 5; i++)
+	{
+		entity = addEntity("cube-test" + std::to_string(i));
+		if (entity)
+		{
+			addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm"));
+			entity->scale({ 10,0.2,25 });
+			entity->setPosition({ 55.f + (float)i * 3.f, .2f + (float)i, 55.f });
+			createNewPhysicsComponent(entity);
+		}
+	}
+
+	// Billboard
+	entity = addEntity("Billboard");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture4m.png" })));
+		entity->scale({ 10,0.2,25 });
+		entity->rotate(Vector3(0, 0, 1.5));
+		entity->setPosition({ 0, 10.0f , 0 });
+
+	}
+
+	//Point Light
+	addComponent(m_player->getPlayerEntity(), "testLight", new LightComponent());
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
+
+	//Spot Light
+	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
+
+	//Tests and demonstration how to add and remove lights
+	for (int i = 0; i < 8; i++)
+	{
+		addComponent(m_player->getPlayerEntity(), "lightTest" + std::to_string(i), new LightComponent());
+	}
+
+	for (int i = 0; i < 8; i++)
+	{
+		removeLightComponent(static_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("lightTest" + std::to_string(i))));
+	}
+
+	Entity* audioTestDelete = addEntity("deleteTestAudio");
+	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+	delete m_entities["deleteTestAudio"];
+	m_entities.erase("deleteTestAudio");
+
+	// Audio test
+	Entity* audioTest = addEntity("audioTest");
+	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	m_nightSlide = 0.01f;
+	m_nightVolume = 0.2f;
+}
+
 void Scene::updateScene(const float& dt)
 {
 	// AUDIO TEST

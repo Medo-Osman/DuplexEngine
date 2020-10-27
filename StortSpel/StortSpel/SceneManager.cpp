@@ -24,6 +24,9 @@ void SceneManager::initalize()
 	// Next Scene
 	m_nextScene = new Scene();
 	m_nextScene->loadScene("test");
+	//m_nextScene->loadArena();
+	
+	
 
 	// Update currentScene in engine
 	Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
