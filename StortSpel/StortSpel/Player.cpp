@@ -231,7 +231,6 @@ void Player::updatePlayer(const float& dt)
 		}
 	}
 
-
 	if(m_state != PlayerState::ROLL)
 		handleRotation(dt);
 

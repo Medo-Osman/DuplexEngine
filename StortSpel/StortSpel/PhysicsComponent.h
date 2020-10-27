@@ -96,6 +96,9 @@ public:
 	}
 	~PhysicsComponent()
 	{
+		if(m_actor)
+			m_physicsPtr->removeActor(m_actor);
+
 		m_physicsPtr = nullptr;
 		m_actor = nullptr;
 		m_transform = nullptr;

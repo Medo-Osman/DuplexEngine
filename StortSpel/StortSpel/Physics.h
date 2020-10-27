@@ -157,7 +157,10 @@ public:
 		{
 			for (std::vector<int>::size_type i = 0; i < m_reactOnTriggerObservers.size() || !detatched; i++) {
 				if (m_reactOnTriggerObservers[i] == observer)
+				{
+					detatched = true;
 					m_reactOnTriggerObservers.erase(m_reactOnTriggerObservers.begin() + i);
+				}
 			}
 		}
 
@@ -165,7 +168,10 @@ public:
 		{
 			for (std::vector<int>::size_type i = 0; i < m_reactOnRemoveObservers.size() || !detatched; i++) {
 				if (m_reactOnRemoveObservers[i] == observer)
+				{
+					detatched = true;
 					m_reactOnRemoveObservers.erase(m_reactOnRemoveObservers.begin() + i);
+				}
 			}
 		}
 
@@ -452,6 +458,16 @@ public:
 		capsuleController = m_controllManager->createController(ccd);
 
 		return capsuleController;
+	}
+
+	void removeCharacterController(PxController* controller)
+	{
+		controller->release();
+	}
+
+	void purgeCharacterController()
+	{
+		m_controllManager->purgeControllers();
 	}
 
 	void setCapsuleSize(PxController* controller, const float &height)

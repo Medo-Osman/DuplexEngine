@@ -4,21 +4,35 @@
 #include"RotateComponent.h"
 #include"Pickup.h"
 
-
 Scene::Scene()
 {
+	// Player
+	m_player = Engine::get().getPlayerPtr();
+	m_entities[PLAYER_ENTITY_NAME] = m_player->getPlayerEntity();
+
+	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
+	addMeshComponent(meshComponent);
 }
 
 Scene::~Scene()
 {
 }
 
+void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
+{
+	std::vector<Component*> vec;
+	m_entities[physicsData.entityIdentifier]->getComponentsOfType(vec, ComponentType::MESH);
+	for (size_t i = 0; i < vec.size(); i++)
+	{
+		int id = static_cast<MeshComponent*>(vec[i])->getRenderId();
+		m_meshComponentMap.erase(id);
+	}
+	removeEntity(physicsData.entityIdentifier);
+	removed = true;
+}
+
 void Scene::loadPickups()
 {
-	Engine* engine = &Engine::get();
-	Entity* entity;
-
-
 	addPickup(Vector3(-30, 30, 105));
 	addPickup(Vector3(8.5, 40, 172));
 }
@@ -27,7 +41,6 @@ void Scene::loadScore()
 {
 	addScore(Vector3(0, 9, 20));
 	addScore(Vector3(0, 15, 45));
-
 
 	addScore(Vector3(-16.54, 15.5, 105));
 	addScore(Vector3(16.54, 30, 105));
@@ -38,17 +51,15 @@ void Scene::loadScore()
 
 void Scene::addScore(const Vector3& position, const int tier, std::string name)
 {
-	Engine* engine = &Engine::get();
-	Entity* pickupPtr;
 	if (name == "")
 		name = "score_" + std::to_string(m_nrOfScore++);
 
-	pickupPtr = engine->addEntity(name);
+	Entity* pickupPtr = addEntity(name);
 	pickupPtr->setPosition(position);
-	engine->addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST));
-	engine->addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
+	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST));
+	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger(pickupPtr, { 1, 1, 1 });
-	engine->addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
+	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
 
 void Scene::addCheckpoint(const Vector3& position)
@@ -72,26 +83,24 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	int nrOfPickups = (int)PickupType::COUNT - 1; //-1 due to Score being in pickupTypes
 	int pickupEnum = rand() % nrOfPickups;
 
-	Engine* engine = &Engine::get();
 	Entity* pickupPtr;
 	if (name == "")
 		name = "pickup_" + std::to_string(m_nrOfPickups++);
 
-	pickupPtr = engine->addEntity(name);
+	pickupPtr = addEntity(name);
 	pickupPtr->setPosition(position);
-	engine->addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-	engine->addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, 1.f, 6));
+	addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, 1.f, 6));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger(pickupPtr, { 1, 1, 1 });
-	engine->addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
+	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
 
 void Scene::loadScene(std::string path)
 {
-	Engine* engine = &Engine::get();
 	Entity* entity;
 
-	this->loadPickups();
-	this->loadScore();
+	loadPickups();
+	loadScore();
 
 	addCheckpoint(Vector3(0, 9, 5));
 	addCheckpoint(Vector3(14.54, 30, 105));
@@ -100,15 +109,15 @@ void Scene::loadScene(std::string path)
 	addCheckpoint(Vector3(-11, 40, 218.5));
 
 
-	Entity* floor = engine->addEntity("floor"); // Floor:
+	Entity* floor = addEntity("floor"); // Floor:
 	if (floor)
 	{
-		engine->addComponent(floor, "mesh",
+		addComponent(floor, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"T_GridTestTex.bmp" })));
 
 		floor->setPosition({ 0, 6, 0 });
 		floor->scale({ 20, 2, 20 });
-		engine->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
 	// Start:
@@ -161,37 +170,49 @@ void Scene::loadScene(std::string path)
 	createStaticPlatform(Vector3(-11, 53.4, 289), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	Entity* skybox = engine->addEntity("SkyBox");
+	Entity* skybox = addEntity("SkyBox");
 	if (skybox)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		engine->addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
 	}
-}
 
-void Scene::updateScene(const float& dt)
-{
-}
+	// Lights
+	// - Point Light
+	addComponent(m_player->getPlayerEntity(), "testLight", new LightComponent());
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
 
+	// - Spot Light
+	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
+
+	for (int i = 0; i < 8; i++)
+	{
+		addComponent(m_player->getPlayerEntity(), "lightTest" + std::to_string(i), new LightComponent());
+	}
+}
 
 // Private functions:
 void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpeed, int nrOfPlatforms)
 {
-	Engine* engine = &Engine::get();
 	nrOfParisWheels++;
 
-	Entity* ParisWheel = engine->addEntity("ParisWheel-" + std::to_string(nrOfParisWheels));
+	Entity* ParisWheel = addEntity("ParisWheel-" + std::to_string(nrOfParisWheels));
 	if (ParisWheel)
 	{
-		engine->addComponent(ParisWheel, "mesh",
+		addComponent(ParisWheel, "mesh",
 			new MeshComponent("ParisWheel.lrm", Material({ L"GrayTexture.png" })));
 		ParisWheel->setPosition(position);
 		ParisWheel->setRotation(0, XMConvertToRadians(rotation), 0);
 	}
 
-	Entity* center = engine->addEntity("Empty-" + std::to_string(nrOfParisWheels));
+	Entity* center = addEntity("Empty-" + std::to_string(nrOfParisWheels));
 	if (center)
 	{
 		center->setRotation(0, XMConvertToRadians(rotation), XMConvertToRadians(90));
@@ -201,83 +222,290 @@ void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpe
 	float test = 360 / nrOfPlatforms;
 	for (int i = 0; i < 360; i += test)
 	{
-		Entity* ParisWheelPlatform = engine->addEntity("ParisWheelPlatform-" + std::to_string(nrOfParisWheels) + "_" + std::to_string(i));
+		Entity* ParisWheelPlatform = addEntity("ParisWheelPlatform-" + std::to_string(nrOfParisWheels) + "_" + std::to_string(i));
 		if (ParisWheelPlatform)
 		{
-			engine->addComponent(ParisWheelPlatform, "mesh",
+			addComponent(ParisWheelPlatform, "mesh",
 				new MeshComponent("ParisWheelPlatform.lrm", Material({ L"GrayTexture.png" })));
 
 			ParisWheelPlatform->setRotation(0, XMConvertToRadians(rotation), 0);
 
-			engine->createNewPhysicsComponent(ParisWheelPlatform, true);
+			createNewPhysicsComponent(ParisWheelPlatform, true);
 			static_cast<PhysicsComponent*>(ParisWheelPlatform->getComponent("physics"))->makeKinematic();
 
-			engine->addComponent(ParisWheelPlatform, "rotate",
+			addComponent(ParisWheelPlatform, "rotate",
 				new RotateAroundComponent(center, center->getRotationMatrix(), ParisWheelPlatform, 12, rotationSpeed, i));
-
-
 		}
 	}
 }
 
 void Scene::createFlippingPlatform(Vector3 position, Vector3 rotation, float upTime, float downTime)
 {
-	Engine* engine = &Engine::get();
 	nrOfFlippingPlatforms++;
 
-	Entity* flippingPlatform = engine->addEntity("FlippingCube-" + std::to_string(nrOfFlippingPlatforms));
+	Entity* flippingPlatform = addEntity("FlippingCube-" + std::to_string(nrOfFlippingPlatforms));
 	if (flippingPlatform)
 	{
-		engine->addComponent(flippingPlatform, "mesh",
+		addComponent(flippingPlatform, "mesh",
 			new MeshComponent("SquarePlatform.lrm", Material({ L"GrayTexture.png" })));
 
 		flippingPlatform->setPosition({ position });
 		flippingPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 
-		engine->createNewPhysicsComponent(flippingPlatform, true);
+		createNewPhysicsComponent(flippingPlatform, true);
 		static_cast<PhysicsComponent*>(flippingPlatform->getComponent("physics"))->makeKinematic();
 
-		engine->addComponent(flippingPlatform, "flipp",
+		addComponent(flippingPlatform, "flipp",
 			new FlippingComponent(flippingPlatform, upTime, downTime));
 	}
 }
 
 void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 scale, std::string meshPath)
 {
-	Engine* engine = &Engine::get();
 	m_nrOfStaticPlatforms++;
 
-	Entity* staticPlatform = engine->addEntity("StaticPlatform-" + std::to_string(m_nrOfStaticPlatforms));
+	Entity* staticPlatform = addEntity("StaticPlatform-" + std::to_string(m_nrOfStaticPlatforms));
 	if (staticPlatform)
 	{
-		engine->addComponent(staticPlatform, "mesh",
+		addComponent(staticPlatform, "mesh",
 			new MeshComponent(meshPath.c_str(), Material({ L"GrayTexture.png" })));
 
 		staticPlatform->setPosition(position);
 		staticPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 		staticPlatform->setScale(scale);
 
-		engine->createNewPhysicsComponent(staticPlatform);
+		createNewPhysicsComponent(staticPlatform);
 	}
+}
+
+void Scene::loadLobby()
+{
+	Entity* entity;
+
+	Material gridTest = Material({ L"T_GridTestTex.bmp" });
+	entity = addEntity("floor");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+		entity->scale({ 300, 2,300 });
+		entity->translate({ 0,6,0 });
+		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	entity = addEntity("walls");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
+		entity->scale({ 30, -30, 30});
+		entity->translate({ 0,8,0 });
+	}
+
+	//Point Light
+	addComponent(m_player->getPlayerEntity(),"testLight", new LightComponent());
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
+
+	//Spot Light
+	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
+
+	//Tests and demonstration how to add and remove lights
+	for (int i = 0; i < 8; i++)
+	{
+		addComponent(m_player->getPlayerEntity(),"lightTest" + std::to_string(i), new LightComponent());
+	}
+
+	// Audio test
+	/*Entity* audioTest = addEntity("audioTest");
+	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	m_nightSlide = 0.01f;
+	m_nightVolume = 0.2f;*/
+}
+
+void Scene::updateScene(const float& dt)
+{
+	// AUDIO TEST
+	/*m_nightVolume += dt * m_nightSlide;
+	if (m_nightVolume < 0.f)
+	{
+		m_nightVolume = 0.f;
+		m_nightSlide = -m_nightSlide;
+	}
+	else if (m_nightVolume > 0.2f)
+	{
+		m_nightVolume = 0.2f;
+		m_nightSlide = -m_nightSlide;
+	}
+	AudioComponent* ac = dynamic_cast<AudioComponent*>(m_entities["audioTest"]->getComponent("testSound"));
+	ac->setVolume(m_nightVolume);*/
+}
+
+Entity* Scene::getEntity(std::string key)
+{
+	if (key == PLAYER_ENTITY_NAME)
+		return m_player->getPlayerEntity();
+	else if (m_entities.find(key) != m_entities.end())
+		return m_entities.at(key);
+	else
+		return nullptr;
+}
+
+Entity* Scene::addEntity(std::string identifier)
+{
+	if (m_entities.find(identifier) != m_entities.end())// If one with that name is already found
+		return nullptr;
+
+	m_entities[identifier] = new Entity(identifier);
+	return m_entities[identifier];
+}
+
+void Scene::removeEntity(std::string identifier)
+{
+	delete m_entities[identifier];
+	m_entities.erase(identifier);
+}
+
+bool Scene::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
+{
+	entity->addComponent(componentIdentifier, component);
+
+	if (component->getType() == ComponentType::MESH)
+	{
+		MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
+		addMeshComponent(meshComponent);
+	}
+
+	if (component->getType() == ComponentType::LIGHT)
+	{
+		LightComponent* lightComponent = dynamic_cast<LightComponent*>(component);
+		addLightComponent(lightComponent);
+	}
+
+	return true;
+}
+
+void Scene::addMeshComponent(MeshComponent* component)
+{
+	component->setRenderId(++m_meshCount);
+	m_meshComponentMap[m_meshCount] = component;
+}
+
+void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
+{
+	std::vector<Component*> tempComponentVector;
+	PhysicsComponent* physComp = new PhysicsComponent();
+	MeshComponent* meshComponent = nullptr;
+	bool found = false;
+
+	entity->getComponentsOfType(tempComponentVector, ComponentType::MESH);
+
+	if (meshName != "")
+	{
+		for (std::size_t i = 0; i < tempComponentVector.size() && !found; ++i) {
+			MeshComponent* currentMesh = static_cast<MeshComponent*>(tempComponentVector[i]);
+			if (currentMesh->getFilePath() == meshName)
+			{
+				meshComponent = currentMesh;
+				found = true;
+			}
+		}
+
+		if (!found)
+		{
+			ErrorLogger::get().logError(("When creating new physics component, meshResource " + meshName + " does not exist. ->").c_str());
+
+			if (tempComponentVector.size() > 0)
+			{
+				ErrorLogger::get().logError("Using first meshComponent.");
+				meshComponent = static_cast<MeshComponent*>(tempComponentVector[0]);
+				found = true;
+			}
+
+		}
+	}
+	else
+	{
+		if (tempComponentVector.size() > 0)
+		{
+			meshComponent = static_cast<MeshComponent*>(tempComponentVector[0]);
+			found = true;
+		}
+	}
+	if (!found)
+		ErrorLogger::get().logError("Trying to add physic component without any meshcomponent!. Can't use this helper function.");
+
+	
+	entity->addComponent("physics", physComp);
+	physComp->initActorAndShape(entity, meshComponent, geometryType, dynamic, materialName, isUnique);
+}
+
+void Scene::addLightComponent(LightComponent* component)
+{
+	if (m_lightCount < 8)
+	{
+		component->setLightID(component->getIdentifier());
+		m_lightComponentMap[component->getIdentifier()] = component;
+	}
+	else
+		ErrorLogger::get().logError("Maximum lights achieved, failed to add one.");
+}
+
+void Scene::removeLightComponent(LightComponent* component)
+{
+	getEntity(component->getParentEntityIdentifier())->removeComponent(component);
+	
+	int nrOfErased = m_lightComponentMap.erase(component->getIdentifier());
+	if (nrOfErased > 0) //if it deleted more than 0 elements
+	{
+		m_lightCount -= nrOfErased;
+	}
+}
+
+void Scene::removeLightComponentFromMap(LightComponent* component)
+{
+
+
+	int nrOfErased = m_lightComponentMap.erase(component->getIdentifier());
+	if (nrOfErased > 0) //if it deleted more than 0 elements
+	{
+		m_lightCount -= nrOfErased;
+	}
+}
+
+std::unordered_map<std::string, Entity*>* Scene::getEntityMap()
+{
+	return &m_entities;
+}
+
+std::unordered_map<std::string, LightComponent*>* Scene::getLightMap()
+{
+	return &m_lightComponentMap;
+}
+
+std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMap()
+{
+	return &m_meshComponentMap;
 }
 
 void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)
 {
-	Engine* engine = &Engine::get();
 	m_nrOfSweepingPlatforms++;
 
-	Entity* sweepingPlatform = engine->addEntity("SweepingPlatform-" + std::to_string(m_nrOfSweepingPlatforms));
+	Entity* sweepingPlatform = addEntity("SweepingPlatform-" + std::to_string(m_nrOfSweepingPlatforms));
 	if (sweepingPlatform)
 	{
-		engine->addComponent(sweepingPlatform, "mesh",
+		addComponent(sweepingPlatform, "mesh",
 			new MeshComponent("SquarePlatform.lrm", Material({ L"GrayTexture.png" })));
 
 		sweepingPlatform->setPosition(startPos);
 
-		engine->createNewPhysicsComponent(sweepingPlatform, true);
+		createNewPhysicsComponent(sweepingPlatform, true);
 		static_cast<PhysicsComponent*>(sweepingPlatform->getComponent("physics"))->makeKinematic();
 
-		engine->addComponent(sweepingPlatform, "sweep",
+		addComponent(sweepingPlatform, "sweep",
 			new SweepingComponent(sweepingPlatform, startPos, endPos, 5));
 	}
 }
