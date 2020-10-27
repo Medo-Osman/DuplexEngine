@@ -14,6 +14,7 @@ struct PhysicsData
 	std::string stringData;
 	float floatData;
 	int intData;
+	void* pointer;
 	std::string entityIdentifier;
 	PhysicsData()
 	{
