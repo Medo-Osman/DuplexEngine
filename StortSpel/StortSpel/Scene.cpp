@@ -112,6 +112,19 @@ void Scene::loadScene(std::string path)
 		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
+	Entity* goalTrigger = addEntity("trigger");
+	if (goalTrigger)
+	{
+		addComponent(goalTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"T_GridTestTex.bmp" })));
+		goalTrigger->setPosition({ 0, 10, 20 });
+
+		addComponent(goalTrigger, "trigger",
+			new TriggerComponent());
+		
+		static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"))->initTrigger(goalTrigger, XMFLOAT3(1.0f, 1.0f, 1.0f));
+	}
+
 	// Start:
 	createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(0, 9, 29.5), Vector3(0, 0, 0), Vector3(10, 4, 1), "testCube_pCube1.lrm");
