@@ -56,6 +56,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	m_enginePtr = &Engine::get();
 
 	m_scenemanager.initalize();
+	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 
 	srand(static_cast <unsigned> (time(0)));
 
@@ -136,14 +137,11 @@ void ApplicationLayer::applicationLoop()
 			m_input.readBuffers();
 			m_physics->update(m_dt);
 			m_enginePtr->update(m_dt);
-
 			PerformanceTester::get().runPerformanceTestsGui(m_dt);
-
-			m_rendererPtr->update(m_dt);
 			m_scenemanager.updateScene(m_dt);
 			AudioHandler::get().update(m_dt);
+			m_rendererPtr->update(m_dt);
 			m_rendererPtr->render();
-
 		}
 	}
 	m_physics->release();

@@ -169,6 +169,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 	m_camera = Engine::get().getCameraPtr();
 
+
 	/////////////////////////////////////////////////
 	D3D11_DEPTH_STENCIL_DESC skyboxDSD;
 	ZeroMemory(&skyboxDSD, sizeof(D3D11_DEPTH_STENCIL_DESC));
@@ -566,19 +567,28 @@ void Renderer::render()
 			m_currentSetShaderProg = meshShaderEnum;
 		}
 		
-		
 		Material* meshMatPtr = component.second->getMaterialPtr();
 		if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
 		{
 			meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
 			m_currentSetMaterialId = meshMatPtr->getMaterialId();
 		}
-			
+
+		// Get Entity map from Engine
+		std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+	
+		Entity* parentEntity;
+
+		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+		else
+			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
+
 		perObjectMVP constantBufferPerObjectStruct;
 		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
 		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
-		constantBufferPerObjectStruct.world = XMMatrixTranspose(Engine::get().getEntity(component.second->getParentEntityIdentifier())->calculateWorldMatrix() * component.second->calculateWorldMatrix());
+		constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix()* component.second->calculateWorldMatrix()));
 		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
 		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
