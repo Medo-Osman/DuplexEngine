@@ -18,7 +18,6 @@ class Pickup
 protected:
 	static bool PICKUP_VECTOR_INIT;
 	static std::vector<Pickup*> PICKUP_VECTOR;
-
 public:
 	static bool hasInitPickupArray()
 	{

@@ -31,6 +31,17 @@ public:
 		m_controller = nullptr;
 		m_physicsPtr = &Physics::get();
 	}
+	~CharacterControllerComponent()
+	{
+		//this->release();
+	}
+
+	void release()
+	{
+		if (m_controller)
+			m_physicsPtr->removeCharacterController(m_controller);
+		m_controller = nullptr;
+	}
 
 	void initController(Transform* transform, const float& height, const float &radius, std::string material = "default")
 	{

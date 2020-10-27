@@ -454,6 +454,16 @@ public:
 		return capsuleController;
 	}
 
+	void removeCharacterController(PxController* controller)
+	{
+		controller->release();
+	}
+
+	void purgeCharacterController()
+	{
+		m_controllManager->purgeControllers();
+	}
+
 	void setCapsuleSize(PxController* controller, const float &height)
 	{
 		controller->resize(height);
