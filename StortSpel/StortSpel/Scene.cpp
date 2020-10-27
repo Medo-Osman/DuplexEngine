@@ -122,7 +122,10 @@ void Scene::loadScene(std::string path)
 		addComponent(goalTrigger, "trigger",
 			new TriggerComponent());
 		
-		static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"))->initTrigger(goalTrigger, XMFLOAT3(1.0f, 1.0f, 1.0f));
+		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
+		tc->initTrigger(goalTrigger, XMFLOAT3(1.0f, 1.0f, 1.0f));
+		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
+		tc->setIntData((int)ScenesEnum::ARENA);
 	}
 
 	// Start:

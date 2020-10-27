@@ -2,6 +2,13 @@
 #include "Player.h"
 #include "Engine.h"
 
+enum class ScenesEnum
+{
+	LOBBY,
+	START,
+	ARENA,
+};
+
 class Scene : public PhysicsObserver
 {
 private:

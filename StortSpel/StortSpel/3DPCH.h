@@ -95,5 +95,11 @@ using namespace SimpleMath;
 enum class TriggerType
 {
 	UNDEFINED,
+	EVENT,
 	PICKUP,
+};
+
+enum class EventType
+{
+	SWAPSCENE,
 };
