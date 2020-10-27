@@ -156,6 +156,24 @@ void Scene::loadScene(std::string path)
 		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
 	}
+
+	// Lights
+	// - Point Light
+	addComponent(m_player->getPlayerEntity(), "testLight", new LightComponent());
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
+
+	// - Spot Light
+	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
+
+	for (int i = 0; i < 8; i++)
+	{
+		addComponent(m_player->getPlayerEntity(), "lightTest" + std::to_string(i), new LightComponent());
+	}
 }
 
 // Private functions:
