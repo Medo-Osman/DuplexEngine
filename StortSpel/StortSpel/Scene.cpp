@@ -51,6 +51,22 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 	engine->addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
 
+void Scene::addCheckpoint(const Vector3& position)
+{
+	Engine* engine = &Engine::get();
+	Entity* checkPoint = engine->addEntity("checkpoint"+std::to_string(m_nrOfCheckpoints++));
+	engine->addComponent(checkPoint, "mesh", new MeshComponent("Flag_pPlane2.lrm"));
+	//MeshComponent* ptr = dynamic_cast<MeshComponent*>(checkPoint->getComponent("mesh"));
+	checkPoint->setPosition(position + Vector3(0,-0.25f,0));
+	checkPoint->scale(1.5, 1.5, 1.5);
+
+	engine->addComponent(checkPoint, "checkpoint", new CheckpointComponent(checkPoint));
+	static_cast<TriggerComponent*>(checkPoint->getComponent("checkpoint"))->initTrigger(checkPoint, { 4, 4, 4 });
+
+	engine->addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false));
+
+}
+
 void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 {
 	int nrOfPickups = (int)PickupType::COUNT - 1; //-1 due to Score being in pickupTypes
@@ -76,6 +92,12 @@ void Scene::loadScene(std::string path)
 
 	this->loadPickups();
 	this->loadScore();
+
+	addCheckpoint(Vector3(0, 9, 5));
+	addCheckpoint(Vector3(14.54, 30, 105));
+	addCheckpoint(Vector3(14.54, 30, 105));
+	addCheckpoint(Vector3(-30, 40, 144));
+	addCheckpoint(Vector3(-11, 40, 218.5));
 
 
 	Entity* floor = engine->addEntity("floor"); // Floor:

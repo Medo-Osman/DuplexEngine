@@ -10,6 +10,7 @@
 #include "PhysicsComponent.h"
 #include "AudioHandler.h"
 #include "AudioComponent.h"
+#include "CheckpointComponent.h"
 #include "Camera.h"
 
 struct Settings

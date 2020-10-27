@@ -320,6 +320,9 @@
     <ClInclude Include="SpeedPickup.h">
       <Filter>Source Files\Game\Pickup</Filter>
     </ClInclude>
+    <ClInclude Include="CheckpointComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">

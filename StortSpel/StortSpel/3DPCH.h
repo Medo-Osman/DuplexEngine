@@ -96,4 +96,5 @@ enum class TriggerType
 {
 	UNDEFINED,
 	PICKUP,
+	CHECKPOINT,
 };

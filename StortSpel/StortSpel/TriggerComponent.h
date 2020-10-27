@@ -26,7 +26,7 @@ public:
 		m_physicsPtr = &Physics::get();
 
 		m_physicsData.triggerType = TriggerType::UNDEFINED;
-		m_physicsData.assosiatedTriggerEnum = 1;
+		m_physicsData.associatedTriggerEnum = 1;
 		m_physicsData.stringData = "";
 		m_physicsData.floatData = 0;
 		m_physicsData.intData = 0;
