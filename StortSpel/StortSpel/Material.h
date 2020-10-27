@@ -7,9 +7,9 @@ static unsigned int long materialCount;
 struct MATERIAL_CONST_BUFFER // ? Not sure if we should have this like this
 {
 	float UVScale;
-	float reflectance;
-	float bufferPadding;
-	float bufferPadding1;
+	float roughness;
+	float metallic;
+	int textured;
 };
 
 class Material
@@ -34,8 +34,11 @@ public:
 	void addTexture(const WCHAR* fileName, bool isCubeMap = false);
 
 	void setUVScale(float scale);
-	void setReflectance(float reflectance);
+	void setRoughness(float roughness);
+	void setMetallic(float metallic);
+	void setTextured(int textured);
 
 	unsigned int long getMaterialId();
+	MATERIAL_CONST_BUFFER getMaterialParameters();
 };
 
