@@ -2,7 +2,7 @@
 #include "AnimatedMeshComponent.h"
 
 AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum, Material material)
-	:MeshComponent(shaderEnum, material)
+	:MeshComponent(shaderEnum, material), m_animationSpeed(1.0f), m_currentAnimationResource(nullptr)
 {
 	SkeletalMeshResource* resPtr = (SkeletalMeshResource*)ResourceHandler::get().loadLRSMMesh(filepath);
 	
@@ -11,66 +11,39 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, ShaderProgram
 	//take the joints from the meshresource and build the joints
 	m_jointCount = resPtr->getJointCount();
 
-	//std::vector<joint> joints;
+	m_joints.reserve(m_jointCount);
+	for (int i = 0; i < m_jointCount; i++)
+	{
+		m_joints.push_back(joint());
+	}
 
-	LRSM_JOINT* LRSMJoints = resPtr->getJoints();
+	m_rootIdx = resPtr->getRootIndex();
+	m_joints.at(m_rootIdx) = createJointAndChildren(m_rootIdx, resPtr->getJoints());
 
-	m_rootJoint = createJointAndChildren(0, -1, resPtr->getJoints());
+	calcInverseBindTransform(m_rootIdx, XMMatrixIdentity());
+	
+	for (int i = 0; i < m_jointCount; i++)
+	{
+		m_cBufferStruct.boneMatrixPallet[i] = XMMatrixIdentity();
+	}
 
-	calcInverseBindTransform(&m_rootJoint, XMMatrixIdentity());
-
-	// when the temp rotation values go this can't be here but the cuffer stuff will prob need sometinh else
-	applyPoseToJoints(&m_rootJoint, XMMatrixIdentity());
-
-	m_currentAnimationResource = nullptr;
-
-	//calcInverseBindTransform(&m_rootJoint, m_rootJoint.localBindTransform);
+	// when the temp rotation values go this might not need to be here
+	//applyPoseToJoints(m_rootIdx, XMMatrixIdentity());
 }
 
 AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, Material material)
 	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::DEFAULT, material)
 {}
 
-joint AnimatedMeshComponent::createJointAndChildren(int currentIndex, int parentIndex, LRSM_JOINT* LRSMJoint)
+joint AnimatedMeshComponent::createJointAndChildren(int currentIndex, LRSM_JOINT* LRSMJoint)
 {
 	joint thisJoint;
 
+	// Set the joint's index
 	thisJoint.index = currentIndex;
 	
-	//int f[3] = { 0, 1, 2 };
-	int f[3] = { 1, 0, 2 };
-
-	Quaternion rotationQuat = XMQuaternionRotationRollPitchYaw(
-		XMConvertToRadians(LRSMJoint[currentIndex].rotation[f[0]]),
-		XMConvertToRadians(LRSMJoint[currentIndex].rotation[f[1]]),
-		XMConvertToRadians(LRSMJoint[currentIndex].rotation[f[2]])
-	);
-	
-
-	Quaternion rotationQuat1 = XMQuaternionRotationRollPitchYaw(
-		XMConvertToRadians(LRSMJoint[currentIndex].tempPoseRotation[f[0]]),
-		XMConvertToRadians(LRSMJoint[currentIndex].tempPoseRotation[f[1]]),
-		XMConvertToRadians(LRSMJoint[currentIndex].tempPoseRotation[f[2]])
-	);
-	
-	//if(currentIndex == 0)
-	//	rotationQuat = Quaternion::CreateFromYawPitchRoll(0, 0, 0);
-	
-	//rotationQuat.Normalize();
-	//rotationQuat1.Normalize();
-
-	XMMATRIX rotationMatrix =  DirectX::XMMatrixRotationQuaternion(rotationQuat);
-	XMMATRIX rotationMatrix1 = XMMatrixMultiply( DirectX::XMMatrixRotationQuaternion(rotationQuat), DirectX::XMMatrixRotationQuaternion(rotationQuat1) );
-	//XMMATRIX rotationMatrix1 = XMMatrixMultiply(DirectX::XMMatrixRotationQuaternion(rotationQuat1), DirectX::XMMatrixRotationQuaternion(rotationQuat) );
-
-	XMVECTOR v = XMVectorSet(LRSMJoint[currentIndex].translation[0], LRSMJoint[currentIndex].translation[1], LRSMJoint[currentIndex].translation[2], 1);
-	
-	Vector3 v1 = XMVector4Transform(v, rotationMatrix);
-	XMVECTOR v2 = XMVector4Transform(v, rotationMatrix1);
-
-	XMMATRIX ro;
-
-	ro = 
+	// Calculate the localBindTransform using
+	XMMATRIX localBindRotationMatrix =
 		XMMatrixRotationX(XMConvertToRadians(LRSMJoint[currentIndex].rotation[0])) 
 		*
 		XMMatrixRotationY(XMConvertToRadians(LRSMJoint[currentIndex].rotation[1])) 
@@ -78,192 +51,71 @@ joint AnimatedMeshComponent::createJointAndChildren(int currentIndex, int parent
 		XMMatrixRotationZ(XMConvertToRadians(LRSMJoint[currentIndex].rotation[2]))
 		;
 
-	XMMATRIX ro1;
-
-	/*ro1 =
-		XMMatrixRotationX(XMConvertToRadians(LRSMJoint[currentIndex].tempPoseRotation[0]))
-		*
-		XMMatrixRotationY(XMConvertToRadians(LRSMJoint[currentIndex].tempPoseRotation[1]))
-		*
-		XMMatrixRotationZ(XMConvertToRadians(LRSMJoint[currentIndex].tempPoseRotation[2]))
-		;*/
-	
-	//Quaternion tempPoseRotationQuat = XMQuaternionRotationMatrix(ro1);
-	Quaternion tempPoseRotationQuat = Quaternion(LRSMJoint[currentIndex].tempPoseRotation[0], LRSMJoint[currentIndex].tempPoseRotation[1], LRSMJoint[currentIndex].tempPoseRotation[2], LRSMJoint[currentIndex].tempPoseRotation[3]);
-
-	ro1 = DirectX::XMMatrixRotationQuaternion(tempPoseRotationQuat);
-	//ro1 = ro1 * ro;
-
 	thisJoint.localBindTransform = XMMatrixMultiply(
-		//XMMatrixRotationRollPitchYaw(LRSMJoint[currentIndex].rotation[0], LRSMJoint[currentIndex].rotation[1], LRSMJoint[currentIndex].rotation[2])
-		//XMMatrixRotationRollPitchYaw(LRSMJoint[currentIndex].rotation[0], LRSMJoint[currentIndex].rotation[2], LRSMJoint[currentIndex].rotation[1])
-		//XMMatrixRotationRollPitchYaw(LRSMJoint[currentIndex].rotation[1], LRSMJoint[currentIndex].rotation[0], LRSMJoint[currentIndex].rotation[2])
-		//XMMatrixRotationRollPitchYaw(LRSMJoint[currentIndex].rotation[1], LRSMJoint[currentIndex].rotation[2], LRSMJoint[currentIndex].rotation[0])
-		//XMMatrixRotationRollPitchYaw(LRSMJoint[currentIndex].rotation[2], LRSMJoint[currentIndex].rotation[0], LRSMJoint[currentIndex].rotation[1])
-		//XMMatrixRotationRollPitchYaw(LRSMJoint[currentIndex].rotation[2], LRSMJoint[currentIndex].rotation[1], LRSMJoint[currentIndex].rotation[0])
-		//rotationMatrix
-		//XMMatrixRotationRollPitchYaw(0, 0, XMConvertToRadians(LRSMJoint[currentIndex].rotation[2]))
-		/*XMMatrixRotationRollPitchYaw(
-			XMConvertToRadians(LRSMJoint[currentIndex].rotation[f[0]]),
-			XMConvertToRadians(LRSMJoint[currentIndex].rotation[f[1]]),
-			XMConvertToRadians(LRSMJoint[currentIndex].rotation[f[2]])
-		)*/
-		ro
-		, 
+		localBindRotationMatrix, 
 		XMMatrixTranslation(LRSMJoint[currentIndex].translation[0], LRSMJoint[currentIndex].translation[1], LRSMJoint[currentIndex].translation[2]) 
 	);
-
-	//thisJoint.localBindTransform = XMMatrixTranslationFromVector(v1);
+	/* 
+	// old code from when the .lrsm included a single pose aside from the bindpose
+	Quaternion tempPoseRotationQuat = Quaternion(LRSMJoint[currentIndex].tempPoseRotation[0], LRSMJoint[currentIndex].tempPoseRotation[1], LRSMJoint[currentIndex].tempPoseRotation[2], LRSMJoint[currentIndex].tempPoseRotation[3]);
 	
-	//thisJoint.localBindTransform = XMMatrixTranspose(thisJoint.localBindTransform);
-	XMMATRIX tempPoseRotationMat = XMMatrixIdentity();
-	
-	/*if (parentIndex > -1)
-	{
-		XMMATRIX p = XMMatrixRotationRollPitchYaw(
-			XMConvertToRadians(LRSMJoint[parentIndex].rotation[f[0]]),
-			XMConvertToRadians(LRSMJoint[parentIndex].rotation[f[1]]),
-			XMConvertToRadians(LRSMJoint[parentIndex].rotation[f[2]])
-		);
-		XMMATRIX p1 = XMMatrixRotationRollPitchYaw(
-			XMConvertToRadians(-LRSMJoint[parentIndex].tempPoseRotation[f[0]]),
-			XMConvertToRadians(-LRSMJoint[parentIndex].tempPoseRotation[f[1]]),
-			XMConvertToRadians(-LRSMJoint[parentIndex].tempPoseRotation[f[2]])
-		);
-		
-		tempPoseRotationMat = XMMatrixMultiply(
-			p,
-			p1
-		);
-	}*/
-
-	
-
-	/*tempPoseRotationMat =
-		XMMatrixRotationRollPitchYaw(
-			XMConvertToRadians(LRSMJoint[currentIndex].tempPoseRotation[f[0]]),
-			XMConvertToRadians(LRSMJoint[currentIndex].tempPoseRotation[f[1]]),
-			XMConvertToRadians(LRSMJoint[currentIndex].tempPoseRotation[f[2]])
-		);*/
-		
-
-	XMMATRIX rot = XMMatrixMultiply(
-		
-		XMMatrixRotationRollPitchYaw(
-			XMConvertToRadians(LRSMJoint[currentIndex].tempPoseRotation[f[0]]),
-			XMConvertToRadians(LRSMJoint[currentIndex].tempPoseRotation[f[1]]),
-			XMConvertToRadians(LRSMJoint[currentIndex].tempPoseRotation[f[2]])
-		)
-		,
-		XMMatrixRotationRollPitchYaw(
-			XMConvertToRadians(LRSMJoint[currentIndex].rotation[f[0]]),
-			XMConvertToRadians(LRSMJoint[currentIndex].rotation[f[1]]),
-			XMConvertToRadians(LRSMJoint[currentIndex].rotation[f[2]])
-		)
-		
-	);
-
-	rot = XMMatrixRotationQuaternion(rotationQuat1 * rotationQuat);
-	rot = rotationMatrix1;
-
-	// use animatedtransform to store stuff, consider how the transforms need to work in reletion to the vertices
 	thisJoint.animatedTransform = XMMatrixMultiply(
-		ro1
+		XMMatrixRotationQuaternion(tempPoseRotationQuat)
 		,
 		XMMatrixTranslation(LRSMJoint[currentIndex].translation[0], LRSMJoint[currentIndex].translation[1], LRSMJoint[currentIndex].translation[2]) 
 	);
-
-	//thisJoint.animatedTransform = XMMatrixTranslationFromVector(v2);
-
-	//thisJoint.animatedTransform = XMMatrixTranspose(thisJoint.animatedTransform);
-	//temp:
-
-	//m_cBufferStruct.boneMatrixPallet[thisJoint.index] = thisJoint.localBindTransform;
+	*/
 	
-	/*float x = XMVectorGetX(LRSMJoint[currentIndex].translation);
-	float y = XMVectorGetY(LRSMJoint[currentIndex].translation);
-	float z = XMVectorGetZ(LRSMJoint[currentIndex].translation);
-	float w = XMVectorGetW(LRSMJoint[currentIndex].translation);*/
+	//thisJoint.animatedTransform = thisJoint.localBindTransform;
 
 	for (int i = 0; i < LRSMJoint[currentIndex].nrOfChildren; i++)
 	{
-		thisJoint.children.push_back(createJointAndChildren(LRSMJoint[currentIndex].children[i], currentIndex, LRSMJoint));
+		thisJoint.children.push_back(LRSMJoint[currentIndex].children[i]);
+		m_joints.at(LRSMJoint[currentIndex].children[i]) = createJointAndChildren(LRSMJoint[currentIndex].children[i], LRSMJoint);
 	}
 
 	return thisJoint;
 }
 
-void AnimatedMeshComponent::calcInverseBindTransform(joint* thisJoint, Matrix parentBindTransform)
+void AnimatedMeshComponent::calcInverseBindTransform(int thisJointIdx, Matrix parentBindTransform)
 {
-	Matrix bindTransform = XMMatrixMultiply(thisJoint->localBindTransform, parentBindTransform );
+	Matrix bindTransform = XMMatrixMultiply(m_joints[thisJointIdx].localBindTransform, parentBindTransform );
 	
-	//Vector4 testVec = XMVector3Transform(Vector3(0, 0, 0), bindTransform);
-	//Vector4 testVec1 = XMVector3Transform(Vector3(0, 0, 0), thisJoint->localBindTransform);
+	Vector4 testVec = XMVector3Transform(Vector3(0, 0, 0), bindTransform);
+	Vector4 testVec1 = XMVector3Transform(Vector3(0, 0, 0), m_joints[thisJointIdx].localBindTransform);
 	
-	thisJoint->inverseBindTransform = bindTransform.Invert();
+	m_joints[thisJointIdx].inverseBindTransform = bindTransform.Invert();
 	
-	// temp:
-	//thisJoint->animatedTransform = bindTransform;
-	//m_cBufferStruct.boneMatrixPallet[thisJoint->index] = bindTransform;
-	//m_cBufferStruct.boneMatrixPallet[thisJoint->index] = thisJoint->localBindTransform;
-	
-	for (int i = 0; i < thisJoint->children.size(); i++)
+	for (int i = 0; i < m_joints[thisJointIdx].children.size(); i++)
 	{
-		calcInverseBindTransform(&thisJoint->children.at(i), bindTransform);
-	}
-	
-	//Temp: (for the time being thisJoint->animatedTransform = currentlocaltransform)
-	//Matrix currentTransform =  thisJoint->animatedTransform
-
-	//m_cBufferStruct.boneMatrixPallet[thisJoint->index] = thisJoint->animatedTransform * thisJoint->inverseBindTransform;
-
-	// Basically i think the rotations coming in are not the bind pose, it's the bindpose plus the pose the model had.
-	// I want to test this by doing a quick calculation of the matrices that will be sent to the shader and trying the shader.
-	// If i can get her to do the pose then my sus will be correct and I will know that everything in this program works as intended
-	// look at specifically https://youtu.be/cieheqt7eqc?t=464 to get started on a temp setting of thisJoint->animatedTransform;
-	// Or maybe try just setting the "(bind)Transform" in this function as thisJoint->animatedTransform and try passing in the values.
-
-	// I fiddled around a bunch and found several ways that seem right but don't work, one more thing to try is to look at the link above again and se if the inverse bindtransform step is needed to test this
-
-	//thisJoint->inverseBindTransform = XMMatrixInverse(bindTransform);
-		//TODO: copy from https://www.youtube.com/watch?v=F-kcaonjHf8 
-		   // but remember that we aren't in the joint like the video so we need to send in a joint.
-		   // also remember that openGL uses diffrent martices, maybe.
-}
-
-void AnimatedMeshComponent::setAnimatedTransform(joint* thisJoint, ANIMATION_FRAME* animationFrame)
-{
-	// THIS whole thing IS TEMP, THERE IS NO INTERPOLATION
-	
-	//JOINT_TRANSFORM jt = animationFrame->jointTransforms[thisJoint->index];
-	
-	//DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationQuaternion(DirectX::SimpleMath::Quaternion(jt.rotationQuat[0], jt.rotationQuat[1], jt.rotationQuat[2], jt.rotationQuat[4]));
-	//thisJoint->animatedTransform = XMMatrixMultiply(rotationMatrix, XMMatrixTranslation(jt.translation[0], jt.translation[1], jt.translation[2]));
-	thisJoint->animatedTransform = animationFrame->jointTransforms[thisJoint->index].asMatrix();
-	
-	for (int i = 0; i < thisJoint->children.size(); i++)
-	{
-		setAnimatedTransform(&thisJoint->children.at(i), animationFrame);
+		calcInverseBindTransform(m_joints[thisJointIdx].children.at(i), bindTransform);
 	}
 }
 
-void AnimatedMeshComponent::applyPoseToJoints(joint* thisJoint, Matrix parentTransform)
+void AnimatedMeshComponent::setAnimatedTransform(int thisJointIdx, ANIMATION_FRAME* animationFrame)
 {
-	//Temp: (for the time being thisJoint->animatedTransform = currentlocaltransform)
-	//Matrix currentTransform = parentTransform * thisJoint->animatedTransform;
-	Matrix currentTransform = XMMatrixMultiply(thisJoint->animatedTransform, parentTransform );
+	m_joints[thisJointIdx].animatedTransform = animationFrame->jointTransforms[thisJointIdx].asMatrix();
+	
+	for (int i = 0; i < m_joints[thisJointIdx].children.size(); i++)
+	{
+		setAnimatedTransform(m_joints[thisJointIdx].children.at(i), animationFrame);
+	}
+}
 
+void AnimatedMeshComponent::applyPoseToJoints(int thisJointIdx, Matrix parentTransform)
+{
+	Matrix currentTransform = XMMatrixMultiply(m_joints[thisJointIdx].animatedTransform, parentTransform );
+	
 	//Vector4 testVec = XMVector3Transform(Vector3(0, 0, 0), currentTransform);
 
-	for (int i = 0; i < thisJoint->children.size(); i++)
+	for (int i = 0; i < m_joints[thisJointIdx].children.size(); i++)
 	{
-		applyPoseToJoints(&thisJoint->children.at(i), currentTransform);
+		applyPoseToJoints(m_joints[thisJointIdx].children.at(i), currentTransform);
 	}
-	//m_cBufferStruct.boneMatrixPallet[thisJoint->index] = currentTransform * thisJoint->inverseBindTransform;
-	m_cBufferStruct.boneMatrixPallet[thisJoint->index] = XMMatrixTranspose( XMMatrixMultiply(thisJoint->inverseBindTransform, currentTransform ) );
-	//m_cBufferStruct.boneMatrixPallet[thisJoint->index] = thisJoint->animatedTransform * thisJoint->inverseBindTransform;
+
+	m_cBufferStruct.boneMatrixPallet[thisJointIdx] = XMMatrixTranspose( XMMatrixMultiply(m_joints[thisJointIdx].inverseBindTransform, currentTransform ) );
 }
-// for when i need it: https://youtu.be/HeIkk6Yo0s8?t=701
+
 
 skeletonAnimationCBuffer* AnimatedMeshComponent::getAllAnimationTransforms()
 {
@@ -279,7 +131,6 @@ void AnimatedMeshComponent::playAnimation(std::string animationName, bool loopin
 	m_animationTime = 0;
 	m_shouldLoop = looping;
 	m_isDone = false;
-	m_currentFrame = 0;
 
 	// call a apply animationFrame function on the first frame (i guess, i don't suppose we'll add blending of some sort later)
 	applyAnimationFrame();
@@ -290,6 +141,12 @@ void AnimatedMeshComponent::applyAnimationFrame()
 	if (m_currentAnimationResource == nullptr || m_isDone)
 		return;
 	
+	if (m_currentAnimationResource->getFrameCount() == 1) // only one frame means it's a pose
+	{
+		setAnimatedTransform(m_rootIdx, &(*m_currentAnimationResource->getFrames())[0] );
+		applyPoseToJoints(m_rootIdx, XMMatrixIdentity());
+	}
+
 	// check if the animation has ended, then either do some looping or set it to be the last frame (maybe there can be an animation playlist/sequence feature or something)
 	if (m_animationTime > m_currentAnimationResource->getTimeSpan())
 	{
@@ -299,7 +156,6 @@ void AnimatedMeshComponent::applyAnimationFrame()
 		{
 			m_animationTime = m_currentAnimationResource->getTimeSpan();
 			m_isDone = true;
-			//m_currentFrame = m_currentAnimationResource->getFrameCount();
 		}	
 	}
 
@@ -324,43 +180,52 @@ void AnimatedMeshComponent::applyAnimationFrame()
 	float currentTimeBetweenFrames = m_animationTime - allFrames[prevFrame].timeStamp;
 	float progression = currentTimeBetweenFrames / deltaTime;
 
-	setAnimatedTransform(&m_rootJoint, &(allFrames[prevFrame]));
+	// now that we have the progression we can interpolate (but if the time is close enough to a timestamp (really close) we can just pick it and skip interpolation and set the current time variable)
+	float allowedMargin = 0.05f;
+	allowedMargin * pow(m_animationSpeed, 0.4);
 
-	
-	//if (m_currentFrame == m_currentAnimationResource->getFrameCount())
-	//{
-	//	// no progression, just set to last frame
-	//}
-	//else if (m_animationTime > allFrames[m_currentFrame + 1].timeStamp)
-	//{
-	//	for (int i = m_currentFrame + 1; i < m_currentAnimationResource->getFrameCount(); i++)
-	//	{
+	if (progression < 0 + allowedMargin)
+		setAnimatedTransform(m_rootIdx, &(allFrames[prevFrame]));
+	else if (progression > 1 - allowedMargin)
+	{
+		setAnimatedTransform(m_rootIdx, &(allFrames[nextFrame]));
+		m_animationTime = allFrames[nextFrame].timeStamp;
+	}
+	else
+	{
+		ANIMATION_FRAME interpolatedFrame;
 
-	//	}
-	//}
-	//else
-	//{
-	//	prevFrame = m_currentFrame;
-	//	nextFrame = m_currentFrame + 1;
-	//}
-	// if the current time is more than the next frames time, then search after the correct previous and next frames
+		interpolatedFrame.jointTransforms = new JOINT_TRANSFORM[m_jointCount];
 
-	// now that we have the progression we can interpolate (but if the time is close enough to a timestamp (really close) we can just pick it and skip interpolation (will need testing) and set the current time variable)
+		for (int i = 0; i < m_jointCount; i++)
+		{
+			float prevTranslation[3] = { allFrames[prevFrame].jointTransforms[i].translation[0], allFrames[prevFrame].jointTransforms[i].translation[1], allFrames[prevFrame].jointTransforms[i].translation[2] };
+			float nextTranslation[3] = { allFrames[nextFrame].jointTransforms[i].translation[0], allFrames[nextFrame].jointTransforms[i].translation[1], allFrames[nextFrame].jointTransforms[i].translation[2] };
+			
+			interpolatedFrame.jointTransforms[i].translation[0] = prevTranslation[0] + (nextTranslation[0] - prevTranslation[0]) * progression;
+			interpolatedFrame.jointTransforms[i].translation[1] = prevTranslation[1] + (nextTranslation[1] - prevTranslation[1]) * progression;
+			interpolatedFrame.jointTransforms[i].translation[2] = prevTranslation[2] + (nextTranslation[2] - prevTranslation[2]) * progression;
+			
+			Vector4 interpolatedQuat = XMQuaternionSlerp(Quaternion(allFrames[prevFrame].jointTransforms[i].rotationQuat), Quaternion(allFrames[nextFrame].jointTransforms[i].rotationQuat), progression);
+			interpolatedFrame.jointTransforms[i].rotationQuat[0] = interpolatedQuat.x;
+			interpolatedFrame.jointTransforms[i].rotationQuat[1] = interpolatedQuat.y;
+			interpolatedFrame.jointTransforms[i].rotationQuat[2] = interpolatedQuat.z;
+			interpolatedFrame.jointTransforms[i].rotationQuat[3] = interpolatedQuat.w;
+		}
 
-	// then when we have the correct translation (don't forget to consider removing the translations or making them optional) and rotation we can caluclate the matriacies
+		setAnimatedTransform(m_rootIdx, &interpolatedFrame);
 
-	
+		delete[] interpolatedFrame.jointTransforms;
+	}
 
 	//---apply to joints
-	applyPoseToJoints(&m_rootJoint, XMMatrixIdentity());
-	// recursivly set all the animatedTransform for all the joints
-	// or set them in the cbuffer thing with their index.
+	applyPoseToJoints(m_rootIdx, XMMatrixIdentity());
 }
 
 void AnimatedMeshComponent::update(float dt)
 {
 	// increase animation time
-	m_animationTime += dt;
+	m_animationTime += dt * m_animationSpeed;
 	
 	applyAnimationFrame();
 }

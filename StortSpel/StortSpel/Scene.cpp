@@ -163,21 +163,41 @@ void Scene::loadScene(std::string path)
 	Entity* skelTest = engine->addEntity("skeleton-test");
 	if (skelTest)
 	{
-		AnimatedMeshComponent* a1 = new AnimatedMeshComponent("skelTestStairs_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		/*AnimatedMeshComponent* a1 = new AnimatedMeshComponent("skelTestStairs_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 		a1->translate({ 0.f, 0.f, 0.f });
-		engine->addComponent(skelTest, "skeleton mesh", a1);
+		engine->addComponent(skelTest, "skeleton mesh1", a1);*/
 		
-		AnimatedMeshComponent* a2 = new AnimatedMeshComponent("testTania_tania_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		a2->scaleUniform(0.02f);
+		/*AnimatedMeshComponent* a2 = new AnimatedMeshComponent("testTania_tania_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 		a2->translate({ 8.f, 0.f, 0.f });
-		engine->addComponent(skelTest, "skeleton mesh", a2);
+		a2->scaleUniform(0.02f);
+		engine->addComponent(skelTest, "skeleton mesh2", a2);*/
 		
-		AnimatedMeshComponent* a4 = new AnimatedMeshComponent("skelTestBaked_pCube1.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		a4->translate({ 16.f, 0.f, 0.f });
-		engine->addComponent(skelTest, "skeleton animation test", a4);
-		
-		a4->playAnimation("skelTestBaked",true);
+		AnimatedMeshComponent* a3 = new AnimatedMeshComponent("skelTestStairsAnimation_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a3->translate({ 16.f, 0.f, 0.f });
+		engine->addComponent(skelTest, "skeleton animation test1", a3);
 
+		a3->playAnimation("skelTestStairsAnimation", true);
+
+		AnimatedMeshComponent* a4 = new AnimatedMeshComponent("Running4.1_Cube.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a4->translate({ -8.f, 0.f, 0.f });
+		engine->addComponent(skelTest, "skeleton animation test3", a4);
+
+		a4->playAnimation("Running4.1", true);
+
+		AnimatedMeshComponent* a5 = new AnimatedMeshComponent("skelTestBranchAnimation_skelTestBranch.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a5->translate({ 35.f, 0.f, 0.f });
+		engine->addComponent(skelTest, "skeleton animation test2", a5);
+
+		a5->playAnimation("skelTestBranchAnimation", true);
+
+		/*AnimatedMeshComponent* a6 = new AnimatedMeshComponent("dropkickRigTest2_body_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a6->translate({ -13.f, 0.f, 0.f });
+		engine->addComponent(skelTest, "skeleton animation test4", a6);*/
+
+		//a6->playAnimation("dropkickRigTest2", true);
+		
+		//a4->playAnimation("skelTestBranchAnimation",true);  // skelTestBaked_pCube1.lrsm skelTestBaked skelTestStairsAnimation_stairs.lrsm skelTestStairsAnimation Running3.1_Cube.lrsm Running3.1 
+															// skelTestBranchAnimation_skelTestBranch.lrsm skelTestBranchAnimation
 		skelTest->translate({ 0.f, 1.5f, -20.f });
 	}
 

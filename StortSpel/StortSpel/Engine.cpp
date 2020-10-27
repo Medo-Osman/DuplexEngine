@@ -264,7 +264,13 @@ void Engine::initialize()
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
 	if (addEntity("meshPlayer"))
 	{
-		addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
+		AnimatedMeshComponent* a4 = new AnimatedMeshComponent("Running4.1_Cube.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		addComponent(m_entities["meshPlayer"], "player new placeholder", a4);
+
+		a4->playAnimation("Running4.1", true);
+		//a4->setAnimationSpeed(0.05f);
+		
+		//addComponent(m_entities["meshPlayer"], "mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
 		m_entities["meshPlayer"]->setPosition({ 5, 10.f, 0 });
 
 		//Point Light
@@ -290,7 +296,7 @@ void Engine::initialize()
 			removeLightComponent(static_cast<LightComponent*>(m_entities["meshPlayer"]->getComponent(std::string("lightTest") + std::to_string(i))));
 		}
 
-		m_entities["meshPlayer"]->scaleUniform(0.02f);
+		//m_entities["meshPlayer"]->scaleUniform(0.02f);
 		m_entities["meshPlayer"]->addComponent("CCC", new CharacterControllerComponent());
 		CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(m_entities["meshPlayer"]->getComponent("CCC"));
 		pc->initController(m_entities["meshPlayer"], 1.75f, 0.5, {0.f, -1.45f, 0.f}, "human");

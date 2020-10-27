@@ -230,11 +230,15 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 	std::uint32_t* indexArray = new std::uint32_t[indexCount];
 	fileStream.read((char*)&indexArray[0], sizeof(std::uint32_t) * indexCount);
 	
-	// Read file index count
+	// Read file joint count
 	std::uint32_t jointCount;
 	fileStream.read((char*)&jointCount, sizeof(std::uint32_t));
 	
-	// Read indices to array
+	// Read file rootJointIdx
+	std::uint32_t rootJointIdx;
+	fileStream.read((char*)&rootJointIdx, sizeof(std::uint32_t));
+
+	// Read joints to array
 	LRSM_JOINT* jointArray = new LRSM_JOINT[jointCount];
 	fileStream.read((char*)&jointArray[0], sizeof(LRSM_JOINT) * jointCount);
 
@@ -257,6 +261,7 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 	thisSkelRes->getVertexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount, false, sizeof(float) * nrOfFloatsInVertex);
 	thisSkelRes->getIndexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
 	thisSkelRes->setJointCount(jointCount);
+	thisSkelRes->setRootIndex(rootJointIdx);
 	thisSkelRes->setJoints(jointArray);
 
 	//Create a new entry in the meshcache

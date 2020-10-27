@@ -8,18 +8,15 @@ struct LRSM_JOINT
 	int nrOfChildren;
 	int children[5];
 
-	float translation[4]; //TODO: make these float3s, and do the same in the converter to save file space.
+	float translation[3];
 	float rotation[4];
-
-	float tempPoseRotation[4];
-	//DirectX::XMVECTOR translation;
-	//DirectX::XMVECTOR rotation;
 };
 
 class SkeletalMeshResource : public MeshResource
 {
 private:
 
+	int m_rootIndex;
 	int m_jointCount;
 	LRSM_JOINT* m_inputJoints = nullptr;
 
@@ -36,5 +33,8 @@ public:
 	
 	int getJointCount() { return m_jointCount; }
 	void setJointCount(int jointCount) { m_jointCount = jointCount; }
+	
+	int getRootIndex() { return m_rootIndex; }
+	void setRootIndex(int rootIndex) { m_rootIndex = rootIndex; }
 	
 };
