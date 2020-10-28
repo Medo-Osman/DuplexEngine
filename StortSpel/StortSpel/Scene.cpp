@@ -94,6 +94,68 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
 
+void Scene::loadLobby()
+{
+	Entity* entity;
+	Material gridTest = Material({ L"T_GridTestTex.bmp" });
+	entity = addEntity("floor");
+
+	Entity* music = addEntity("lobbyMusic");
+	if (music)
+	{
+		addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.4f));
+	}
+
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+		entity->scale({ 300, 2,300 });
+		entity->translate({ 0,-2,0 });
+		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	entity = addEntity("walls");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
+		entity->scale({ 30, -30, 30});
+		entity->translate({ 0,8,0 });
+	}
+
+	Entity* sign = addEntity("sign");
+	if(sign)
+	{
+		addComponent(sign, "mesh", new MeshComponent("WELCOME_Cube.002.lrm", Material({ L"Controlls.png" })));
+		sign->translate({ 0, 0, 0 });
+		sign->scale({ 2, 2, 2 });
+		sign->setRotation(XMConvertToRadians(-90), XMConvertToRadians(0), XMConvertToRadians(0));
+	}
+
+	//Point Light
+	addComponent(m_player->getPlayerEntity(),"testLight", new LightComponent());
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
+
+	//Spot Light
+	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
+
+	//Tests and demonstration how to add and remove lights
+	for (int i = 0; i < 8; i++)
+	{
+		addComponent(m_player->getPlayerEntity(),"lightTest" + std::to_string(i), new LightComponent());
+	}
+
+	// Audio test
+	/*Entity* audioTest = addEntity("audioTest");
+	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	m_nightSlide = 0.01f;
+	m_nightVolume = 0.2f;*/
+}
+
 void Scene::loadScene(std::string path)
 {
 	Entity* entity;
@@ -223,6 +285,86 @@ void Scene::loadScene(std::string path)
 	createSpotLight(Vector3(-11, 50, 275), Vector3(-35, 0, 0), Vector3(1, 0, 0), 0.3);
 }
 
+void Scene::loadArena()
+{
+	Engine* engine = &Engine::get();
+	Entity* entity;
+
+	m_sceneEntryPosition = Vector3(0, 0, 0);
+
+
+	Material gridTest = Material({ L"T_GridTestTex.bmp" });
+	entity = addEntity("floor");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+		entity->scale({ 157, 2, 157 });
+		entity->setPosition({ 0,-2,0 });
+		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+	createStaticPlatform(Vector3(0, 24, 78), Vector3(0, 0, 0), Vector3(157, 50, 1), "testCube_pCube1.lrm", L"DarkGrayTexture.png");
+	createStaticPlatform(Vector3(0, 24, -78), Vector3(0, 0, 0), Vector3(157, 50, 1), "testCube_pCube1.lrm", L"DarkGrayTexture.png");
+	createStaticPlatform(Vector3(78, 24, 0), Vector3(0, 0, 0), Vector3(1, 50, 157), "testCube_pCube1.lrm", L"DarkGrayTexture.png");
+	createStaticPlatform(Vector3(-78, 24, 0), Vector3(0, 0, 0), Vector3(1, 50, 157), "testCube_pCube1.lrm", L"DarkGrayTexture.png");
+
+	entity = addEntity("bossSign");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("BossSign_pCube20.lrm", Material({ L"BossSign.png" })));
+		entity->setPosition({ 0, -8.3, 8 });
+	}
+
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	Entity* clownMask = addEntity("ClownMask");
+	if (clownMask)
+	{
+		addComponent(clownMask, "mesh",
+			new MeshComponent("ClownMask_ClownEye_R1.lrm", Material({ L"GrayTexture.png" })));
+
+		clownMask->setPosition(Vector3(0, 10, 73));
+		clownMask->setRotation(XMConvertToRadians(7), XMConvertToRadians(180), XMConvertToRadians(0));
+	}
+	Entity* goalTrigger = addEntity("trigger");
+	if (goalTrigger)
+	{
+		addComponent(goalTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
+		goalTrigger->setPosition(0, 10.563, 75.347);
+		goalTrigger->setScale(13.176, 15.048, 1);
+		goalTrigger->setRotation(XMConvertToRadians(-10.102), XMConvertToRadians(0), XMConvertToRadians(0));
+
+		addComponent(goalTrigger, "trigger",
+			new TriggerComponent());
+
+		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
+		tc->initTrigger(goalTrigger, XMFLOAT3(9.0f, 8.0f, 0.5f));
+		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
+		tc->setIntData((int)ScenesEnum::LOBBY);
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	Entity* skybox = addEntity("SkyBox");
+	if (skybox)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	Entity* audioTestDelete = addEntity("deleteTestAudio");
+	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+	delete m_entities["deleteTestAudio"];
+	m_entities.erase("deleteTestAudio");
+
+
+	// Audio test
+	Entity* audioTest = addEntity("audioTest");
+	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	m_nightSlide = 0.01f;
+	m_nightVolume = 0.2f;
+}
+
 // Private functions:
 void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpeed, int nrOfPlatforms)
 {
@@ -285,7 +427,7 @@ void Scene::createFlippingPlatform(Vector3 position, Vector3 rotation, float upT
 	}
 }
 
-void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 scale, std::string meshPath)
+void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 scale, std::string meshPath, std::wstring texPath)
 {
 	m_nrOfStaticPlatforms++;
 
@@ -293,7 +435,7 @@ void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 sca
 	if (staticPlatform)
 	{
 		addComponent(staticPlatform, "mesh",
-			new MeshComponent(meshPath.c_str(), Material({ L"GrayTexture.png" })));
+			new MeshComponent(meshPath.c_str(), Material({ texPath.data() })));
 
 		staticPlatform->setPosition(position);
 		staticPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
@@ -301,148 +443,6 @@ void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 sca
 
 		createNewPhysicsComponent(staticPlatform);
 	}
-}
-
-void Scene::loadLobby()
-{
-	Entity* entity;
-	Material gridTest = Material({ L"T_GridTestTex.bmp" });
-	entity = addEntity("floor");
-
-	Entity* music = addEntity("lobbyMusic");
-	if (music)
-	{
-		addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.4f));
-	}
-
-	if (entity)
-	{
-		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		entity->scale({ 300, 2,300 });
-		entity->translate({ 0,-2,0 });
-		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
-	}
-
-	entity = addEntity("walls");
-	if (entity)
-	{
-		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
-		entity->scale({ 30, -30, 30});
-		entity->translate({ 0,8,0 });
-	}
-
-	Entity* sign = addEntity("sign");
-	if(sign)
-	{
-		addComponent(sign, "mesh", new MeshComponent("WELCOME_Cube.002.lrm", Material({ L"Controlls.png" })));
-		sign->translate({ 0, 0, 0 });
-		sign->scale({ 2, 2, 2 });
-		sign->setRotation(XMConvertToRadians(-90), XMConvertToRadians(0), XMConvertToRadians(0));
-	}
-
-	//Point Light
-	addComponent(m_player->getPlayerEntity(),"testLight", new LightComponent());
-	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
-	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
-	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
-
-	//Spot Light
-	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
-	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
-	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
-	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
-
-	//Tests and demonstration how to add and remove lights
-	for (int i = 0; i < 8; i++)
-	{
-		addComponent(m_player->getPlayerEntity(),"lightTest" + std::to_string(i), new LightComponent());
-	}
-
-	// Audio test
-	/*Entity* audioTest = addEntity("audioTest");
-	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
-	m_nightSlide = 0.01f;
-	m_nightVolume = 0.2f;*/
-}
-
-void Scene::loadArena()
-{
-	Engine* engine = &Engine::get();
-	Entity* entity;
-
-	m_sceneEntryPosition = Vector3(0, 0, 0);
-
-
-	Material gridTest = Material({ L"T_GridTestTex.bmp" });
-	entity = addEntity("floor");
-	if (entity)
-	{
-		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
-		entity->scale({ 157, 2, 157 });
-		entity->setPosition({ 0,-2,0 });
-		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
-	}
-	createStaticPlatform(Vector3(0, 24, 78), Vector3(0, 0, 0), Vector3(157, 50, 1), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 24, -78), Vector3(0, 0, 0), Vector3(157, 50, 1), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(78, 24, 0), Vector3(0, 0, 0), Vector3(1, 50, 157), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-78, 24, 0), Vector3(0, 0, 0), Vector3(1, 50, 157), "testCube_pCube1.lrm");
-
-	entity = addEntity("bossSign");
-	if (entity)
-	{
-		addComponent(entity, "mesh", new MeshComponent("BossSign_pCube20.lrm", Material({ L"BossSign.png" })));
-		entity->setPosition({ 0, -8.3, 8 });
-	}
-
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	Entity* clownMask = addEntity("ClownMask");
-	if (clownMask)
-	{
-		addComponent(clownMask, "mesh",
-			new MeshComponent("ClownMask_ClownEye_R1.lrm", Material({ L"GrayTexture.png" })));
-
-		clownMask->setPosition(Vector3(0, 10, 73));
-		clownMask->setRotation(XMConvertToRadians(7), XMConvertToRadians(180), XMConvertToRadians(0));
-	}
-	Entity* goalTrigger = addEntity("trigger");
-	if (goalTrigger)
-	{
-		addComponent(goalTrigger, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
-		goalTrigger->setPosition(0, 10.563, 75.347);
-		goalTrigger->setScale(13.176, 15.048, 1);
-		goalTrigger->setRotation(XMConvertToRadians(-10.102), XMConvertToRadians(0), XMConvertToRadians(0));
-
-		addComponent(goalTrigger, "trigger",
-			new TriggerComponent());
-
-		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
-		tc->initTrigger(goalTrigger, XMFLOAT3(9.0f, 8.0f, 0.5f));
-		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
-		tc->setIntData((int)ScenesEnum::LOBBY);
-	}
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	Entity* skybox = addEntity("SkyBox");
-	if (skybox)
-	{
-		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-	}
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	Entity* audioTestDelete = addEntity("deleteTestAudio");
-	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
-	delete m_entities["deleteTestAudio"];
-	m_entities.erase("deleteTestAudio");
-
-
-	// Audio test
-	Entity* audioTest = addEntity("audioTest");
-	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
-	m_nightSlide = 0.01f;
-	m_nightVolume = 0.2f;
 }
 
 void Scene::loadMaterialTest()
