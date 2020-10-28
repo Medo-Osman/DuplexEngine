@@ -128,21 +128,13 @@ void Scene::loadLobby()
 		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	entity = addEntity("walls");
-	if (entity)
-	{
-		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture1m.png" })));
-		entity->scale({ 30, -30, 30});
-		entity->translate({ 0,8,0 });
-	}
-
 	Entity* sign = addEntity("sign");
 	if(sign)
 	{
 		addComponent(sign, "mesh", new MeshComponent("WELCOME_Cube.002.lrm", Material({ L"Controlls.png" })));
-		sign->translate({ 0, 0, 0 });
+		sign->translate({ 0, 0, 5 });
 		sign->scale({ 2, 2, 2 });
-		sign->setRotation(XMConvertToRadians(-90), XMConvertToRadians(0), XMConvertToRadians(0));
+		sign->setRotation(XMConvertToRadians(-90), XMConvertToRadians(180), XMConvertToRadians(0));
 	}
 
 	//Point Light
