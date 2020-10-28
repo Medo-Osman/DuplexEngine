@@ -128,6 +128,7 @@ void Player::playerStateLogic(const float& dt)
 		std::cout << "ROLL\n";
 		if (m_currentDistance >= ROLL_TRAVEL_DISTANCE)
 		{
+			m_lastState = PlayerState::ROLL;
 			m_state = PlayerState::IDLE;
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
@@ -145,6 +146,7 @@ void Player::playerStateLogic(const float& dt)
 		std::cout << "DASH\n";
 		if (m_currentDistance >= DASH_TRAVEL_DISTANCE)
 		{
+			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
 		}
@@ -156,15 +158,18 @@ void Player::playerStateLogic(const float& dt)
 		}
 		break;
 	case PlayerState::FALLING:
-		std::cout << "FALLING\n";
-		if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.5f))
+		//std::cout << "FALLING\n";
+		if (m_jumps == 0) // Can only jump once in air
+			m_jumps = ALLOWED_NR_OF_JUMPS - 1;
+
+		if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
 		{
+			m_lastState = PlayerState::FALLING;
 			m_state = PlayerState::IDLE;
 			m_jumps = 0;
-			m_velocity.y = 0;
 			m_hasDashed = false;
 		}
-		//else
+		//else 
 		//{
 		//	//finalMovement.y += finalMovement.y - 1.f*dt;//-JUMP_SPEED * FALL_MULTIPLIER * dt;
 		//	//m_controller->move(finalMovement, dt);
@@ -179,6 +184,7 @@ void Player::playerStateLogic(const float& dt)
 		if (m_velocity.y < 0)
 		{
 			m_currentDistance = 0.f;
+			m_lastState = PlayerState::JUMPING;
 			m_state = PlayerState::FALLING;
 		}
 		
@@ -190,19 +196,57 @@ void Player::playerStateLogic(const float& dt)
 
 		break;
 	case PlayerState::IDLE:
-		std::cout << "IDLE\n";
+		//std::cout << "IDLE\n";
 		if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
+		{
+			m_lastState = PlayerState::IDLE;
 			m_state = PlayerState::FALLING;
-		m_velocity.y = 0;
+		}
 		break;
 	default:
 		break;
 	}
 
-	if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING)
-		m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
+	if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING || m_state == PlayerState::ROLL)
+	{
+		if (m_state == PlayerState::ROLL)
+		{
+			if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
+				m_velocity.y = 0;
+
+			std::cout << "	ROLL-GRAVITY!\n";
+		}
+		else
+		{
+			if (m_playerEntity->getTranslation().y != m_lastPosition.y)
+				m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
+			else if (m_velocity.y == 0)
+				m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
+			std::cout << "	GRAVITY!\n";
+		}
+	}
+	else
+	{
+		m_velocity.y = 0;
+		std::cout << "	No GRAVITY!\n";
+	}
+
+	std::cout << m_velocity.y << "\n";
+
+	// Max Gravity Test
+	if (m_velocity.y >= -MAX_FALL_SPEED)
+	{
+		std::cout <<"		LESS THAN MAX!\n";
+	}
+	else
+	{
+		m_velocity.y = -MAX_FALL_SPEED;
+		std::cout <<"		MORE THAN MAX!----------------------------\n";
+	}
+
 
 	m_controller->move(m_velocity, dt);
+	m_lastPosition = m_playerEntity->getTranslation();
 
 	if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
 	{
@@ -299,6 +343,7 @@ void Player::increaseScoreBy(int value)
 
 void Player::respawnPlayer()
 {
+	m_state = PlayerState::IDLE;
 	m_controller->setPosition(m_checkpointPos);
 }
 

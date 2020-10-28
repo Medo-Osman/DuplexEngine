@@ -87,7 +87,7 @@ void Scene::addCheckpoint(const Vector3& position)
 	addComponent(checkPoint, "checkpoint", new CheckpointComponent(checkPoint));
 	static_cast<TriggerComponent*>(checkPoint->getComponent("checkpoint"))->initTrigger(checkPoint, { 4, 4, 4 });
 
-	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.5f));
+	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.3f));
 
 }
 
@@ -150,12 +150,23 @@ void Scene::loadScene(std::string path)
 		tc->setIntData((int)ScenesEnum::ARENA);
 	}
 
+	// Test unit cube 
+	entity = addEntity("unit-cube");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm"));
+		//entity->scale({ 2,2, 2 });
+		entity->setPosition({ 0, 7.5f, 0.f });
+		createNewPhysicsComponent(entity);
+	}
+
 	// Start:
 	createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 9, 29.5), Vector3(0, 0, 0), Vector3(10, 4, 1), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 11.5, 39), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 16, 48.5), Vector3(0, 0, 0), Vector3(10, 8, 1), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 20.5, 58), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 8.5, 29.5), Vector3(0, 0, 0), Vector3(10, 3, 1), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 10.5, 39), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 14, 48.5), Vector3(0, 0, 0), Vector3(10, 6, 1), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 17, 58), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 19, 66), Vector3(0, 0, 0), Vector3(10, 4, 4), "testCube_pCube1.lrm");
 	// Left:
 	createStaticPlatform(Vector3(-10.2, 20.5, 73.2), Vector3(0, -45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-16.54, 20.5, 81), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
@@ -179,7 +190,7 @@ void Scene::loadScene(std::string path)
 	createStaticPlatform(Vector3(16.54, 27.5, 100), Vector3(0, 0, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(11.54, 27.5, 105), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
 	//createStaticPlatform	(Vector3(2, 30, 105),			Vector3(0, 0, 0),		Vector3(1, 1, 1),		"SquarePlatform.lrm");
-	createStaticPlatform(Vector3(-16.54, 27.5, 105), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-14, 27.5, 105), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-30, 27.5, 107.5), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-30, 32.6, 126.4), Vector3(-20, 0, 0), Vector3(5, 1, 30), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-30, 37.7, 145.32), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
@@ -422,7 +433,7 @@ void Scene::loadArena()
 	}
 
 	Entity* audioTestDelete = addEntity("deleteTestAudio");
-	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.3f));
 	delete m_entities["deleteTestAudio"];
 	m_entities.erase("deleteTestAudio");
 

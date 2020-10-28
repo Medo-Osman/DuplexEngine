@@ -26,8 +26,8 @@ float4 main(ps_in input) : SV_TARGET
 	float SpaceOpacity = 0;
 	
 	float FalloffStartScale = 0.025;
-	float FalloffRadius = 25;
-	float FadeExp = 0.5;
+	float FalloffRadius = 1;
+	float FadeExp = 0;
 	float LineBrightness = 1;
 	float FaceBrightness = 1;
 	

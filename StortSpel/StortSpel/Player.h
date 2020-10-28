@@ -29,8 +29,8 @@ private:
     float m_playerScale = 2.0f;
 
     //CONTROLLER CONFIG
-    const float CAPSULE_HEIGHT = 1.75f;
-    const float CAPSULE_RADIUS = 0.5f;
+    const float CAPSULE_HEIGHT = 1.5f;
+    const float CAPSULE_RADIUS = 0.01f;
 
     //WALK CONFIG
     const float PLAYER_SPEED = 10.f;
@@ -39,7 +39,7 @@ private:
     //JUMP CONFIG
     const float FALL_MULTIPLIER = 1.1f;
     //const float JUMP_DISTANCE = 30.f; //deprecated
-    const float JUMP_SPEED = 0.15f;
+    const float JUMP_SPEED = 0.10f;
     //const float JUMP_DISTANCE = 3.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
@@ -47,16 +47,17 @@ private:
     float m_gravityScale = .0005f;
 
     //DASH CONFIG 
-    const float DASH_TRAVEL_DISTANCE = 10.f;
+    const float DASH_TRAVEL_DISTANCE = 6.f;
     const float DASH_SPEED = 10.0f;
     bool m_hasDashed;
 
     //Roll CONFIG
     const float ROLL_TRAVEL_DISTANCE = 10.f;
     const float ROLL_SPEED = 15.0f;
+    PlayerState m_lastState;
     const float GRAVITY = 9.82f;
     //const float GRAVITY = 0.375f;
-    //const float MAX_FALL_SPEED = 15.82f;
+    const float MAX_FALL_SPEED = 0.3f;
     const float ROLL_HEIGHT = 0.3f;
     const float ROLL_RADIUS = 0.2f;
 
@@ -77,6 +78,7 @@ private:
     Pickup* m_pickupPointer;
 
     Vector3 m_velocity = Vector3();
+    Vector3 m_lastPosition = Vector3();
     float m_previousVerticalMovement = 0.f;
 
     // Score

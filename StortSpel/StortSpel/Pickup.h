@@ -107,13 +107,13 @@ public:
 		m_entityToDoEffectsOn = entityToDoEffectsOn;
 		if (m_onPickupSound != L"")
 		{
-			entityToDoEffectsOn->addComponent("OnPickup", addAudioComponent(m_onPickupSound, false, 0.5f));
+			entityToDoEffectsOn->addComponent("OnPickup", addAudioComponent(m_onPickupSound, false, 0.3f));
 			m_audioComponents.back()->playSound();
 		}
 
 		if (m_whileActiveSound != L"")
 		{
-			entityToDoEffectsOn->addComponent("WhileUsingPickup", m_whileAudio = addAudioComponent(m_whileActiveSound, true, 0.5f));
+			entityToDoEffectsOn->addComponent("WhileUsingPickup", m_whileAudio = addAudioComponent(m_whileActiveSound, true, 0.3f));
 			m_audioComponents.back()->playSound();
 		}
 	}
@@ -127,7 +127,7 @@ public:
 		}
 		if (m_depletedSound != L"")
 		{
-			m_entityToDoEffectsOn->addComponent("OnDepeleted", addAudioComponent(m_depletedSound, false, 0.5f));
+			m_entityToDoEffectsOn->addComponent("OnDepeleted", addAudioComponent(m_depletedSound, false, 0.01f));
 			m_audioComponents.back()->playSound();
 		}
 	}
