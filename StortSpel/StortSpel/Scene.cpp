@@ -291,6 +291,7 @@ void Scene::loadLobby()
 {
 	Entity* entity;
 	Material gridTest = Material({ L"T_GridTestTex.bmp" });
+	m_sceneEntryPosition = { 5.f, 10.f, 0.f };
 	entity = addEntity("floor");
 	if (entity)
 	{
@@ -338,8 +339,23 @@ void Scene::loadArena()
 	Engine* engine = &Engine::get();
 	Entity* entity;
 
-	m_sceneEntryPosition = Vector3(33.f, 3.f, 2.f);
+	m_sceneEntryPosition = Vector3(33.f, 4.5f, 2.f);
 
+	Entity* goalTrigger = addEntity("teleportToLobbyEntity");
+	if (goalTrigger)
+	{
+		addComponent(goalTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"T_GridTestTex.bmp" })));
+		goalTrigger->setPosition(Vector3(0, 3.f, 0));
+
+		addComponent(goalTrigger, "trigger",
+			new TriggerComponent());
+
+		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
+		tc->initTrigger(goalTrigger, XMFLOAT3(1, 1.f, 1));
+		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
+		tc->setIntData((int)ScenesEnum::LOBBY);
+	}
 
 	Material gridTest = Material({ L"T_GridTestTex.bmp" });
 	entity = addEntity("floor");
@@ -347,7 +363,7 @@ void Scene::loadArena()
 	{
 		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
 		entity->scale({ 300, 2,300 });
-		entity->setPosition({ 0,-2,0 });
+		entity->setPosition({ 0, -2.f, 0 });
 		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 

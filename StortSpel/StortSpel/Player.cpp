@@ -269,6 +269,13 @@ int Player::getScore()
 	return m_score;
 }
 
+void Player::setScore(int newScore)
+{
+	m_score = newScore;
+	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+
+}
+
 Entity* Player::getPlayerEntity() const
 {
 	return m_playerEntity;
