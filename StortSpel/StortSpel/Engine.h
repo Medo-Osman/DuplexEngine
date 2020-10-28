@@ -10,6 +10,7 @@
 #include "PhysicsComponent.h"
 #include "AudioHandler.h"
 #include "AudioComponent.h"
+#include "CheckpointComponent.h"
 #include "Camera.h"
 
 
@@ -35,8 +36,8 @@ private:
 
 	Vector4 m_skyLightDir = Vector4(0, 0.5, -0.5, 0);
 	Vector4 m_skyLightColor = Vector4(1, 1, 1, 1);
-	FLOAT m_skyLightBrightness = 1.5f;
-	FLOAT m_ambientLightLevel = 0.3f;
+	FLOAT m_skyLightBrightness = 1.75f;
+	FLOAT m_ambientLightLevel = 0.05f;
 
 	// Entities
 	std::unordered_map<std::string, Entity*>* m_entities;
