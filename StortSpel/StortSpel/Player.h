@@ -121,6 +121,7 @@ public:
     void respawnPlayer();
 
     int getScore();
+    void setScore(int newScore);
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
