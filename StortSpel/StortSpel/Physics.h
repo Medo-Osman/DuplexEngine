@@ -10,7 +10,7 @@ using namespace physx;
 struct PhysicsData
 {
 	TriggerType triggerType;
-	int assosiatedTriggerEnum;
+	int associatedTriggerEnum;
 	std::string stringData;
 	float floatData;
 	int intData;
@@ -19,7 +19,7 @@ struct PhysicsData
 	PhysicsData()
 	{
 		triggerType = TriggerType::UNDEFINED;
-		assosiatedTriggerEnum = 0;
+		associatedTriggerEnum = 0;
 		stringData = "";
 		floatData = 0;
 		intData = 0;
@@ -285,6 +285,7 @@ public:
 		if (trigger)
 		{
 			shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
+			shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 			shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);
 		}
 		actor->attachShape(*shape);
@@ -304,6 +305,7 @@ public:
 		if (trigger)
 		{
 			shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
+			shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 			shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);
 		}
 

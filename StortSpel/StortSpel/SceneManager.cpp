@@ -24,6 +24,7 @@ void SceneManager::initalize()
 	//m_currentScene->loadArena();
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
+	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
 
 	// Next Scene
 	m_nextScene = nullptr;
@@ -37,7 +38,28 @@ void SceneManager::initalize()
 void SceneManager::updateScene(const float &dt)
 {
 	if (m_swapScene)
+	{
+		m_nextScene = new Scene();
+		switch (m_nextSceneEnum)
+		{
+		case ScenesEnum::LOBBY:
+			m_nextScene->loadLobby();
+			//Reset game variables that are needed here
+			Engine::get().getPlayerPtr()->setScore(0);
+			m_gameStarted = false;
+			break;
+		case ScenesEnum::START:
+			m_nextScene->loadScene("Ogorki");
+			break;
+		case ScenesEnum::ARENA:
+			m_nextScene->loadArena();
+			break;
+		default:
+			break;
+		}
+
 		swapScenes();
+	}
 
 	m_currentScene->updateScene(dt);
 }
@@ -65,23 +87,9 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 {
 	if (physicsData.triggerType == TriggerType::EVENT)
 	{
-		if ((EventType)physicsData.assosiatedTriggerEnum == EventType::SWAPSCENE)
+		if ((EventType)physicsData.associatedTriggerEnum == EventType::SWAPSCENE)
 		{
-			m_nextScene = new Scene();
-			switch ((ScenesEnum)physicsData.intData)
-			{
-			case ScenesEnum::LOBBY:
-				m_nextScene->loadLobby();
-				break;
-			case ScenesEnum::START:
-				m_nextScene->loadScene("Ogorki");
-				break;
-			case ScenesEnum::ARENA:
-				m_nextScene->loadArena();
-				break;
-			default:
-				break;
-			}
+			m_nextSceneEnum = (ScenesEnum)physicsData.intData;
 			m_swapScene = true;
 		}
 	}

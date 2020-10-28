@@ -10,6 +10,7 @@ private:
 	Scene* m_nextScene;
 	bool m_gameStarted;
 	bool m_swapScene;
+	ScenesEnum m_nextSceneEnum;
 public:
 	SceneManager();
 	~SceneManager();

@@ -28,6 +28,7 @@ public:
 	void setRenderId(const unsigned long int id) { m_renderId = id; }
 	const unsigned long int& getRenderId() { return m_renderId; }
 
+	void setMeshResourcePtr(MeshResource* newResourcePointer) { m_resourcePointer = newResourcePointer; }
 	MeshResource* getMeshResourcePtr() const { return m_resourcePointer; }
 	ShaderProgramsEnum getShaderProgEnum() const { return m_shaderProgEnum; }
 	const std::string& getFilePath() const { return m_filePath; }
@@ -36,5 +37,8 @@ public:
 
 	// Update
 	virtual void update(float dt) override {}
+
+protected:
+	MeshComponent(ShaderProgramsEnum shaderEnum = ShaderProgramsEnum::DEFAULT, Material material = Material());
 
 };

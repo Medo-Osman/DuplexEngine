@@ -77,6 +77,20 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
 
+void Scene::addCheckpoint(const Vector3& position)
+{
+	Entity* checkPoint = addEntity("checkpoint"+std::to_string(m_nrOfCheckpoints++));
+	addComponent(checkPoint, "mesh", new MeshComponent("Flag_pPlane2.lrm"));
+	checkPoint->setPosition(position + Vector3(0,-0.25f,0));
+	checkPoint->scale(1.5, 1.5, 1.5);
+
+	addComponent(checkPoint, "checkpoint", new CheckpointComponent(checkPoint));
+	static_cast<TriggerComponent*>(checkPoint->getComponent("checkpoint"))->initTrigger(checkPoint, { 4, 4, 4 });
+
+	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false));
+
+}
+
 void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 {
 	int nrOfPickups = (int)PickupType::COUNT - 1; //-1 due to Score being in pickupTypes
@@ -162,6 +176,13 @@ void Scene::loadScene(std::string path)
 
 	loadPickups();
 	loadScore();
+
+	addCheckpoint(Vector3(0, 9, 5));
+	addCheckpoint(Vector3(14.54, 30, 105));
+	addCheckpoint(Vector3(14.54, 30, 105));
+	addCheckpoint(Vector3(-30, 40, 144));
+	addCheckpoint(Vector3(-11, 40, 218.5));
+
 	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
 	
@@ -257,6 +278,49 @@ void Scene::loadScene(std::string path)
 		tc->setIntData((int)ScenesEnum::ARENA);
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	Entity* skelTest = addEntity("skeleton-test");
+	if (skelTest)
+	{
+		AnimatedMeshComponent* a1 = new AnimatedMeshComponent("skelTestStairs_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a1->translate({ 0.f, 0.f, 0.f });
+		engine->addComponent(skelTest, "skeleton mesh1", a1);
+		
+		AnimatedMeshComponent* a2 = new AnimatedMeshComponent("testTania_tania_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a2->translate({ 8.f, 0.f, 0.f });
+		a2->scaleUniform(0.02f);
+		engine->addComponent(skelTest, "skeleton mesh2", a2);
+		
+		AnimatedMeshComponent* a3 = new AnimatedMeshComponent("skelTestStairsAnimation_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a3->translate({ 16.f, 0.f, 0.f });
+		addComponent(skelTest, "skeleton animation test1", a3);
+
+		a3->playAnimation("skelTestStairsAnimation", true);
+
+		AnimatedMeshComponent* a4 = new AnimatedMeshComponent("Running4.1_Cube.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a4->translate({ -8.f, 0.f, 0.f });
+		addComponent(skelTest, "skeleton animation test3", a4);
+
+		a4->playAnimation("Running4.1", true);
+
+		AnimatedMeshComponent* a5 = new AnimatedMeshComponent("skelTestBranchAnimation_skelTestBranch.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		a5->translate({ 35.f, 0.f, 0.f });
+		addComponent(skelTest, "skeleton animation test2", a5);
+
+		a5->playAnimation("skelTestBranchAnimation", true);
+
+		//AnimatedMeshComponent* a6 = new AnimatedMeshComponent("dropkickRigTest2_body_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		//a6->translate({ -13.f, 0.f, 0.f });
+		//addComponent(skelTest, "skeleton animation test4", a6);
+
+		//a6->playAnimation("dropkickRigTest2", true);
+		
+		//a4->playAnimation("skelTestBranchAnimation",true);  // skelTestBaked_pCube1.lrsm skelTestBaked skelTestStairsAnimation_stairs.lrsm skelTestStairsAnimation Running3.1_Cube.lrsm Running3.1 
+															// skelTestBranchAnimation_skelTestBranch.lrsm skelTestBranchAnimation
+		skelTest->translate({ 0.f, 1.5f, -20.f });
+	}
+	*/
 
 	Entity* skybox = addEntity("SkyBox");
 	if (skybox)

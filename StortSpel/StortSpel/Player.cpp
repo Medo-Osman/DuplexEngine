@@ -11,6 +11,7 @@ Player::Player()
 	m_hasDashed = false;
 	m_angleY = 0;
 	m_playerEntity = nullptr;
+	m_animMesh = nullptr;
 	m_cameraTransform = nullptr;
 	m_controller = nullptr;
 	m_state = PlayerState::IDLE;
@@ -34,6 +35,11 @@ Player::Player()
 	style.position.x = 160.f;
 	style.color = Colors::Yellow;
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
+
+	GUIImageStyle imageStyle;
+	imageStyle.position = Vector2(400, 150);
+	imageStyle.scale = Vector2(1, 1);
+	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
 }
 
@@ -127,6 +133,7 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::IDLE;
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
+			m_animMesh->playAnimation("Running4.1", true);
 		}
 		else
 		{
@@ -155,6 +162,7 @@ void Player::playerStateLogic(const float& dt)
 		{
 			m_state = PlayerState::IDLE;
 			m_jumps = 0;
+			m_finalMovement.y = 0;
 			m_hasDashed = false;
 		}
 		else
@@ -185,6 +193,21 @@ void Player::playerStateLogic(const float& dt)
 	if (m_finalMovement.y > -MAX_FALL_SPEED * dt)
 		m_finalMovement += Vector3(0, -GRAVITY * dt, 0);
 	m_controller->move(m_finalMovement, dt);
+	
+	float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
+	if (m_state != PlayerState::ROLL)
+	{
+		if (vectorLen > 0)
+			m_animMesh->setAnimationSpeed(1);
+		else
+			m_animMesh->setAnimationSpeed(0);
+	}
+	
+
+	if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
+	{
+		respawnPlayer();
+	}
 }
 
 void Player::updatePlayer(const float& dt)
@@ -247,9 +270,24 @@ void Player::setPlayerEntity(Entity* entity)
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
 }
 
+Vector3 Player::getCheckpointPos()
+{
+	return m_checkpointPos;
+}
+
+void Player::setCheckpoint(Vector3 newPosition)
+{
+	m_checkpointPos = newPosition;
+}
+
 void Player::setCameraTranformPtr(Transform* transform)
 {
 	m_cameraTransform = transform;
+}
+
+void Player::setAnimMeshPtr(AnimatedMeshComponent* animatedMesh)
+{
+	m_animMesh = animatedMesh;
 }
 
 void Player::incrementScore()
@@ -264,9 +302,21 @@ void Player::increaseScoreBy(int value)
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
 }
 
+void Player::respawnPlayer()
+{
+	m_controller->setPosition(m_checkpointPos);
+}
+
 int Player::getScore()
 {
 	return m_score;
+}
+
+void Player::setScore(int newScore)
+{
+	m_score = newScore;
+	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+
 }
 
 Entity* Player::getPlayerEntity() const
@@ -309,6 +359,9 @@ void Player::inputUpdate(InputData& inputData)
 		case USE:
 
 			break;
+		case CLOSEINTROGUI:
+			GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+			break;
 		default:
 			break;
 		}
@@ -319,13 +372,32 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 {
 	if (!shouldTriggerEntityBeRemoved)
 	{
+		if (physicsData.triggerType == TriggerType::CHECKPOINT)
+		{
+
+			Entity* ptr = static_cast<Entity*>(physicsData.pointer);
+
+			CheckpointComponent* checkpointPtr = dynamic_cast<CheckpointComponent*>(ptr->getComponent("checkpoint"));
+			if (!checkpointPtr->isUsed())
+			{
+				AudioComponent* audioPtr = dynamic_cast<AudioComponent*>(ptr->getComponent("sound"));
+				audioPtr->playSound();
+
+				m_checkpointPos = ptr->getTranslation();
+
+				checkpointPtr->setUsed(true);
+			}
+
+
+		}
+
 		if (physicsData.triggerType == TriggerType::PICKUP)
 		{
 			if (m_pickupPointer == nullptr)
 			{
 				bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
 				int duration = physicsData.intData;
-				switch ((PickupType)physicsData.assosiatedTriggerEnum)
+				switch ((PickupType)physicsData.associatedTriggerEnum)
 				{
 				case PickupType::SPEED:
 					m_currentSpeedModifier = 1.f;
@@ -341,18 +413,19 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				}
 				if (addPickupByAssosiatedID)
 				{
-					m_pickupPointer = Pickup::getPickupByID(physicsData.assosiatedTriggerEnum);
+					m_pickupPointer = Pickup::getPickupByID(physicsData.associatedTriggerEnum);
 					m_pickupPointer->onPickup(m_playerEntity, duration);
 				}
 			}
 			
-			if((PickupType)physicsData.assosiatedTriggerEnum == PickupType::SCORE)
+			if((PickupType)physicsData.associatedTriggerEnum == PickupType::SCORE)
 			{
 				int amount = (int)physicsData.floatData;
 				this->increaseScoreBy(amount);
 				m_audioComponent->playSound();
 				shouldTriggerEntityBeRemoved = true;
 			}
+
 
 		}
 		
@@ -378,6 +451,8 @@ void Player::roll()
 	m_controller->setControllerSize(ROLL_HEIGHT);
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
+	m_animMesh->playAnimation("platformer_guy_roll1", true);
+	m_animMesh->setAnimationSpeed(0.8f);
 }
 
 bool Player::canDash() const
