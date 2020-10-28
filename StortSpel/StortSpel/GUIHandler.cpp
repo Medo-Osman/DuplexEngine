@@ -59,9 +59,35 @@ void GUIHandler::changeGUIText(int index, std::string newTextString)
 	static_cast<GUIText*>(m_elements[index])->changeText(newTextString);
 }
 
+int GUIHandler::addGUIImage(std::wstring textureString, GUIImageStyle style)
+{
+	// Gui Element
+	int index = m_elements.size();
+	GUIImageLabel* image = new GUIImageLabel(textureString, style);
+	image->setTexture(textureString);
+	m_elements.push_back(image);
+
+	return index;
+}
+
+void GUIHandler::changeGUIImage(int index, std::wstring path)
+{
+	static_cast<GUIImageLabel*>(m_elements[index])->setTexture(path);
+}
+
 void GUIHandler::removeElement(int index)
 {
 	m_elements.erase(m_elements.begin() + index);
+}
+
+void GUIHandler::setVisible(int index, bool value)
+{
+	return (m_elements[index]->setVisible(value));
+}
+
+bool GUIHandler::getVisible(int index)
+{
+	return (m_elements[index]->isVisible());
 }
 
 void GUIHandler::render()
@@ -69,7 +95,11 @@ void GUIHandler::render()
 	m_spriteBatch->Begin(SpriteSortMode_Deferred, m_states->NonPremultiplied());
 
 	for (size_t i = 0; i < m_elements.size(); i++)
-		m_elements[i]->render(m_spriteBatch);
+	{
+		if (m_elements[i]->isVisible())
+			m_elements[i]->render(m_spriteBatch);
+	}
+		
 
 	m_spriteBatch->End();
 }
