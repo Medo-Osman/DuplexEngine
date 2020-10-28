@@ -64,7 +64,7 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 {
 	if (physicsData.triggerType == TriggerType::EVENT)
 	{
-		if ((EventType)physicsData.assosiatedTriggerEnum == EventType::SWAPSCENE)
+		if ((EventType)physicsData.associatedTriggerEnum == EventType::SWAPSCENE)
 		{
 			m_nextScene = new Scene();
 			switch ((ScenesEnum)physicsData.intData)

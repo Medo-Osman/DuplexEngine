@@ -5,7 +5,6 @@
 class CheckpointComponent : public TriggerComponent
 {
 private:
-	Vector3 m_internalPosition;
 	bool m_isUsed = false;
 public:
 	CheckpointComponent(Entity* entity)

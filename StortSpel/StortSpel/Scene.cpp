@@ -79,10 +79,8 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 
 void Scene::addCheckpoint(const Vector3& position)
 {
-	Engine* engine = &Engine::get();
 	Entity* checkPoint = addEntity("checkpoint"+std::to_string(m_nrOfCheckpoints++));
 	addComponent(checkPoint, "mesh", new MeshComponent("Flag_pPlane2.lrm"));
-	//MeshComponent* ptr = dynamic_cast<MeshComponent*>(checkPoint->getComponent("mesh"));
 	checkPoint->setPosition(position + Vector3(0,-0.25f,0));
 	checkPoint->scale(1.5, 1.5, 1.5);
 
