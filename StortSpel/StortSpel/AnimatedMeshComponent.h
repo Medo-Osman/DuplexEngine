@@ -25,6 +25,7 @@ private:
 
 	AnimationResource* m_currentAnimationResource;
 	std::queue<AnimationResource*> m_animationQueue;
+	std::string m_animationName;
 	float m_animationTime;
 	bool m_shouldLoop;
 	bool m_isDone;
@@ -45,6 +46,8 @@ public:
 
 	// Deltatime is multiplied by this number when the component updates.
 	void setAnimationSpeed(const float newAnimationSpeed) { m_animationSpeed = newAnimationSpeed; }
+
+	std::string getAnimationName();
 
 private:
 

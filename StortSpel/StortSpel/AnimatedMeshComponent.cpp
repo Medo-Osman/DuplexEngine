@@ -33,6 +33,11 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, Material mate
 	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::DEFAULT, material)
 {}
 
+std::string AnimatedMeshComponent::getAnimationName()
+{
+	return m_animationName;
+}
+
 joint AnimatedMeshComponent::createJointAndChildren(int currentIndex, LRSM_JOINT* LRSMJoint, Matrix parentBindTransform)
 {
 	joint thisJoint;
@@ -109,6 +114,9 @@ skeletonAnimationCBuffer* AnimatedMeshComponent::getAllAnimationTransforms()
 
 void AnimatedMeshComponent::playAnimation(std::string animationName, bool looping)
 {
+	if (m_animationName == animationName)
+		return;
+	
 	// get/load the animation from the resource handler (might want to have a seperate preload function as well)
 	m_currentAnimationResource = ResourceHandler::get().loadAnimation( (animationName + ".lra").c_str() );
 
@@ -116,6 +124,7 @@ void AnimatedMeshComponent::playAnimation(std::string animationName, bool loopin
 	m_animationTime = 0;
 	m_shouldLoop = looping;
 	m_isDone = false;
+	m_animationName = animationName;
 
 	// call a apply animationFrame function on the first frame (i guess, i don't suppose we'll add blending of some sort later)
 	applyAnimationFrame();

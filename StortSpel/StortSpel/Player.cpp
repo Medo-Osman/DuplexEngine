@@ -197,10 +197,16 @@ void Player::playerStateLogic(const float& dt)
 	float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
 	if (m_state != PlayerState::ROLL)
 	{
+		m_animMesh->setAnimationSpeed(1);
+
 		if (vectorLen > 0)
-			m_animMesh->setAnimationSpeed(1);
+		{
+			m_animMesh->playAnimation("Running4.1", true);
+		}
 		else
-			m_animMesh->setAnimationSpeed(0);
+		{
+			m_animMesh->playAnimation("platformer_guy_idle", true);
+		}
 	}
 	
 
