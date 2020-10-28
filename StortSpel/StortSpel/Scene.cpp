@@ -190,7 +190,7 @@ void Scene::loadScene(std::string path)
 	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
 	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
 	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
-	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(0.75f);
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(0.15f);
 
 	/*for (int i = 0; i < 8; i++)
 	{
