@@ -254,6 +254,7 @@
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CharacterControllerComponent.h" />
+    <ClInclude Include="CheckpointComponent.h" />
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
     <ClInclude Include="FlippingComponent.h" />

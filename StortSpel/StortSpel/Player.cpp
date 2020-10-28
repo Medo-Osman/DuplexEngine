@@ -37,6 +37,11 @@ Player::Player()
 
 }
 
+Player::~Player()
+{
+	
+}
+
 void Player::setStates(std::vector<State> states)
 {
 	m_movementVector = XMVECTOR();
@@ -150,6 +155,7 @@ void Player::playerStateLogic(const float& dt)
 		{
 			m_state = PlayerState::IDLE;
 			m_jumps = 0;
+			m_finalMovement.y = 0;
 			m_hasDashed = false;
 		}
 		else
@@ -180,6 +186,11 @@ void Player::playerStateLogic(const float& dt)
 	if (m_finalMovement.y > -MAX_FALL_SPEED * dt)
 		m_finalMovement += Vector3(0, -GRAVITY * dt * m_gravityScale, 0);
 	m_controller->move(m_finalMovement, dt);
+
+	if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
+	{
+		respawnPlayer();
+	}
 }
 
 void Player::updatePlayer(const float& dt)
@@ -229,6 +240,10 @@ void Player::updatePlayer(const float& dt)
 		handleRotation(dt);
 
 	playerStateLogic(dt);
+
+	ImGui::Begin("Player Information", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+	ImGui::Text("Player Position: (%d %d, %d)", (int)this->getPlayerEntity()->getTranslation().x, (int)this->getPlayerEntity()->getTranslation().y, (int)this->getPlayerEntity()->getTranslation().z);
+	ImGui::End();
 }
 
 void Player::setPlayerEntity(Entity* entity)
@@ -236,6 +251,16 @@ void Player::setPlayerEntity(Entity* entity)
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
+}
+
+Vector3 Player::getCheckpointPos()
+{
+	return m_checkpointPos;
+}
+
+void Player::setCheckpoint(Vector3 newPosition)
+{
+	m_checkpointPos = newPosition;
 }
 
 void Player::setCameraTranformPtr(Transform* transform)
@@ -253,6 +278,11 @@ void Player::increaseScoreBy(int value)
 {
 	m_score += value;
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+}
+
+void Player::respawnPlayer()
+{
+	m_controller->setPosition(m_checkpointPos);
 }
 
 int Player::getScore()
@@ -310,13 +340,32 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 {
 	if (!shouldTriggerEntityBeRemoved)
 	{
+		if (physicsData.triggerType == TriggerType::CHECKPOINT)
+		{
+
+			Entity* ptr = static_cast<Entity*>(physicsData.pointer);
+
+			CheckpointComponent* checkpointPtr = dynamic_cast<CheckpointComponent*>(ptr->getComponent("checkpoint"));
+			if (!checkpointPtr->isUsed())
+			{
+				AudioComponent* audioPtr = dynamic_cast<AudioComponent*>(ptr->getComponent("sound"));
+				audioPtr->playSound();
+
+				m_checkpointPos = ptr->getTranslation();
+
+				checkpointPtr->setUsed(true);
+			}
+
+
+		}
+
 		if (physicsData.triggerType == TriggerType::PICKUP)
 		{
 			if (m_pickupPointer == nullptr)
 			{
 				bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
 				int duration = physicsData.intData;
-				switch ((PickupType)physicsData.assosiatedTriggerEnum)
+				switch ((PickupType)physicsData.associatedTriggerEnum)
 				{
 				case PickupType::SPEED:
 					m_currentSpeedModifier = 1.f;
@@ -332,18 +381,19 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				}
 				if (addPickupByAssosiatedID)
 				{
-					m_pickupPointer = Pickup::getPickupByID(physicsData.assosiatedTriggerEnum);
+					m_pickupPointer = Pickup::getPickupByID(physicsData.associatedTriggerEnum);
 					m_pickupPointer->onPickup(m_playerEntity, duration);
 				}
 			}
 			
-			if((PickupType)physicsData.assosiatedTriggerEnum == PickupType::SCORE)
+			if((PickupType)physicsData.associatedTriggerEnum == PickupType::SCORE)
 			{
 				int amount = (int)physicsData.floatData;
 				this->increaseScoreBy(amount);
 				m_audioComponent->playSound();
 				shouldTriggerEntityBeRemoved = true;
 			}
+
 
 		}
 		

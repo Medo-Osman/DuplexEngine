@@ -10,7 +10,7 @@ using namespace physx;
 struct PhysicsData
 {
 	TriggerType triggerType;
-	int assosiatedTriggerEnum;
+	int associatedTriggerEnum;
 	std::string stringData;
 	float floatData;
 	int intData;
@@ -19,7 +19,7 @@ struct PhysicsData
 	PhysicsData()
 	{
 		triggerType = TriggerType::UNDEFINED;
-		assosiatedTriggerEnum = 0;
+		associatedTriggerEnum = 0;
 		stringData = "";
 		floatData = 0;
 		intData = 0;
@@ -237,15 +237,15 @@ public:
 			//Checks
 			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor())
 			{
-				for (size_t i = 0; i < m_reactOnTriggerObservers.size(); i++)
+				for (size_t j = 0; j < m_reactOnTriggerObservers.size(); j++)
 				{
-					m_reactOnTriggerObservers[i]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), shouldBeRemoved);
+					m_reactOnTriggerObservers[j]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), shouldBeRemoved);
 					if (shouldBeRemoved)
 					{
 						bool stopLoop = false;
-						for (size_t i = 0; i < m_reactOnRemoveObservers.size() && !stopLoop; i++)
+						for (size_t k = 0; k < m_reactOnRemoveObservers.size() && !stopLoop; k++)
 						{
-							m_reactOnRemoveObservers[i]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), stopLoop);
+							m_reactOnRemoveObservers[k]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), stopLoop);
 						}
 					}
 				}

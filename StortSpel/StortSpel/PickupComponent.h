@@ -12,7 +12,7 @@ public:
 		:TriggerComponent()
 	{
 		m_physicsData.triggerType = TriggerType::PICKUP;
-		m_physicsData.assosiatedTriggerEnum = (int)pickupType;
+		m_physicsData.associatedTriggerEnum = (int)pickupType;
 		m_physicsData.floatData = modifierValue;
 		m_physicsData.intData = duration;
 	}
