@@ -16,12 +16,15 @@ public:
 		m_stride = 0;
 		m_dynamic = false;
 	}
-	HRESULT initializeBuffer(ID3D11Device* device, bool dynamic, D3D11_BIND_FLAG bindFlag, T* data, int nrOf, bool defaultUse = false)
+	HRESULT initializeBuffer(ID3D11Device* device, bool dynamic, D3D11_BIND_FLAG bindFlag, T* data, int nrOf, bool defaultUse = false, UINT stride = 0)
 	{
 		HRESULT hr = 0;
-		m_stride = UINT(sizeof(T));
-		// TODO: FIX: TEMP: HARDCODE HERE:
-		//m_stride = 12;
+		
+		if (stride == 0)
+			m_stride = UINT(sizeof(T));
+		else
+			m_stride = stride;
+
 		m_numberOfDataElements = nrOf;
 		m_dynamic = dynamic;
 

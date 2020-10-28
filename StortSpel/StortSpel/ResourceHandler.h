@@ -4,6 +4,9 @@
 #include "Layouts.h"
 #include "VertexStructs.h"
 #include "MeshResource.h"
+#include "SkeletalMeshResource.h"
+#include "AnimationResource.h"
+#include "ConstantBufferTypes.h"
 
 class ResourceHandler
 {
@@ -36,6 +39,9 @@ private:
 	std::unordered_map < std::string, MeshResource* > m_meshCache;
 	const std::string m_MODELS_PATH = "../res/models/";
 	const std::string m_ERROR_MODEL_NAME = "error.lrm";
+	// Animation
+	std::unordered_map<std::string, AnimationResource*> m_animationCache;
+	const std::string m_ANIMATION_PATH = "../res/animations/";
 	// Audio
 	std::unordered_map<std::wstring, SoundEffect*> m_soundCache;
 	const std::wstring m_SOUNDS_PATH = L"../res/audio/";
@@ -45,6 +51,8 @@ public:
 	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath, bool isCubeMap = false);
 	ID3D11ShaderResourceView* loadErrorTexture();
 	MeshResource* loadLRMMesh(const char* path);
+	MeshResource* loadLRSMMesh(const char* path);
+	AnimationResource* loadAnimation(std::string path);
 	SoundEffect* loadSound(const WCHAR* soundPath, AudioEngine* audioEngine);
 
 

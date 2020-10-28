@@ -51,6 +51,8 @@ private:
 	Buffer<lightBufferStruct> m_lightBuffer;
 	Buffer<cameraBufferStruct> m_cameraBuffer;
 	Buffer<skyboxMVP> m_skyboxConstantBuffer;
+	
+	Buffer<skeletonAnimationCBuffer> m_skelAnimationConstantBuffer;
 	Buffer<MATERIAL_CONST_BUFFER> m_currentMaterialConstantBuffer;
 
 	// Blur stuff

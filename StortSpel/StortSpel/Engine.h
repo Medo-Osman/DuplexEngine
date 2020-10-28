@@ -3,6 +3,7 @@
 #include "LightComponent.h"
 #include "SpotLightComponent.h"
 #include "MeshComponent.h"
+#include "AnimatedMeshComponent.h"
 #include "TestComponent.h"
 #include "RotateAroundComponent.h"
 #include "SweepingComponent.h"

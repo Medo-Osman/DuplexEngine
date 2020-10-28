@@ -2,7 +2,8 @@
 #include "Input.h"
 #include "ResourceHandler.h"
 #include "Entity.h"
-#include"CharacterControllerComponent.h"
+#include "CharacterControllerComponent.h"
+#include "AnimatedMeshComponent.h"
 #include "AudioHandler.h"
 #include "audioComponent.h"
 #include <cmath>
@@ -70,6 +71,7 @@ private:
     Vector3 m_moveDirection;
     PlayerState m_state;
     Entity* m_playerEntity;
+    AnimatedMeshComponent* m_animMesh;
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
     Pickup* m_pickupPointer;
@@ -106,18 +108,22 @@ public:
     ~Player();
 
     void updatePlayer(const float& dt);
+    
     void setPlayerEntity(Entity* entity);
 
     Vector3 getCheckpointPos();
     void setCheckpoint(Vector3 newPosition);
 
     void setCameraTranformPtr(Transform* transform);
+    void setAnimMeshPtr(AnimatedMeshComponent* animatedMesh);
+    
     void incrementScore();
 
     void increaseScoreBy(int value);
     void respawnPlayer();
 
     int getScore();
+    void setScore(int newScore);
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
