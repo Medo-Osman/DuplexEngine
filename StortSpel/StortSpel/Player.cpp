@@ -128,6 +128,7 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::IDLE;
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
+			m_animMesh->playAnimation("Running4.1", true);
 		}
 		else
 		{
@@ -189,11 +190,14 @@ void Player::playerStateLogic(const float& dt)
 	m_controller->move(m_finalMovement, dt);
 	
 	float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
+	if (m_state != PlayerState::ROLL)
+	{
+		if (vectorLen > 0)
+			m_animMesh->setAnimationSpeed(1);
+		else
+			m_animMesh->setAnimationSpeed(0);
+	}
 	
-	if(vectorLen > 0)
-		m_animMesh->setAnimationSpeed( 1 );
-	else
-		m_animMesh->setAnimationSpeed( 0 );
 
 	if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
 	{
@@ -439,6 +443,8 @@ void Player::roll()
 	m_controller->setControllerSize(ROLL_HEIGHT);
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
+	m_animMesh->playAnimation("platformer_guy_roll1", true);
+	m_animMesh->setAnimationSpeed(0.8f);
 }
 
 bool Player::canDash() const

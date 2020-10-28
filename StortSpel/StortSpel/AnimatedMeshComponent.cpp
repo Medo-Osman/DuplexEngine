@@ -162,6 +162,7 @@ void AnimatedMeshComponent::applyAnimationFrame()
 		nextFrame = i;
 		if (allFrames[i].timeStamp > m_animationTime)
 			break;
+			
 		prevFrame = i;
 	}
 
@@ -178,7 +179,8 @@ void AnimatedMeshComponent::applyAnimationFrame()
 	else if (progression > 1 - allowedMargin)
 	{
 		setAnimatedTransform(&(allFrames[nextFrame]));
-		m_animationTime = allFrames[nextFrame].timeStamp;
+		if(nextFrame != m_currentAnimationResource->getFrameCount()-1)
+			m_animationTime = allFrames[nextFrame].timeStamp;
 	}
 	else
 	{
@@ -214,7 +216,10 @@ void AnimatedMeshComponent::applyAnimationFrame()
 void AnimatedMeshComponent::update(float dt)
 {
 	// increase animation time
-	m_animationTime += dt * m_animationSpeed;
-	
-	applyAnimationFrame();
+	if (m_animationSpeed > 0.0f)
+	{
+		m_animationTime += dt * m_animationSpeed;
+
+		applyAnimationFrame();
+	}
 }

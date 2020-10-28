@@ -155,7 +155,7 @@ void Engine::initialize()
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
-	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Running4.1_Cube.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 	playerEntity->addComponent("mesh", animMeshComp);
 
 	animMeshComp->playAnimation("Running4.1", true);
