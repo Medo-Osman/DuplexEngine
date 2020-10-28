@@ -20,7 +20,7 @@ private:
 	int nrOfFlippingPlatforms = 0;
 	void createFlippingPlatform(Vector3 position, Vector3 rotation, float upTime = 3, float downTime = 3);
 	int m_nrOfStaticPlatforms = 0;
-	void createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 scale, std::string meshPath);
+	void createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 scale, std::string meshPath, std::wstring texPath = L"GrayTexture.png");
 	int m_nrOfSweepingPlatforms = 0;
 	void createSweepingPlatform(Vector3 startPos, Vector3 endPos);
 	int m_nrOfSpotLight = 0;
