@@ -415,6 +415,8 @@ void Scene::loadArena()
 	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
 	m_nightSlide = 0.01f;
 	m_nightVolume = 0.2f;
+}
+
 void Scene::loadMaterialTest()
 {
 	Entity* entity;
