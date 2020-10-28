@@ -78,7 +78,7 @@ private:
     int m_score;
     int m_scoreLabelGUIIndex;
     int m_scoreGUIIndex;
-    std::wstring m_scoreSound = L"OnPickup.wav";
+    std::wstring m_scoreSound = L"StarSound.wav";
     AudioComponent* m_audioComponent;
 
     void setStates(std::vector<State> states);

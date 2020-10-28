@@ -102,6 +102,12 @@ void Scene::loadScene(std::string path)
 	loadScore();
 	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
+	Entity* music = addEntity("music");
+	if(music)
+	{
+		addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.2f));
+	}
+
 	Entity* floor = addEntity("floor"); // Floor:
 	if (floor)
 	{
