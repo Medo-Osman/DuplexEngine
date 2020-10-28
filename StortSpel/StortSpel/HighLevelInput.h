@@ -9,7 +9,8 @@ enum Action
 	ROLL,
 	USE,
 	PLAYSOUND,
-	SWAP_SCENES
+	SWAP_SCENES,
+	CLOSEINTROGUI
 };
 
 enum State

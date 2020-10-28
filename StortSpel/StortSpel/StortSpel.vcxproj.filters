@@ -328,12 +328,15 @@
     </ClInclude>
     <ClInclude Include="CheckpointComponent.h">
       <Filter>Source Files\Components</Filter>
-	</ClInclude>
+    </ClInclude>
     <ClInclude Include="SceneManager.h">
       <Filter>Source Files\Game\Scenes</Filter>
     </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>Source Files\Game\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIImageLabel.h">
+      <Filter>Source Files\Graphic\GUI</Filter>
     </ClInclude>
     <ClInclude Include="AnimationResource.h">
       <Filter>Source Files\Application</Filter>
