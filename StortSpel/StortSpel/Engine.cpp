@@ -159,6 +159,9 @@ void Engine::initialize()
 	playerEntity->addComponent("mesh", animMeshComp);
 
 	animMeshComp->playAnimation("Running4.1", true);
+
+	m_player->setAnimMeshPtr(animMeshComp);
+
 	//a4->setAnimationSpeed(0.05f);
 
 	// - Physics Componenet

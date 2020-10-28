@@ -16,6 +16,8 @@ Scene::Scene()
 
 Scene::~Scene()
 {
+	//for (auto entity : m_entities)
+	//	delete entity.second;
 }
 
 void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)

@@ -11,6 +11,7 @@ Player::Player()
 	m_hasDashed = false;
 	m_angleY = 0;
 	m_playerEntity = nullptr;
+	m_animMesh = nullptr;
 	m_cameraTransform = nullptr;
 	m_controller = nullptr;
 	m_state = PlayerState::IDLE;
@@ -180,6 +181,13 @@ void Player::playerStateLogic(const float& dt)
 	if (m_finalMovement.y > -MAX_FALL_SPEED * dt)
 		m_finalMovement += Vector3(0, -GRAVITY * dt, 0);
 	m_controller->move(m_finalMovement, dt);
+	
+	float vectorLen = XMVectorGetX(XMVector3Length(Vector3(m_finalMovement.x, 0, m_finalMovement.z)));
+	
+	if(vectorLen > 0)
+		m_animMesh->setAnimationSpeed( 1 );
+	else
+		m_animMesh->setAnimationSpeed( 0 );
 }
 
 void Player::updatePlayer(const float& dt)
@@ -241,6 +249,11 @@ void Player::setPlayerEntity(Entity* entity)
 void Player::setCameraTranformPtr(Transform* transform)
 {
 	m_cameraTransform = transform;
+}
+
+void Player::setAnimMeshPtr(AnimatedMeshComponent* animatedMesh)
+{
+	m_animMesh = animatedMesh;
 }
 
 void Player::incrementScore()

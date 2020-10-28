@@ -18,9 +18,7 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, ShaderProgram
 	}
 
 	m_rootIdx = resPtr->getRootIndex();
-	m_joints.at(m_rootIdx) = createJointAndChildren(m_rootIdx, resPtr->getJoints());
-
-	calcInverseBindTransform(m_rootIdx, XMMatrixIdentity());
+	m_joints.at(m_rootIdx) = createJointAndChildren(m_rootIdx, resPtr->getJoints(), XMMatrixIdentity());
 	
 	for (int i = 0; i < m_jointCount; i++)
 	{
@@ -28,14 +26,14 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, ShaderProgram
 	}
 
 	// when the temp rotation values go this might not need to be here
-	//applyPoseToJoints(m_rootIdx, XMMatrixIdentity());
+	//applyPoseToJoints(XMMatrixIdentity());
 }
 
 AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, Material material)
 	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::DEFAULT, material)
 {}
 
-joint AnimatedMeshComponent::createJointAndChildren(int currentIndex, LRSM_JOINT* LRSMJoint)
+joint AnimatedMeshComponent::createJointAndChildren(int currentIndex, LRSM_JOINT* LRSMJoint, Matrix parentBindTransform)
 {
 	joint thisJoint;
 
@@ -43,7 +41,7 @@ joint AnimatedMeshComponent::createJointAndChildren(int currentIndex, LRSM_JOINT
 	thisJoint.index = currentIndex;
 	
 	// Calculate the localBindTransform using
-	XMMATRIX localBindRotationMatrix =
+	XMMATRIX localBindTransform =
 		XMMatrixRotationX(XMConvertToRadians(LRSMJoint[currentIndex].rotation[0])) 
 		*
 		XMMatrixRotationY(XMConvertToRadians(LRSMJoint[currentIndex].rotation[1])) 
@@ -51,8 +49,8 @@ joint AnimatedMeshComponent::createJointAndChildren(int currentIndex, LRSM_JOINT
 		XMMatrixRotationZ(XMConvertToRadians(LRSMJoint[currentIndex].rotation[2]))
 		;
 
-	thisJoint.localBindTransform = XMMatrixMultiply(
-		localBindRotationMatrix, 
+	localBindTransform = XMMatrixMultiply(
+		localBindTransform,
 		XMMatrixTranslation(LRSMJoint[currentIndex].translation[0], LRSMJoint[currentIndex].translation[1], LRSMJoint[currentIndex].translation[2]) 
 	);
 	/* 
@@ -66,39 +64,26 @@ joint AnimatedMeshComponent::createJointAndChildren(int currentIndex, LRSM_JOINT
 	);
 	*/
 	
-	//thisJoint.animatedTransform = thisJoint.localBindTransform;
+	//thisJoint.animatedTransform = localBindTransform;
+
+	Matrix bindTransform = XMMatrixMultiply(localBindTransform, parentBindTransform);
+
+	thisJoint.inverseBindTransform = bindTransform.Invert();
 
 	for (int i = 0; i < LRSMJoint[currentIndex].nrOfChildren; i++)
 	{
 		thisJoint.children.push_back(LRSMJoint[currentIndex].children[i]);
-		m_joints.at(LRSMJoint[currentIndex].children[i]) = createJointAndChildren(LRSMJoint[currentIndex].children[i], LRSMJoint);
+		m_joints.at(LRSMJoint[currentIndex].children[i]) = createJointAndChildren(LRSMJoint[currentIndex].children[i], LRSMJoint, bindTransform);
 	}
 
 	return thisJoint;
 }
 
-void AnimatedMeshComponent::calcInverseBindTransform(int thisJointIdx, Matrix parentBindTransform)
+void AnimatedMeshComponent::setAnimatedTransform(ANIMATION_FRAME* animationFrame)
 {
-	Matrix bindTransform = XMMatrixMultiply(m_joints[thisJointIdx].localBindTransform, parentBindTransform );
-	
-	Vector4 testVec = XMVector3Transform(Vector3(0, 0, 0), bindTransform);
-	Vector4 testVec1 = XMVector3Transform(Vector3(0, 0, 0), m_joints[thisJointIdx].localBindTransform);
-	
-	m_joints[thisJointIdx].inverseBindTransform = bindTransform.Invert();
-	
-	for (int i = 0; i < m_joints[thisJointIdx].children.size(); i++)
+	for (int i = 0; i < m_jointCount; i++)
 	{
-		calcInverseBindTransform(m_joints[thisJointIdx].children.at(i), bindTransform);
-	}
-}
-
-void AnimatedMeshComponent::setAnimatedTransform(int thisJointIdx, ANIMATION_FRAME* animationFrame)
-{
-	m_joints[thisJointIdx].animatedTransform = animationFrame->jointTransforms[thisJointIdx].asMatrix();
-	
-	for (int i = 0; i < m_joints[thisJointIdx].children.size(); i++)
-	{
-		setAnimatedTransform(m_joints[thisJointIdx].children.at(i), animationFrame);
+		m_joints[i].animatedTransform = animationFrame->jointTransforms[i].asMatrix();
 	}
 }
 
@@ -143,7 +128,7 @@ void AnimatedMeshComponent::applyAnimationFrame()
 	
 	if (m_currentAnimationResource->getFrameCount() == 1) // only one frame means it's a pose
 	{
-		setAnimatedTransform(m_rootIdx, &(*m_currentAnimationResource->getFrames())[0] );
+		setAnimatedTransform(&(*m_currentAnimationResource->getFrames())[0] );
 		applyPoseToJoints(m_rootIdx, XMMatrixIdentity());
 	}
 
@@ -156,6 +141,9 @@ void AnimatedMeshComponent::applyAnimationFrame()
 		{
 			m_animationTime = m_currentAnimationResource->getTimeSpan();
 			m_isDone = true;
+			setAnimatedTransform(&(*m_currentAnimationResource->getFrames())[m_currentAnimationResource->getFrameCount()-1]);
+			applyPoseToJoints(m_rootIdx, XMMatrixIdentity());
+			return;
 		}	
 	}
 
@@ -184,11 +172,11 @@ void AnimatedMeshComponent::applyAnimationFrame()
 	float allowedMargin = 0.05f;
 	allowedMargin * pow(m_animationSpeed, 0.4);
 
-	if (progression < 0 + allowedMargin)
-		setAnimatedTransform(m_rootIdx, &(allFrames[prevFrame]));
+	if (progression < 0 + allowedMargin || m_isDone)
+		setAnimatedTransform(&(allFrames[prevFrame]));
 	else if (progression > 1 - allowedMargin)
 	{
-		setAnimatedTransform(m_rootIdx, &(allFrames[nextFrame]));
+		setAnimatedTransform(&(allFrames[nextFrame]));
 		m_animationTime = allFrames[nextFrame].timeStamp;
 	}
 	else
@@ -213,7 +201,7 @@ void AnimatedMeshComponent::applyAnimationFrame()
 			interpolatedFrame.jointTransforms[i].rotationQuat[3] = interpolatedQuat.w;
 		}
 
-		setAnimatedTransform(m_rootIdx, &interpolatedFrame);
+		setAnimatedTransform(&interpolatedFrame);
 
 		delete[] interpolatedFrame.jointTransforms;
 	}

@@ -369,6 +369,8 @@ AnimationResource* ResourceHandler::loadAnimation(std::string path)
 
 	}
 
+	m_animationCache[path] = animation;
+
 	// Close filestream
 	fileStream.close();
 
@@ -424,7 +426,7 @@ void ResourceHandler::Destroy()
 	for (std::pair<std::wstring, ID3D11ShaderResourceView*> element : m_textureCache)
 		element.second->Release();
 		//delete element.second;
-	m_textureCache.clear();
+	
 	
 	/*for (auto it = m_meshCache.cbegin(); it != m_meshCache.cend();)
 	{
@@ -435,10 +437,17 @@ void ResourceHandler::Destroy()
 	{
 		delete element.second;
 	}
+	for (auto element : m_animationCache)
+	{
+		delete element.second;
+	}
 	for (std::pair<std::wstring, SoundEffect*> element : m_soundCache)
 	{
 		delete element.second;
 	}
-		
+
+	m_textureCache.clear();
 	m_meshCache.clear();
+	m_animationCache.clear();
+	m_soundCache.clear();
 }
