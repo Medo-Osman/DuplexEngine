@@ -23,6 +23,7 @@ void SceneManager::initalize()
 	m_currentScene->loadLobby();
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
+	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
 
 	// Next Scene
 	m_nextScene = nullptr;
