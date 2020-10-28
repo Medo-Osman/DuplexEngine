@@ -65,16 +65,16 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 void Scene::addCheckpoint(const Vector3& position)
 {
 	Engine* engine = &Engine::get();
-	Entity* checkPoint = engine->addEntity("checkpoint"+std::to_string(m_nrOfCheckpoints++));
-	engine->addComponent(checkPoint, "mesh", new MeshComponent("Flag_pPlane2.lrm"));
+	Entity* checkPoint = addEntity("checkpoint"+std::to_string(m_nrOfCheckpoints++));
+	addComponent(checkPoint, "mesh", new MeshComponent("Flag_pPlane2.lrm"));
 	//MeshComponent* ptr = dynamic_cast<MeshComponent*>(checkPoint->getComponent("mesh"));
 	checkPoint->setPosition(position + Vector3(0,-0.25f,0));
 	checkPoint->scale(1.5, 1.5, 1.5);
 
-	engine->addComponent(checkPoint, "checkpoint", new CheckpointComponent(checkPoint));
+	addComponent(checkPoint, "checkpoint", new CheckpointComponent(checkPoint));
 	static_cast<TriggerComponent*>(checkPoint->getComponent("checkpoint"))->initTrigger(checkPoint, { 4, 4, 4 });
 
-	engine->addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false));
+	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false));
 
 }
 
@@ -186,16 +186,16 @@ void Scene::loadScene(std::string path)
 	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
 	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
 
-	// - Spot Light
+	//// - Spot Light
 	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
 	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
 	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
-	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(0.75f);
 
-	for (int i = 0; i < 8; i++)
+	/*for (int i = 0; i < 8; i++)
 	{
 		addComponent(m_player->getPlayerEntity(), "lightTest" + std::to_string(i), new LightComponent());
-	}
+	}*/
 }
 
 // Private functions:
@@ -300,23 +300,23 @@ void Scene::loadLobby()
 		entity->translate({ 0,8,0 });
 	}
 
-	//Point Light
-	addComponent(m_player->getPlayerEntity(),"testLight", new LightComponent());
-	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
-	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
-	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
+	////Point Light
+	//addComponent(m_player->getPlayerEntity(),"testLight", new LightComponent());
+	//dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
+	//dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
+	//dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
 
-	//Spot Light
-	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
-	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
-	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
-	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
+	////Spot Light
+	//addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
+	//dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
+	//dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+	//dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
 
 	//Tests and demonstration how to add and remove lights
-	for (int i = 0; i < 8; i++)
+	/*for (int i = 0; i < 8; i++)
 	{
 		addComponent(m_player->getPlayerEntity(),"lightTest" + std::to_string(i), new LightComponent());
-	}
+	}*/
 
 	// Audio test
 	/*Entity* audioTest = addEntity("audioTest");

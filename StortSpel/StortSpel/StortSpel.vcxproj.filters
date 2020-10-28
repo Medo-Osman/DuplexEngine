@@ -318,8 +318,8 @@
       <Filter>Source Files\Game\Pickup</Filter>
     </ClInclude>
     <ClInclude Include="CheckpointComponent.h">
-    </ClInclude>
       <Filter>Source Files\Components</Filter>
+	</ClInclude>
     <ClInclude Include="SceneManager.h">
       <Filter>Source Files\Game\Scenes</Filter>
     </ClInclude>
