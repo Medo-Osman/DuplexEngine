@@ -320,6 +320,12 @@ void Scene::loadLobby()
 		entity->scale({ 30, -30, 30});
 		entity->translate({ 0,8,0 });
 	}
+	entity = addEntity("sign");
+	if(entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("WELCOME_Cube.002.lrm", Material({ L"Controlls.png" })));
+		entity->translate({ 0, 8, 0 });
+	}
 
 	//Point Light
 	addComponent(m_player->getPlayerEntity(),"testLight", new LightComponent());
