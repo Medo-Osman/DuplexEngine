@@ -261,6 +261,7 @@
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
     <ClInclude Include="FlippingComponent.h" />
+    <ClInclude Include="GUIImageLabel.h" />
     <ClInclude Include="Pickup.h" />
     <ClInclude Include="GUIElement.h" />
     <ClInclude Include="GUIHandler.h" />
