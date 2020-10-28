@@ -325,6 +325,126 @@ void Scene::loadLobby()
 	m_nightVolume = 0.2f;*/
 }
 
+void Scene::loadMaterialTest()
+{
+	Entity* entity;
+
+	std::wstring materialNames[7] = {
+	L"Bronze_Quilt/bronze_quilt",
+	L"Coastline_Flat_Stone_Wall_Mixed/coastline_flat_stone_wall_mixed",
+	L"Japanese_Temple_Wood_Ceiling/japanese_temple_wood_ceiling",
+	L"Metal_Grinded/metal_grinded",
+	L"Steel_Battered/steel_battered",
+	L"Terracotta_Glossy/terracotta_glossy",
+	L"Wood_American_Cherry/wood_american_cherry"
+	};
+
+	for (size_t i = 0; i < 7; i++)
+	{
+		std::string currentSphereName = ("PBRSphereMaterial" + std::to_string(i));
+		m_entities[currentSphereName] = addEntity(currentSphereName);
+		if (m_entities[currentSphereName])
+		{
+			entity = m_entities[currentSphereName];
+			Material PBRMatTextured;
+			PBRMatTextured.addTexture(L"skybox1IR.dds", true);
+			PBRMatTextured.addTexture(L"skybox1.dds", true);
+			PBRMatTextured.addTexture(L"ibl_brdf_lut.png");
+
+			PBRMatTextured.addTexture((materialNames[i] + L"_Base_Color.dds").c_str());
+			PBRMatTextured.addTexture((materialNames[i] + L"_Normal.dds").c_str());
+			PBRMatTextured.addTexture((materialNames[i] + L"_Roughness.dds").c_str());
+			PBRMatTextured.addTexture((materialNames[i] + L"_Metallic.dds").c_str());
+			PBRMatTextured.addTexture((materialNames[i] + L"_Ambient_Occlusion.dds").c_str());
+
+			PBRMatTextured.setTextured(1);
+
+			addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMatTextured));
+
+			float moveDistance = -5.f;
+			entity->translate({ moveDistance * i + 30.f, 2.f, 20.f });
+			entity->rotate({ 1.5708, 0.f, 0.f });
+		}
+	}
+
+	int xCounter = 0;
+	int yCounter = 0;
+
+	for (size_t i = 0; i < 25; i++)
+	{
+		std::string currentSphereName = ("PBRSphere" + std::to_string(i));
+		m_entities[currentSphereName] = addEntity(currentSphereName);
+		if (m_entities[currentSphereName])
+		{
+			entity = m_entities[currentSphereName];
+			Material PBRMatUntextured;
+			PBRMatUntextured.addTexture(L"skybox1IR.dds", true);
+			PBRMatUntextured.addTexture(L"skybox1.dds", true);
+			PBRMatUntextured.addTexture(L"ibl_brdf_lut.png");
+
+			xCounter++;
+
+			if (i % 5 == 0)
+			{
+				yCounter++;
+				xCounter = 0;
+			}
+			PBRMatUntextured.setMetallic(yCounter * 0.2f - 0.2f);
+			PBRMatUntextured.setRoughness(xCounter * 0.18 + 0.1);
+			PBRMatUntextured.setTextured(0);
+
+			addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMatUntextured));
+
+			float moveDistance = 5.f;
+			entity->translate({ moveDistance * xCounter, moveDistance * yCounter - 3.f, 0.f });
+			entity->rotate({ 1.5708, 0.f, 0.f });
+		}
+	}
+
+	Entity* skybox = addEntity("SkyBox");
+	if (skybox)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"skybox1.dds", true);
+		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+
+	}
+
+	XMVECTOR pointLightPositions[4] =
+	{
+		{ 0.f, 5.f, 10.f},
+		{ 20.f, 5.f, 10.f},
+		{ 0.f, 25.f, 10.f},
+		{ 20.f, 25.f, 10.f},
+	};
+
+	float lightIntensity = 500.f;
+
+	float pointLightIntensities[4] =
+	{
+		lightIntensity,
+		lightIntensity,
+		lightIntensity,
+		lightIntensity,
+	};
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		std::string currentPointLightName = ("PointLight" + std::to_string(i));
+		m_entities[currentPointLightName] = addEntity(currentPointLightName);
+		if (m_entities[currentPointLightName])
+		{
+			entity = m_entities[currentPointLightName];
+			std::string currentPointLightComponentName = ("PointLightTestPointLight" + std::to_string(i));
+			addComponent(m_entities[currentPointLightName], currentPointLightComponentName, new LightComponent());
+			dynamic_cast<LightComponent*>(m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setColor(XMFLOAT3(1, 1, 1));
+			dynamic_cast<LightComponent*>(m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setIntensity(pointLightIntensities[i]);
+			//engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"T_CircusTent_D.png" })));
+			entity->translate(pointLightPositions[i]);
+		}
+	}
+}
+
 void Scene::updateScene(const float& dt)
 {
 	// AUDIO TEST

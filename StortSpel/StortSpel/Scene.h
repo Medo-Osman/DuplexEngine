@@ -45,6 +45,7 @@ public:
 	~Scene();
 	void loadScene(std::string path);
 	void loadLobby();
+	void loadMaterialTest();
 	void updateScene(const float &dt);
 
 	Entity* getEntity(std::string key);
