@@ -113,22 +113,6 @@ void Scene::loadScene(std::string path)
 		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	Entity* goalTrigger = addEntity("trigger");
-	if (goalTrigger)
-	{
-		addComponent(goalTrigger, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"T_GridTestTex.bmp" })));
-		goalTrigger->setPosition(Vector3(-11, 53.4, 289));
-
-		addComponent(goalTrigger, "trigger",
-			new TriggerComponent());
-
-		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
-		tc->initTrigger(goalTrigger, XMFLOAT3(1.0f, 1.0f, 1.0f));
-		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
-		tc->setIntData((int)ScenesEnum::ARENA);
-	}
-
 	// Start:
 	createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(0, 9, 29.5), Vector3(0, 0, 0), Vector3(10, 4, 1), "testCube_pCube1.lrm");
@@ -171,12 +155,42 @@ void Scene::loadScene(std::string path)
 	createFlippingPlatform(Vector3(-11, 37.7, 200), Vector3(0, 180, 0), 2, 2);
 	createStaticPlatform(Vector3(-11, 37.7, 215), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-11, 37.7, 222.5), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
-	createSweepingPlatform(Vector3(-5, 37.7, 228), Vector3(-5, 50, 270));
-	createSweepingPlatform(Vector3(-11, 37.7, 228), Vector3(-11, 50, 270));
-	createSweepingPlatform(Vector3(-17, 37.7, 228), Vector3(-17, 50, 270));
+
+	createSweepingPlatform(Vector3(-5, 37.7, 228), Vector3(-5, 43.85, 246));
+	createSweepingPlatform(Vector3(-17, 43.85, 246), Vector3(-17, 37.7, 228));
+	createSweepingPlatform(Vector3(-5, 43.85, 251), Vector3(-5, 50, 270));
+	createSweepingPlatform(Vector3(-17, 50, 270), Vector3(-17, 43.85, 251));
+
 	createStaticPlatform(Vector3(-11, 50, 275), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-11, 51.68, 282.02), Vector3(-20, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-11, 53.4, 289), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+
+	Entity* clownMask = addEntity("ClownMask");
+	if (clownMask)
+	{
+		addComponent(clownMask, "mesh",
+			new MeshComponent("ClownMask_ClownEye_R1.lrm", Material({ L"GrayTexture.png" })));
+
+		clownMask->setPosition(Vector3(-11.5, 60, 290));
+		clownMask->setRotation(XMConvertToRadians(7), XMConvertToRadians(180), XMConvertToRadians(0));
+	}
+	Entity* goalTrigger = addEntity("trigger");
+	if (goalTrigger)
+	{
+		addComponent(goalTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
+		goalTrigger->setPosition(-11.5, 60.563, 292.347);
+		goalTrigger->setScale(13.176, 15.048, 1);
+		goalTrigger->setRotation(XMConvertToRadians(-10.102), XMConvertToRadians(0), XMConvertToRadians(0));
+
+		addComponent(goalTrigger, "trigger",
+			new TriggerComponent());
+
+		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
+		tc->initTrigger(goalTrigger, XMFLOAT3(9.0f, 8.0f, 0.5f));
+		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
+		tc->setIntData((int)ScenesEnum::ARENA);
+	}
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	Entity* skybox = addEntity("SkyBox");
@@ -185,26 +199,19 @@ void Scene::loadScene(std::string path)
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-
 	}
+	/////////////////////////////////////////////////////////////////////////////////////
 
 	// Lights
 	// - Point Light
-	addComponent(m_player->getPlayerEntity(), "testLight", new LightComponent());
-	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
-	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
-	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
+	createSpotLight(Vector3(16.54, 21, 92.7), Vector3(-90, 0, 0), Vector3(0, 1, 0), 3);
+	createSpotLight(Vector3(-30, 35, 159.7), Vector3(-90, 0, 0), Vector3(0, 1, 0), 3);
+	createSpotLight(Vector3(-32, 39, 176), Vector3(0, 45, 0), Vector3(0, 1, 0), 0.1);
 
-	// - Spot Light
-	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
-	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
-	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
-	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
+	createSpotLight(Vector3(-5, 22, 68.5), Vector3(0, -45, 0), Vector3(0, 0, 1), 0.1);
+	createSpotLight(Vector3(8.5, 60, 159.5), Vector3(90, 0, 0), Vector3(0, 0, 1), 0.2);
 
-	for (int i = 0; i < 8; i++)
-	{
-		addComponent(m_player->getPlayerEntity(), "lightTest" + std::to_string(i), new LightComponent());
-	}
+	createSpotLight(Vector3(-11, 50, 275), Vector3(-35, 0, 0), Vector3(1, 0, 0), 0.3);
 }
 
 // Private functions:
@@ -724,5 +731,20 @@ void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)
 
 		addComponent(sweepingPlatform, "sweep",
 			new SweepingComponent(sweepingPlatform, startPos, endPos, 5));
+	}
+}
+
+void Scene::createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity)
+{
+	m_nrOfSpotLight++;
+
+	Entity* sLight = addEntity("spotLight-" + std::to_string(m_nrOfSpotLight));
+	if (sLight)
+	{
+		addComponent(sLight, "spot-" + std::to_string(m_nrOfSpotLight), new SpotLightComponent());
+		sLight->setPosition(position);
+		sLight->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+		dynamic_cast<LightComponent*>(sLight->getComponent("spot-" + std::to_string(m_nrOfSpotLight)))->setColor(XMFLOAT3(color));
+		dynamic_cast<LightComponent*>(sLight->getComponent("spot-" + std::to_string(m_nrOfSpotLight)))->setIntensity(intensity);
 	}
 }
