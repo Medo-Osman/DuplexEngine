@@ -105,7 +105,7 @@ void Scene::loadScene(std::string path)
 	Entity* music = addEntity("music");
 	if(music)
 	{
-		addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.2f));
+		addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.4f));
 	}
 
 	Entity* floor = addEntity("floor"); // Floor:
@@ -298,6 +298,13 @@ void Scene::loadLobby()
 	Entity* entity;
 	Material gridTest = Material({ L"T_GridTestTex.bmp" });
 	entity = addEntity("floor");
+
+	Entity* music = addEntity("lobbyMusic");
+	if (music)
+	{
+		addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.4f));
+	}
+
 	if (entity)
 	{
 		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
