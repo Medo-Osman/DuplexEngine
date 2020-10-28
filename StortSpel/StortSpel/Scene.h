@@ -23,6 +23,8 @@ private:
 	void createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 scale, std::string meshPath);
 	int m_nrOfSweepingPlatforms = 0;
 	void createSweepingPlatform(Vector3 startPos, Vector3 endPos);
+	int m_nrOfSpotLight = 0;
+	void createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity);
 
 	Player* m_player;
 	Vector3 m_sceneEntryPosition;

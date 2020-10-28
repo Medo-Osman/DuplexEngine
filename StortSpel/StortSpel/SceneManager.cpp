@@ -20,7 +20,8 @@ void SceneManager::initalize()
 {
 	// Start Scene
 	m_currentScene = new Scene();
-	m_currentScene->loadLobby();
+	//m_currentScene->loadLobby();
+	m_currentScene->loadArena();
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
 
