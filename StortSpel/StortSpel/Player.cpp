@@ -188,7 +188,7 @@ void Player::playerStateLogic(const float& dt)
 		m_finalMovement += Vector3(0, -GRAVITY * dt, 0);
 	m_controller->move(m_finalMovement, dt);
 	
-	float vectorLen = XMVectorGetX(XMVector3Length(Vector3(m_finalMovement.x, 0, m_finalMovement.z)));
+	float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
 	
 	if(vectorLen > 0)
 		m_animMesh->setAnimationSpeed( 1 );

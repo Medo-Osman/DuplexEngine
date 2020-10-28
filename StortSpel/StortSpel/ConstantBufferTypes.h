@@ -1,6 +1,6 @@
 
 #pragma once
-#include"3DPCH.h"
+#include "3DPCH.h"
 #include <DirectXColors.h>
 using namespace DirectX;
 
@@ -51,9 +51,11 @@ struct skyboxMVP
     XMMATRIX mvpMatrix; //Model/view/projection
 };
 
+const int MAX_JOINT_COUNT = 30; // if this is changed, also change it in the shader.
+
 struct skeletonAnimationCBuffer
 {
-    XMMATRIX boneMatrixPallet[30]; // 30 is currently the max number of bones, this can be changed later if needed
+    XMMATRIX boneMatrixPallet[MAX_JOINT_COUNT]; // 30 is currently the max number of joint, this can be changed later if needed
 };
 
 const int BLUR_RADIUS = 8;

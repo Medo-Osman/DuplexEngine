@@ -7,7 +7,6 @@ struct vs_in
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
 	uint4 bones : BONES;
-	//float4 bones : BONES;
     float4 weights : WEIGHTS;
 };
 
@@ -43,16 +42,13 @@ vs_out main(vs_in input, in uint vID : SV_VertexID)
 	float3 blendedBitangent = zeroVector3;
     float3 blendedNormal = zeroVector3;
     
-	
     for (int i = 0; i < 4; i++)
     {
-		blendedPosition += input.weights[i] * mul(float4(input.pos, 1.f), g_boneMatrixPallet[input.bones[i]]).xyz;
-        blendedTangent += mul(input.tangent, (float3x3) g_boneMatrixPallet[input.bones[i]]).xyz * input.weights[i];
+		blendedPosition  += mul(float4(input.pos, 1.f),     g_boneMatrixPallet[input.bones[i]]).xyz * input.weights[i];
+        blendedTangent   += mul(input.tangent, (float3x3)   g_boneMatrixPallet[input.bones[i]]).xyz * input.weights[i];
 		blendedBitangent += mul(input.bitangent, (float3x3) g_boneMatrixPallet[input.bones[i]]).xyz * input.weights[i];
-		blendedNormal += mul(input.normal, (float3x3) g_boneMatrixPallet[input.bones[i]]).xyz * input.weights[i];
-
+		blendedNormal    += mul(input.normal, (float3x3)    g_boneMatrixPallet[input.bones[i]]).xyz * input.weights[i];
     }
-    
     
     localPosition = float4(blendedPosition, 1.f);
     

@@ -130,6 +130,7 @@ void AnimatedMeshComponent::applyAnimationFrame()
 	{
 		setAnimatedTransform(&(*m_currentAnimationResource->getFrames())[0] );
 		applyPoseToJoints(m_rootIdx, XMMatrixIdentity());
+		m_isDone = true;
 	}
 
 	// check if the animation has ended, then either do some looping or set it to be the last frame (maybe there can be an animation playlist/sequence feature or something)

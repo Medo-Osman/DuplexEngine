@@ -321,7 +321,9 @@ AnimationResource* ResourceHandler::loadAnimation(std::string path)
 
 	std::uint32_t jointCount;
 	fileStream.read((char*)&jointCount, sizeof(std::uint32_t));
-
+	
+	assert(jointCount <= MAX_JOINT_COUNT); // If it asserts here there are more joints than we support. MAX_JOINT_COUNT might need to be changed if the skeleton can't be adjusted.
+	
 	std::uint32_t dataSize = (sizeof(float) + sizeof(JOINT_TRANSFORM) * jointCount) * frameCount;
 
 	char* animData = new char[dataSize];

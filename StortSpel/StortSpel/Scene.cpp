@@ -200,17 +200,18 @@ void Scene::loadScene(std::string path)
 	createStaticPlatform(Vector3(-11, 53.4, 289), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
 	/////////////////////////////////////////////////////////////////////////////////////
 
+	/*
 	Entity* skelTest = addEntity("skeleton-test");
 	if (skelTest)
 	{
-		/*AnimatedMeshComponent* a1 = new AnimatedMeshComponent("skelTestStairs_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		AnimatedMeshComponent* a1 = new AnimatedMeshComponent("skelTestStairs_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 		a1->translate({ 0.f, 0.f, 0.f });
-		engine->addComponent(skelTest, "skeleton mesh1", a1);*/
+		engine->addComponent(skelTest, "skeleton mesh1", a1);
 		
-		/*AnimatedMeshComponent* a2 = new AnimatedMeshComponent("testTania_tania_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		AnimatedMeshComponent* a2 = new AnimatedMeshComponent("testTania_tania_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 		a2->translate({ 8.f, 0.f, 0.f });
 		a2->scaleUniform(0.02f);
-		engine->addComponent(skelTest, "skeleton mesh2", a2);*/
+		engine->addComponent(skelTest, "skeleton mesh2", a2);
 		
 		AnimatedMeshComponent* a3 = new AnimatedMeshComponent("skelTestStairsAnimation_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 		a3->translate({ 16.f, 0.f, 0.f });
@@ -230,9 +231,9 @@ void Scene::loadScene(std::string path)
 
 		a5->playAnimation("skelTestBranchAnimation", true);
 
-		/*AnimatedMeshComponent* a6 = new AnimatedMeshComponent("dropkickRigTest2_body_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		a6->translate({ -13.f, 0.f, 0.f });
-		addComponent(skelTest, "skeleton animation test4", a6);*/
+		//AnimatedMeshComponent* a6 = new AnimatedMeshComponent("dropkickRigTest2_body_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		//a6->translate({ -13.f, 0.f, 0.f });
+		//addComponent(skelTest, "skeleton animation test4", a6);
 
 		//a6->playAnimation("dropkickRigTest2", true);
 		
@@ -240,6 +241,7 @@ void Scene::loadScene(std::string path)
 															// skelTestBranchAnimation_skelTestBranch.lrsm skelTestBranchAnimation
 		skelTest->translate({ 0.f, 1.5f, -20.f });
 	}
+	*/
 
 	Entity* skybox = addEntity("SkyBox");
 	if (skybox)

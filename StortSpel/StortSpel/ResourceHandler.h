@@ -6,6 +6,7 @@
 #include "MeshResource.h"
 #include "SkeletalMeshResource.h"
 #include "AnimationResource.h"
+#include "ConstantBufferTypes.h"
 
 class ResourceHandler
 {
