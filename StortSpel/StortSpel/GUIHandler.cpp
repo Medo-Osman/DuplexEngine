@@ -54,8 +54,10 @@ int GUIHandler::addGUIText(std::string textString, std::wstring fontName, GUITex
 	return index;
 }
 
+
 void GUIHandler::changeGUIText(int index, std::string newTextString)
 {
+	//To-do: remove unused texture from resourceHandler
 	static_cast<GUIText*>(m_elements[index])->changeText(newTextString);
 }
 

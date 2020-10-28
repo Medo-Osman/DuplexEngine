@@ -38,9 +38,8 @@ Player::Player()
 
 	GUIImageStyle imageStyle;
 	imageStyle.position = Vector2(400, 150);
-	imageStyle.scale = Vector2(1.5, 1);
-	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"DevTexture1m.png", imageStyle);
-	GUIHandler::get().changeGUIImage(m_instructionGuiIndex, L"DevTexture1m.png");
+	imageStyle.scale = Vector2(1, 1);
+	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
 }
 
