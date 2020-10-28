@@ -91,7 +91,7 @@ void Scene::loadScene(std::string path)
 	if (floor)
 	{
 		addComponent(floor, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"T_GridTestTex.bmp" })));
+			new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::OBJECTSPACEGRID , ObjectSpaceGrid));
 
 		floor->setPosition({ 0, 6, 0 });
 		floor->scale({ 20, 2, 20 });
@@ -185,7 +185,7 @@ void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpe
 	if (ParisWheel)
 	{
 		addComponent(ParisWheel, "mesh",
-			new MeshComponent("ParisWheel.lrm", Material({ L"GrayTexture.png" })));
+			new MeshComponent("ParisWheel.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 		ParisWheel->setPosition(position);
 		ParisWheel->setRotation(0, XMConvertToRadians(rotation), 0);
 	}
@@ -204,7 +204,7 @@ void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpe
 		if (ParisWheelPlatform)
 		{
 			addComponent(ParisWheelPlatform, "mesh",
-				new MeshComponent("ParisWheelPlatform.lrm", Material({ L"GrayTexture.png" })));
+				new MeshComponent("ParisWheelPlatform.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 
 			ParisWheelPlatform->setRotation(0, XMConvertToRadians(rotation), 0);
 
@@ -225,7 +225,7 @@ void Scene::createFlippingPlatform(Vector3 position, Vector3 rotation, float upT
 	if (flippingPlatform)
 	{
 		addComponent(flippingPlatform, "mesh",
-			new MeshComponent("SquarePlatform.lrm", Material({ L"GrayTexture.png" })));
+			new MeshComponent("SquarePlatform.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 
 		flippingPlatform->setPosition({ position });
 		flippingPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
@@ -246,7 +246,7 @@ void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 sca
 	if (staticPlatform)
 	{
 		addComponent(staticPlatform, "mesh",
-			new MeshComponent(meshPath.c_str(), Material({ L"GrayTexture.png" })));
+			new MeshComponent(meshPath.c_str(), ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 
 		staticPlatform->setPosition(position);
 		staticPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
@@ -596,7 +596,7 @@ void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)
 	if (sweepingPlatform)
 	{
 		addComponent(sweepingPlatform, "mesh",
-			new MeshComponent("SquarePlatform.lrm", Material({ L"GrayTexture.png" })));
+			new MeshComponent("SquarePlatform.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 
 		sweepingPlatform->setPosition(startPos);
 

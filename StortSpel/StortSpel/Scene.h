@@ -18,6 +18,8 @@ private:
 	void createSweepingPlatform(Vector3 startPos, Vector3 endPos);
 
 	Player* m_player;
+
+	Material ObjectSpaceGrid;	// Temp global grid material
 	
 	float m_nightVolume;
 	float m_nightSlide;

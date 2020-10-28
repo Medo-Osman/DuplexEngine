@@ -178,7 +178,7 @@ void Player::playerStateLogic(const float& dt)
 	}
 
 	if (m_finalMovement.y > -MAX_FALL_SPEED * dt)
-		m_finalMovement += Vector3(0, -GRAVITY * dt, 0);
+		m_finalMovement += Vector3(0, -GRAVITY * dt * m_gravityScale, 0);
 	m_controller->move(m_finalMovement, dt);
 }
 

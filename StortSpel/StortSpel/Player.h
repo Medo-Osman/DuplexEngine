@@ -41,6 +41,8 @@ private:
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
 
+    float m_gravityScale = 1.0f;
+
     //DASH CONFIG 
     const float DASH_TRAVEL_DISTANCE = 15.f;
     const float DASH_SPEED = 10.0f;
@@ -59,7 +61,6 @@ private:
     int m_speedModifierDuration;
     float m_speedModifierTime;
     const float FOR_FULL_EFFECT_TIME = 2.f;
-
 
 
     float m_angleY;
