@@ -151,7 +151,7 @@ void Engine::initialize()
 
 	// - Entity
 	Entity* playerEntity = new Entity(PLAYER_ENTITY_NAME);
-	playerEntity->setPosition({ 5, 10.f, 0 });
+	playerEntity->setPosition({ 0, 0, 0 });
 	playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
