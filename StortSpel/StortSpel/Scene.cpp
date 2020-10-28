@@ -102,11 +102,7 @@ void Scene::loadScene(std::string path)
 	loadScore();
 	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
-	Entity* music = addEntity("music");
-	if(music)
-	{
-		addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.4f));
-	}
+	
 
 	Entity* floor = addEntity("floor"); // Floor:
 	if (floor)
@@ -208,6 +204,15 @@ void Scene::loadScene(std::string path)
 		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
+
+
+	// MUSIC
+	Entity* music = addEntity("music");
+	if (music)
+	{
+		addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.4f));
+	}
+	
 
 	// Lights
 	// - Point Light
@@ -328,11 +333,14 @@ void Scene::loadLobby()
 		entity->scale({ 30, -30, 30});
 		entity->translate({ 0,8,0 });
 	}
-	entity = addEntity("sign");
-	if(entity)
+
+	Entity* sign = addEntity("sign");
+	if(sign)
 	{
-		addComponent(entity, "mesh", new MeshComponent("WELCOME_Cube.002.lrm", Material({ L"Controlls.png" })));
-		entity->translate({ 0, 8, 0 });
+		addComponent(sign, "mesh", new MeshComponent("WELCOME_Cube.002.lrm", Material({ L"Controlls.png" })));
+		sign->translate({ 0, 0, 0 });
+		sign->scale({ 2, 2, 2 });
+		sign->setRotation(XMConvertToRadians(-90), XMConvertToRadians(0), XMConvertToRadians(0));
 	}
 
 	//Point Light
