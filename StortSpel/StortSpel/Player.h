@@ -62,6 +62,8 @@ private:
     float m_speedModifierTime;
     const float FOR_FULL_EFFECT_TIME = 2.f;
 
+    int m_instructionGuiIndex = 0;
+
 
 
     float m_angleY;

@@ -36,6 +36,11 @@ Player::Player()
 	style.color = Colors::Yellow;
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
 
+	GUIImageStyle imageStyle;
+	imageStyle.position = Vector2(400, 150);
+	imageStyle.scale = Vector2(1, 1);
+	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
+
 }
 
 Player::~Player()
@@ -349,6 +354,9 @@ void Player::inputUpdate(InputData& inputData)
 			break;
 		case USE:
 
+			break;
+		case CLOSEINTROGUI:
+			GUIHandler::get().setVisible(m_instructionGuiIndex, false);
 			break;
 		default:
 			break;
