@@ -9,6 +9,7 @@
 #include <cmath>
 #include"Physics.h"
 #include"Pickup.h"
+#include"CheckpointComponent.h"
 
 #include "GUIHandler.h"
 
@@ -51,7 +52,7 @@ private:
     const float ROLL_TRAVEL_DISTANCE = 15.f;
     const float ROLL_SPEED = 10.0f;
     const float GRAVITY = 0.375f;
-    const float MAX_FALL_SPEED = 9.82f;
+    const float MAX_FALL_SPEED = 15.82f;
     const float ROLL_HEIGHT = 0.3f;
     const float ROLL_RADIUS = 0.2f;
 
@@ -83,6 +84,10 @@ private:
     std::wstring m_scoreSound = L"OnPickup.wav";
     AudioComponent* m_audioComponent;
 
+    //Checkpoint
+    Vector3 m_checkpointPos = Vector3(0, 9, 5);
+    int m_heightLimitBeforeRespawn = -25;
+
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
     void playerStateLogic(const float& dt);
@@ -98,16 +103,22 @@ private:
   
 public:
     Player();
+    ~Player();
 
     void updatePlayer(const float& dt);
     
     void setPlayerEntity(Entity* entity);
+
+    Vector3 getCheckpointPos();
+    void setCheckpoint(Vector3 newPosition);
+
     void setCameraTranformPtr(Transform* transform);
     void setAnimMeshPtr(AnimatedMeshComponent* animatedMesh);
     
     void incrementScore();
 
     void increaseScoreBy(int value);
+    void respawnPlayer();
 
     int getScore();
     Entity* getPlayerEntity() const;
