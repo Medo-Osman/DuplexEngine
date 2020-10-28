@@ -62,8 +62,8 @@ Renderer::~Renderer()
 	}
 
 
-	HRESULT hr = this->m_debugPtr->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-	assert(SUCCEEDED(hr));
+	//HRESULT hr = this->m_debugPtr->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+	//assert(SUCCEEDED(hr));
 	Microsoft::WRL::ComPtr< ID3D11Debug > m_deviceDebug;
 	m_debugPtr.Reset();
 }
