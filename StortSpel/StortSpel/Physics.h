@@ -304,6 +304,7 @@ public:
 		if (trigger)
 		{
 			shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
+			shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 			shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);
 		}
 
