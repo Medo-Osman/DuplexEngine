@@ -133,7 +133,7 @@ void AnimatedMeshComponent::applyAnimationFrame()
 	}
 
 	// check if the animation has ended, then either do some looping or set it to be the last frame (maybe there can be an animation playlist/sequence feature or something)
-	if (m_animationTime > m_currentAnimationResource->getTimeSpan())
+	if (m_animationTime >= m_currentAnimationResource->getTimeSpan())
 	{
 		if (m_shouldLoop)
 			m_animationTime = m_animationTime - m_currentAnimationResource->getTimeSpan();
