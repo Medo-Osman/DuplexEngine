@@ -158,7 +158,7 @@ void Player::playerStateLogic(const float& dt)
 		}
 		break;
 	case PlayerState::FALLING:
-		//std::cout << "FALLING\n";
+		std::cout << "FALLING\n";
 		if (m_jumps == 0) // Can only jump once in air
 			m_jumps = ALLOWED_NR_OF_JUMPS - 1;
 
@@ -181,7 +181,7 @@ void Player::playerStateLogic(const float& dt)
 
 		//m_currentDistance += JUMP_SPEED * dt;
 
-		if (m_velocity.y < 0)
+		if (m_velocity.y < 0.f)
 		{
 			m_currentDistance = 0.f;
 			m_lastState = PlayerState::JUMPING;
@@ -196,7 +196,7 @@ void Player::playerStateLogic(const float& dt)
 
 		break;
 	case PlayerState::IDLE:
-		//std::cout << "IDLE\n";
+		std::cout << "IDLE\n";
 		if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
 		{
 			m_lastState = PlayerState::IDLE;
@@ -209,41 +209,19 @@ void Player::playerStateLogic(const float& dt)
 
 	if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING || m_state == PlayerState::ROLL)
 	{
-		if (m_state == PlayerState::ROLL)
-		{
-			if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
-				m_velocity.y = 0;
-
-			std::cout << "	ROLL-GRAVITY!\n";
-		}
-		else
-		{
-			if (m_playerEntity->getTranslation().y != m_lastPosition.y)
-				m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
-			else if (m_velocity.y == 0)
-				m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
-			std::cout << "	GRAVITY!\n";
-		}
+		if (m_playerEntity->getTranslation().y != m_lastPosition.y)
+			m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
+		else if (m_velocity.y == 0)
+			m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
 	}
 	else
-	{
 		m_velocity.y = 0;
-		std::cout << "	No GRAVITY!\n";
-	}
 
 	std::cout << m_velocity.y << "\n";
 
-	// Max Gravity Test
-	if (m_velocity.y >= -MAX_FALL_SPEED)
-	{
-		std::cout <<"		LESS THAN MAX!\n";
-	}
-	else
-	{
+	// Max Gravity Tests
+	if (m_velocity.y <= -MAX_FALL_SPEED)
 		m_velocity.y = -MAX_FALL_SPEED;
-		std::cout <<"		MORE THAN MAX!----------------------------\n";
-	}
-
 
 	m_controller->move(m_velocity, dt);
 	m_lastPosition = m_playerEntity->getTranslation();
@@ -401,7 +379,6 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 	{
 		if (physicsData.triggerType == TriggerType::CHECKPOINT)
 		{
-
 			Entity* ptr = static_cast<Entity*>(physicsData.pointer);
 
 			CheckpointComponent* checkpointPtr = dynamic_cast<CheckpointComponent*>(ptr->getComponent("checkpoint"));
@@ -414,8 +391,6 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 
 				checkpointPtr->setUsed(true);
 			}
-
-
 		}
 
 		if (physicsData.triggerType == TriggerType::PICKUP)
