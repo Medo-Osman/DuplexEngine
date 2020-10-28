@@ -17,16 +17,16 @@ cbuffer cameraBuffer : register(b1)
 float4 main(ps_in input) : SV_TARGET
 {
 	// 1
-	float3 FaceColor = float3(1.0, 0.0, 0.0);
-	float3 LineColor = float3(1.0, 1.0, 1.0);
+	float3 FaceColor = float3(0.0, 0.0, 0.0);
+    float3 LineColor = float3(0.5, 0.5, 0.5);
 	
-	float GridInterval = 0.75;
-	float LineExp = 20;
-	float LineBoost = 0.2;
+	float GridInterval = 0.5;
+	float LineExp = 80;
+	float LineBoost = 2;
 	float SpaceOpacity = 0;
 	
 	float FalloffStartScale = 0.025;
-	float FalloffRadius = 250;
+	float FalloffRadius = 25;
 	float FadeExp = 0.5;
 	float LineBrightness = 1;
 	float FaceBrightness = 1;
@@ -53,11 +53,10 @@ float4 main(ps_in input) : SV_TARGET
 	float result2 = E;
 	
 	// 1 * 2
-	//float2 maskResult = saturate(result1 * result2);
+	float maskResult = saturate(result1 * result2);
 	
 	// Blend between colors
-	//float2 finalResult = lerp(FaceColor, LineColor, maskResult);
-	
-	//return float4(finalResult, 1.0f);
-	return float4(result1, result1, result1, 1.0f);
+	float3 finalResult = lerp(FaceColor, LineColor, maskResult);
+	return float4(finalResult, 1.0f);
+	//return float4(result1, result1, result1, 1.0f);
 }

@@ -39,23 +39,24 @@ private:
     //JUMP CONFIG
     const float FALL_MULTIPLIER = 1.1f;
     //const float JUMP_DISTANCE = 30.f; //deprecated
-    const float JUMP_SPEED = 10.f;
+    const float JUMP_SPEED = 0.15f;
     //const float JUMP_DISTANCE = 3.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
 
-    float m_gravityScale = 1.0f;
+    float m_gravityScale = .0005f;
 
     //DASH CONFIG 
-    const float DASH_TRAVEL_DISTANCE = 15.f;
+    const float DASH_TRAVEL_DISTANCE = 10.f;
     const float DASH_SPEED = 10.0f;
     bool m_hasDashed;
 
     //Roll CONFIG
-    const float ROLL_TRAVEL_DISTANCE = 15.f;
-    const float ROLL_SPEED = 10.0f;
-    const float GRAVITY = 0.375f;
-    const float MAX_FALL_SPEED = 15.82f;
+    const float ROLL_TRAVEL_DISTANCE = 10.f;
+    const float ROLL_SPEED = 15.0f;
+    const float GRAVITY = 9.82f;
+    //const float GRAVITY = 0.375f;
+    //const float MAX_FALL_SPEED = 15.82f;
     const float ROLL_HEIGHT = 0.3f;
     const float ROLL_RADIUS = 0.2f;
 
@@ -75,7 +76,7 @@ private:
     Transform* m_cameraTransform;
     Pickup* m_pickupPointer;
 
-    Vector3 m_finalMovement = Vector3();
+    Vector3 m_velocity = Vector3();
     float m_previousVerticalMovement = 0.f;
 
     // Score

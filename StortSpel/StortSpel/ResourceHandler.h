@@ -45,7 +45,7 @@ public:
 	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath, bool isCubeMap = false);
 	ID3D11ShaderResourceView* loadErrorTexture();
 	MeshResource* loadLRMMesh(const char* path);
-	SoundEffect* loadSound(const WCHAR* soundPath, AudioEngine* audioEngine);
+	SoundEffect* loadSound(std::wstring soundPath, AudioEngine* audioEngine);
 
 
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);

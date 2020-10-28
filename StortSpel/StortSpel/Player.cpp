@@ -45,24 +45,27 @@ Player::~Player()
 void Player::setStates(std::vector<State> states)
 {
 	m_movementVector = XMVECTOR();
-	for (std::vector<int>::size_type i = 0; i < states.size(); i++)
+	if (m_state != PlayerState::DASH && m_state != PlayerState::ROLL)
 	{
-		switch (states[i])
+		for (std::vector<int>::size_type i = 0; i < states.size(); i++)
 		{
-		case WALK_LEFT:
-			m_movementVector += m_cameraTransform->getLeftVector();
-			break;
-		case WALK_RIGHT:
-			m_movementVector += m_cameraTransform->getRightVector();
-			break;
-		case WALK_FORWARD:
-			m_movementVector += m_cameraTransform->getForwardVector();
-			break;
-		case WALK_BACKWARD:
-			m_movementVector += m_cameraTransform->getBackwardVector();
-			break;
-		default:
-			break;
+			switch (states[i])
+			{
+			case WALK_LEFT:
+				m_movementVector += m_cameraTransform->getLeftVector();
+				break;
+			case WALK_RIGHT:
+				m_movementVector += m_cameraTransform->getRightVector();
+				break;
+			case WALK_FORWARD:
+				m_movementVector += m_cameraTransform->getForwardVector();
+				break;
+			case WALK_BACKWARD:
+				m_movementVector += m_cameraTransform->getBackwardVector();
+				break;
+			default:
+				break;
+			}
 		}
 	}
 }
@@ -117,11 +120,12 @@ float lerp(const float& a, const float &b, const float &t)
 void Player::playerStateLogic(const float& dt)
 {
 
-	m_finalMovement = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt * this->m_currentSpeedModifier) + Vector3(0, m_finalMovement.y, 0);
+	m_velocity = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt * this->m_currentSpeedModifier) + Vector3(0, m_velocity.y, 0);
 
 	switch (m_state)
 	{
 	case PlayerState::ROLL:
+		std::cout << "ROLL\n";
 		if (m_currentDistance >= ROLL_TRAVEL_DISTANCE)
 		{
 			m_state = PlayerState::IDLE;
@@ -133,11 +137,12 @@ void Player::playerStateLogic(const float& dt)
 			m_currentDistance += ROLL_SPEED * dt;
 			Vector3 move = m_moveDirection * ROLL_SPEED * dt;
 			move.y += -GRAVITY * dt;
-			m_finalMovement += move;
+			m_velocity += move;
 			//m_controller->move(move, dt);
 		}
 		break;
 	case PlayerState::DASH:
+		std::cout << "DASH\n";
 		if (m_currentDistance >= DASH_TRAVEL_DISTANCE)
 		{
 			m_state = PlayerState::FALLING;
@@ -146,29 +151,37 @@ void Player::playerStateLogic(const float& dt)
 		else
 		{
 			m_currentDistance += DASH_TRAVEL_DISTANCE * DASH_SPEED * dt;
-			m_finalMovement += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt;
+			m_velocity += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt;
 			//m_controller->move(m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt, dt);
 		}
 		break;
 	case PlayerState::FALLING:
-		if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 1.f))
+		std::cout << "FALLING\n";
+		if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.5f))
 		{
 			m_state = PlayerState::IDLE;
 			m_jumps = 0;
-			m_finalMovement.y = 0;
+			m_velocity.y = 0;
 			m_hasDashed = false;
 		}
-		else
-		{
-			//finalMovement.y += finalMovement.y - 1.f*dt;//-JUMP_SPEED * FALL_MULTIPLIER * dt;
-			//m_controller->move(finalMovement, dt);
-		}
+		//else
+		//{
+		//	//finalMovement.y += finalMovement.y - 1.f*dt;//-JUMP_SPEED * FALL_MULTIPLIER * dt;
+		//	//m_controller->move(finalMovement, dt);
+		//}
 		break;
 	case PlayerState::JUMPING:
-		m_finalMovement.y = JUMP_SPEED * dt * m_playerScale;// * dt;
+		std::cout << "JUMPING\n";
+		//m_velocity.y = JUMP_SPEED * dt * m_playerScale;// * dt;
 
-		m_currentDistance += JUMP_SPEED * dt;
+		//m_currentDistance += JUMP_SPEED * dt;
 
+		if (m_velocity.y < 0)
+		{
+			m_currentDistance = 0.f;
+			m_state = PlayerState::FALLING;
+		}
+		
 		//if (m_currentDistance > JUMP_DISTANCE)
 		//{
 		//	m_currentDistance = 0.f;
@@ -177,15 +190,19 @@ void Player::playerStateLogic(const float& dt)
 
 		break;
 	case PlayerState::IDLE:
-
+		std::cout << "IDLE\n";
+		if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
+			m_state = PlayerState::FALLING;
+		m_velocity.y = 0;
 		break;
 	default:
 		break;
 	}
 
-	if (m_finalMovement.y > -MAX_FALL_SPEED * dt)
-		m_finalMovement += Vector3(0, -GRAVITY * dt * m_gravityScale, 0);
-	m_controller->move(m_finalMovement, dt);
+	if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING)
+		m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
+
+	m_controller->move(m_velocity, dt);
 
 	if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
 	{
@@ -309,16 +326,20 @@ void Player::inputUpdate(InputData& inputData)
 		switch (inputData.actionData[i])
 		{
 		case JUMP:
-			if (m_state == PlayerState::IDLE || ((m_state == PlayerState::JUMPING || m_state == PlayerState::FALLING) && m_jumps < ALLOWED_NR_OF_JUMPS));
+			if (m_state == PlayerState::IDLE || ((m_state == PlayerState::JUMPING || m_state == PlayerState::FALLING) && m_jumps < ALLOWED_NR_OF_JUMPS))
 				jump();
 			break;
 		case DASH:
-			if (canDash())
-				dash();
-			break;
-		case ROLL:
-			if (canRoll())
-				roll();
+			if (m_state == PlayerState::IDLE)
+			{
+				if (canRoll())
+					roll();
+			}
+			else
+			{
+				if (canDash())
+					dash();
+			}
 			break;
 		case USE:
 
@@ -386,18 +407,15 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				m_audioComponent->playSound();
 				shouldTriggerEntityBeRemoved = true;
 			}
-
-
 		}
-		
 	}
-
 }
 
 void Player::jump()
 {
 	m_currentDistance = 0;
 	m_state = PlayerState::JUMPING;
+	m_velocity.y = JUMP_SPEED * m_playerScale;// * dt;
 	m_jumps++;
 }
 

@@ -186,7 +186,7 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	return m_meshCache[path];
 }
 
-SoundEffect* ResourceHandler::loadSound(const WCHAR* soundPath, AudioEngine* audioEngine)
+SoundEffect* ResourceHandler::loadSound(std::wstring soundPath, AudioEngine* audioEngine)
 {
 	if (!m_soundCache.count(soundPath))
 	{

@@ -81,13 +81,13 @@ void Scene::addCheckpoint(const Vector3& position)
 {
 	Entity* checkPoint = addEntity("checkpoint"+std::to_string(m_nrOfCheckpoints++));
 	addComponent(checkPoint, "mesh", new MeshComponent("Flag_pPlane2.lrm"));
-	checkPoint->setPosition(position + Vector3(0,-0.25f,0));
+	checkPoint->setPosition(position + Vector3(0,-0.2f,0));
 	checkPoint->scale(1.5, 1.5, 1.5);
 
 	addComponent(checkPoint, "checkpoint", new CheckpointComponent(checkPoint));
 	static_cast<TriggerComponent*>(checkPoint->getComponent("checkpoint"))->initTrigger(checkPoint, { 4, 4, 4 });
 
-	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false));
+	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.5f));
 
 }
 
@@ -188,6 +188,7 @@ void Scene::loadScene(std::string path)
 	createFlippingPlatform(Vector3(-24, 37.7, 160), Vector3(0, 180, 0), 2, 1);
 	createStaticPlatform(Vector3(-30, 37.7, 175), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-23.67, 37.7, 185.3), Vector3(0, 45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-23.67, 45, 185.3), Vector3(0, 45, 0), Vector3(10, 10.5, 1), "testCube_pCube1.lrm");
 	// End:
 	createFlippingPlatform(Vector3(-11, 37.7, 200), Vector3(0, 180, 0), 2, 2);
 	createStaticPlatform(Vector3(-11, 37.7, 215), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
@@ -206,26 +207,20 @@ void Scene::loadScene(std::string path)
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-
 	}
 
 	// Lights
 	// - Point Light
-	addComponent(m_player->getPlayerEntity(), "testLight", new LightComponent());
+	/*addComponent(m_player->getPlayerEntity(), "testLight", new LightComponent());
 	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
 	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
-	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);*/
 
-	//// - Spot Light
-	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
+	// - Spot Light
+	/*addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
 	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
 	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
-	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(0.15f);
-
-	/*for (int i = 0; i < 8; i++)
-	{
-		addComponent(m_player->getPlayerEntity(), "lightTest" + std::to_string(i), new LightComponent());
-	}*/
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(0.15f);*/
 }
 
 // Private functions:
