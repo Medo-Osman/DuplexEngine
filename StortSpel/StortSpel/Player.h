@@ -26,6 +26,8 @@ using namespace DirectX;
 class Player : public InputObserver, public PhysicsObserver
 {
 private:
+    float m_playerScale = 2.0f;
+
     //CONTROLLER CONFIG
     const float CAPSULE_HEIGHT = 1.75f;
     const float CAPSULE_RADIUS = 0.5f;
@@ -38,7 +40,7 @@ private:
     const float FALL_MULTIPLIER = 1.1f;
     //const float JUMP_DISTANCE = 30.f; //deprecated
     const float JUMP_SPEED = 10.f;
-    const float JUMP_DISTANCE = 3.f;
+    //const float JUMP_DISTANCE = 3.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
 
@@ -115,6 +117,8 @@ public:
 
     void increaseScoreBy(int value);
     void respawnPlayer();
+
+    float getPlayerScale() const;
 
     int getScore();
     Entity* getPlayerEntity() const;

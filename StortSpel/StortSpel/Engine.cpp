@@ -152,10 +152,10 @@ void Engine::initialize()
 	// - Entity
 	Entity* playerEntity = new Entity(PLAYER_ENTITY_NAME);
 	playerEntity->setPosition({ 5, 10.f, 0 });
-	playerEntity->scaleUniform(0.02f);
+	playerEntity->scaleUniform(m_player->getPlayerScale());
 
 	// - Mesh Componenet
-	playerEntity->addComponent("mesh", new MeshComponent("testTania_tania_geo.lrm", ShaderProgramsEnum::TEMP_TEST));
+	playerEntity->addComponent("mesh", new MeshComponent("platformer_guy_Cube.lrm", ShaderProgramsEnum::TEMP_TEST));
 
 	// - Physics Componenet
 	playerEntity->addComponent("CCC", new CharacterControllerComponent());

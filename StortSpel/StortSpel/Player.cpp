@@ -165,15 +165,15 @@ void Player::playerStateLogic(const float& dt)
 		}
 		break;
 	case PlayerState::JUMPING:
-		m_finalMovement.y = JUMP_SPEED * dt;// * dt;
+		m_finalMovement.y = JUMP_SPEED * dt * m_playerScale;// * dt;
 
 		m_currentDistance += JUMP_SPEED * dt;
 
-		if (m_currentDistance > JUMP_DISTANCE)
-		{
-			m_currentDistance = 0.f;
-			m_state = PlayerState::FALLING;
-		}
+		//if (m_currentDistance > JUMP_DISTANCE)
+		//{
+		//	m_currentDistance = 0.f;
+		//	m_state = PlayerState::FALLING;
+		//}
 
 		break;
 	case PlayerState::IDLE:
@@ -285,6 +285,11 @@ void Player::respawnPlayer()
 	m_controller->setPosition(m_checkpointPos);
 }
 
+float Player::getPlayerScale() const
+{
+	return this->m_playerScale;
+}
+
 int Player::getScore()
 {
 	return m_score;
@@ -304,20 +309,8 @@ void Player::inputUpdate(InputData& inputData)
 		switch (inputData.actionData[i])
 		{
 		case JUMP:
-			if (m_state == PlayerState::IDLE || m_state == PlayerState::JUMPING || m_state == PlayerState::FALLING)
-			{
-				if (m_state == PlayerState::IDLE)
-				{
-					jump();
-				}
-				else
-				{
-					if (m_jumps < ALLOWED_NR_OF_JUMPS)
-					{
-						jump();
-					}
-				}
-			}
+			if (m_state == PlayerState::IDLE || ((m_state == PlayerState::JUMPING || m_state == PlayerState::FALLING) && m_jumps < ALLOWED_NR_OF_JUMPS));
+				jump();
 			break;
 		case DASH:
 			if (canDash())
