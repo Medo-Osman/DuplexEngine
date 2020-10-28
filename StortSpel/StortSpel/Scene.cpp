@@ -9,6 +9,7 @@ Scene::Scene()
 	// Player
 	m_player = Engine::get().getPlayerPtr();
 	m_entities[PLAYER_ENTITY_NAME] = m_player->getPlayerEntity();
+	m_sceneEntryPosition = { 0, 0, 0 };
 
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
@@ -16,6 +17,20 @@ Scene::Scene()
 
 Scene::~Scene()
 {
+	for (std::pair<std::string, Entity*> entityElement : m_entities)
+	{
+		if (entityElement.first != PLAYER_ENTITY_NAME)
+		{
+			delete entityElement.second;
+			entityElement.second = nullptr;
+		}
+		else
+		{
+			entityElement.second = nullptr;
+		}
+	}
+
+	m_entities.clear();
 }
 
 void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
@@ -108,6 +123,7 @@ void Scene::loadScene(std::string path)
 	addCheckpoint(Vector3(-30, 40, 144));
 	addCheckpoint(Vector3(-11, 40, 218.5));
 
+	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
 	Entity* floor = addEntity("floor"); // Floor:
 	if (floor)
@@ -118,6 +134,22 @@ void Scene::loadScene(std::string path)
 		floor->setPosition({ 0, 6, 0 });
 		floor->scale({ 20, 2, 20 });
 		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	Entity* goalTrigger = addEntity("trigger");
+	if (goalTrigger)
+	{
+		addComponent(goalTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"T_GridTestTex.bmp" })));
+		goalTrigger->setPosition(Vector3(-11, 53.4, 289));
+
+		addComponent(goalTrigger, "trigger",
+			new TriggerComponent());
+
+		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
+		tc->initTrigger(goalTrigger, XMFLOAT3(1.0f, 1.0f, 1.0f));
+		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
+		tc->setIntData((int)ScenesEnum::ARENA);
 	}
 
 	// Start:
@@ -281,7 +313,6 @@ void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 sca
 void Scene::loadLobby()
 {
 	Entity* entity;
-
 	Material gridTest = Material({ L"T_GridTestTex.bmp" });
 	entity = addEntity("floor");
 	if (entity)
@@ -323,6 +354,90 @@ void Scene::loadLobby()
 	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
 	m_nightSlide = 0.01f;
 	m_nightVolume = 0.2f;*/
+}
+
+void Scene::loadArena()
+{
+	Engine* engine = &Engine::get();
+	Entity* entity;
+
+	m_sceneEntryPosition = Vector3(33.f, 3.f, 2.f);
+
+
+	Material gridTest = Material({ L"T_GridTestTex.bmp" });
+	entity = addEntity("floor");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+		entity->scale({ 300, 2,300 });
+		entity->setPosition({ 0,-2,0 });
+		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	entity = addEntity("walls");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("BossRoom_pCube15.lrm", Material({ L"DevTexture1m.png" })));
+		entity->setPosition({ 0,8,0 });
+	}
+
+	// Platforms
+	for (int i = 0; i < 5; i++)
+	{
+		entity = addEntity("cube-test" + std::to_string(i));
+		if (entity)
+		{
+			addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm"));
+			entity->scale({ 10,0.2,25 });
+			entity->setPosition({ 55.f + (float)i * 3.f, .2f + (float)i, 55.f });
+			createNewPhysicsComponent(entity);
+		}
+	}
+
+	// Billboard
+	entity = addEntity("Billboard");
+	if (entity)
+	{
+		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DevTexture4m.png" })));
+		entity->scale({ 10,0.2,25 });
+		entity->rotate(Vector3(0, 0, 1.5));
+		entity->setPosition({ 0, 10.0f , 0 });
+
+	}
+
+	//Point Light
+	addComponent(m_player->getPlayerEntity(), "testLight", new LightComponent());
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->translate({ 0,1.f,-5 });
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("testLight"))->setIntensity(1.0f);
+
+	//Spot Light
+	addComponent(m_player->getPlayerEntity(), "spotlightTest2", new SpotLightComponent());
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->translate({ 0,1.f,0 });
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setColor(XMFLOAT3(1, 1, 1));
+	dynamic_cast<SpotLightComponent*>(m_player->getPlayerEntity()->getComponent("spotlightTest2"))->setIntensity(3.f);
+
+	//Tests and demonstration how to add and remove lights
+	for (int i = 0; i < 8; i++)
+	{
+		addComponent(m_player->getPlayerEntity(), "lightTest" + std::to_string(i), new LightComponent());
+	}
+
+	for (int i = 0; i < 8; i++)
+	{
+		removeLightComponent(static_cast<LightComponent*>(m_player->getPlayerEntity()->getComponent("lightTest" + std::to_string(i))));
+	}
+
+	Entity* audioTestDelete = addEntity("deleteTestAudio");
+	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+	delete m_entities["deleteTestAudio"];
+	m_entities.erase("deleteTestAudio");
+
+	// Audio test
+	Entity* audioTest = addEntity("audioTest");
+	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	m_nightSlide = 0.01f;
+	m_nightVolume = 0.2f;
 }
 
 void Scene::loadMaterialTest()
@@ -463,6 +578,11 @@ void Scene::updateScene(const float& dt)
 	ac->setVolume(m_nightVolume);*/
 }
 
+Vector3 Scene::getEntryPosition()
+{
+	return m_sceneEntryPosition;
+}
+
 Entity* Scene::getEntity(std::string key)
 {
 	if (key == PLAYER_ENTITY_NAME)
@@ -557,7 +677,7 @@ void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string 
 	if (!found)
 		ErrorLogger::get().logError("Trying to add physic component without any meshcomponent!. Can't use this helper function.");
 
-	
+
 	entity->addComponent("physics", physComp);
 	physComp->initActorAndShape(entity, meshComponent, geometryType, dynamic, materialName, isUnique);
 }
@@ -576,7 +696,7 @@ void Scene::addLightComponent(LightComponent* component)
 void Scene::removeLightComponent(LightComponent* component)
 {
 	getEntity(component->getParentEntityIdentifier())->removeComponent(component);
-	
+
 	int nrOfErased = m_lightComponentMap.erase(component->getIdentifier());
 	if (nrOfErased > 0) //if it deleted more than 0 elements
 	{

@@ -2,6 +2,13 @@
 #include "Player.h"
 #include "Engine.h"
 
+enum class ScenesEnum
+{
+	LOBBY,
+	START,
+	ARENA,
+};
+
 class Scene : public PhysicsObserver
 {
 private:
@@ -18,7 +25,8 @@ private:
 	void createSweepingPlatform(Vector3 startPos, Vector3 endPos);
 
 	Player* m_player;
-	
+	Vector3 m_sceneEntryPosition;
+
 	float m_nightVolume;
 	float m_nightSlide;
 
@@ -28,7 +36,7 @@ private:
 	std::unordered_map<std::string, Entity*> m_entities;
 	std::unordered_map<unsigned int long, MeshComponent*> m_meshComponentMap;
 	std::unordered_map<std::string, LightComponent*> m_lightComponentMap;
-	
+
 
 	void sendPhysicsMessage(PhysicsData& physicsData, bool& removed);
 
@@ -45,8 +53,10 @@ public:
 	~Scene();
 	void loadScene(std::string path);
 	void loadLobby();
+	void loadArena();
 	void loadMaterialTest();
 	void updateScene(const float &dt);
+	Vector3 getEntryPosition();
 
 	Entity* getEntity(std::string key);
 	Entity* addEntity(std::string identifier);

@@ -46,6 +46,26 @@ public:
 		m_physicsPtr->createAndSetShapeForActor(m_actor, m_geometryHolder, "default", false, {1, 1, 1}, true);
 	}
 
+	void setEventData(TriggerType triggerType, int assosiatedTriggerEnum = 0, void* pointer = nullptr, std::string stringData = "", float floatData = 0.f, int intData = 0)
+	{
+		m_physicsData.triggerType = triggerType;
+		m_physicsData.assosiatedTriggerEnum = assosiatedTriggerEnum;
+		m_physicsData.pointer = pointer;
+		m_physicsData.stringData = stringData;
+		m_physicsData.floatData = floatData;
+		m_physicsData.intData = floatData;
+	}
+
+	void setEventPointer(void* ptr)
+	{
+		m_physicsData.pointer = ptr;
+	}
+
+	void setIntData(int intData)
+	{
+		m_physicsData.intData = intData;
+	}
+
 	virtual void update(float dt)
 	{
 		m_physicsPtr->setPosition(m_actor, m_transform->getTranslation());
