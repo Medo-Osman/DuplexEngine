@@ -37,8 +37,8 @@ Player::Player()
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
 
 	GUIImageStyle imageStyle;
-	imageStyle.position = Vector2(400, 150);
-	imageStyle.scale = Vector2(1, 1);
+	imageStyle.position = Vector2(400, 50);
+	imageStyle.scale = Vector2(0.9, 0.9);
 	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
 }
