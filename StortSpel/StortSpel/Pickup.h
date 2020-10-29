@@ -121,8 +121,16 @@ public:
 	{
 		if (m_whileActiveSound != L"")
 		{
-			m_entityToDoEffectsOn->removeComponent(m_audioComponents.at(1));
-			m_audioComponents.erase(m_audioComponents.begin() + 1);
+			bool removed = false;
+			m_entityToDoEffectsOn->removeComponent(m_whileAudio);
+			for (size_t i = 0; i < m_audioComponents.size() && !removed; i++)
+			{
+				if (m_audioComponents[i] == m_whileAudio)
+				{
+					m_audioComponents.erase(m_audioComponents.begin() + i);
+					removed = true;
+				}
+			}
 			delete m_whileAudio;
 		}
 		if (m_depletedSound != L"")

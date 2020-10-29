@@ -11,6 +11,7 @@ Player::Player()
 	m_hasDashed = false;
 	m_angleY = 0;
 	m_playerEntity = nullptr;
+	m_animMesh = nullptr;
 	m_cameraTransform = nullptr;
 	m_controller = nullptr;
 	m_state = PlayerState::IDLE;
@@ -34,6 +35,11 @@ Player::Player()
 	style.position.x = 160.f;
 	style.color = Colors::Yellow;
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
+
+	GUIImageStyle imageStyle;
+	imageStyle.position = Vector2(400, 50);
+	imageStyle.scale = Vector2(0.9, 0.9);
+	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
 }
 
@@ -132,6 +138,7 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::IDLE;
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
+			m_animMesh->playAnimation("Running4.1", true);
 		}
 		else
 		{
@@ -226,6 +233,22 @@ void Player::playerStateLogic(const float& dt)
 	m_controller->move(m_velocity, dt);
 	m_lastPosition = m_playerEntity->getTranslation();
 
+
+	float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
+	if (m_state != PlayerState::ROLL)
+	{
+		m_animMesh->setAnimationSpeed(1);
+
+		if (vectorLen > 0)
+		{
+			m_animMesh->playAnimation("Running4.1", true);
+		}
+		else
+		{
+			m_animMesh->playAnimation("platformer_guy_idle", true);
+		}
+	}
+
 	if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
 	{
 		respawnPlayer();
@@ -307,6 +330,11 @@ void Player::setCameraTranformPtr(Transform* transform)
 	m_cameraTransform = transform;
 }
 
+void Player::setAnimMeshPtr(AnimatedMeshComponent* animatedMesh)
+{
+	m_animMesh = animatedMesh;
+}
+
 void Player::incrementScore()
 {
 	m_score++;
@@ -333,6 +361,13 @@ float Player::getPlayerScale() const
 int Player::getScore()
 {
 	return m_score;
+}
+
+void Player::setScore(int newScore)
+{
+	m_score = newScore;
+	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+
 }
 
 Entity* Player::getPlayerEntity() const
@@ -366,6 +401,9 @@ void Player::inputUpdate(InputData& inputData)
 			break;
 		case USE:
 
+			break;
+		case CLOSEINTROGUI:
+			GUIHandler::get().setVisible(m_instructionGuiIndex, false);
 			break;
 		default:
 			break;
@@ -450,6 +488,8 @@ void Player::roll()
 	m_controller->setControllerSize(ROLL_HEIGHT);
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
+	m_animMesh->playAnimation("platformer_guy_roll1", true);
+	m_animMesh->setAnimationSpeed(0.8f);
 }
 
 bool Player::canDash() const

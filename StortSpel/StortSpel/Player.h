@@ -2,7 +2,8 @@
 #include "Input.h"
 #include "ResourceHandler.h"
 #include "Entity.h"
-#include"CharacterControllerComponent.h"
+#include "CharacterControllerComponent.h"
+#include "AnimatedMeshComponent.h"
 #include "AudioHandler.h"
 #include "audioComponent.h"
 #include <cmath>
@@ -67,12 +68,15 @@ private:
     float m_speedModifierTime;
     const float FOR_FULL_EFFECT_TIME = 2.f;
 
+    int m_instructionGuiIndex = 0;
+
 
     float m_angleY;
     float m_currentDistance;
     Vector3 m_moveDirection;
     PlayerState m_state;
     Entity* m_playerEntity;
+    AnimatedMeshComponent* m_animMesh;
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
     Pickup* m_pickupPointer;
@@ -85,7 +89,7 @@ private:
     int m_score;
     int m_scoreLabelGUIIndex;
     int m_scoreGUIIndex;
-    std::wstring m_scoreSound = L"OnPickup.wav";
+    std::wstring m_scoreSound = L"StarSound.wav";
     AudioComponent* m_audioComponent;
 
     //Checkpoint
@@ -110,12 +114,15 @@ public:
     ~Player();
 
     void updatePlayer(const float& dt);
+    
     void setPlayerEntity(Entity* entity);
 
     Vector3 getCheckpointPos();
     void setCheckpoint(Vector3 newPosition);
 
     void setCameraTranformPtr(Transform* transform);
+    void setAnimMeshPtr(AnimatedMeshComponent* animatedMesh);
+    
     void incrementScore();
 
     void increaseScoreBy(int value);
@@ -124,6 +131,7 @@ public:
     float getPlayerScale() const;
 
     int getScore();
+    void setScore(int newScore);
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);

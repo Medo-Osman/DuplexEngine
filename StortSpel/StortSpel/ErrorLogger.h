@@ -48,4 +48,5 @@ public:
 
 		OutputDebugString(fullError.c_str());
 	}
+
 };

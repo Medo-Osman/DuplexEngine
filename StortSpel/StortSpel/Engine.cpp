@@ -151,11 +151,18 @@ void Engine::initialize()
 
 	// - Entity
 	Entity* playerEntity = new Entity(PLAYER_ENTITY_NAME);
-	playerEntity->setPosition({ 5, 10.f, 0 });
-	playerEntity->scaleUniform(m_player->getPlayerScale());
+	playerEntity->setPosition({ 0, 0, 0 });
+	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
-	playerEntity->addComponent("mesh", new MeshComponent("platformer_guy_Cube.lrm", ShaderProgramsEnum::TEMP_TEST));
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+	playerEntity->addComponent("mesh", animMeshComp);
+
+	animMeshComp->playAnimation("Running4.1", true);
+
+	m_player->setAnimMeshPtr(animMeshComp);
+
+	//a4->setAnimationSpeed(0.05f);
 
 	// - Physics Componenet
 	playerEntity->addComponent("CCC", new CharacterControllerComponent());

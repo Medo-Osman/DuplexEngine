@@ -99,15 +99,15 @@ XMMATRIX Transform::getRotationMatrix()
 
 XMMATRIX Transform::getScaleMatrix()
 {
-	if (m_rotationDirty)
+	if (m_scaleDirty)
 	{
 		// Update matrix
-		m_rotationMat = XMMatrixRotationQuaternion(m_rotation);
+		m_scaleMat = XMMatrixScalingFromVector(m_scale);
 
 		// Set dirty state
-		m_rotationDirty = false;
+		m_scaleDirty = false;
 	}
-	return m_rotationMat;
+	return m_scaleMat;
 }
 
 void Transform::setPositionZero()

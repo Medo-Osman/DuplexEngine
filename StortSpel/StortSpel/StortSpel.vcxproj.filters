@@ -114,6 +114,9 @@
     <ClCompile Include="Material.cpp">
       <Filter>Source Files\Graphic</Filter>
     </ClCompile>
+    <ClCompile Include="AnimatedMeshComponent.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
     <ClCompile Include="Timer.cpp">
       <Filter>Source Files\Application</Filter>
     </ClCompile>
@@ -242,6 +245,12 @@
     <ClInclude Include="Material.h">
       <Filter>Source Files\Graphic</Filter>
     </ClInclude>
+    <ClInclude Include="AnimatedMeshComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="SkeletalMeshResource.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
     <ClInclude Include="RotateAroundComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
@@ -319,12 +328,18 @@
     </ClInclude>
     <ClInclude Include="CheckpointComponent.h">
       <Filter>Source Files\Components</Filter>
-	</ClInclude>
+    </ClInclude>
     <ClInclude Include="SceneManager.h">
       <Filter>Source Files\Game\Scenes</Filter>
     </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>Source Files\Game\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIImageLabel.h">
+      <Filter>Source Files\Graphic\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationResource.h">
+      <Filter>Source Files\Application</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -358,6 +373,9 @@
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
     <FxCompile Include="SkyboxVertexShader.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="VertexShaderAnim.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
     <FxCompile Include="DownSampleShader.hlsl">

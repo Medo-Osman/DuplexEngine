@@ -2,6 +2,7 @@
 
 #include "GUIElement.h"
 #include "GUIText.h"
+#include "GUIImageLabel.h"
 
 class GUIHandler
 {
@@ -36,7 +37,12 @@ public:
 	int addGUIText(std::string textString, std::wstring fontName, GUITextStyle style = GUITextStyle());
 	void changeGUIText(int index, std::string newTextString);
 	
+	int addGUIImage(std::wstring textureString, GUIImageStyle style = GUIImageStyle());
+	void changeGUIImage(int index, std::wstring path);
 	void removeElement(int index);
+
+	void setVisible(int index, bool value);
+	bool getVisible(int index);
 
 	void render();
 };

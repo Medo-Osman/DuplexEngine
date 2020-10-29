@@ -6,6 +6,7 @@ enum ShaderProgramsEnum
 	DEFAULT,
 	TEMP_TEST,
 	SKYBOX,
+	SKEL_ANIM,
 	PBRTEST,
 	BLOOM_COMBINE,
 	OBJECTSPACEGRID,
@@ -40,6 +41,14 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 
+	(*compiledShadersMap)[ShaderProgramsEnum::SKEL_ANIM] = new ShaderProgram
+	(
+		{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"BasicPixelShader_temp_for_testing_shaderSwitching.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+	
 	(*compiledShadersMap)[ShaderProgramsEnum::PBRTEST] = new ShaderProgram
 	(
 		{ L"VertexShaderBasic.hlsl",L"null",L"null",L"null",L"PBRShaderBase.hlsl" },

@@ -19,3 +19,9 @@ Material* MeshComponent::getMaterialPtr()
 {
 	return &m_material;
 }
+
+MeshComponent::MeshComponent(ShaderProgramsEnum shaderEnum, Material material)
+	:m_shaderProgEnum(shaderEnum), m_material(Material(material))
+{
+	m_type = ComponentType::MESH;
+}
