@@ -644,7 +644,7 @@ void Renderer::render()
 
 	// Render ImGui
 	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	//ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	m_swapChainPtr->Present(1, 0);
 }

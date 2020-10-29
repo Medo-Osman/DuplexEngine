@@ -234,7 +234,7 @@ void Player::playerStateLogic(const float& dt)
 	m_lastPosition = m_playerEntity->getTranslation();
 
 
-	float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
+	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).LengthSquared();
 	if (m_state != PlayerState::ROLL)
 	{
 		m_animMesh->setAnimationSpeed(1);
