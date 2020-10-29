@@ -221,8 +221,6 @@ void Player::playerStateLogic(const float& dt)
 		else if (m_velocity.y == 0)
 			m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
 	}
-	else
-		m_velocity.y = 0;
 
 	std::cout << m_velocity.y << "\n";
 
