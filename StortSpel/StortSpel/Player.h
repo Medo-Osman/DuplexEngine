@@ -48,7 +48,7 @@ private:
     float m_gravityScale = .0005f;
 
     //DASH CONFIG 
-    const float DASH_TRAVEL_DISTANCE = 6.f;
+    const float DASH_TRAVEL_DISTANCE = 7.f;
     const float DASH_SPEED = 10.0f;
     bool m_hasDashed;
 

@@ -487,7 +487,7 @@ void Player::roll()
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
 	m_animMesh->playAnimation("platformer_guy_roll1", true);
-	m_animMesh->setAnimationSpeed(0.8f);
+	m_animMesh->setAnimationSpeed(1.85f);
 }
 
 bool Player::canDash() const
