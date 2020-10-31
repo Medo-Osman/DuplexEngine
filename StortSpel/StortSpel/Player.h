@@ -33,29 +33,28 @@ private:
     const float CAPSULE_HEIGHT = 1.5f;
     const float CAPSULE_RADIUS = 0.01f;
 
-    //WALK CONFIG
-    const float PLAYER_SPEED = 10.f;
+    //RUN CONFIG
+    const float PLAYER_SPEED = 0.1f;
     DirectX::XMVECTOR m_movementVector;
 
     //JUMP CONFIG
     const float FALL_MULTIPLIER = 1.1f;
-    //const float JUMP_DISTANCE = 30.f; //deprecated
-    const float JUMP_SPEED = 0.10f;
-    //const float JUMP_DISTANCE = 3.f;
+    const float JUMP_SPEED = 0.1f;
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
 
     float m_gravityScale = .0005f;
 
     //DASH CONFIG 
-    const float DASH_TRAVEL_DISTANCE = 7.f;
-    const float DASH_SPEED = 10.0f;
+    const float DASH_TRAVEL_DISTANCE = 10.f;
+    const float DASH_SPEED = 0.05f;
     bool m_hasDashed;
 
     //Roll CONFIG
-    const float ROLL_TRAVEL_DISTANCE = 10.f;
-    const float ROLL_SPEED = 15.0f;
-    PlayerState m_lastState;
+    const float ROLL_TRAVEL_DISTANCE = 9.f;
+    const float ROLL_SPEED = 0.1f;
+
+    // Gravity CONFIG
     const float GRAVITY = 9.82f;
     //const float GRAVITY = 0.375f;
     const float MAX_FALL_SPEED = 0.3f;

@@ -125,8 +125,7 @@ float lerp(const float& a, const float &b, const float &t)
 
 void Player::playerStateLogic(const float& dt)
 {
-
-	m_velocity = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt * this->m_currentSpeedModifier) + Vector3(0, m_velocity.y, 0);
+	Vector3 directionalMovement = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * m_currentSpeedModifier) + Vector3(0, m_velocity.y, 0);
 
 	switch (m_state)
 	{
@@ -134,7 +133,6 @@ void Player::playerStateLogic(const float& dt)
 		std::cout << "ROLL\n";
 		if (m_currentDistance >= ROLL_TRAVEL_DISTANCE)
 		{
-			m_lastState = PlayerState::ROLL;
 			m_state = PlayerState::IDLE;
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
@@ -142,28 +140,25 @@ void Player::playerStateLogic(const float& dt)
 		}
 		else
 		{
-			m_currentDistance += ROLL_SPEED * dt;
-			Vector3 move = m_moveDirection * ROLL_SPEED * dt;
-			move.y += -GRAVITY * dt;
-			m_velocity += move;
-			//m_controller->move(move, dt);
+			m_currentDistance += ROLL_SPEED;
+			m_velocity += m_moveDirection * ROLL_SPEED;
 		}
 		break;
+
 	case PlayerState::DASH:
 		std::cout << "DASH\n";
 		if (m_currentDistance >= DASH_TRAVEL_DISTANCE)
 		{
-			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
 		}
 		else
 		{
-			m_currentDistance += DASH_TRAVEL_DISTANCE * DASH_SPEED * dt;
-			m_velocity += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt;
-			//m_controller->move(m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt, dt);
+			m_currentDistance += DASH_TRAVEL_DISTANCE * DASH_SPEED;
+			m_velocity += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE;
 		}
 		break;
+
 	case PlayerState::FALLING:
 		std::cout << "FALLING\n";
 		if (m_jumps == 0) // Can only jump once in air
@@ -171,45 +166,27 @@ void Player::playerStateLogic(const float& dt)
 
 		if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
 		{
-			m_lastState = PlayerState::FALLING;
 			m_state = PlayerState::IDLE;
 			m_jumps = 0;
 			m_hasDashed = false;
 		}
-		//else 
-		//{
-		//	//finalMovement.y += finalMovement.y - 1.f*dt;//-JUMP_SPEED * FALL_MULTIPLIER * dt;
-		//	//m_controller->move(finalMovement, dt);
-		//}
 		break;
+
 	case PlayerState::JUMPING:
 		std::cout << "JUMPING\n";
-		//m_velocity.y = JUMP_SPEED * dt * m_playerScale;// * dt;
-
-		//m_currentDistance += JUMP_SPEED * dt;
-
 		if (m_velocity.y < 0.f)
 		{
 			m_currentDistance = 0.f;
-			m_lastState = PlayerState::JUMPING;
 			m_state = PlayerState::FALLING;
 		}
-		
-		//if (m_currentDistance > JUMP_DISTANCE)
-		//{
-		//	m_currentDistance = 0.f;
-		//	m_state = PlayerState::FALLING;
-		//}
-
 		break;
+
 	case PlayerState::IDLE:
 		std::cout << "IDLE\n";
 		if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
-		{
-			m_lastState = PlayerState::IDLE;
 			m_state = PlayerState::FALLING;
-		}
 		break;
+
 	default:
 		break;
 	}
