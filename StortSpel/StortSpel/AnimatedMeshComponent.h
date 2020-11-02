@@ -3,6 +3,8 @@
 #include "ConstantBufferTypes.h"
 #include "AnimationResource.h"
 
+
+
 struct joint
 {
 	int index;
@@ -14,22 +16,47 @@ struct joint
 	Matrix inverseBindTransform;
 };
 
+struct animationStruct
+{
+	AnimationResource* animationResource;
+
+	float animationTime;
+
+	float animationSpeed;
+
+	std::string animationName;
+};
+
+struct animState
+{
+	std::vector<animationStruct> structs;
+	
+	bool justOne;
+
+	std::vector<float> blendPoints;
+	
+	float blend;
+
+	float startTransitionDuration;
+	bool playDuringStartTransistion;
+};
+
 class AnimatedMeshComponent : public MeshComponent
 {
 private:
-
 	int m_jointCount;
 	int m_rootIdx;
 	std::vector<joint> m_joints;
 	skeletonAnimationCBuffer m_cBufferStruct;
 
-	AnimationResource* m_currentAnimationResource;
-	std::queue<AnimationResource*> m_animationQueue;
-	std::string m_animationName;
-	float m_animationTime;
-	bool m_shouldLoop;
-	bool m_isDone;
-	float m_animationSpeed;
+	bool m_inBindPose;
+	bool m_justOnePose;
+	std::unordered_map<std::string, animState> m_storedStates;
+	animState* m_currentState;
+	std::queue<animState*> m_animationQueue;
+	
+	// when m_transitionTime is 0 no transtion is happening, when over 0 it means that it is counting down
+	float m_transitionTime;
 
 public:
 	
@@ -38,18 +65,28 @@ public:
 
 	skeletonAnimationCBuffer* getAllAnimationTransforms();
 
-	void playAnimation(std::string animationName, bool looping);
-	
-	void applyAnimationFrame();
+	void playSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion);
+	void addSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion);
+	void queueSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion);
+
+	void addBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, bool playDuringStartTransistion);
+	void addAndPlayBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, float transistionTime, bool playDuringStartTransistion);
+	bool playBlendState(std::string stateName, float transistionTime);
+	bool queueBlendState(std::string stateName);
+
+	void setCurrentBlend(float blend);
 
 	virtual void update(float dt) override;
 
 	// Deltatime is multiplied by this number when the component updates.
-	void setAnimationSpeed(const float newAnimationSpeed) { m_animationSpeed = newAnimationSpeed; }
+	void setAnimationSpeed(const float newAnimationSpeed);
+	void setAnimationSpeed(const unsigned int structIndex, const float newAnimationSpeed);
 
-	std::string getAnimationName();
+	//std::string getAnimationName();
 
 private:
+
+	void applyAnimationFrame();
 
 	joint createJointAndChildren(int currentIndex, LRSM_JOINT* LRSMJoints, Matrix parentBindTransform);
 	
@@ -59,5 +96,11 @@ private:
 	// Applies the correct matrices to the cbuffer, should only be called if all joint's animatedTransform is updated
 	void applyPoseToJoints(int thisJointIdx, Matrix parentTransform);
 	
+	// Takes in an animState and calulates its current ANIMATION_FRAME
+	void calculateFrameForState(animState* state, ANIMATION_FRAME** animStateFrame);
+
+	// Produces an ANIMATION_FRAME that is an interpolation of two others
+	void interpolateFrame(ANIMATION_FRAME* prevFrame, ANIMATION_FRAME* nextFrame, float progression, ANIMATION_FRAME* interpolatedFrame);
+
 };
 

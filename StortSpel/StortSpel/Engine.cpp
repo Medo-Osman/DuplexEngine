@@ -158,7 +158,10 @@ void Engine::initialize()
 	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 	playerEntity->addComponent("mesh", animMeshComp);
 
-	animMeshComp->playAnimation("Running4.1", true);
+	//animMeshComp->playAnimation("Running4.1", true);
+	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
+	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+
 
 	m_player->setAnimMeshPtr(animMeshComp);
 

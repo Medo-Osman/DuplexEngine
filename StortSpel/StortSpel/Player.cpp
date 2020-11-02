@@ -122,7 +122,6 @@ float lerp(const float& a, const float &b, const float &t)
 
 void Player::playerStateLogic(const float& dt)
 {
-
 	m_finalMovement = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt * this->m_currentSpeedModifier) + Vector3(0, m_finalMovement.y, 0);
 
 	switch (m_state)
@@ -133,7 +132,8 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::IDLE;
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
-			m_animMesh->playAnimation("Running4.1", true);
+			//m_animMesh->playAnimation("Running4.1", true);
+			m_animMesh->playBlendState("runOrIdle",0.3f);
 		}
 		else
 		{
@@ -194,19 +194,27 @@ void Player::playerStateLogic(const float& dt)
 		m_finalMovement += Vector3(0, -GRAVITY * dt, 0);
 	m_controller->move(m_finalMovement, dt);
 	
-	float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
+	//float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
+	float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).Length();
 	if (m_state != PlayerState::ROLL)
 	{
-		m_animMesh->setAnimationSpeed(1);
-
-		if (vectorLen > 0)
-		{
-			m_animMesh->playAnimation("Running4.1", true);
-		}
-		else
-		{
-			m_animMesh->playAnimation("platformer_guy_idle", true);
-		}
+		//m_animMesh->setAnimationSpeed(1);
+		
+		float blend = vectorLen / (PLAYER_SPEED * dt);
+		
+		m_animMesh->setCurrentBlend(blend > 1.55f ? 1.55f : blend);
+		//if (vectorLen > 0)
+		//{
+		//	//m_animMesh->playAnimation("Running4.1", true);
+		//	m_animMesh->setCurrentBlend(1.f);
+		//	//m_animMesh->playSingleAnimation("Running4.1", 0.2f, true);
+		//}
+		//else
+		//{
+		//	//m_animMesh->playAnimation("platformer_guy_idle", true);
+		//	m_animMesh->setCurrentBlend(0);
+		//	//m_animMesh->playSingleAnimation("platformer_guy_idle", 0.2f, true);
+		//}
 	}
 	
 
@@ -457,7 +465,8 @@ void Player::roll()
 	m_controller->setControllerSize(ROLL_HEIGHT);
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
-	m_animMesh->playAnimation("platformer_guy_roll1", true);
+	//m_animMesh->playAnimation("platformer_guy_roll1", true);
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.2f, false);
 	m_animMesh->setAnimationSpeed(0.8f);
 }
 
