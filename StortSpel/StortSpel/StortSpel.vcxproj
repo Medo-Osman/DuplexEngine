@@ -303,6 +303,7 @@
     <ClInclude Include="TestComponent.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="TrapComponent.h" />
     <ClInclude Include="TriggerComponent.h" />
     <ClInclude Include="VertexStructs.h" />
   </ItemGroup>
