@@ -55,6 +55,7 @@ struct shadowBuffer
 {
     XMMATRIX lightViewMatrix;
     XMMATRIX lightProjMatrix;
+    XMMATRIX shadowMatrix;
 };
 
 const int MAX_JOINT_COUNT = 30; // if this is changed, also change it in the shader.

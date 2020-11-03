@@ -60,9 +60,11 @@ struct ps_in
     float3 tangent : TANGENT;
     float3 bitangent : BITANGENT;
     float4 worldPos : POSITION;
+    float4 shadowPos : SPOS;
 };
 
 Texture2D diffuseTexture : TEXTURE : register(t0);
+Texture2D shadowMap : TEXTURE : register(t2);
 SamplerState sampState : SAMPLER : register(s0);
 
 struct lightComputeResult
@@ -74,14 +76,30 @@ struct lightComputeResult
 
 float computeShadowFactor(float4 shadowPosH)
 {
-    float factor = 0;
-    
     shadowPosH.xyz /= shadowPosH.w; //Finish projection
     
     float depth = shadowPosH.z; //In NDC
     
-    //float
-    return factor;
+    const float delta = SHADOW_MAP_DELTA;
+    float percentLit = 0.0;
+    
+    //Filtering matrix
+    const float2 offsets[9] =
+    {
+        float2(-delta, -delta), float2(0.0f, -delta), float2(delta, -delta),
+        float2(-delta, 0.0f), float2(0.0f, 0.0f), float2(delta, 0.0f),
+        float2(-delta, +delta), float2(0.0f, +delta), float2(delta, +delta)
+    };
+    
+    //PCF Filtering, sum all the samples
+    [unroll]
+    for (int i = 0; i < 9; i++) //9 because matrix size
+    {
+        percentLit += shadowMap.Sample(sampState, shadowPosH.xy + offsets[i]);
+    }
+    
+    //Avg of all samples
+    return percentLit /= 9.f; //9 because matrix size.
 };
 
 //Only calculating diffuse light
@@ -125,15 +143,18 @@ lightComputeResult computeLightFactor(ps_in input)
         finalColor = saturate(finalColor + (diffuseLightFactor * spotLights[j].color * attenuationFactor));
     }
     
-    finalColor = finalColor + saturate(dot(skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
+    finalColor = finalColor + saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
     
-    result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel));
+    //float shadowFactor = 1.f - computeShadowFactor(input.shadowPos);
+    float shadowFactor = 0.f;
+    result.lightColor = (finalColor * diffuse * shadowFactor + (diffuse * ambientLightLevel));
     
     return result;
 }
 
 float4 main(ps_in input) : SV_TARGET
 {
+    
     lightComputeResult lightResult = computeLightFactor(input);
    
     return float4(lightResult.lightColor, 1);

@@ -26,6 +26,7 @@ cbuffer shadowMap : register(b3)
 {
     float4x4 lightViewMatrix;
     float4x4 lightProjMatrix;
+    float4x4 shadowMatrix;
 };
 
 

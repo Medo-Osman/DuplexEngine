@@ -598,6 +598,7 @@ void Renderer::renderShadowPass()
 	shadowBuffer shadowBufferStruct;
 	shadowBufferStruct.lightProjMatrix = m_shadowMap->m_lightProjMatrix;
 	shadowBufferStruct.lightViewMatrix = m_shadowMap->m_lightViewMatrix;
+	shadowBufferStruct.shadowMatrix = m_shadowMap->m_shadowTransform;
 	m_shadowConstantBuffer.updateBuffer(m_dContextPtr.Get(), &shadowBufferStruct);
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
@@ -618,6 +619,7 @@ void Renderer::renderShadowPass()
 			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_shadowMap->m_lightViewMatrix);//XMMatrixTranspose(m_camera->getViewMatrix());
 			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+			//constantBufferPerObjectStruct.shadowMatrix = m_shadowMap->m_shadowTransform;
 
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 

@@ -59,13 +59,15 @@ void ShadowMap::bindResourcesAndSetNullRTV(ID3D11DeviceContext* context)
 	ID3D11RenderTargetView* renderTargets[1] = { 0 };
 	context->OMSetRenderTargets(1, renderTargets, m_depthMapDSV);
 
-	
 	context->ClearDepthStencilView(m_depthMapDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	
+	//Bind the SRV
+	context->PSSetShaderResources(2, 1, &m_depthMapSRV);
 }
 
 void ShadowMap::computeShadowMatrix(Vector3 playerPos)
 {
-	float radius = 60.f;
+	float radius = 120.f;
 	Vector4 lightPos = -2 * radius * m_direction;
 	Vector3 targetPos = playerPos;//Vector3(0, 0, 0);
 
