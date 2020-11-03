@@ -111,29 +111,12 @@ skeletonAnimationCBuffer* AnimatedMeshComponent::getAllAnimationTransforms()
 	return &m_cBufferStruct;
 }
 
-//void AnimatedMeshComponent::playAnimation(std::string animationName, bool looping)
-//{
-//	if (m_animationName == animationName)
-//		return;
-//	
-//	// get/load the animation from the resource handler (might want to have a seperate preload function as well)
-//	m_currentAnimationResource = ResourceHandler::get().loadAnimation( (animationName + ".lra").c_str() );
-//
-//	// set some variables that will allow the animation to play on it's own in an update function.
-//	m_animationTime = 0;
-//	m_shouldLoop = looping;
-//	m_isDone = false;
-//	m_animationName = animationName;
-//
-//	// call a apply animationFrame function on the first frame (i guess, i don't suppose we'll add blending of some sort later)
-//	applyAnimationFrame();
-//}
 
 void AnimatedMeshComponent::playSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion)
 {
 	if (m_currentState->justOne && m_currentState->structs.at(0).animationName == animationName)
 		return;
-	
+
 	std::queue<animState*> empty = std::queue<animState*>(); // Make the queue empty by swaping it with an empty one
 	std::swap(m_animationQueue, empty);
 
@@ -153,8 +136,7 @@ void AnimatedMeshComponent::playSingleAnimation(std::string animationName, float
 		}
 	}
 		
-
-	if (!m_inBindPose)
+	if (!m_inBindPose && transistionTime > 0.f)
 	{
 		m_animationQueue.push(&m_storedStates[animationName]);
 		m_transitionTime = transistionTime;
@@ -162,20 +144,19 @@ void AnimatedMeshComponent::playSingleAnimation(std::string animationName, float
 	else
 	{
 		m_currentState = &m_storedStates[animationName];
+		if (m_storedStates[animationName].structs.at(0).animationResource->getFrameCount() == 1)
+		{
+			m_justOnePose = true;
+			if (transistionTime == 0.f)
+			{
+				setAnimatedTransform(&(*m_storedStates[animationName].structs.at(0).animationResource->getFrames())[0]);
+				applyPoseToJoints(m_rootIdx, XMMatrixIdentity());
+			}
+		}
+		else
+			m_justOnePose = false;
 	}
 	
-	if (m_storedStates[animationName].structs.at(0).animationResource->getFrameCount() == 1)
-	{
-		m_justOnePose = true;
-		if (transistionTime == 0.f)
-		{
-			setAnimatedTransform(&(*m_storedStates[animationName].structs.at(0).animationResource->getFrames())[0]);
-			applyPoseToJoints(m_rootIdx, XMMatrixIdentity());
-		}
-	}
-	else
-		m_justOnePose = false;
-
 	m_inBindPose = false;
 }
 
@@ -198,8 +179,14 @@ void AnimatedMeshComponent::addSingleAnimation(std::string animationName, float 
 
 void AnimatedMeshComponent::queueSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion)
 {
-	if (m_currentState->justOne && m_currentState->structs.at(0).animationName == animationName)
+	if (m_currentState->justOne && m_animationQueue.empty() && m_currentState->structs.at(0).animationName == animationName)
 		return;
+
+	if (m_inBindPose)
+	{
+		ErrorLogger::get().logError("Trying to queue an animation when in bindpose, we'll just play it now. Please use the correct function.");
+		playSingleAnimation(animationName, transistionTime, playDuringStartTransistion);
+	}
 
 	if (m_storedStates.find(animationName) == m_storedStates.end()) // If the animation isn't in the stored states map
 	{
@@ -218,22 +205,13 @@ void AnimatedMeshComponent::queueSingleAnimation(std::string animationName, floa
 	}
 
 	m_animationQueue.push(&m_storedStates[animationName]);
-
-	if (m_storedStates[animationName].structs.at(0).animationResource->getFrameCount() == 1)
-	{
-		m_justOnePose = true; // need to set this later when we transistion into it.
-	}
-	else
-		m_justOnePose = false;
-
-	m_inBindPose = false;
 }
 
 void AnimatedMeshComponent::addBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, bool playDuringStartTransistion)
 {
 	animState newState;
 	newState.justOne = false;
-	newState.blend = 0.0f;
+	newState.blend = 0.f;
 	newState.playDuringStartTransistion = playDuringStartTransistion;
 	
 	for (auto& params : animationParams)
@@ -277,7 +255,7 @@ bool AnimatedMeshComponent::playBlendState(std::string stateName, float transist
 		}
 	}
 
-	if (!m_inBindPose)
+	if (!m_inBindPose && transistionTime > 0.f)
 	{
 		m_animationQueue.push(&m_storedStates[stateName]);
 		m_transitionTime = transistionTime;
@@ -293,11 +271,35 @@ bool AnimatedMeshComponent::playBlendState(std::string stateName, float transist
 	return true;
 }
 
+bool AnimatedMeshComponent::queueBlendState(std::string stateName, float transistionTime)
+{
+	if (m_storedStates.find(stateName) == m_storedStates.end()) // If the animation isn't in the stored states map
+	{
+		return false;
+	}
+
+	m_storedStates[stateName].startTransitionDuration = transistionTime;
+
+	if (!m_storedStates[stateName].playDuringStartTransistion)
+	{
+		for (auto& animStruct : m_storedStates[stateName].structs)
+		{
+			animStruct.animationTime = 0.f;
+		}
+	}
+
+	m_animationQueue.push(&m_storedStates[stateName]);
+
+	return true;
+}
+
 void AnimatedMeshComponent::setCurrentBlend(float blend)
 {
 	// simple version
 	//m_currentState->blend = blend;
 	
+	assert(!isnan(blend));
+
 	if (m_transitionTime > 0.f)
 	{
 		m_animationQueue.front()->blend = blend;
@@ -313,17 +315,6 @@ void AnimatedMeshComponent::applyAnimationFrame()
 {
 	if (m_inBindPose)
 		return;
-	
-	if (m_justOnePose && m_transitionTime == 0)
-		return;
-
-	// pose code?
-	//if (m_currentState->justOne && m_currentState->structs.at(0).animationResource->getFrameCount() == 1) // only one frame means it's a pose
-	//{
-	//	setAnimatedTransform(&(*m_currentState->structs.at(0).animationResource->getFrames())[0] );
-	//	applyPoseToJoints(m_rootIdx, XMMatrixIdentity());
-	//	m_isDone = true;
-	//}
 
 	if (
 		m_animationQueue.size() > 0
@@ -335,7 +326,13 @@ void AnimatedMeshComponent::applyAnimationFrame()
 	{
 		// begin queue transition
 		m_transitionTime = m_animationQueue.front()->startTransitionDuration;
+		if (m_animationQueue.front()->startTransitionDuration <= 0)
+			advanceQueue();
 	}
+
+	if (m_justOnePose && m_transitionTime == 0)
+		return;
+
 	for (int i = 0; i < m_currentState->structs.size(); i++)
 	{
 		if (m_currentState->structs.at(i).animationTime >= m_currentState->structs.at(i).animationResource->getTimeSpan())
@@ -349,118 +346,16 @@ void AnimatedMeshComponent::applyAnimationFrame()
 				m_animationQueue.front()->structs.at(i).animationTime -= m_animationQueue.front()->structs.at(i).animationResource->getTimeSpan();
 		}
 	}
-
-	// check if the animation has ended, then either do some looping or set it to be the last frame (maybe there can be an animation playlist/sequence feature or something)
-	/*if (m_animationTime >= m_currentAnimationResource->getTimeSpan())
-	{
-		if (m_shouldLoop)
-			m_animationTime = m_animationTime - m_currentAnimationResource->getTimeSpan();
-		else
-		{
-			m_animationTime = m_currentAnimationResource->getTimeSpan();
-			m_isDone = true;
-			setAnimatedTransform(&(*m_currentAnimationResource->getFrames())[m_currentAnimationResource->getFrameCount()-1]);
-			applyPoseToJoints(m_rootIdx, XMMatrixIdentity());
-			return;
-		}	
-	}*/
 	
 	// ---calculate current state animation frame
-	ANIMATION_FRAME* currentStateFrame = nullptr;
-	calculateFrameForState(m_currentState, &currentStateFrame);
-	/*
-	bool delCurrentStateFrame = false;
-	float currentBlend = 0;
-	int prevBlendPoint = 0;
-	if (m_currentState->justOne)
-	{
-		//no blend
-	}
-	else if (m_currentState->structs.size() == 2)
-	{
-		currentBlend = m_currentState->blend;
-	}
-	else if (m_currentState->structs.size() > 2)
-	{
-		for (int i = 0; i < m_currentState->blendPoints.size(); i++)
-		{
-			if (m_currentState->blend > m_currentState->blendPoints.at(i))
-				break;
-			prevBlendPoint = i;
-		}
-		float nextBlend = ( prevBlendPoint + 1 == m_currentState->blendPoints.size() ) ? 2.f : m_currentState->blendPoints.at(prevBlendPoint + 1);
-		float deltaBlend = nextBlend - m_currentState->blendPoints.at(prevBlendPoint);
-		float currentBlendBetweenPoints = m_currentState->blend - m_currentState->blendPoints.at(prevBlendPoint);
-		currentBlend = currentBlendBetweenPoints / deltaBlend;
-	}
+	ANIMATION_FRAME* finalAnimationFrame = nullptr;
 
-	for (int i = prevBlendPoint; i < prevBlendPoint+2; i++)
-	{
-		if (!m_currentState->justOne && i == prevBlendPoint && currentBlend == m_currentState->blendPoints.at(prevBlendPoint + 1))
-		{
-			continue;
-		}
-		
-		AnimationResource* animResPtr = m_currentState->structs.at(i).animationResource; // just a pointer with a shorter name.
-		ANIMATION_FRAME* allFramesOfThisAnim = *animResPtr->getFrames();
-		ANIMATION_FRAME* thisAnimFrame = nullptr;
-
-		int prevFrame = 0;
-		int nextFrame = 0;
-
-		for (int u = 0; u < animResPtr->getFrameCount(); u++)
-		{
-			nextFrame = u;
-			if (allFramesOfThisAnim[u].timeStamp > m_currentState->structs.at(i).animationTime)
-				break;
-
-			prevFrame = u;
-		}
-
-		float deltaTime = allFramesOfThisAnim[nextFrame].timeStamp - allFramesOfThisAnim[prevFrame].timeStamp;
-		float currentTimeBetweenFrames = m_currentState->structs.at(i).animationTime - allFramesOfThisAnim[prevFrame].timeStamp;
-		float progression = currentTimeBetweenFrames / deltaTime;
-
-		// now that we have the progression we can interpolate (but if the time is close enough to a timestamp (really close) we can just pick it and skip interpolation and set the current time variable)
-		float allowedMargin = 0.05f;
-		allowedMargin* pow(m_currentState->structs.at(i).animationSpeed, 0.4);
-
-		if (progression < 0 + allowedMargin)
-			thisAnimFrame = new ANIMATION_FRAME(allFramesOfThisAnim[prevFrame], m_jointCount);
-		else if (progression > 1 - allowedMargin)
-		{
-			thisAnimFrame = new ANIMATION_FRAME(allFramesOfThisAnim[nextFrame], m_jointCount);
-			if (nextFrame != animResPtr->getFrameCount() - 1)
-				m_currentState->structs.at(i).animationTime = allFramesOfThisAnim[nextFrame].timeStamp;
-		}
-		else
-		{
-			thisAnimFrame = new ANIMATION_FRAME();
-			delCurrentStateFrame = true;
-			interpolateFrame(&allFramesOfThisAnim[prevFrame], &allFramesOfThisAnim[nextFrame], progression, thisAnimFrame);
-		}
-
-		if (i == prevBlendPoint)
-		{
-			currentStateFrame = thisAnimFrame;
-			if(m_currentState->justOne || currentBlend == m_currentState->blendPoints.at(prevBlendPoint))
-				break;
-		}
-		else
-		{
-			if (currentBlend == m_currentState->blendPoints.at(i))
-			{
-				currentStateFrame = thisAnimFrame;
-			}
-			else
-			{
-				interpolateFrame(currentStateFrame, thisAnimFrame, currentBlend, currentStateFrame);
-				delete thisAnimFrame;
-			}
-		}
-	}
-	*/
-	// transistion handling
+	if (m_justOnePose)
+		finalAnimationFrame = new ANIMATION_FRAME(*m_currentState->structs.at(0).animationResource->getFrames()[0], m_jointCount);
+	else
+		calculateFrameForState(m_currentState, &finalAnimationFrame);
+	
+	// ---transistion handling
 
 	if (m_transitionTime > 0)
 	{
@@ -469,7 +364,6 @@ void AnimatedMeshComponent::applyAnimationFrame()
 		ANIMATION_FRAME* inQueueFrame = nullptr;
 		if (m_animationQueue.front()->playDuringStartTransistion)
 		{
-			// Get the correct frame. yes with blending. treat inQueueFrame like it is currentStateFrame.
 			calculateFrameForState(m_animationQueue.front(), &inQueueFrame);
 		}
 		else
@@ -478,17 +372,14 @@ void AnimatedMeshComponent::applyAnimationFrame()
 			inQueueFrame = new ANIMATION_FRAME(allFramesOfThisAnim[0], m_jointCount);
 		}
 
-
-		interpolateFrame(currentStateFrame, inQueueFrame, transistionProgression, currentStateFrame);
+		interpolateFrame(finalAnimationFrame, inQueueFrame, transistionProgression, finalAnimationFrame);
+		delete inQueueFrame;
 	}
 
-
 	// Apply the final frame
+	setAnimatedTransform(finalAnimationFrame);
 	
-
-	setAnimatedTransform(currentStateFrame);
-	
-	delete currentStateFrame;
+	delete finalAnimationFrame;
 
 	//---apply to joints
 	applyPoseToJoints(m_rootIdx, XMMatrixIdentity());
@@ -498,11 +389,10 @@ void AnimatedMeshComponent::calculateFrameForState(animState* state, ANIMATION_F
 {
 	float currentBlend = 0;
 	int prevBlendPoint = 0;
-	if (state->justOne)
-	{
-		//no blend
-	}
-	else if (state->structs.size() == 2)
+	
+	// if state->justOne is true there is no blending necessary.
+
+	if (!state->justOne && state->structs.size() == 2)
 	{
 		currentBlend = state->blend;
 	}
@@ -517,7 +407,12 @@ void AnimatedMeshComponent::calculateFrameForState(animState* state, ANIMATION_F
 		float nextBlend = (prevBlendPoint + 1 == state->blendPoints.size()) ? 2.f : state->blendPoints.at(prevBlendPoint + 1);
 		float deltaBlend = nextBlend - state->blendPoints.at(prevBlendPoint);
 		float currentBlendBetweenPoints = state->blend - state->blendPoints.at(prevBlendPoint);
-		currentBlend = currentBlendBetweenPoints / deltaBlend;
+		if (deltaBlend <= 0.f)
+			currentBlend = 0.0f;
+		else
+			currentBlend = currentBlendBetweenPoints / deltaBlend;
+
+		assert(!isnan(currentBlend));
 	}
 
 	for (int i = prevBlendPoint; i < prevBlendPoint + 2; i++)
@@ -611,6 +506,18 @@ void AnimatedMeshComponent::interpolateFrame(ANIMATION_FRAME* prevFrame, ANIMATI
 	}
 }
 
+void AnimatedMeshComponent::advanceQueue()
+{
+	m_transitionTime = 0.f;
+	m_currentState = m_animationQueue.front();
+	m_animationQueue.pop();
+
+	if (m_currentState->justOne && m_currentState->structs.at(0).animationResource->getFrameCount() == 1)
+		m_justOnePose = true;
+	else
+		m_justOnePose = false;
+}
+
 void AnimatedMeshComponent::update(float dt)
 {
 	// increase animation time
@@ -636,12 +543,9 @@ void AnimatedMeshComponent::update(float dt)
 
 			if (m_transitionTime <= 0)
 			{
-				m_transitionTime = 0.f;
-				m_currentState = m_animationQueue.front();
-				m_animationQueue.pop();
+				advanceQueue();
 			}
 		}
-
 
 		applyAnimationFrame();
 	}
@@ -663,7 +567,6 @@ void AnimatedMeshComponent::setAnimationSpeed(const float newAnimationSpeed)
 			animStruct.animationSpeed = newAnimationSpeed;
 		}
 	}
-	
 }
 
 void AnimatedMeshComponent::setAnimationSpeed(const unsigned int structIndex, const float newAnimationSpeed)

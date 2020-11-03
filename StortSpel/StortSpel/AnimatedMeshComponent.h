@@ -72,8 +72,8 @@ public:
 	void addBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, bool playDuringStartTransistion);
 	void addAndPlayBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, float transistionTime, bool playDuringStartTransistion);
 	bool playBlendState(std::string stateName, float transistionTime);
-	bool queueBlendState(std::string stateName);
-
+	bool queueBlendState(std::string stateName, float transistionTime);
+	
 	void setCurrentBlend(float blend);
 
 	virtual void update(float dt) override;
@@ -102,5 +102,6 @@ private:
 	// Produces an ANIMATION_FRAME that is an interpolation of two others
 	void interpolateFrame(ANIMATION_FRAME* prevFrame, ANIMATION_FRAME* nextFrame, float progression, ANIMATION_FRAME* interpolatedFrame);
 
+	void advanceQueue();
 };
 
