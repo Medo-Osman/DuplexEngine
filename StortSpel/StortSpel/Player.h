@@ -10,6 +10,7 @@
 #include"Physics.h"
 #include"Pickup.h"
 #include"CheckpointComponent.h"
+#include "TrapComponent.h"
 
 #include "GUIHandler.h"
 
@@ -89,6 +90,12 @@ private:
     //Checkpoint
     Vector3 m_checkpointPos = Vector3(0, 9, 5);
     int m_heightLimitBeforeRespawn = -25;
+
+    //trap
+    Vector3 m_trapPos = Vector3(0, 9, 20);
+    int m_slowTime = 3;
+    float m_slowTimer = 0;
+    int m_trapId = -1;
 
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);

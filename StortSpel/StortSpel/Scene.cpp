@@ -91,6 +91,20 @@ void Scene::addCheckpoint(const Vector3& position)
 
 }
 
+void Scene::addTrap(const Vector3& position)
+{
+	Entity* slowTrap = addEntity("trap"+std::to_string(m_nrOftraps++));
+	addComponent(slowTrap,"mesh", new MeshComponent("testCube_pCube1.lrm"));
+	slowTrap->setPosition(position + Vector3(0, -0.25f, 0));
+	slowTrap->scale(1.5,1.5,1.5);
+
+	addComponent(slowTrap, "trap", new TrapComponent(slowTrap));
+	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(slowTrap, { 4,4,4 });
+
+	addComponent(slowTrap, "sound", new AudioComponent(L"OnPickup.wav", false));
+	
+}
+
 void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 {
 	int nrOfPickups = (int)PickupType::COUNT - 1; //-1 due to Score being in pickupTypes
@@ -120,6 +134,8 @@ void Scene::loadScene(std::string path)
 	addCheckpoint(Vector3(14.54, 30, 105));
 	addCheckpoint(Vector3(-30, 40, 144));
 	addCheckpoint(Vector3(-11, 40, 218.5));
+
+	addTrap(Vector3(0, 9, 13));
 
 	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 

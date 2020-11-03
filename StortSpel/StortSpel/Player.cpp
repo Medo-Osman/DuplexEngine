@@ -208,6 +208,18 @@ void Player::playerStateLogic(const float& dt)
 
 void Player::updatePlayer(const float& dt)
 {
+	if(m_trapId == 1)
+	{
+		m_slowTimer += dt;
+		if (m_slowTimer >= m_slowTime)
+		{
+			m_trapId = -1;
+			m_slowTimer = 0;
+			m_currentSpeedModifier = 1;
+		}
+		
+	}
+
 	if (m_pickupPointer)
 	{
 		switch (m_pickupPointer->getPickupType())
@@ -366,6 +378,21 @@ void Player::inputUpdate(InputData& inputData)
 
 void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEntityBeRemoved)
 {
+	if (physicsData.triggerType == TriggerType::TRAP)
+	{
+		Entity* ptr = static_cast<Entity*>(physicsData.pointer);
+
+		TrapComponent* trapPtr = dynamic_cast<TrapComponent*>(ptr->getComponent("trap"));
+	
+		m_trapId = physicsData.associatedTriggerEnum;
+		m_currentSpeedModifier = 0.5f;
+		m_goalSpeedModifier = physicsData.floatData;
+		m_speedModifierTime = 0;
+		
+		
+	}
+
+
 	if (!shouldTriggerEntityBeRemoved)
 	{
 		if (physicsData.triggerType == TriggerType::CHECKPOINT)
@@ -422,7 +449,8 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				shouldTriggerEntityBeRemoved = true;
 			}
 
-
+			
+			
 		}
 		
 	}

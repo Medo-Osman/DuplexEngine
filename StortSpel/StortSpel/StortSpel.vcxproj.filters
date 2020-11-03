@@ -58,6 +58,9 @@
     <Filter Include="Source Files\Game\Scenes">
       <UniqueIdentifier>{53b5394e-78b2-4920-83da-c0541e6eccba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Game\NewFilter1">
+      <UniqueIdentifier>{fda73094-e463-4574-9c83-c0425d6076d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
