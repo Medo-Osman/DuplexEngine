@@ -25,8 +25,13 @@ private:
 	void createSweepingPlatform(Vector3 startPos, Vector3 endPos);
 	int m_nrOfSpotLight = 0;
 	void createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity);
+	int m_nrOfPointLight = 0;
+	void createPointLight(Vector3 position, Vector3 color, float intensity);
 
 	Player* m_player;
+
+	Material ObjectSpaceGrid;	// Temp global grid material
+	
 	Vector3 m_sceneEntryPosition;
 
 	float m_nightVolume;

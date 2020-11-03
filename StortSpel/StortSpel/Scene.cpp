@@ -81,14 +81,13 @@ void Scene::addCheckpoint(const Vector3& position)
 {
 	Entity* checkPoint = addEntity("checkpoint"+std::to_string(m_nrOfCheckpoints++));
 	addComponent(checkPoint, "mesh", new MeshComponent("Flag_pPlane2.lrm"));
-	checkPoint->setPosition(position + Vector3(0,-0.25f,0));
+	checkPoint->setPosition(position + Vector3(0,-0.2f,0));
 	checkPoint->scale(1.5, 1.5, 1.5);
 
 	addComponent(checkPoint, "checkpoint", new CheckpointComponent(checkPoint));
 	static_cast<TriggerComponent*>(checkPoint->getComponent("checkpoint"))->initTrigger(checkPoint, { 4, 4, 4 });
 
-	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false));
-
+	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.1f));
 }
 
 void Scene::addPickup(const Vector3& position, const int tier, std::string name)
@@ -113,7 +112,7 @@ void Scene::loadLobby()
 	Entity* music = addEntity("lobbyMusic");
 	if (music)
 	{
-		addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.4f));
+		addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
 	}
 
 	Entity* floor = addEntity("Floor");
@@ -165,15 +164,14 @@ void Scene::loadScene(std::string path)
 	addCheckpoint(Vector3(-30, 40, 144));
 	addCheckpoint(Vector3(-11, 40, 218.5));
 
-	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
-
-	
+	m_sceneEntryPosition = Vector3(0.f, 10.f, -1.f);
 
 	Entity* floor = addEntity("floor"); // Floor:
 	if (floor)
 	{
 		addComponent(floor, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"T_GridTestTex.bmp" })));
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+			//new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::OBJECTSPACEGRID , ObjectSpaceGrid));
 
 		floor->setPosition({ 0, 6, 0 });
 		floor->scale({ 20, 2, 20 });
@@ -182,10 +180,11 @@ void Scene::loadScene(std::string path)
 
 	// Start:
 	createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 9, 29.5), Vector3(0, 0, 0), Vector3(10, 4, 1), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 11.5, 39), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 16, 48.5), Vector3(0, 0, 0), Vector3(10, 8, 1), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 20.5, 58), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 8.5, 29.5), Vector3(0, 0, 0), Vector3(10, 3, 1), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 10.5, 39), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 14, 48.5), Vector3(0, 0, 0), Vector3(10, 6, 1), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 17, 58), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(0, 19, 66), Vector3(0, 0, 0), Vector3(10, 4, 4), "testCube_pCube1.lrm");
 	// Left:
 	createStaticPlatform(Vector3(-10.2, 20.5, 73.2), Vector3(0, -45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-16.54, 20.5, 81), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
@@ -209,7 +208,7 @@ void Scene::loadScene(std::string path)
 	createStaticPlatform(Vector3(16.54, 27.5, 100), Vector3(0, 0, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(11.54, 27.5, 105), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
 	//createStaticPlatform	(Vector3(2, 30, 105),			Vector3(0, 0, 0),		Vector3(1, 1, 1),		"SquarePlatform.lrm");
-	createStaticPlatform(Vector3(-16.54, 27.5, 105), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-14, 27.5, 105), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-30, 27.5, 107.5), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-30, 32.6, 126.4), Vector3(-20, 0, 0), Vector3(5, 1, 30), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-30, 37.7, 145.32), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
@@ -218,7 +217,7 @@ void Scene::loadScene(std::string path)
 	createFlippingPlatform(Vector3(-24, 37.7, 160), Vector3(0, 180, 0), 2, 1);
 	createStaticPlatform(Vector3(-30, 37.7, 175), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-23.67, 37.7, 185.3), Vector3(0, 45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-23.67, 45, 185.3), Vector3(0, 45, 0), Vector3(20, 10.5, 1), "testCube_pCube1.lrm");
+	createStaticPlatform(Vector3(-23.67, 45, 185.3), Vector3(0, 45, 0), Vector3(10, 10.5, 1), "testCube_pCube1.lrm");
 	// End:
 	createFlippingPlatform(Vector3(-11, 37.7, 200), Vector3(0, 180, 0), 2, 2);
 	createStaticPlatform(Vector3(-11, 37.7, 215), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
@@ -237,7 +236,7 @@ void Scene::loadScene(std::string path)
 	if (clownMask)
 	{
 		addComponent(clownMask, "mesh",
-			new MeshComponent("ClownMask_ClownEye_R1.lrm", Material({ L"GrayTexture.png" })));
+			new MeshComponent("ClownMask_ClownEye_R1.lrm", Material({ L"DarkGrayTexture.png" })));
 
 		clownMask->setPosition(Vector3(-11.5, 60, 290));
 		clownMask->setRotation(XMConvertToRadians(7), XMConvertToRadians(180), XMConvertToRadians(0));
@@ -316,7 +315,7 @@ void Scene::loadScene(std::string path)
 
 	// MUSIC
 	Entity* music = addEntity("music");
-	addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.4f));
+	addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.1f));
 	
 
 	// Lights
@@ -339,7 +338,7 @@ void Scene::loadArena()
 	m_sceneEntryPosition = Vector3(0, 0, 0);
 
 
-	Material gridTest = Material({ L"T_GridTestTex.bmp" });
+	Material gridTest = Material({ L"BlackGridBlueLines.png" });
 	entity = addEntity("floor");
 	if (entity)
 	{
@@ -366,7 +365,7 @@ void Scene::loadArena()
 	if (clownMask)
 	{
 		addComponent(clownMask, "mesh",
-			new MeshComponent("ClownMask_ClownEye_R1.lrm", Material({ L"GrayTexture.png" })));
+			new MeshComponent("ClownMask_ClownEye_R1.lrm", Material({ L"DarkGrayTexture.png" })));
 
 		clownMask->setPosition(Vector3(0, 10, 73));
 		clownMask->setRotation(XMConvertToRadians(7), XMConvertToRadians(180), XMConvertToRadians(0));
@@ -398,13 +397,16 @@ void Scene::loadArena()
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	Entity* audioTestDelete = addEntity("deleteTestAudio");
-	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
-	delete m_entities["deleteTestAudio"];
-	m_entities.erase("deleteTestAudio");
-
+	// Light
+	createPointLight({ 0.f, 10.f, 0.f }, { 1.f, 0.f, 0.f }, 5.f);
 
 	// Audio test
+	/*Entity* audioTestDelete = addEntity("deleteTestAudio");
+	addComponent(audioTestDelete, "deleteSound", new AudioComponent(L"PickupTunnels.wav", true, 0.5f));
+	delete m_entities["deleteTestAudio"];
+	m_entities.erase("deleteTestAudio");*/
+
+	// Night Ambient Sound
 	Entity* audioTest = addEntity("audioTest");
 	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
 	m_nightSlide = 0.01f;
@@ -420,7 +422,8 @@ void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpe
 	if (ParisWheel)
 	{
 		addComponent(ParisWheel, "mesh",
-			new MeshComponent("ParisWheel.lrm", Material({ L"GrayTexture.png" })));
+			new MeshComponent("ParisWheel.lrm", Material({ L"DarkGrayTexture.png" })));
+			//new MeshComponent("ParisWheel.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 		ParisWheel->setPosition(position);
 		ParisWheel->setRotation(0, XMConvertToRadians(rotation), 0);
 	}
@@ -439,7 +442,8 @@ void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpe
 		if (ParisWheelPlatform)
 		{
 			addComponent(ParisWheelPlatform, "mesh",
-				new MeshComponent("ParisWheelPlatform.lrm", Material({ L"GrayTexture.png" })));
+				new MeshComponent("ParisWheelPlatform.lrm", Material({ L"DarkGrayTexture.png" })));
+				//new MeshComponent("ParisWheelPlatform.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 
 			ParisWheelPlatform->setRotation(0, XMConvertToRadians(rotation), 0);
 
@@ -460,7 +464,8 @@ void Scene::createFlippingPlatform(Vector3 position, Vector3 rotation, float upT
 	if (flippingPlatform)
 	{
 		addComponent(flippingPlatform, "mesh",
-			new MeshComponent("SquarePlatform.lrm", Material({ L"GrayTexture.png" })));
+			new MeshComponent("SquarePlatform.lrm", Material({ L"DarkGrayTexture.png" })));
+			//new MeshComponent("SquarePlatform.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 
 		flippingPlatform->setPosition({ position });
 		flippingPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
@@ -481,7 +486,9 @@ void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 sca
 	if (staticPlatform)
 	{
 		addComponent(staticPlatform, "mesh",
-			new MeshComponent(meshPath.c_str(), Material({ texPath.data() })));
+			new MeshComponent(meshPath.c_str(), Material({ L"DarkGrayTexture.png" })));
+		//	new MeshComponent(meshPath.c_str(), ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
+		
 
 		staticPlatform->setPosition(position);
 		staticPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
@@ -789,7 +796,8 @@ void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)
 	if (sweepingPlatform)
 	{
 		addComponent(sweepingPlatform, "mesh",
-			new MeshComponent("SquarePlatform.lrm", Material({ L"GrayTexture.png" })));
+			new MeshComponent("SquarePlatform.lrm", Material({ L"DarkGrayTexture.png" })));
+			//new MeshComponent("SquarePlatform.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 
 		sweepingPlatform->setPosition(startPos);
 
@@ -813,5 +821,20 @@ void Scene::createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, f
 		sLight->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 		dynamic_cast<LightComponent*>(sLight->getComponent("spot-" + std::to_string(m_nrOfSpotLight)))->setColor(XMFLOAT3(color));
 		dynamic_cast<LightComponent*>(sLight->getComponent("spot-" + std::to_string(m_nrOfSpotLight)))->setIntensity(intensity);
+	}
+}
+
+void Scene::createPointLight(Vector3 position, Vector3 color, float intensity)
+{
+	m_nrOfPointLight++;
+
+	Entity* pLight = addEntity("pointLight-" + std::to_string(m_nrOfPointLight));
+	if (pLight)
+	{
+		LightComponent* pointLight = new LightComponent(); 
+		pointLight->setColor(XMFLOAT3(color));
+		pointLight->setIntensity(intensity);
+		addComponent(pLight, "point-" + std::to_string(m_nrOfPointLight), pointLight);
+		pLight->setPosition(position);
 	}
 }
