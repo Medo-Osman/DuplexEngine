@@ -17,7 +17,7 @@ private:
 	std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_loopingSoundInstances;
 
 	
-
+	size_t m_idNum = 0;
 
 public:
 	AudioHandler(const AudioHandler&) = delete;

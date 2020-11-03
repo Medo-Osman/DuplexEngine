@@ -16,9 +16,6 @@
     <Filter Include="Source Files\Application">
       <UniqueIdentifier>{9aef1ca1-4d0f-4ca7-b7c3-540f3ac5c558}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Graphic">
-      <UniqueIdentifier>{d4ecf160-93e1-4a8a-ab7e-35b121e613df}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files\Shader">
       <UniqueIdentifier>{ec250e96-ded3-45ad-a1d6-c12c52c90417}</UniqueIdentifier>
     </Filter>
@@ -52,14 +49,17 @@
     <Filter Include="Source Files\Game\Pickup">
       <UniqueIdentifier>{a81dda99-e14d-47d7-a78e-4c92e59eaf8a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Graphic\GUI">
-      <UniqueIdentifier>{7155dc50-d617-41f6-a310-ab0c68149543}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Game\Scenes">
       <UniqueIdentifier>{53b5394e-78b2-4920-83da-c0541e6eccba}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Game\NewFilter1">
       <UniqueIdentifier>{fda73094-e463-4574-9c83-c0425d6076d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{d4ecf160-93e1-4a8a-ab7e-35b121e613df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\GUI">
+      <UniqueIdentifier>{7155dc50-d617-41f6-a310-ab0c68149543}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -79,7 +79,7 @@
       <Filter>Source Files\Application</Filter>
     </ClCompile>
     <ClCompile Include="Renderer.cpp">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Entity.h">
       <Filter>Source Files\Game</Filter>
@@ -91,7 +91,7 @@
       <Filter>Source Files\Engine</Filter>
     </ClCompile>
     <ClCompile Include="Transform.cpp">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Input.cpp">
       <Filter>Source Files\Application\Input</Filter>
@@ -106,7 +106,7 @@
       <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="ShaderProgram.cpp">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="MeshComponent.cpp">
       <Filter>Source Files\Components</Filter>
@@ -115,7 +115,7 @@
       <Filter>Source Files\Application</Filter>
     </ClCompile>
     <ClCompile Include="Material.cpp">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="AnimatedMeshComponent.cpp">
       <Filter>Source Files\Components</Filter>
@@ -145,7 +145,7 @@
       <Filter>Source Files\Game\Pickup</Filter>
     </ClCompile>
     <ClCompile Include="GUIHandler.cpp">
-      <Filter>Source Files\Graphic\GUI</Filter>
+      <Filter>Source Files\Graphics\GUI</Filter>
     </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>Source Files\Game\Scenes</Filter>
@@ -162,19 +162,19 @@
       <Filter>Source Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="VertexStructs.h">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Buffer.h">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="ConstantBufferTypes.h">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Renderer.h">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Layouts.h">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="ApplicationLayer.h">
       <Filter>Source Files\Application</Filter>
@@ -198,7 +198,7 @@
       <Filter>Source Files\Engine</Filter>
     </ClInclude>
     <ClInclude Include="Transform.h">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="MeshComponent.h">
       <Filter>Source Files\Components</Filter>
@@ -225,10 +225,10 @@
       <Filter>Source Files\Application\Input\Context</Filter>
     </ClInclude>
     <ClInclude Include="ShaderProgram.h">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="ShaderEnums.h">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="InputStructs.h">
       <Filter>Source Files\Application</Filter>
@@ -246,7 +246,7 @@
       <Filter>Source Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="Material.h">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="AnimatedMeshComponent.h">
       <Filter>Source Files\Components</Filter>
@@ -264,7 +264,7 @@
       <Filter>Source Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="LightStructs.h">
-      <Filter>Source Files\Graphic</Filter>
+      <Filter>Source Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
       <Filter>Source Files\Application</Filter>
@@ -318,13 +318,13 @@
       <Filter>Source Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="GUIHandler.h">
-      <Filter>Source Files\Graphic\GUI</Filter>
+      <Filter>Source Files\Graphics\GUI</Filter>
     </ClInclude>
     <ClInclude Include="GUIElement.h">
-      <Filter>Source Files\Graphic\GUI</Filter>
+      <Filter>Source Files\Graphics\GUI</Filter>
     </ClInclude>
     <ClInclude Include="GUIText.h">
-      <Filter>Source Files\Graphic\GUI</Filter>
+      <Filter>Source Files\Graphics\GUI</Filter>
     </ClInclude>
     <ClInclude Include="SpeedPickup.h">
       <Filter>Source Files\Game\Pickup</Filter>
@@ -339,7 +339,7 @@
       <Filter>Source Files\Game\Scenes</Filter>
     </ClInclude>
     <ClInclude Include="GUIImageLabel.h">
-      <Filter>Source Files\Graphic\GUI</Filter>
+      <Filter>Source Files\Graphics\GUI</Filter>
     </ClInclude>
     <ClInclude Include="AnimationResource.h">
       <Filter>Source Files\Application</Filter>
@@ -397,6 +397,12 @@
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
     <FxCompile Include="PBRShaderBase.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="ObjectSpaceGridVS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="ObjectSpaceGridPS.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
   </ItemGroup>

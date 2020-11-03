@@ -35,7 +35,7 @@ private:
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
 
-	Vector4 m_skyLightDir = Vector4(0, 0.5, -0.5, 0);
+	Vector4 m_skyLightDir = Vector4(0, 0.8, -0.5, 0);
 	Vector4 m_skyLightColor = Vector4(1, 1, 1, 1);
 	FLOAT m_skyLightBrightness = 1.75f;
 	FLOAT m_ambientLightLevel = 0.05f;
