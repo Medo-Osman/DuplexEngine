@@ -11,6 +11,7 @@ enum ShaderProgramsEnum
 	BLOOM_COMBINE,
 	OBJECTSPACEGRID,
 	SHADOW,
+	DEFAULT_SHADOW,
 	NONE
 };
 
@@ -78,6 +79,14 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 	(*compiledShadersMap)[ShaderProgramsEnum::SHADOW] = new ShaderProgram
 	(
 		{ L"ShadowVertex.hlsl",L"null",L"null",L"null",L"ShadowPixel.hlsl" }, 
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::DEFAULT_SHADOW] = new ShaderProgram
+	(
+		{ L"VertexShaderBasic.hlsl",L"null",L"null",L"null",L"BasicPixelShader_Shadow.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		VertexLayoutType::LRMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr

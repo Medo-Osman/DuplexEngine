@@ -7,7 +7,7 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 	m_devicePtr = devicePtr;
 
 	m_width = width;
-	m_height = width;
+	m_height = height;
 
 	m_viewPort.Width = (float)width;
 	m_viewPort.Height = (float)height;
@@ -56,11 +56,11 @@ void ShadowMap::bindResourcesAndSetNullRTV(ID3D11DeviceContext* context)
 	context->RSSetViewports(1, &m_viewPort);
 	context->RSSetState(m_rasterizerStatePtr.Get());
 
-	/*ID3D11RenderTargetView* renderTargets[1] = { 0 };
-	context->OMSetRenderTargets(1, renderTargets, m_depthMapDSV);*/
+	ID3D11RenderTargetView* renderTargets[1] = { 0 };
+	context->OMSetRenderTargets(1, renderTargets, m_depthMapDSV);
 
 	
-	//context->ClearDepthStencilView(m_depthMapDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	context->ClearDepthStencilView(m_depthMapDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 void ShadowMap::computeShadowMatrix(Vector3 playerPos)
@@ -87,17 +87,6 @@ void ShadowMap::computeShadowMatrix(Vector3 playerPos)
 		0.0f, -0.5f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		0.5f, 0.5f, 0.0f, 1.0f );
-	/*Matrix T = Matrix();
-	T._11 = 0.5f;
-	T._22 = -0.5f;
-	T._33 = 1.0f;
-	T._41 = 0.5f;
-	T._42 = 0.5f;
-	T._44 = 1.0;*/
-	//m_transformMatrix = XMMatrixOrthographicLH((float)m_width, m_height, 0.f, 1.f);//XMMatrixShadow(m_direction, m_direction * -5); //Calc actual radius here
-
-	//Matrix mat = XMMatrixOrthographicOffCenterLH()
-
 
 	Matrix S = V * P * T;
 
@@ -115,7 +104,7 @@ void ShadowMap::createRasterState()
 
 	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
-	rasterizerDesc.DepthBias = 10000;
+	rasterizerDesc.DepthBias = 1000;
 	rasterizerDesc.DepthBiasClamp = 0.0f;
 	rasterizerDesc.SlopeScaledDepthBias = 1.0f;
 	rasterizerDesc.DepthClipEnable = true;

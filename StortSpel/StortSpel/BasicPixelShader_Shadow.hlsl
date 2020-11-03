@@ -1,5 +1,8 @@
 #define MAX_LIGHTS 8
 
+static const float SHADOW_MAP_SIZE = 2048.f;
+static const float SHADOW_MAP_DELTA = 1.f / SHADOW_MAP_SIZE;
+
 struct pointLight
 {
     float4 position;
@@ -48,13 +51,14 @@ cbuffer perModel : register(b2)
     float4x4 wvpMatrix;
 };
 
+
 struct ps_in
 {
-	float4 pos : SV_POSITION;
-	float2 uv : TEXCOORD;
-	float3 normal : NORMAL;
-	float3 tangent : TANGENT;
-	float3 bitangent : BITANGENT;
+    float4 pos : SV_POSITION;
+    float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
     float4 worldPos : POSITION;
 };
 
@@ -70,12 +74,14 @@ struct lightComputeResult
 
 float computeShadowFactor(float4 shadowPosH)
 {
+    float factor = 0;
+    
     shadowPosH.xyz /= shadowPosH.w; //Finish projection
     
     float depth = shadowPosH.z; //In NDC
     
-    
-    
+    //float
+    return factor;
 };
 
 //Only calculating diffuse light
@@ -97,7 +103,7 @@ lightComputeResult computeLightFactor(ps_in input)
         lightDir = normalize(lightPos - input.worldPos.xyz);
       
         float d = distance(lightPos, input.worldPos.xyz);
-        float attenuationFactor = pointLights[i].intensity / (0 + (0.1f * d) + (0 * (d * d))); 
+        float attenuationFactor = pointLights[i].intensity / (0 + (0.1f * d) + (0 * (d * d)));
         
         diffuseLightFactor = clamp(diffuseLightFactor + saturate(((dot(lightDir, input.normal)))), 0.f, 1.f);
         finalColor = clamp(finalColor + pointLights[i].color * diffuseLightFactor * attenuationFactor, 0, 1);
@@ -115,11 +121,11 @@ lightComputeResult computeLightFactor(ps_in input)
         float attenuationFactor = saturate(spotLights[j].intensity / (0 + (0.01f * d) + (0 * (d * d))));
         
         float spotLightFactor = pow(max(dot(-lightDir, spotLights[j].direction), 0), spotLights[j].coneFactor);
-        diffuseLightFactor = spotLightFactor * (diffuseLightFactor + attenuationFactor); 
+        diffuseLightFactor = spotLightFactor * (diffuseLightFactor + attenuationFactor);
         finalColor = saturate(finalColor + (diffuseLightFactor * spotLights[j].color * attenuationFactor));
     }
     
-    finalColor = finalColor + saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
+    finalColor = finalColor + saturate(dot(skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
     
     result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel));
     
@@ -133,3 +139,5 @@ float4 main(ps_in input) : SV_TARGET
     return float4(lightResult.lightColor, 1);
 
 }
+
+    

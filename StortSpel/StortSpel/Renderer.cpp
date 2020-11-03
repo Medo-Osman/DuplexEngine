@@ -211,7 +211,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
 
 	//Shadows
-	m_shadowMap = new ShadowMap((UINT)m_settings.width, (UINT)m_settings.height, m_devicePtr.Get(), Engine::get().getSkyLightDir());
+	m_shadowMap = new ShadowMap((UINT)2048, (UINT)2048, m_devicePtr.Get(), Engine::get().getSkyLightDir());
 	m_shadowMap->createRasterState();
 
 	return hr;
@@ -671,8 +671,6 @@ void Renderer::render()
 	m_dContextPtr->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	UINT offset = 0;
 
-	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
-	//m_rTargetViewsArray[0] = m_finalRenderTargetViewPtr.Get();
 
 	// Skybox constant buffer:
 	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
@@ -694,6 +692,7 @@ void Renderer::render()
 	//Run ordinary pass
 	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	renderScene();
 
 	// [ Bloom Filter ]
