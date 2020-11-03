@@ -62,8 +62,8 @@ Renderer::~Renderer()
 	}
 
 
-	HRESULT hr = this->m_debugPtr->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-	assert(SUCCEEDED(hr));
+	//HRESULT hr = this->m_debugPtr->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+	//assert(SUCCEEDED(hr));
 	Microsoft::WRL::ComPtr< ID3D11Debug > m_deviceDebug;
 	m_debugPtr.Reset();
 }
@@ -83,9 +83,18 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = m_swapChainPtr->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)m_swapChainBufferPtr.GetAddressOf());
 	if (!SUCCEEDED(hr)) return hr;
 
+#ifdef _DEBUG
 	//Get Debugger
 	hr = m_devicePtr->QueryInterface(__uuidof(ID3D11Debug), (void**)m_debugPtr.GetAddressOf());
 	if (!SUCCEEDED(hr)) return hr;
+
+//	ID3D11InfoQueue* infoQueue = nullptr;
+//	hr = m_debugPtr->QueryInterface(__uuidof(ID3D11InfoQueue), (void**) & infoQueue);
+//
+//#ifdef _DEBUG
+//	infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
+//	infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
+#endif
 
 
 	hr = m_devicePtr->CreateRenderTargetView(m_swapChainBufferPtr.Get(), 0, m_finalRenderTargetViewPtr.GetAddressOf());
@@ -222,11 +231,16 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_DISCARD; //What to do with buffer when swap occur
 	sChainDesc.OutputWindow = m_window;
 
+	UINT creationFlags = 0;
+#if defined(_DEBUG)
+	creationFlags |= D3D11_CREATE_DEVICE_FLAG::D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
 	hr = D3D11CreateDeviceAndSwapChain(
 		NULL, //Adapter, null is default
 		D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE, //Driver to use
 		NULL, //Software Driver DLL, Use if software driver is used in the above parameter.
-		D3D11_CREATE_DEVICE_FLAG::D3D11_CREATE_DEVICE_DEBUG,
+		creationFlags,//creationFlags,
 		featureLevelArray, //Array of featurelevels
 		nrOfFeatureLevels, //nr of featurelevels
 		D3D11_SDK_VERSION, //SDK Version, D3D11_SDL_VERSION grabs the currently installed sdk version.
@@ -236,6 +250,8 @@ HRESULT Renderer::createDeviceAndSwapChain()
 		&m_fLevel, //Feature Level
 		m_dContextPtr.GetAddressOf() //Device COntext Pointer
 	);
+
+	assert(SUCCEEDED(hr));
 
 	return hr;
 }
@@ -689,7 +705,7 @@ void Renderer::render()
 
 	// Render ImGui
 	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	//ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	m_swapChainPtr->Present(1, 0);
 }

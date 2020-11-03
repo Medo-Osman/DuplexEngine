@@ -381,7 +381,7 @@ AnimationResource* ResourceHandler::loadAnimation(std::string path)
 	return animation;
 }
 
-SoundEffect* ResourceHandler::loadSound(const WCHAR* soundPath, AudioEngine* audioEngine)
+SoundEffect* ResourceHandler::loadSound(std::wstring soundPath, AudioEngine* audioEngine)
 {
 	if (!m_soundCache.count(soundPath))
 	{
@@ -435,11 +435,11 @@ void ResourceHandler::Destroy()
 		m_meshCache.erase(it++);
 	}*/
 
-	for (auto element : m_meshCache)
+	for (std::pair<std::string, MeshResource*> element : m_meshCache)
 	{
 		delete element.second;
 	}
-	for (auto element : m_animationCache)
+	for (std::pair<std::string, AnimationResource*> element : m_animationCache)
 	{
 		delete element.second;
 	}

@@ -31,8 +31,6 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 
 	AudioHandler::get().initialize(m_window);
 
-	//SoundEffect sound(AudioHandler::get().getAudioEngine()->get(), L"../res/audio/NightAmbienceSimple_02.wav");
-	
 	RAWINPUTDEVICE rawIDevice;
 	rawIDevice.usUsagePage = 0x01;
 	rawIDevice.usUsage = 0x02;
@@ -97,7 +95,7 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 	);
 	assert(_d3d11Window);
 
-	RedirectIOToConsole();
+	//RedirectIOToConsole(); // Disabled For PlayTest
 }
 
 void ApplicationLayer::RedirectIOToConsole()

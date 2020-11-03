@@ -17,7 +17,34 @@ struct JOINT_TRANSFORM
 struct ANIMATION_FRAME
 {
 	float timeStamp;
-	JOINT_TRANSFORM* jointTransforms;
+	JOINT_TRANSFORM* jointTransforms = nullptr;
+	
+	ANIMATION_FRAME() {}
+	
+	ANIMATION_FRAME(const ANIMATION_FRAME& other, const int& nrOfJoints)
+	{
+		//Medlemsvis kopiering
+		this->timeStamp = other.timeStamp;
+
+		if (other.jointTransforms != nullptr)
+		{
+			this->jointTransforms = new JOINT_TRANSFORM[nrOfJoints];
+			for (int i = 0; i < nrOfJoints; i++)
+			{
+				this->jointTransforms[i] = other.jointTransforms[i];
+			}
+		}
+		else
+			this->jointTransforms = nullptr;
+		
+	}
+	~ANIMATION_FRAME()
+	{
+		if (jointTransforms != nullptr)
+			delete[] jointTransforms;
+
+		//jointTransforms = nullptr;
+	}
 };
 
 class AnimationResource
@@ -41,11 +68,15 @@ public:
 	{
 		if (m_frames)
 		{
+			/*
+			// this is now done inside the frame itself. I think.
 			for (size_t i = 0; i < m_frameCount; i++)
 			{
 				if(m_frames[i].jointTransforms)
 					delete[] m_frames[i].jointTransforms;
-			}
+
+				m_frames[i].jointTransforms = nullptr;
+			}*/
 			delete[] m_frames;
 		}
 	}

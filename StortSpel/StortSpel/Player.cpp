@@ -37,8 +37,8 @@ Player::Player()
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
 
 	GUIImageStyle imageStyle;
-	imageStyle.position = Vector2(400, 150);
-	imageStyle.scale = Vector2(1, 1);
+	imageStyle.position = Vector2(400, 50);
+	imageStyle.scale = Vector2(0.9, 0.9);
 	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
 }
@@ -51,24 +51,27 @@ Player::~Player()
 void Player::setStates(std::vector<State> states)
 {
 	m_movementVector = XMVECTOR();
-	for (std::vector<int>::size_type i = 0; i < states.size(); i++)
+	if (m_state != PlayerState::DASH && m_state != PlayerState::ROLL)
 	{
-		switch (states[i])
+		for (std::vector<int>::size_type i = 0; i < states.size(); i++)
 		{
-		case WALK_LEFT:
-			m_movementVector += m_cameraTransform->getLeftVector();
-			break;
-		case WALK_RIGHT:
-			m_movementVector += m_cameraTransform->getRightVector();
-			break;
-		case WALK_FORWARD:
-			m_movementVector += m_cameraTransform->getForwardVector();
-			break;
-		case WALK_BACKWARD:
-			m_movementVector += m_cameraTransform->getBackwardVector();
-			break;
-		default:
-			break;
+			switch (states[i])
+			{
+			case WALK_LEFT:
+				m_movementVector += m_cameraTransform->getLeftVector();
+				break;
+			case WALK_RIGHT:
+				m_movementVector += m_cameraTransform->getRightVector();
+				break;
+			case WALK_FORWARD:
+				m_movementVector += m_cameraTransform->getForwardVector();
+				break;
+			case WALK_BACKWARD:
+				m_movementVector += m_cameraTransform->getBackwardVector();
+				break;
+			default:
+				break;
+			}
 		}
 	}
 }
@@ -122,83 +125,130 @@ float lerp(const float& a, const float &b, const float &t)
 
 void Player::playerStateLogic(const float& dt)
 {
-
-	m_finalMovement = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt * this->m_currentSpeedModifier) + Vector3(0, m_finalMovement.y, 0);
+	m_velocity = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt * this->m_currentSpeedModifier) + Vector3(0, m_velocity.y, 0);
 
 	switch (m_state)
 	{
 	case PlayerState::ROLL:
+		std::cout << "ROLL\n";
 		if (m_currentDistance >= ROLL_TRAVEL_DISTANCE)
 		{
+			m_lastState = PlayerState::ROLL;
 			m_state = PlayerState::IDLE;
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
+			//m_animMesh->playAnimation("Running4.1", true);
+			m_animMesh->playBlendState("runOrIdle",0.3f);
 		}
 		else
 		{
 			m_currentDistance += ROLL_SPEED * dt;
 			Vector3 move = m_moveDirection * ROLL_SPEED * dt;
 			move.y += -GRAVITY * dt;
-			m_finalMovement += move;
+			m_velocity += move;
 			//m_controller->move(move, dt);
 		}
 		break;
 	case PlayerState::DASH:
+		std::cout << "DASH\n";
 		if (m_currentDistance >= DASH_TRAVEL_DISTANCE)
 		{
+			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
+			m_animMesh->playBlendState("runOrIdle", 0.5f);
 		}
 		else
 		{
 			m_currentDistance += DASH_TRAVEL_DISTANCE * DASH_SPEED * dt;
-			m_finalMovement += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt;
+			m_velocity += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt;
 			//m_controller->move(m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt, dt);
 		}
 		break;
 	case PlayerState::FALLING:
-		if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 1.f))
+		std::cout << "FALLING\n";
+		if (m_jumps == 0) // Can only jump once in air
+			m_jumps = ALLOWED_NR_OF_JUMPS - 1;
+
+		if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
 		{
+			m_lastState = PlayerState::FALLING;
 			m_state = PlayerState::IDLE;
 			m_jumps = 0;
-			m_finalMovement.y = 0;
 			m_hasDashed = false;
 		}
-		else
-		{
-			//finalMovement.y += finalMovement.y - 1.f*dt;//-JUMP_SPEED * FALL_MULTIPLIER * dt;
-			//m_controller->move(finalMovement, dt);
-		}
+		//else 
+		//{
+		//	//finalMovement.y += finalMovement.y - 1.f*dt;//-JUMP_SPEED * FALL_MULTIPLIER * dt;
+		//	//m_controller->move(finalMovement, dt);
+		//}
 		break;
 	case PlayerState::JUMPING:
-		m_finalMovement.y = JUMP_SPEED * dt;// * dt;
+		std::cout << "JUMPING\n";
+		//m_velocity.y = JUMP_SPEED * dt * m_playerScale;// * dt;
 
-		m_currentDistance += JUMP_SPEED * dt;
+		//m_currentDistance += JUMP_SPEED * dt;
 
-		if (m_currentDistance > JUMP_DISTANCE)
+		if (m_velocity.y < 0.f)
 		{
 			m_currentDistance = 0.f;
+			m_lastState = PlayerState::JUMPING;
 			m_state = PlayerState::FALLING;
 		}
+		
+		//if (m_currentDistance > JUMP_DISTANCE)
+		//{
+		//	m_currentDistance = 0.f;
+		//	m_state = PlayerState::FALLING;
+		//}
 
 		break;
 	case PlayerState::IDLE:
-
+		std::cout << "IDLE\n";
+		if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
+		{
+			m_lastState = PlayerState::IDLE;
+			m_state = PlayerState::FALLING;
+		}
 		break;
 	default:
 		break;
 	}
 
-	if (m_finalMovement.y > -MAX_FALL_SPEED * dt)
-		m_finalMovement += Vector3(0, -GRAVITY * dt, 0);
-	m_controller->move(m_finalMovement, dt);
-	
-	float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
-	
-	if(vectorLen > 0)
-		m_animMesh->setAnimationSpeed( 1 );
-	else
-		m_animMesh->setAnimationSpeed( 0 );
+	if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING || m_state == PlayerState::ROLL)
+	{
+		if (m_playerEntity->getTranslation().y != m_lastPosition.y)
+			m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
+		else if (m_velocity.y == 0)
+			m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
+	}
+
+	std::cout << m_velocity.y << "\n";
+
+	// Max Gravity Tests
+	if (m_velocity.y <= -MAX_FALL_SPEED)
+		m_velocity.y = -MAX_FALL_SPEED;
+
+	m_controller->move(m_velocity, dt);
+	m_lastPosition = m_playerEntity->getTranslation();
+
+
+	//float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
+	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).Length();
+	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
+	{
+		float blend = vectorLen / (PLAYER_SPEED * dt);
+		
+		if ((PLAYER_SPEED * dt) <= 0.0f)
+			blend = 0.0f;
+		
+		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
+		//// analog animation:
+		//if (vectorLen > 0)
+		//	m_animMesh->setCurrentBlend(1.f);
+		//else
+		//	m_animMesh->setCurrentBlend(0);
+	}
 
 	if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
 	{
@@ -300,7 +350,13 @@ void Player::increaseScoreBy(int value)
 
 void Player::respawnPlayer()
 {
+	m_state = PlayerState::IDLE;
 	m_controller->setPosition(m_checkpointPos);
+}
+
+float Player::getPlayerScale() const
+{
+	return this->m_playerScale;
 }
 
 int Player::getScore()
@@ -312,7 +368,6 @@ void Player::setScore(int newScore)
 {
 	m_score = newScore;
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
-
 }
 
 Entity* Player::getPlayerEntity() const
@@ -329,28 +384,20 @@ void Player::inputUpdate(InputData& inputData)
 		switch (inputData.actionData[i])
 		{
 		case JUMP:
-			if (m_state == PlayerState::IDLE || m_state == PlayerState::JUMPING || m_state == PlayerState::FALLING)
-			{
-				if (m_state == PlayerState::IDLE)
-				{
-					jump();
-				}
-				else
-				{
-					if (m_jumps < ALLOWED_NR_OF_JUMPS)
-					{
-						jump();
-					}
-				}
-			}
+			if (m_state == PlayerState::IDLE || ((m_state == PlayerState::JUMPING || m_state == PlayerState::FALLING) && m_jumps < ALLOWED_NR_OF_JUMPS))
+				jump();
 			break;
 		case DASH:
-			if (canDash())
-				dash();
-			break;
-		case ROLL:
-			if (canRoll())
-				roll();
+			if (m_state == PlayerState::IDLE)
+			{
+				if (canRoll())
+					roll();
+			}
+			else
+			{
+				if (canDash())
+					dash();
+			}
 			break;
 		case USE:
 
@@ -370,7 +417,6 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 	{
 		if (physicsData.triggerType == TriggerType::CHECKPOINT)
 		{
-
 			Entity* ptr = static_cast<Entity*>(physicsData.pointer);
 
 			CheckpointComponent* checkpointPtr = dynamic_cast<CheckpointComponent*>(ptr->getComponent("checkpoint"));
@@ -383,8 +429,6 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 
 				checkpointPtr->setUsed(true);
 			}
-
-
 		}
 
 		if (physicsData.triggerType == TriggerType::PICKUP)
@@ -421,18 +465,15 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				m_audioComponent->playSound();
 				shouldTriggerEntityBeRemoved = true;
 			}
-
-
 		}
-		
 	}
-
 }
 
 void Player::jump()
 {
 	m_currentDistance = 0;
 	m_state = PlayerState::JUMPING;
+	m_velocity.y = JUMP_SPEED * m_playerScale;// * dt;
 	m_jumps++;
 }
 
@@ -447,6 +488,9 @@ void Player::roll()
 	m_controller->setControllerSize(ROLL_HEIGHT);
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
+
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
+	m_animMesh->setAnimationSpeed(1.6f);
 }
 
 bool Player::canDash() const
@@ -458,6 +502,8 @@ void Player::dash()
 {
 	prepDistVariables();
 	m_state = PlayerState::DASH;
+
+	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true);
 }
 
 void Player::prepDistVariables()

@@ -42,14 +42,14 @@ int AudioHandler::addSoundInstance(const WCHAR* name, float volume, bool isLoopi
 	int index;
 	if(isLooping)
 	{
-		index = m_loopingSoundInstances.size();
+		index = m_idNum++;
 		m_loopingSoundInstances[index] = soundEffect->CreateInstance();
 		m_loopingSoundInstances[index]->SetVolume(volume);
 		m_loopingSoundInstances[index]->Play(true);
 	}
 	else
 	{
-		index = m_soundInstances.size();
+		index = m_idNum++;
 		m_soundInstances[index] = soundEffect->CreateInstance();
 		m_soundInstances[index]->SetVolume(volume);
 	}

@@ -53,7 +53,7 @@ public:
 	MeshResource* loadLRMMesh(const char* path);
 	MeshResource* loadLRSMMesh(const char* path);
 	AnimationResource* loadAnimation(std::string path);
-	SoundEffect* loadSound(const WCHAR* soundPath, AudioEngine* audioEngine);
+	SoundEffect* loadSound(std::wstring soundPath, AudioEngine* audioEngine);
 
 
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
