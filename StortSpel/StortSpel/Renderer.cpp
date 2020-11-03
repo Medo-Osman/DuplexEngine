@@ -528,16 +528,16 @@ void Renderer::rasterizerSetup()
 
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
+
+	
 }
 
 void Renderer::update(const float& dt)
 {
-	ImGui::LogButtons();
 	if (ImGui::Button("Toggle FrustumCulling"))
 	{
-		m_frustumCullingOn != m_frustumCullingOn;
+		m_frustumCullingOn = !m_frustumCullingOn;
 	}
-	
 }
 
 void Renderer::render()
@@ -586,20 +586,9 @@ void Renderer::render()
 
 	BoundingFrustum frust;
 	XMMATRIX world, wvp;
-	world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition()) * XMMatrixIdentity();
+	world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition());
 	wvp = world * V * P;
 	BoundingFrustum::CreateFromMatrix(frust, wvp);
-
-	ImGui::Begin("Frust Information", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
-	ImGui::Text("Frustrum variables\n");
-	ImGui::Text("Near plane(z): %d .", (int)frust.Near);
-	ImGui::Text("Far plane(z): %d .", (int)frust.Far);
-	ImGui::Text("Right slope(x): %d .", (int)frust.RightSlope);
-	ImGui::Text("Left slope(-x): %d .", (int)frust.LeftSlope);
-	ImGui::Text("Bottom slope(-y): %d .", (int)frust.BottomSlope);
-	ImGui::Text("Bottom slope(y): %d .", (int)frust.TopSlope);
-	ImGui::Text("Player Variables");
-	ImGui::End();
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
@@ -615,29 +604,31 @@ void Renderer::render()
 			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
 
-		if (parentEntity->m_canCull)
+		if (m_frustumCullingOn && parentEntity->m_canCull)
 		{
 			//Culling
 			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), V);
 			XMFLOAT3 posFloat3;
 			XMStoreFloat3(&posFloat3, pos);
 
-			component.second->getMeshResourcePtr()->getMinMax(min, max);
-
-			XMFLOAT3 ext = (max - min) * 0.5f;
-			ext = ext * parentEntity->getScaling();
-			XMFLOAT4 rot = parentEntity->getRotation();
-			BoundingOrientedBox box(posFloat3, ext, rot);
-			ContainmentType contType = frust.Contains(box);
-
-			if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+			if (frust.Contains(pos) != ContainmentType::CONTAINS)
 			{
-				ImGui::Begin("PlayerBozx", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
-				ImGui::Text("Player boxposition (x, y z):( %d, %d, %d )", (int)box.Center.x, (int)box.Center.y, (int)box.Center.z);
-				ImGui::End();
-			}
+				component.second->getMeshResourcePtr()->getMinMax(min, max);
 
-			draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+				XMFLOAT3 ext = (max - min);
+				ext = ext * parentEntity->getScaling();
+				XMFLOAT4 rot = parentEntity->getRotation();
+				BoundingOrientedBox box(posFloat3, ext, rot);
+				ContainmentType contType = frust.Contains(box);
+
+				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+			}
+			else
+			{
+				draw = true;
+			}
+			
+
 		}
 
 		if (draw)
@@ -705,7 +696,7 @@ void Renderer::render()
 
 	// Render ImGui
 	ImGui::Render();
-	//ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	m_swapChainPtr->Present(1, 0);
 }
