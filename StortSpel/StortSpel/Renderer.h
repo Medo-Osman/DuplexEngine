@@ -6,6 +6,7 @@
 #include "Engine.h"
 #include "GUIHandler.h"
 #include "Scene.h"
+#include "ShadowMap.h"
 //#include "LightComponent.h"
 
 
@@ -94,6 +95,10 @@ private:
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
 	unsigned int long m_currentSetMaterialId = 1000;
 
+
+	//Shadowmap
+	ShadowMap* m_shadowMap = nullptr;
+
 	//Functions
 	HRESULT createDeviceAndSwapChain();
 	HRESULT createDepthStencil();
@@ -105,6 +110,8 @@ private:
 	void downSamplePass();
 	void blurPass();
 	void initRenderQuad();
+	void renderScene();
+	void renderShadowPass();
 	Renderer(); //{};
 
 public:

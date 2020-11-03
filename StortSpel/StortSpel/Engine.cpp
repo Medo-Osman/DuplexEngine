@@ -113,6 +113,11 @@ std::unordered_map<std::string, Entity*>* Engine::getEntityMap()
 	return m_entities;
 }
 
+Vector4& Engine::getSkyLightDir()
+{
+	return m_skyLightDir;
+}
+
 Settings Engine::getSettings() const
 {
 	return m_settings;

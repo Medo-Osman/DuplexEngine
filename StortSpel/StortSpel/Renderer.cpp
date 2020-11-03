@@ -208,6 +208,10 @@ HRESULT Renderer::initialize(const HWND& window)
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
 
+	//Shadows
+	m_shadowMap = new ShadowMap((UINT)m_settings.width, (UINT)m_settings.height, m_devicePtr.Get(), Engine::get().getSkyLightDir());
+	m_shadowMap->createRasterState();
+
 	return hr;
 }
 
@@ -517,6 +521,104 @@ void Renderer::initRenderQuad()
 	m_renderQuadBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_VERTEX_BUFFER, fullScreenQuad.data(), fullScreenQuad.size());
 }
 
+void Renderer::renderScene()
+{
+	
+
+	for (auto& component : *Engine::get().getMeshComponentMap())
+	{
+		ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum();
+		if (m_currentSetShaderProg != meshShaderEnum)
+		{
+			m_compiledShaders[meshShaderEnum]->setShaders();
+			m_currentSetShaderProg = meshShaderEnum;
+		}
+
+		Material* meshMatPtr = component.second->getMaterialPtr();
+		if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+		{
+			meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
+			m_currentSetMaterialId = meshMatPtr->getMaterialId();
+
+			MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+			currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+			currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+			currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+			currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+
+			m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+		}
+
+		// Get Entity map from Engine
+		std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+
+		Entity* parentEntity;
+
+		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+		else
+			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
+
+		perObjectMVP constantBufferPerObjectStruct;
+		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
+		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
+		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
+		constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
+		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+
+		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+
+		AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
+
+		if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
+		{
+			m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+			int a = 6;
+		}
+
+		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
+	}
+}
+
+void Renderer::renderShadowPass()
+{
+	ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW;
+	m_compiledShaders[meshShaderEnum]->setShaders();
+	m_currentSetShaderProg = meshShaderEnum;
+
+	ID3D11ShaderResourceView* srv[1] = { 0 };
+	m_dContextPtr->PSSetShaderResources(0, 1, srv);
+
+	//Shadow
+	m_shadowMap->bindResourcesAndSetNullRTV(m_dContextPtr.Get());
+	m_shadowMap->computeShadowMatrix();
+
+	for (auto& component : *Engine::get().getMeshComponentMap())
+	{
+		if (component.second->getShaderProgEnum() != ShaderProgramsEnum::SKYBOX)
+		{
+
+
+			// Get Entity map from Engine
+			std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+
+			Entity* parentEntity;
+			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
+
+			perObjectMVP constantBufferPerObjectStruct;
+			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
+			constantBufferPerObjectStruct.projection = m_shadowMap->m_lightProjMatrix;//XMMatrixTranspose(m_camera->getProjectionMatrix());
+			constantBufferPerObjectStruct.view = m_shadowMap->m_lightViewMatrix;//XMMatrixTranspose(m_camera->getViewMatrix());
+			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+
+			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+
+			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
+		}
+	}
+}
+
 void Renderer::rasterizerSetup()
 {
 	HRESULT hr = 0;
@@ -564,8 +666,6 @@ void Renderer::render()
 
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	//m_rTargetViewsArray[0] = m_finalRenderTargetViewPtr.Get();
-	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
-	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
 	// Skybox constant buffer:
 	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
@@ -576,62 +676,17 @@ void Renderer::render()
 	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(W * V * P);
 	m_skyboxConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferSkyboxStruct);
 
+
 	// Mesh WVP buffer, needs to be set every frame bacause of SpriteBatch(GUIHandler)
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 
-	for (auto& component : *Engine::get().getMeshComponentMap())
-	{
-		ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum();
-		if (m_currentSetShaderProg != meshShaderEnum)
-		{
-			m_compiledShaders[meshShaderEnum]->setShaders();
-			m_currentSetShaderProg = meshShaderEnum;
-		}
-		
-		Material* meshMatPtr = component.second->getMaterialPtr();
-		if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
-		{
-			meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
-			m_currentSetMaterialId = meshMatPtr->getMaterialId();
+	//Run the shadow pass before everything else
+	renderShadowPass();
 
-			MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
-			currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
-			currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
-			currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
-			currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
-
-			m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
-		}
-
-		// Get Entity map from Engine
-		std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
-	
-		Entity* parentEntity;
-
-		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
-			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
-		else
-			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
-
-		perObjectMVP constantBufferPerObjectStruct;
-		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
-		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
-		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
-		constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix()* component.second->calculateWorldMatrix()));
-		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
-
-		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
-
-		AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
-
-		if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
-		{
-			m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms() );
-			int a = 6;
-		}
-
-		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
-	}
+	//Run ordinary pass
+	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
+	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+	renderScene();
 
 	// [ Bloom Filter ]
 
@@ -645,6 +700,8 @@ void Renderer::render()
 	// Render ImGui
 	ImGui::Render();
 	//ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+	//Shadow map
 
 	m_swapChainPtr->Present(1, 0);
 }
