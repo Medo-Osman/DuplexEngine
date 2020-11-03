@@ -156,7 +156,7 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
-			m_animMesh->playBlendState("runOrIdle", 0.7f);
+			m_animMesh->playBlendState("runOrIdle", 0.5f);
 		}
 		else
 		{
@@ -234,7 +234,7 @@ void Player::playerStateLogic(const float& dt)
 
 
 	//float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
-	float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).Length();
+	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).Length();
 	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
 	{
 		float blend = vectorLen / (PLAYER_SPEED * dt);
@@ -488,8 +488,9 @@ void Player::roll()
 	m_controller->setControllerSize(ROLL_HEIGHT);
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
-	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.2f, false);
-	m_animMesh->setAnimationSpeed(1.85f);
+
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
+	m_animMesh->setAnimationSpeed(1.6f);
 }
 
 bool Player::canDash() const
