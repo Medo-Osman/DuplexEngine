@@ -516,12 +516,17 @@ void Renderer::rasterizerSetup()
 
 void Renderer::update(const float& dt)
 {
-
+	ImGui::LogButtons();
+	if (ImGui::Button("Toggle FrustumCulling"))
+	{
+		m_frustumCullingOn != m_frustumCullingOn;
+	}
 	
 }
 
 void Renderer::render()
 {
+	int drawn = 0;
 	//Update camera position for pixel shader buffer
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
@@ -563,33 +568,29 @@ void Renderer::render()
 	// Mesh WVP buffer, needs to be set every frame bacause of SpriteBatch(GUIHandler)
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 
+	BoundingFrustum frust;
+	XMMATRIX world, wvp;
+	world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition()) * XMMatrixIdentity();
+	wvp = world * V * P;
+	BoundingFrustum::CreateFromMatrix(frust, wvp);
+
+	ImGui::Begin("Frust Information", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+	ImGui::Text("Frustrum variables\n");
+	ImGui::Text("Near plane(z): %d .", (int)frust.Near);
+	ImGui::Text("Far plane(z): %d .", (int)frust.Far);
+	ImGui::Text("Right slope(x): %d .", (int)frust.RightSlope);
+	ImGui::Text("Left slope(-x): %d .", (int)frust.LeftSlope);
+	ImGui::Text("Bottom slope(-y): %d .", (int)frust.BottomSlope);
+	ImGui::Text("Bottom slope(y): %d .", (int)frust.TopSlope);
+	ImGui::Text("Player Variables");
+	ImGui::End();
+
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
-		ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum();
-		if (m_currentSetShaderProg != meshShaderEnum)
-		{
-			m_compiledShaders[meshShaderEnum]->setShaders();
-			m_currentSetShaderProg = meshShaderEnum;
-		}
-		
-		Material* meshMatPtr = component.second->getMaterialPtr();
-		if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
-		{
-			meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
-			m_currentSetMaterialId = meshMatPtr->getMaterialId();
-
-			MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
-			currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
-			currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
-			currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
-			currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
-
-			m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
-		}
-
 		// Get Entity map from Engine
 		std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
-	
+		XMFLOAT3 min, max;
+		bool draw = true;
 		Entity* parentEntity;
 
 		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
@@ -597,26 +598,86 @@ void Renderer::render()
 		else
 			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
-		perObjectMVP constantBufferPerObjectStruct;
-		component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
-		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
-		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
-		constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix()* component.second->calculateWorldMatrix()));
-		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
-		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
-
-		AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
-
-		if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
+		if (parentEntity->m_canCull)
 		{
-			m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms() );
-			int a = 6;
+			//Culling
+			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), V);
+			XMFLOAT3 posFloat3;
+			XMStoreFloat3(&posFloat3, pos);
+
+			component.second->getMeshResourcePtr()->getMinMax(min, max);
+
+			XMFLOAT3 ext = (max - min) * 0.5f;
+			ext = ext * parentEntity->getScaling();
+			XMFLOAT4 rot = parentEntity->getRotation();
+			BoundingOrientedBox box(posFloat3, ext, rot);
+			ContainmentType contType = frust.Contains(box);
+
+			if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+			{
+				ImGui::Begin("PlayerBozx", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+				ImGui::Text("Player boxposition (x, y z):( %d, %d, %d )", (int)box.Center.x, (int)box.Center.y, (int)box.Center.z);
+				ImGui::End();
+			}
+
+			draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
 		}
 
-		m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
+		if (draw)
+		{
+			drawn++;
+			ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum();
+			if (m_currentSetShaderProg != meshShaderEnum)
+			{
+				m_compiledShaders[meshShaderEnum]->setShaders();
+				m_currentSetShaderProg = meshShaderEnum;
+			}
+		
+			Material* meshMatPtr = component.second->getMaterialPtr();
+			if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+			{
+				meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
+				m_currentSetMaterialId = meshMatPtr->getMaterialId();
+
+				MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+				currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+				currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+				currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+				currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+
+				m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+			}
+
+
+
+			perObjectMVP constantBufferPerObjectStruct;
+			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
+			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
+			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
+			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix()* component.second->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+
+			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+
+			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
+
+			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
+			{
+				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms() );
+				int a = 6;
+			}
+
+			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
+
+		}
+		
 	}
 
+
+	ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+	ImGui::Text("Nr of draw calls per frame: %d .", (int)drawn);
+	ImGui::End();
 	// [ Bloom Filter ]
 
 	downSamplePass();

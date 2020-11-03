@@ -89,6 +89,9 @@ private:
 	
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 
+	//FrustumCulling
+	bool m_frustumCullingOn = true;
+
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
@@ -122,6 +125,7 @@ public:
 	HRESULT initialize(const HWND& window);
 	void release();
 	void update(const float& dt);
+	void frustumCull();
 	void render();
 	ID3D11Device* getDevice();
 	ID3D11DeviceContext* getDContext();
