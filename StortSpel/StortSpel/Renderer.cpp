@@ -171,6 +171,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);
 	m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
 
+	m_shadowConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &shadowBuffer(), 1);
+
 	m_cameraBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cameraBufferStruct(), 1);
 	m_dContextPtr->PSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
 
@@ -591,12 +593,17 @@ void Renderer::renderShadowPass()
 
 	//Shadow
 	m_shadowMap->bindResourcesAndSetNullRTV(m_dContextPtr.Get());
-	m_shadowMap->computeShadowMatrix();
+	m_shadowMap->computeShadowMatrix(Vector3(dynamic_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + Vector3(0, 0.5, 0));
+
+	shadowBuffer shadowBufferStruct;
+	shadowBufferStruct.lightProjMatrix = m_shadowMap->m_lightProjMatrix;
+	shadowBufferStruct.lightViewMatrix = m_shadowMap->m_lightViewMatrix;
+	m_shadowConstantBuffer.updateBuffer(m_dContextPtr.Get(), &shadowBufferStruct);
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
-		if (component.second->getShaderProgEnum() != ShaderProgramsEnum::SKYBOX)
-		{
+		//if (component.second->getShaderProgEnum() == ShaderProgramsEnum::DEFAULT || component.second->getShaderProgEnum() == ShaderProgramsEnum::NONE)
+		//{
 
 
 			// Get Entity map from Engine
@@ -607,15 +614,15 @@ void Renderer::renderShadowPass()
 
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
-			constantBufferPerObjectStruct.projection = m_shadowMap->m_lightProjMatrix;//XMMatrixTranspose(m_camera->getProjectionMatrix());
-			constantBufferPerObjectStruct.view = m_shadowMap->m_lightViewMatrix;//XMMatrixTranspose(m_camera->getViewMatrix());
+			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);//XMMatrixTranspose(m_camera->getProjectionMatrix());
+			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_shadowMap->m_lightViewMatrix);//XMMatrixTranspose(m_camera->getViewMatrix());
 			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
 			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
-		}
+		//}
 	}
 }
 
@@ -681,6 +688,7 @@ void Renderer::render()
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 
 	//Run the shadow pass before everything else
+	m_dContextPtr->VSSetConstantBuffers(3, 1, m_shadowConstantBuffer.GetAddressOf());
 	renderShadowPass();
 
 	//Run ordinary pass
@@ -699,7 +707,7 @@ void Renderer::render()
 
 	// Render ImGui
 	ImGui::Render();
-	//ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	//Shadow map
 

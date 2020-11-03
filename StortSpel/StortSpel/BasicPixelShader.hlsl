@@ -109,7 +109,7 @@ lightComputeResult computeLightFactor(ps_in input)
         finalColor = saturate(finalColor + (diffuseLightFactor * spotLights[j].color * attenuationFactor));
     }
     
-    finalColor = finalColor + saturate(dot(skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
+    finalColor = finalColor + saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
     
     result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel));
     

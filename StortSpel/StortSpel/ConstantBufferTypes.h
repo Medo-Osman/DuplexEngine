@@ -51,6 +51,12 @@ struct skyboxMVP
     XMMATRIX mvpMatrix; //Model/view/projection
 };
 
+struct shadowBuffer
+{
+    XMMATRIX lightViewMatrix;
+    XMMATRIX lightProjMatrix;
+};
+
 const int MAX_JOINT_COUNT = 30; // if this is changed, also change it in the shader.
 
 struct skeletonAnimationCBuffer

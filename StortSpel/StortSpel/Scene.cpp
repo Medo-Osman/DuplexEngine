@@ -232,6 +232,7 @@ void Scene::loadScene(std::string path)
 	createStaticPlatform(Vector3(-11, 51.68, 282.02), Vector3(-20, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-11, 53.4, 289), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
 
+
 	Entity* clownMask = addEntity("ClownMask");
 	if (clownMask)
 	{
@@ -490,7 +491,7 @@ void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 sca
 		//	new MeshComponent(meshPath.c_str(), ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 		
 
-		staticPlatform->setPosition(position);
+		staticPlatform->setPosition(position);// -Vector3(0, 25, 0));
 		staticPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 		staticPlatform->setScale(scale);
 

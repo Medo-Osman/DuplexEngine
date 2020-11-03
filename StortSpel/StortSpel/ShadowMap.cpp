@@ -7,7 +7,7 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 	m_devicePtr = devicePtr;
 
 	m_width = width;
-	m_height = height;
+	m_height = width;
 
 	m_viewPort.Width = (float)width;
 	m_viewPort.Height = (float)height;
@@ -56,44 +56,44 @@ void ShadowMap::bindResourcesAndSetNullRTV(ID3D11DeviceContext* context)
 	context->RSSetViewports(1, &m_viewPort);
 	context->RSSetState(m_rasterizerStatePtr.Get());
 
-	ID3D11RenderTargetView* renderTargets[1] = { 0 };
-	context->OMSetRenderTargets(1, renderTargets, m_depthMapDSV);
+	/*ID3D11RenderTargetView* renderTargets[1] = { 0 };
+	context->OMSetRenderTargets(1, renderTargets, m_depthMapDSV);*/
 
 	
-	context->ClearDepthStencilView(m_depthMapDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	//context->ClearDepthStencilView(m_depthMapDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
-void ShadowMap::computeShadowMatrix()
+void ShadowMap::computeShadowMatrix(Vector3 playerPos)
 {
-	float radius = 100.f;
-	Vector4 lightPos = m_direction * radius * -2;
-	Vector3 targetPos = Vector3(0, 15, 0);
+	float radius = 60.f;
+	Vector4 lightPos = -2 * radius * m_direction;
+	Vector3 targetPos = playerPos;//Vector3(0, 0, 0);
 
-	Matrix V = XMMatrixLookAtLH(Vector3(lightPos), targetPos, XMVectorSet(0,1,0,0));//Matrix::CreateLookAt(Vector3(lightPos), targetPos, Vector3(0, 1, 0));
+	Matrix V = XMMatrixLookAtLH(XMVECTOR(lightPos), targetPos, { 0.0f, 1.0f, 0.0f, 0.0f });//Matrix::CreateLookAt(Vector3(lightPos), targetPos, Vector3(0, 1, 0));
 	
-	Vector4 sphereCenterLS;
+	Vector3 sphereCenterLS;
 	sphereCenterLS = XMVector3TransformCoord(targetPos, V);
 
-	float l = sphereCenterLS.x - radius;
-	float b = sphereCenterLS.y - radius;
-	float n = sphereCenterLS.z - radius;
-	float r = sphereCenterLS.x + radius;
-	float t = sphereCenterLS.y + radius;
-	float f = sphereCenterLS.z + radius;
-	Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+	Matrix P = XMMatrixOrthographicOffCenterLH(
+		sphereCenterLS.x - radius, //Left
+		sphereCenterLS.x + radius, //Right
+		sphereCenterLS.y - radius, //Bottom
+		sphereCenterLS.y + radius, //Top
+		sphereCenterLS.z - radius, //Near
+		sphereCenterLS.z + radius); //Far
 
-	/*XMMATRIX T{
+	XMMATRIX T(
 		0.5f, 0.0f, 0.0f, 0.0f,
 		0.0f, -0.5f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
-		0.5f, 0.5f, 0.0f, 1.0f };*/
-	Matrix T = Matrix();
+		0.5f, 0.5f, 0.0f, 1.0f );
+	/*Matrix T = Matrix();
 	T._11 = 0.5f;
 	T._22 = -0.5f;
 	T._33 = 1.0f;
 	T._41 = 0.5f;
 	T._42 = 0.5f;
-	T._44 = 1.0;
+	T._44 = 1.0;*/
 	//m_transformMatrix = XMMatrixOrthographicLH((float)m_width, m_height, 0.f, 1.f);//XMMatrixShadow(m_direction, m_direction * -5); //Calc actual radius here
 
 	//Matrix mat = XMMatrixOrthographicOffCenterLH()
@@ -115,7 +115,7 @@ void ShadowMap::createRasterState()
 
 	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
-	rasterizerDesc.DepthBias = 100000;
+	rasterizerDesc.DepthBias = 10000;
 	rasterizerDesc.DepthBiasClamp = 0.0f;
 	rasterizerDesc.SlopeScaledDepthBias = 1.0f;
 	rasterizerDesc.DepthClipEnable = true;
