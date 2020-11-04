@@ -65,7 +65,7 @@ struct ps_in
 
 Texture2D diffuseTexture : TEXTURE : register(t0);
 SamplerState sampState : SAMPLER : register(s0);
-SamplerComparisonState shadowSampState : SAMPLER : register(s1);
+SamplerComparisonState shadowSampState : SAMPLER1 : register(s1);
 Texture2D shadowMap : TEXTURE : register(t2);
 
 struct lightComputeResult
@@ -75,33 +75,67 @@ struct lightComputeResult
     float intensity;
 };
 
+//float computeShadowFactor(float4 shadowPosH)
+//{
+//    shadowPosH.xyz /= shadowPosH.w; //Finish projection
+    
+//    float depth = shadowPosH.z; //In NDC, depthFromLightPosToPoint
+    
+//    const float delta = SHADOW_MAP_DELTA;
+//    float percentLit = 0.0f;
+    
+//    //Filtering matrix
+//    const float2 offsets[9] =
+//    {
+//        float2(-delta, -delta), float2(0.0f, -delta),   float2(delta, -delta),
+//        float2(-delta, 0.0f),   float2(0.0f, 0.0f),     float2(delta, 0.0f),
+//        float2(-delta, +delta), float2(0.0f, +delta),   float2(delta, +delta)
+//    };
+    
+//    //sum all the samples
+//    //[unroll]
+//    //for (int i = 0; i < 9; i++) //9 because matrix size
+//    //{
+//    //    //percentLit += shadowMap.SampleCmp(shadowSampState, shadowPosH.xy + offsets[i], depth).r;
+//    //    percentLit += shadowMap.SampleCmpLevelZero(shadowSampState,shadowPosH.xy + offsets[i], depth).r;
+//    //}
+//    percentLit += (float) shadowMap.SampleCmpLevelZero(shadowSampState, shadowPosH.xy, depth).r;
+    
+//    //Avg of all samples
+//    return percentLit; //percentLit/9.f; //percentLit /= 9.f; //9 because matrix size.
+//};
+
 float computeShadowFactor(float4 shadowPosH)
 {
-    shadowPosH.xyz /= shadowPosH.w; //Finish projection
+    float2 shadowUV = shadowPosH.xy / shadowPosH.w * 0.5f + 0.5f; 
+    shadowUV.y = 1.0f - shadowUV.y;
     
-    float depth = shadowPosH.z; //In NDC
+    float depth = shadowPosH.z / shadowPosH.w; //In NDC, depthFromLightPosToPoint
     
     const float delta = SHADOW_MAP_DELTA;
     float percentLit = 0.0f;
     
+   
+    
     //Filtering matrix
     const float2 offsets[9] =
     {
-        float2(-delta, -delta), float2(0.0f, -delta),   float2(delta, -delta),
-        float2(-delta, 0.0f),   float2(0.0f, 0.0f),     float2(delta, 0.0f),
-        float2(-delta, +delta), float2(0.0f, +delta),   float2(delta, +delta)
+        float2(-delta, -delta), float2(0.0f, -delta), float2(delta, -delta),
+        float2(-delta, 0.0f), float2(0.0f, 0.0f), float2(delta, 0.0f),
+        float2(-delta, +delta), float2(0.0f, +delta), float2(delta, +delta)
     };
     
-    //PCF Filtering, sum all the samples
-    [unroll]
+    //sum all
+    //the samples
+
     for (int i = 0; i < 9; i++) //9 because matrix size
     {
-        percentLit += shadowMap.SampleCmpLevelZero(shadowSampState, shadowPosH.xy + offsets[i], depth);
-        //percentLit += shadowMap.SampleCmpLevelZero(samShadow,shadowPosH.xy + offsets[i], depth).r;
+        //percentLit += shadowMap.SampleCmp(shadowSampState, shadowPosH.xy + offsets[i], depth).r;
+        percentLit += shadowMap.SampleCmpLevelZero(shadowSampState, shadowUV, depth, offsets[i]).r;
     }
     
     //Avg of all samples
-    return percentLit/9.f; //percentLit /= 9.f; //9 because matrix size.
+    return percentLit/9.f; //percentLit/9.f; //percentLit /= 9.f; //9 because matrix size.
 };
 
 //Only calculating diffuse light
@@ -147,8 +181,6 @@ lightComputeResult computeLightFactor(ps_in input)
     
     finalColor = finalColor + saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
     
-    
-   // float shadowFactor = 1.f;
     float shadowFactor = computeShadowFactor(input.shadowPos);
     result.lightColor = (finalColor * diffuse * shadowFactor + (diffuse * ambientLightLevel));
     

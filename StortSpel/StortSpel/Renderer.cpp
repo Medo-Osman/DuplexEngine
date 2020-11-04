@@ -211,7 +211,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
 
 	//Shadows
-	m_shadowMap = new ShadowMap((UINT)2048, (UINT)2048, m_devicePtr.Get(), Engine::get().getSkyLightDir());
+	m_shadowMap = new ShadowMap((UINT)4096, (UINT)4096, m_devicePtr.Get(), Engine::get().getSkyLightDir());
 	m_shadowMap->createRasterState();
 
 	return hr;
@@ -569,6 +569,7 @@ void Renderer::renderScene()
 		constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
 		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
+
 		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
 		AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
@@ -598,9 +599,9 @@ void Renderer::renderShadowPass()
 	m_shadowMap->computeShadowMatrix(Vector3(dynamic_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + Vector3(0, 0.5, 0));
 
 	shadowBuffer shadowBufferStruct;
-	shadowBufferStruct.lightProjMatrix = m_shadowMap->m_lightProjMatrix;
-	shadowBufferStruct.lightViewMatrix = m_shadowMap->m_lightViewMatrix;
-	shadowBufferStruct.shadowMatrix = m_shadowMap->m_shadowTransform;
+	shadowBufferStruct.lightProjMatrix = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);
+	shadowBufferStruct.lightViewMatrix = XMMatrixTranspose(m_shadowMap->m_lightViewMatrix);
+	shadowBufferStruct.shadowMatrix = XMMatrixTranspose(m_shadowMap->m_shadowTransform);
 	m_shadowConstantBuffer.updateBuffer(m_dContextPtr.Get(), &shadowBufferStruct);
 
 	for (auto& component : *Engine::get().getMeshComponentMap())

@@ -51,7 +51,18 @@ vs_out main(vs_in input)
     output.tangent = input.tangent;
     output.bitangent = input.bitangent;
     output.worldPos = mul(float4(input.pos, 1), worldMatrix);
-    output.shadowPos = mul(float4(input.pos, 1), shadowMatrix);
+    //output.shadowPos = mul(float4(input.pos, 1), shadowMatrix);
+    
+    /*
+    output.shadowPosition = mul(worldMatrix, float4(input.position, 1.f));
+    output.shadowPosition = mul(lightViewMatrix, output.shadowPosition);
+    output.shadowPosition = mul(lightProjectionMatrix, output.shadowPosition);
+    */
+    output.shadowPos = mul(float4(input.pos, 1), worldMatrix);
+    output.shadowPos = mul(output.shadowPos, lightViewMatrix);
+    output.shadowPos = mul(output.shadowPos, lightProjMatrix);
+    //output.shadowPos = mul(output.sh)
+    
     
     return output;
 }

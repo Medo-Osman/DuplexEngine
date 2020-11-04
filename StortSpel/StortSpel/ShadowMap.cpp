@@ -18,7 +18,7 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 	textureDesc.Height = m_width;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
-	textureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS; //24 bit for the red channel, 8 for the green.
+	textureDesc.Format = DXGI_FORMAT_R32_TYPELESS;//DXGI_FORMAT_R24G8_TYPELESS; //24 bit for the red channel, 8 for the green.
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -30,14 +30,14 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
 	dsvDesc.Flags = 0;
-	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; //32-bit z-buffer, 24 for depth and 8 for stencil.
+	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;//DXGI_FORMAT_D24_UNORM_S8_UINT; //32-bit z-buffer, 24 for depth and 8 for stencil.
 	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	dsvDesc.Texture2D.MipSlice = 0;
 	succ = m_devicePtr->CreateDepthStencilView(depthMap, &dsvDesc, &m_depthMapDSV);
 	assert(SUCCEEDED(succ));
 	
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;//DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = textureDesc.MipLevels;
 	srvDesc.Texture2D.MostDetailedMip = 0;
@@ -54,9 +54,8 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 	sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
 	sampleDesc.MipLODBias = 0;
 	sampleDesc.MaxAnisotropy = 1;
-	sampleDesc.MinLOD = 0;
+	sampleDesc.MinLOD = -D3D11_FLOAT32_MAX;
 	sampleDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	//sampleDesc.BorderColor = borderColor;
 
 	succ = m_devicePtr->CreateSamplerState(&sampleDesc, m_sampleState.GetAddressOf());
 	assert(SUCCEEDED(succ));
@@ -79,14 +78,12 @@ void ShadowMap::bindResourcesAndSetNullRTV(ID3D11DeviceContext* context)
 
 	context->ClearDepthStencilView(m_depthMapDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	//context->PSSetSamplers(1, 1, m_sampleState, )
-
 }
 
 void ShadowMap::computeShadowMatrix(Vector3 playerPos)
 {
-	float radius = 120.f;
-	Vector4 lightPos = -2 * radius * m_direction;
+	float radius = 50.f;
+	Vector4 lightPos = (-2 * radius * m_direction) + playerPos;
 	Vector3 targetPos = playerPos;//Vector3(0, 0, 0);
 
 	Matrix V = XMMatrixLookAtLH(XMVECTOR(lightPos), targetPos, { 0.0f, 1.0f, 0.0f, 0.0f });//Matrix::CreateLookAt(Vector3(lightPos), targetPos, Vector3(0, 1, 0));
@@ -112,7 +109,7 @@ void ShadowMap::computeShadowMatrix(Vector3 playerPos)
 
 	m_lightViewMatrix = V;
 	m_lightProjMatrix = P;
-	m_shadowTransform = S;
+	m_shadowTransform = XMMatrixTranspose(S);
 
 }
 
@@ -126,9 +123,8 @@ void ShadowMap::createRasterState()
 	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 	rasterizerDesc.DepthBias = 10000;
 	rasterizerDesc.DepthBiasClamp = 0.0f;
-	rasterizerDesc.SlopeScaledDepthBias = 1.0f;
+	rasterizerDesc.SlopeScaledDepthBias = 4.0f;
 	rasterizerDesc.DepthClipEnable = true;
-
 
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
