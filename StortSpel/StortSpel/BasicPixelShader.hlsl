@@ -58,14 +58,7 @@ struct ps_in
     float4 worldPos : POSITION;
 };
 
-//struct ps_out
-//{
-//    float4 diffuse : SV_Target0;
-//    //float4 glow : SV_Target1;
-//};
-
 Texture2D diffuseTexture : TEXTURE : register(t0);
-//Texture2D emissiveTexture : TEXTURE : register(t1);
 SamplerState sampState : SAMPLER : register(s0);
 
 struct lightComputeResult
@@ -125,12 +118,8 @@ lightComputeResult computeLightFactor(ps_in input)
 
 float4 main(ps_in input) : SV_TARGET
 {
-    //ps_out output;
-
     lightComputeResult lightResult = computeLightFactor(input);
     
-    //output.diffuse = float4(lightResult.lightColor, 1);
     
     return float4(lightResult.lightColor, 1);
-
 }

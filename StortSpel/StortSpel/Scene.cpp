@@ -151,8 +151,7 @@ void Scene::loadLobby()
 	{
 		addComponent(test2, "mesh",
 			new MeshComponent("GlowCube.lrm",
-				EMISSIVE,
-				Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
+				Material({ L"DarkGrayTexture.png" })));
 
 		test2->setScale({ 5, 5, 5 });
 		test2->setPosition({ -9, 2, 10 });
