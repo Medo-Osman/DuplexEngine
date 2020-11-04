@@ -274,12 +274,13 @@ void Player::playerStateLogic(const float& dt)
 		m_lastDirectionalMovement = directionalMovement;
 	
 	m_velocity = (m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier);
+	m_velocity *= dt;
 	m_controller->move(m_velocity, dt);
 	m_lastPosition = m_playerEntity->getTranslation();
 
 
 	//float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
-	float vectorLen = Vector3(m_velocity.x * dt, 0, m_velocity.z * dt).Length();
+	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).Length();
 	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
 	{
 		float blend = vectorLen / (PLAYER_MAX_SPEED * dt);
