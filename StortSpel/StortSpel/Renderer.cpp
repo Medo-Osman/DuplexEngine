@@ -535,6 +535,7 @@ void Renderer::renderScene()
 			m_compiledShaders[meshShaderEnum]->setShaders();
 			m_currentSetShaderProg = meshShaderEnum;
 		}
+		m_dContextPtr->PSSetShaderResources(2, 1, &m_shadowMap->m_depthMapSRV);
 
 		Material* meshMatPtr = component.second->getMaterialPtr();
 		if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
@@ -588,8 +589,9 @@ void Renderer::renderShadowPass()
 	m_compiledShaders[meshShaderEnum]->setShaders();
 	m_currentSetShaderProg = meshShaderEnum;
 
-	ID3D11ShaderResourceView* srv[1] = { 0 };
-	m_dContextPtr->PSSetShaderResources(0, 1, srv);
+
+	ID3D11ShaderResourceView* emptySRV[1] = { nullptr };
+	m_dContextPtr->PSSetShaderResources(2, 1, emptySRV);
 
 	//Shadow
 	m_shadowMap->bindResourcesAndSetNullRTV(m_dContextPtr.Get());
@@ -626,6 +628,8 @@ void Renderer::renderShadowPass()
 			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 		//}
 	}
+
+
 }
 
 void Renderer::rasterizerSetup()
@@ -688,14 +692,25 @@ void Renderer::render()
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 
 	//Run the shadow pass before everything else
+	
 	m_dContextPtr->VSSetConstantBuffers(3, 1, m_shadowConstantBuffer.GetAddressOf());
 	renderShadowPass();
+	
+	
+
+	ID3D11RenderTargetView* renderTargets[1] = { 0 };
+	m_dContextPtr->OMSetRenderTargets(1, renderTargets, nullptr);
+
+	
 
 	//Run ordinary pass
 	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	renderScene();
+
+	ID3D11ShaderResourceView* srv[1] = { 0 };
+	m_dContextPtr->PSSetShaderResources(0, 1, srv);
 
 	// [ Bloom Filter ]
 

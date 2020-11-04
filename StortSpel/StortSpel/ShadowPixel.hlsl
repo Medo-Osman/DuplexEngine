@@ -71,12 +71,12 @@ struct lightComputeResult
     float intensity;
 };
 
-float4 main(ps_in input) : SV_TARGET
+void main(ps_in input)
 {
     
     float4 diffuse = diffuseTexture.Sample(sampState, input.uv);
    // clip(diffuse.a - 0.15f);
     
-    return diffuse; //float4(lightResult.lightColor, 1);
+    //return diffuse; //float4(lightResult.lightColor, 1);
 
 }

@@ -44,6 +44,23 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 	succ = m_devicePtr->CreateShaderResourceView(depthMap, &srvDesc, &m_depthMapSRV);
 	assert(SUCCEEDED(succ));
 
+	FLOAT borderColor[4] = { 0.f };
+	D3D11_SAMPLER_DESC sampleDesc;
+	ZeroMemory(&sampleDesc, sizeof(D3D11_SAMPLER_DESC));
+	sampleDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	sampleDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	sampleDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampleDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampleDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampleDesc.MipLODBias = 0;
+	sampleDesc.MaxAnisotropy = 1;
+	sampleDesc.MinLOD = 0;
+	sampleDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	//sampleDesc.BorderColor = borderColor;
+
+	succ = m_devicePtr->CreateSamplerState(&sampleDesc, m_sampleState.GetAddressOf());
+	assert(SUCCEEDED(succ));
+
 	m_direction = lightDir;
 
 	//depthMap->Release();
@@ -58,11 +75,12 @@ void ShadowMap::bindResourcesAndSetNullRTV(ID3D11DeviceContext* context)
 
 	ID3D11RenderTargetView* renderTargets[1] = { 0 };
 	context->OMSetRenderTargets(1, renderTargets, m_depthMapDSV);
+	context->PSSetSamplers(1, 1, m_sampleState.GetAddressOf());
 
 	context->ClearDepthStencilView(m_depthMapDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
-	
-	//Bind the SRV
-	context->PSSetShaderResources(2, 1, &m_depthMapSRV);
+
+	//context->PSSetSamplers(1, 1, m_sampleState, )
+
 }
 
 void ShadowMap::computeShadowMatrix(Vector3 playerPos)
@@ -106,7 +124,7 @@ void ShadowMap::createRasterState()
 
 	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
-	rasterizerDesc.DepthBias = 1000;
+	rasterizerDesc.DepthBias = 10000;
 	rasterizerDesc.DepthBiasClamp = 0.0f;
 	rasterizerDesc.SlopeScaledDepthBias = 1.0f;
 	rasterizerDesc.DepthClipEnable = true;

@@ -64,8 +64,9 @@ struct ps_in
 };
 
 Texture2D diffuseTexture : TEXTURE : register(t0);
-Texture2D shadowMap : TEXTURE : register(t2);
 SamplerState sampState : SAMPLER : register(s0);
+SamplerComparisonState shadowSampState : SAMPLER : register(s1);
+Texture2D shadowMap : TEXTURE : register(t2);
 
 struct lightComputeResult
 {
@@ -81,25 +82,26 @@ float computeShadowFactor(float4 shadowPosH)
     float depth = shadowPosH.z; //In NDC
     
     const float delta = SHADOW_MAP_DELTA;
-    float percentLit = 0.0;
+    float percentLit = 0.0f;
     
     //Filtering matrix
     const float2 offsets[9] =
     {
-        float2(-delta, -delta), float2(0.0f, -delta), float2(delta, -delta),
-        float2(-delta, 0.0f), float2(0.0f, 0.0f), float2(delta, 0.0f),
-        float2(-delta, +delta), float2(0.0f, +delta), float2(delta, +delta)
+        float2(-delta, -delta), float2(0.0f, -delta),   float2(delta, -delta),
+        float2(-delta, 0.0f),   float2(0.0f, 0.0f),     float2(delta, 0.0f),
+        float2(-delta, +delta), float2(0.0f, +delta),   float2(delta, +delta)
     };
     
     //PCF Filtering, sum all the samples
     [unroll]
     for (int i = 0; i < 9; i++) //9 because matrix size
     {
-        percentLit += shadowMap.Sample(sampState, shadowPosH.xy + offsets[i]);
+        percentLit += shadowMap.SampleCmpLevelZero(shadowSampState, shadowPosH.xy + offsets[i], depth);
+        //percentLit += shadowMap.SampleCmpLevelZero(samShadow,shadowPosH.xy + offsets[i], depth).r;
     }
     
     //Avg of all samples
-    return percentLit /= 9.f; //9 because matrix size.
+    return percentLit/9.f; //percentLit /= 9.f; //9 because matrix size.
 };
 
 //Only calculating diffuse light
@@ -145,8 +147,9 @@ lightComputeResult computeLightFactor(ps_in input)
     
     finalColor = finalColor + saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
     
-    //float shadowFactor = 1.f - computeShadowFactor(input.shadowPos);
-    float shadowFactor = 0.f;
+    
+   // float shadowFactor = 1.f;
+    float shadowFactor = computeShadowFactor(input.shadowPos);
     result.lightColor = (finalColor * diffuse * shadowFactor + (diffuse * ambientLightLevel));
     
     return result;
@@ -155,8 +158,8 @@ lightComputeResult computeLightFactor(ps_in input)
 float4 main(ps_in input) : SV_TARGET
 {
     
-    lightComputeResult lightResult = computeLightFactor(input);
    
+    lightComputeResult lightResult = computeLightFactor(input);
     return float4(lightResult.lightColor, 1);
 
 }
