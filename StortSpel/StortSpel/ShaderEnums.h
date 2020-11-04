@@ -10,6 +10,7 @@ enum ShaderProgramsEnum
 	PBRTEST,
 	BLOOM_COMBINE,
 	OBJECTSPACEGRID,
+	EMISSIVE,
 	NONE
 };
 
@@ -68,6 +69,14 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 	(*compiledShadersMap)[ShaderProgramsEnum::OBJECTSPACEGRID] = new ShaderProgram
 	(
 		{ L"ObjectSpaceGridVS.hlsl",L"null",L"null",L"null",L"ObjectSpaceGridPS.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::EMISSIVE] = new ShaderProgram
+	(
+		{ L"VertexShaderBasic.hlsl",L"null",L"null",L"null",L"EmissivePixelShader.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		VertexLayoutType::LRMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
