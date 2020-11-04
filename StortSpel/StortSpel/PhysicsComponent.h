@@ -129,18 +129,20 @@ public:
 					}
 					else //Create shape and add shape for sharing
 					{
-						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, unique);
+						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true);
 						m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, entity->getScaling());
 						m_physicsPtr->addShapeForSharing(m_shape, name);
 					}
+
 				}
 
 			}
-			if(addGeom)
+			if (addGeom)
 			{
-				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, unique);
+				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false);
 				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, entity->getScaling());
 			}
+
 		}
 		
 
@@ -245,18 +247,21 @@ public:
 	}
 
 
-	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool unique)
+	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool saveGeometry)
 	{
 		XMFLOAT3 min, max;
 		PxGeometry* bb = nullptr;
 		meshComponent->getMeshResourcePtr()->getMinMax(min, max);
 		
 		std::string name = meshComponent->getFilePath() + std::to_string(geometry);
-		bb = m_physicsPtr->getGeometry(name);
+		if(saveGeometry)
+			bb = m_physicsPtr->getGeometry(name);
+
 		if (!bb)
 		{
 			bb = createPrimitiveGeometry(geometry, min, max, meshComponent->getMeshResourcePtr()->getVertexArray(), meshComponent->getMeshResourcePtr()->getVertexBuffer().getSize());
-			m_physicsPtr->addGeometry(name, bb);
+			if(saveGeometry)
+				m_physicsPtr->addGeometry(name, bb);
 		}
 		
 		return bb;
