@@ -22,11 +22,7 @@ void main(uint3 gruoupId : SV_GroupID, uint3 groupThredId : SV_GroupThreadID, ui
         
     float4 glowIntensity = lerp(hIntensity0, hIntensity1, 0.5);
     
-    if (glowIntensity.x != 0 && glowIntensity.y != 0 && glowIntensity.z != 0)
-    {
-        outputTex[pixelIndex] = float4(glowIntensity.rgb, 1.0);
-    }
-    else
+    if (glowIntensity.x == 0 && glowIntensity.y == 0 && glowIntensity.z == 0)
     {
         value = inputTex.Load(inputPixelIndex, 0);
         value2 = inputTex.Load(inputPixelIndex + uint2(1, 0), 0);
@@ -44,5 +40,9 @@ void main(uint3 gruoupId : SV_GroupID, uint3 groupThredId : SV_GroupThreadID, ui
         }
         else
             outputTex[pixelIndex] = float4(0.f, 0.f, 0.f, 1.0);
+    }
+    else
+    {
+        outputTex[pixelIndex] = float4(glowIntensity.rgb, 1.0);
     }
 }

@@ -132,11 +132,11 @@ void Scene::loadLobby()
 	if (test)
 	{
 		addComponent(test, "mesh", 
-			new MeshComponent("testCube_pCube1.lrm",
-			Material({ L"DevTexture1m.png", L"GlowTex.png" })));
+			new MeshComponent("GlowCube.lrm",
+			Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
 
-		test->setScale({ 1, 1, 1 });
-		test->setPosition({ 0,2,3 });
+		test->setScale({ 5, 5, 5 });
+		test->setPosition({ 9, 2, 10 });
 
 		createNewPhysicsComponent(test, true);
 		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
@@ -145,6 +145,22 @@ void Scene::loadLobby()
 			new FlippingComponent(test, 1, 1));
 	}
 
+	Entity* test2 = addEntity("test2");
+	if (test2)
+	{
+		addComponent(test2, "mesh",
+			new MeshComponent("GlowCube.lrm",
+				Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
+
+		test2->setScale({ 5, 5, 5 });
+		test2->setPosition({ -9, 2, 10 });
+
+		createNewPhysicsComponent(test2, true);
+		static_cast<PhysicsComponent*>(test2->getComponent("physics"))->makeKinematic();
+
+		addComponent(test2, "flipp",
+			new FlippingComponent(test2, 1, 1));
+	}
 
 
 
@@ -172,7 +188,7 @@ void Scene::loadLobby()
 			new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 	}
 
-	//createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
+	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
 }
 
 void Scene::loadScene(std::string path)

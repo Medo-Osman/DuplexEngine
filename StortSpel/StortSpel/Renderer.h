@@ -64,7 +64,7 @@ private:
 	Buffer<PositionTextureVertex> m_renderQuadBuffer;
 
 	CS_BLUR_CBUFFER m_blurData;
-	float m_weightSigma = 5.f;
+	float m_weightSigma = 10.f;
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
