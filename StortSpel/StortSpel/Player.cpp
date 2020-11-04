@@ -222,7 +222,7 @@ void Player::playerStateLogic(const float& dt)
 			m_horizontalMultiplier += PLAYER_ACCELERATION;
 
 			// Limit Speed
-			if (std::abs(m_horizontalMultiplier) > PLAYER_MAX_SPEED)
+			if (m_horizontalMultiplier > PLAYER_MAX_SPEED)
 			{
 				m_horizontalMultiplier = PLAYER_MAX_SPEED;
 			}
@@ -268,28 +268,12 @@ void Player::playerStateLogic(const float& dt)
 	//else
 	//	m_velocity.z = 0.f;
 
-	m_velocity = (Vector3(m_velocity.x, 0, m_velocity.z) + (directionalMovement * m_horizontalMultiplier)) + (Vector3(0, 1, 0) * m_verticalMultiplier);
+	if (directionalMovement.LengthSquared() > 0)
+		m_lastDirectionalMovement = directionalMovement;
+	
+	m_velocity = (m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier);
 	m_controller->move(m_velocity, dt);
 	m_lastPosition = m_playerEntity->getTranslation();
-
-	// Deceleration
-	// x
-	if (m_velocity.x > 0.1f)
-		m_velocity.x += -PLAYER_DECELERATION;
-	else if (m_velocity.x < -0.1f)
-		m_velocity.x -= -PLAYER_DECELERATION;
-	else
-		m_velocity.x = 0.f;
-
-	// z
-	if (m_velocity.z > 0.1f)
-		m_velocity.z += -PLAYER_DECELERATION;
-	else if (m_velocity.z < -0.1f)
-		m_velocity.z -= -PLAYER_DECELERATION;
-	else
-		m_velocity.z = 0.f;
-	/*if (std::abs(m_horizontalMultiplier) > 0.001f)
-		m_horizontalMultiplier -= PLAYER_DECELERATION;*/
 
 	// Animation
 	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).LengthSquared();
@@ -306,6 +290,26 @@ void Player::playerStateLogic(const float& dt)
 			m_animMesh->playAnimation("platformer_guy_idle", true);
 		}
 	}
+
+	// Deceleration
+	m_horizontalMultiplier -= PLAYER_DECELERATION;
+	if (m_horizontalMultiplier < 0.f)
+		m_horizontalMultiplier = 0.f;
+	// x
+	//if (m_velocity.x > 0.0001f)
+	//	m_velocity.x += -PLAYER_DECELERATION;
+	//else if (m_velocity.x < -0.0001f)
+	//	m_velocity.x -= -PLAYER_DECELERATION;
+	//else
+	//	m_velocity.x = 0.f;
+
+	//// z
+	//if (m_velocity.z > 0.0001f)
+	//	m_velocity.z += -PLAYER_DECELERATION;
+	//else if (m_velocity.z < -0.0001f)
+	//	m_velocity.z -= -PLAYER_DECELERATION;
+	//else
+	//	m_velocity.z = 0.f;
 
 	if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
 	{

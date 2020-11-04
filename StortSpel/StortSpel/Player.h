@@ -35,9 +35,9 @@ private:
     const float CAPSULE_RADIUS = 0.01f;
 
     //WALK CONFIG
-    const float PLAYER_MAX_SPEED = 0.1f;
+    const float PLAYER_MAX_SPEED = 0.2f;
     const float PLAYER_ACCELERATION = 0.1f;
-    const float PLAYER_DECELERATION = 0.1f;
+    const float PLAYER_DECELERATION = 0.01f;
     float m_verticalMultiplier;
     float m_horizontalMultiplier;
     DirectX::XMVECTOR m_movementVector;
@@ -87,6 +87,7 @@ private:
     Pickup* m_pickupPointer;
 
     Vector3 m_velocity = Vector3();
+    Vector3 m_lastDirectionalMovement;
     Vector3 m_lastPosition = Vector3();
     float m_previousVerticalMovement = 0.f;
 
