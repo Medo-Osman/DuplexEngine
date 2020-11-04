@@ -719,15 +719,7 @@ void Renderer::render()
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
 
-	//Clear the context of render and depth target
-	//m_dContextPtr->OMGetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, m_rTargetViewsArray, m_depthStencilViewPtr.GetAddressOf());
-	/*for (UINT i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
-	{
-		if (m_rTargetViewsArray[i] != NULL)
-		{
-			m_dContextPtr->ClearRenderTargetView(m_rTargetViewsArray[i], m_clearColor);
-		}
-	}*/
+	
 
 	m_dContextPtr->ClearRenderTargetView(m_geometryRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_finalRenderTargetViewPtr.Get(), m_clearColor);
@@ -768,6 +760,8 @@ void Renderer::render()
 
 	//Run the shadow pass before everything else
 	m_dContextPtr->VSSetConstantBuffers(3, 1, m_shadowConstantBuffer.GetAddressOf());
+	
+	m_shadowMap->setLightDir(Engine::get().getSkyLightDir());
 	renderShadowPass();
 	
 	

@@ -28,6 +28,16 @@ public:
 	void bindResourcesAndSetNullRTV(ID3D11DeviceContext* context);
 	void computeShadowMatrix(Vector3 playerPos);
 	void createRasterState();
+
+	void setLightDir(Vector4 dir)
+	{
+		m_direction = dir;
+	}
+
+	Vector4 getLightDir()
+	{
+		return m_direction;
+	}
 	
 	ID3D11ShaderResourceView* m_depthMapSRV = nullptr;
 	XMMATRIX m_lightViewMatrix;

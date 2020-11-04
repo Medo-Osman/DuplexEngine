@@ -133,7 +133,7 @@ void ShadowMap::createRasterState()
 	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 	rasterizerDesc.DepthBias = 10000;
 	rasterizerDesc.DepthBiasClamp = 0.0f;
-	rasterizerDesc.SlopeScaledDepthBias = 2.0f;
+	rasterizerDesc.SlopeScaledDepthBias = 4.0f;
 	rasterizerDesc.DepthClipEnable = true;
 
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
