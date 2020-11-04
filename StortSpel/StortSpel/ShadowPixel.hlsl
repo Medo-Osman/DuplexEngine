@@ -23,13 +23,6 @@ struct directionalLight
     float brightness;
 };
 
-RasterizerState Depth
-{
-    DepthBias = 10000;
-    DepthBiasClamp = 0.0f;
-    SlopeScaledDepthBias = 1.0f;
-};
-
 cbuffer lightBuffer : register(b0)
 {
     float1 ambientLightLevel;

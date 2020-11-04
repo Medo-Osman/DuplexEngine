@@ -82,9 +82,9 @@ void ShadowMap::bindResourcesAndSetNullRTV(ID3D11DeviceContext* context)
 
 void ShadowMap::computeShadowMatrix(Vector3 playerPos)
 {
-	float radius = 50.f;
-	Vector4 lightPos = (-2 * radius * m_direction) + playerPos;
-	Vector3 targetPos = playerPos;//Vector3(0, 0, 0);
+	float radius = 60.f; //Remember to change in the shader as well
+	Vector4 lightPos = (-1 * radius * m_direction) + playerPos;
+	Vector3 targetPos = playerPos;
 
 	Matrix V = XMMatrixLookAtLH(XMVECTOR(lightPos), targetPos, { 0.0f, 1.0f, 0.0f, 0.0f });//Matrix::CreateLookAt(Vector3(lightPos), targetPos, Vector3(0, 1, 0));
 	
@@ -123,7 +123,7 @@ void ShadowMap::createRasterState()
 	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 	rasterizerDesc.DepthBias = 10000;
 	rasterizerDesc.DepthBiasClamp = 0.0f;
-	rasterizerDesc.SlopeScaledDepthBias = 4.0f;
+	rasterizerDesc.SlopeScaledDepthBias = 2.0f;
 	rasterizerDesc.DepthClipEnable = true;
 
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());

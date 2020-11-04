@@ -10,8 +10,9 @@ enum ShaderProgramsEnum
 	PBRTEST,
 	BLOOM_COMBINE,
 	OBJECTSPACEGRID,
-	SHADOW,
+	SHADOW_DEPTH,
 	DEFAULT_SHADOW,
+	SHADOW_DEPTH_ANIM,
 	NONE
 };
 
@@ -77,7 +78,7 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 	);
 
 
-	(*compiledShadersMap)[ShaderProgramsEnum::SHADOW] = new ShaderProgram
+	(*compiledShadersMap)[ShaderProgramsEnum::SHADOW_DEPTH] = new ShaderProgram
 	(
 		{ L"ShadowVertex.hlsl",L"null",L"null",L"null",L"ShadowPixel.hlsl" }, 
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
@@ -90,6 +91,14 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 		{ L"VertexShaderBasic.hlsl",L"null",L"null",L"null",L"BasicPixelShader_Shadow.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		VertexLayoutType::LRMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::SHADOW_DEPTH_ANIM] = new ShaderProgram
+	(
+		{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"ShadowPixel.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRSMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 }

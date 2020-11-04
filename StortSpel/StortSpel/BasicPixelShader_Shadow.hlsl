@@ -2,6 +2,7 @@
 
 static const float SHADOW_MAP_SIZE = 2048.f;
 static const float SHADOW_MAP_DELTA = 1.f / SHADOW_MAP_SIZE;
+static const float RANGE = 60.f;
 
 struct pointLight
 {
@@ -105,6 +106,11 @@ struct lightComputeResult
 //    return percentLit; //percentLit/9.f; //percentLit /= 9.f; //9 because matrix size.
 //};
 
+float2 texOffset(int u, int v)
+{
+    return float2(u * SHADOW_MAP_DELTA, v * SHADOW_MAP_DELTA);
+}
+
 float computeShadowFactor(float4 shadowPosH)
 {
     float2 shadowUV = shadowPosH.xy / shadowPosH.w * 0.5f + 0.5f; 
@@ -115,27 +121,21 @@ float computeShadowFactor(float4 shadowPosH)
     const float delta = SHADOW_MAP_DELTA;
     float percentLit = 0.0f;
     
-   
-    
-    //Filtering matrix
-    const float2 offsets[9] =
+    //PCF sampling for shadow map
+    const int sampleRange = 2;
+    [unroll]
+    for (int x = -sampleRange; x <= sampleRange; x++)
     {
-        float2(-delta, -delta), float2(0.0f, -delta), float2(delta, -delta),
-        float2(-delta, 0.0f), float2(0.0f, 0.0f), float2(delta, 0.0f),
-        float2(-delta, +delta), float2(0.0f, +delta), float2(delta, +delta)
-    };
-    
-    //sum all
-    //the samples
-
-    for (int i = 0; i < 9; i++) //9 because matrix size
-    {
-        //percentLit += shadowMap.SampleCmp(shadowSampState, shadowPosH.xy + offsets[i], depth).r;
-        percentLit += shadowMap.SampleCmpLevelZero(shadowSampState, shadowUV, depth, offsets[i]).r;
+        [unroll]
+        for (int y = -sampleRange; y <= sampleRange; y++)
+        {
+            percentLit += shadowMap.SampleCmpLevelZero(shadowSampState, shadowUV, depth, int2(x, y));
+        }
     }
-    
     //Avg of all samples
-    return percentLit/9.f; //percentLit/9.f; //percentLit /= 9.f; //9 because matrix size.
+    percentLit /= ((sampleRange * 2 + 1) * (sampleRange * 2 + 1));
+    
+    return percentLit; 
 };
 
 //Only calculating diffuse light
@@ -148,6 +148,7 @@ lightComputeResult computeLightFactor(ps_in input)
     float diffuseLightFactor = 0;
     float3 finalColor = float3(0, 0, 0);
     float3 diffuse = diffuseTexture.Sample(sampState, input.uv).xyz;
+    float shadowFactor = computeShadowFactor(input.shadowPos);
     
     //Loop through all pointlights
     for (int i = 0; i < nrOfPointLights; i++)
@@ -178,11 +179,12 @@ lightComputeResult computeLightFactor(ps_in input)
         diffuseLightFactor = spotLightFactor * (diffuseLightFactor + attenuationFactor);
         finalColor = saturate(finalColor + (diffuseLightFactor * spotLights[j].color * attenuationFactor));
     }
+    if (length(cameraPosition - input.worldPos) > RANGE)
+        shadowFactor = 1.f;
     
-    finalColor = finalColor + saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
+    finalColor = finalColor + shadowFactor*saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
     
-    float shadowFactor = computeShadowFactor(input.shadowPos);
-    result.lightColor = (finalColor * diffuse * shadowFactor + (diffuse * ambientLightLevel));
+    result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel));
     
     return result;
 }

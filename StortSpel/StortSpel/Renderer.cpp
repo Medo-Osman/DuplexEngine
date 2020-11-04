@@ -211,7 +211,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
 
 	//Shadows
-	m_shadowMap = new ShadowMap((UINT)4096, (UINT)4096, m_devicePtr.Get(), Engine::get().getSkyLightDir());
+	m_shadowMap = new ShadowMap((UINT)2048, (UINT)2048, m_devicePtr.Get(), Engine::get().getSkyLightDir());
 	m_shadowMap->createRasterState();
 
 	return hr;
@@ -586,9 +586,7 @@ void Renderer::renderScene()
 
 void Renderer::renderShadowPass()
 {
-	ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW;
-	m_compiledShaders[meshShaderEnum]->setShaders();
-	m_currentSetShaderProg = meshShaderEnum;
+	
 
 
 	ID3D11ShaderResourceView* emptySRV[1] = { nullptr };
@@ -606,28 +604,40 @@ void Renderer::renderShadowPass()
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
-		//if (component.second->getShaderProgEnum() == ShaderProgramsEnum::DEFAULT || component.second->getShaderProgEnum() == ShaderProgramsEnum::NONE)
-		//{
+		if (component.second->getShaderProgEnum() != ShaderProgramsEnum::SKEL_ANIM)
+		{
+			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
+			m_compiledShaders[meshShaderEnum]->setShaders();
+			m_currentSetShaderProg = meshShaderEnum;
+		}
+		else
+		{
+			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH_ANIM;
+			m_compiledShaders[meshShaderEnum]->setShaders();
+			m_currentSetShaderProg = meshShaderEnum;
+		}
 
+		// Get Entity map from Engine
+		std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
 
-			// Get Entity map from Engine
-			std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+		Entity* parentEntity;
+		parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
-			Entity* parentEntity;
-			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
-
+		MeshComponent* comp = dynamic_cast<MeshComponent*>(component.second);
+		if (comp->castsShadow())
+		{
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);//XMMatrixTranspose(m_camera->getProjectionMatrix());
 			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_shadowMap->m_lightViewMatrix);//XMMatrixTranspose(m_camera->getViewMatrix());
 			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
-			//constantBufferPerObjectStruct.shadowMatrix = m_shadowMap->m_shadowTransform;
-
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
 			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
-		//}
+
+		}
+			
 	}
 
 
