@@ -438,26 +438,18 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 {
 	if (physicsData.triggerType == TriggerType::TRAP)
 	{
-		Entity* ptr = static_cast<Entity*>(physicsData.pointer);
-
-		SlowTrapComponent* trapPtr = dynamic_cast<SlowTrapComponent*>(ptr->getComponent("trap"));
 		switch ((TrapType)physicsData.associatedTriggerEnum)
 		{
 		case TrapType::SLOW:
-
 			m_activeTrap = (TrapType)physicsData.associatedTriggerEnum;
 			m_currentSpeedModifier = 0.5f;
 			m_goalSpeedModifier = physicsData.floatData;
 			m_speedModifierTime = 0;
 			break;
 		}
-
-
-
+		
 	}
-
 	
-
 	if (!shouldTriggerEntityBeRemoved)
 	{
 		if (physicsData.triggerType == TriggerType::CHECKPOINT)

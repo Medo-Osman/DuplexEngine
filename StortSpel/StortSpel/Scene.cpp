@@ -111,7 +111,7 @@ void Scene::addTrap(const Vector3& position)
 	slowTrap->scale(1.5,1.5,1.5);
 
 	addComponent(slowTrap, "trap", new SlowTrapComponent(slowTrap, TrapType::SLOW));
-	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(slowTrap, { 4,4,4 });
+	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(slowTrap, { 1,1,1 });
 
 	addComponent(slowTrap, "sound", new AudioComponent(L"OnPickup.wav", false));
 
@@ -192,8 +192,8 @@ void Scene::loadScene(std::string path)
 	addCheckpoint(Vector3(14.54, 30, 105));
 	addCheckpoint(Vector3(-30, 40, 144));
 	addCheckpoint(Vector3(-11, 40, 218.5));
-
-	addTrap(Vector3(0, 9, 13));
+	
+	addTrap(Vector3(0, 13, 30));
 	//addPushTrap(Vector3(0, 9, 15));
 
 	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
@@ -204,14 +204,14 @@ void Scene::loadScene(std::string path)
 
 		addComponent(pushWall, "mesh",
 			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
-		pushWall->setScale(Vector3(10, 5, 0.2));
+		pushWall->setScale(Vector3(10, 5, 1));
 		pushWall->rotate(0,1.57,0);
 
 		createNewPhysicsComponent(pushWall, true);
 		static_cast<PhysicsComponent*>(pushWall->getComponent("physics"))->makeKinematic();
 
 		addComponent(pushWall, "sweep",
-			new SweepingComponent(pushWall, Vector3(-5, 9, 10), Vector3(5, 9, 10), 5, true));
+			new SweepingComponent(pushWall, Vector3(-5, 9, 10), Vector3(5, 9, 10), 1, true));
 	}
 
 	Entity* pushWallTrigger = addEntity("pushTrigger");

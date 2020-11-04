@@ -3,6 +3,8 @@
 #include "Transform.h"
 #include "SweepingComponent.h"
 #include"TriggerComponent.h"
+#include "Traps.h"
+
 
 
 
@@ -15,9 +17,9 @@ public:
 	PushTrapComponent(Entity* entity)
 		:TriggerComponent()
 	{
-		m_controlledSweepingComponent = static_cast<SweepingComponent*>(entity->getComponent("physics"));
-		//m_physicsData.associatedTriggerEnum = 2;
-		//m_physicsData.triggerType = TriggerType::TRAP;
+		m_controlledSweepingComponent = static_cast<SweepingComponent*>(entity->getComponent("sweep"));
+		m_physicsData.associatedTriggerEnum = (int)TrapType::PUSH;
+		m_physicsData.triggerType = TriggerType::TRAP;
 		m_physicsData.pointer = this;
 		//m_type = ComponentType::TRAP;
 	}
