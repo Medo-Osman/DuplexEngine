@@ -130,7 +130,7 @@ public:
 					else //Create shape and add shape for sharing
 					{
 						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true);
-						m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, entity->getScaling());
+						m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
 						m_physicsPtr->addShapeForSharing(m_shape, name);
 					}
 
@@ -140,7 +140,7 @@ public:
 			if (addGeom)
 			{
 				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false);
-				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, entity->getScaling());
+				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
 			}
 
 		}
@@ -254,8 +254,7 @@ public:
 		meshComponent->getMeshResourcePtr()->getMinMax(min, max);
 		
 		std::string name = meshComponent->getFilePath() + std::to_string(geometry);
-		if(saveGeometry)
-			bb = m_physicsPtr->getGeometry(name);
+		bb = m_physicsPtr->getGeometry(name);
 
 		if (!bb)
 		{
