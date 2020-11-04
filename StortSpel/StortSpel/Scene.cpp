@@ -118,16 +118,57 @@ void Scene::loadLobby()
 	Entity* floor = addEntity("Floor");
 	if (floor)
 	{
-		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", 
+			Material({ L"DarkGrayTexture.png" })));
 		floor->scale({ 30, 1, 30 });
 		floor->translate({ 0,-2,0 });
 		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
+
+
+
+	Entity* test = addEntity("test");
+	if (test)
+	{
+		addComponent(test, "mesh", 
+			new MeshComponent("GlowCube.lrm",
+			EMISSIVE,
+			Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
+
+		test->setScale({ 5, 5, 5 });
+		test->setPosition({ 9, 2, 10 });
+
+		createNewPhysicsComponent(test, true);
+		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
+
+		addComponent(test, "flipp",
+			new FlippingComponent(test, 1, 1));
+	}
+
+	Entity* test2 = addEntity("test2");
+	if (test2)
+	{
+		addComponent(test2, "mesh",
+			new MeshComponent("GlowCube.lrm",
+				Material({ L"DarkGrayTexture.png" })));
+
+		test2->setScale({ 5, 5, 5 });
+		test2->setPosition({ -9, 2, 10 });
+
+		createNewPhysicsComponent(test2, true);
+		static_cast<PhysicsComponent*>(test2->getComponent("physics"))->makeKinematic();
+
+		addComponent(test2, "flipp",
+			new FlippingComponent(test2, 1, 1));
+	}
+
+
+
+
 	Entity* sign = addEntity("sign");
 	if(sign)
 	{
-
 		addComponent(sign, "mesh", 
 			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
 		sign->setScale(Vector3(10, 5, 0.2));
@@ -140,6 +181,7 @@ void Scene::loadLobby()
 	}
 
 	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
@@ -179,6 +221,24 @@ void Scene::loadScene(std::string path)
 		floor->setPosition({ 0, 6, 0 });
 		floor->scale({ 20, 2, 20 });
 		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	Entity* test = addEntity("test");
+	if (test)
+	{
+		addComponent(test, "mesh",
+			new MeshComponent("GlowCube.lrm",
+				EMISSIVE,
+				Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
+
+		test->setScale({ 5, 5, 5 });
+		test->setPosition({ 0, 10, -10 });
+
+		createNewPhysicsComponent(test, true);
+		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
+
+		addComponent(test, "flipp",
+			new FlippingComponent(test, 1, 1));
 	}
 
 	// Start:
@@ -308,6 +368,7 @@ void Scene::loadScene(std::string path)
 	*/
 
 	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
 	if (skybox)
 	{
 		
@@ -398,6 +459,7 @@ void Scene::loadArena()
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
@@ -584,6 +646,7 @@ void Scene::loadMaterialTest()
 	}
 
 	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;

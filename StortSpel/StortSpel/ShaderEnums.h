@@ -13,6 +13,7 @@ enum ShaderProgramsEnum
 	SHADOW_DEPTH,
 	DEFAULT_SHADOW,
 	SHADOW_DEPTH_ANIM,
+	EMISSIVE,
 	NONE
 };
 
@@ -85,10 +86,10 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 		VertexLayoutType::LRMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
 	);
-
-	(*compiledShadersMap)[ShaderProgramsEnum::DEFAULT_SHADOW] = new ShaderProgram
+	
+	(*compiledShadersMap)[ShaderProgramsEnum::EMISSIVE] = new ShaderProgram
 	(
-		{ L"VertexShaderBasic.hlsl",L"null",L"null",L"null",L"BasicPixelShader_Shadow.hlsl" },
+		{ L"VertexShaderBasic.hlsl",L"null",L"null",L"null",L"EmissivePixelShader.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		VertexLayoutType::LRMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
