@@ -538,6 +538,8 @@ void Renderer::initRenderQuad()
 
 void Renderer::renderScene()
 {
+	m_drawn = 0;
+
 	XMMATRIX V = m_camera->getViewMatrix();
 	XMMATRIX P = m_camera->getProjectionMatrix();
 
@@ -590,7 +592,7 @@ void Renderer::renderScene()
 
 		if (draw)
 		{
-			drawn++;
+			m_drawn++;
 			ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum();
 			if (m_currentSetShaderProg != meshShaderEnum)
 			{
@@ -612,7 +614,7 @@ void Renderer::renderScene()
 
 				m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 			}
-
+			m_dContextPtr->PSSetShaderResources(2, 1, &m_shadowMap->m_depthMapSRV);
 
 
 			perObjectMVP constantBufferPerObjectStruct;
@@ -642,8 +644,6 @@ void Renderer::renderScene()
 void Renderer::renderShadowPass()
 {
 	
-
-
 	ID3D11ShaderResourceView* emptySRV[1] = { nullptr };
 	m_dContextPtr->PSSetShaderResources(2, 1, emptySRV);
 
@@ -723,7 +723,7 @@ void Renderer::update(const float& dt)
 
 void Renderer::render()
 {
-	int drawn = 0;
+	
 	//Update camera position for pixel shader buffer
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
@@ -792,7 +792,7 @@ void Renderer::render()
 
 
 	ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
-	ImGui::Text("Nr of draw calls per frame: %d .", (int)drawn);
+	ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
 	ImGui::End();
 	// [ Bloom Filter ]
 

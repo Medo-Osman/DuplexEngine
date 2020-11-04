@@ -123,6 +123,8 @@ private:
 	void renderShadowPass();
 	Renderer(); //{};
 
+	int m_drawn = 0;
+
 public:
 	Renderer(const Renderer&) = delete;
 	void operator=(Renderer const&) = delete;
