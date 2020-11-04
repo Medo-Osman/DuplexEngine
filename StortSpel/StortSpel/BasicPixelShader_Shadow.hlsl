@@ -1,6 +1,6 @@
 #define MAX_LIGHTS 8
 
-static const float SHADOW_MAP_SIZE = 2048.f;
+static const float SHADOW_MAP_SIZE = 4096.f;
 static const float SHADOW_MAP_DELTA = 1.f / SHADOW_MAP_SIZE;
 static const float RANGE = 60.f;
 

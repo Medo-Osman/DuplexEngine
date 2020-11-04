@@ -24,6 +24,7 @@ private:
 
 public:
 	ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 lightDir);
+	~ShadowMap();
 	void bindResourcesAndSetNullRTV(ID3D11DeviceContext* context);
 	void computeShadowMatrix(Vector3 playerPos);
 	void createRasterState();

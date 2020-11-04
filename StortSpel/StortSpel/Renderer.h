@@ -119,7 +119,7 @@ private:
 	void downSamplePass();
 	void blurPass();
 	void initRenderQuad();
-	void renderScene();
+	void renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderShadowPass();
 	Renderer(); //{};
 

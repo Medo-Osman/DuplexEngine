@@ -223,7 +223,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
 
 	//Shadows
-	m_shadowMap = new ShadowMap((UINT)2048, (UINT)2048, m_devicePtr.Get(), Engine::get().getSkyLightDir());
+	m_shadowMap = new ShadowMap((UINT)4096, (UINT)4096, m_devicePtr.Get(), Engine::get().getSkyLightDir());
 	m_shadowMap->createRasterState();
 
 	return hr;
@@ -536,18 +536,9 @@ void Renderer::initRenderQuad()
 	m_renderQuadBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_VERTEX_BUFFER, fullScreenQuad.data(), fullScreenQuad.size());
 }
 
-void Renderer::renderScene()
+void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
 {
 	m_drawn = 0;
-
-	XMMATRIX V = m_camera->getViewMatrix();
-	XMMATRIX P = m_camera->getProjectionMatrix();
-
-	BoundingFrustum frust;
-	XMMATRIX world, wvp;
-	world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition());
-	wvp = world * V * P;
-	BoundingFrustum::CreateFromMatrix(frust, wvp);
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
@@ -566,11 +557,11 @@ void Renderer::renderScene()
 		if (m_frustumCullingOn && parentEntity->m_canCull)
 		{
 			//Culling
-			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), V);
+			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), *V);
 			XMFLOAT3 posFloat3;
 			XMStoreFloat3(&posFloat3, pos);
 
-			if (frust.Contains(pos) != ContainmentType::CONTAINS)
+			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
 				component.second->getMeshResourcePtr()->getMinMax(min, max);
 
@@ -578,7 +569,7 @@ void Renderer::renderScene()
 				ext = ext * parentEntity->getScaling();
 				XMFLOAT4 rot = parentEntity->getRotation();
 				BoundingOrientedBox box(posFloat3, ext, rot);
-				ContainmentType contType = frust.Contains(box);
+				ContainmentType contType = frust->Contains(box);
 
 				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
 			}
@@ -643,13 +634,12 @@ void Renderer::renderScene()
 
 void Renderer::renderShadowPass()
 {
-	
 	ID3D11ShaderResourceView* emptySRV[1] = { nullptr };
 	m_dContextPtr->PSSetShaderResources(2, 1, emptySRV);
 
 	//Shadow
 	m_shadowMap->bindResourcesAndSetNullRTV(m_dContextPtr.Get());
-	m_shadowMap->computeShadowMatrix(Vector3(dynamic_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + Vector3(0, 0.5, 0));
+	m_shadowMap->computeShadowMatrix(Engine::get().getCameraPtr()->getPosition());//(Vector3(dynamic_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + Vector3(0, 0.5, 0));
 
 	shadowBuffer shadowBufferStruct;
 	shadowBufferStruct.lightProjMatrix = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);
@@ -769,8 +759,14 @@ void Renderer::render()
 	// Mesh WVP buffer, needs to be set every frame bacause of SpriteBatch(GUIHandler)
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 
+	//Calculate the frumstum required
+	BoundingFrustum frust;
+	XMMATRIX world, wvp;
+	world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition());
+	wvp = world * V * P;
+	BoundingFrustum::CreateFromMatrix(frust, wvp);
+
 	//Run the shadow pass before everything else
-	
 	m_dContextPtr->VSSetConstantBuffers(3, 1, m_shadowConstantBuffer.GetAddressOf());
 	renderShadowPass();
 	
@@ -785,7 +781,7 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
-	renderScene();
+	renderScene(&frust, &wvp, &V, &P);
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
 	m_dContextPtr->PSSetShaderResources(0, 1, srv);

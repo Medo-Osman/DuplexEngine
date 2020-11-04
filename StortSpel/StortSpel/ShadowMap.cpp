@@ -66,6 +66,16 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 
 }
 
+ShadowMap::~ShadowMap()
+{
+	SAFE_RELEASE(m_rasterizerStatePtr);
+	SAFE_RELEASE(m_sampleState);
+	//SAFE_RELEASE(m_devicePtr);
+	SAFE_RELEASE(m_depthMapDSV);
+	SAFE_RELEASE(m_depthMapSRV);
+
+}
+
 void ShadowMap::bindResourcesAndSetNullRTV(ID3D11DeviceContext* context)
 {
 
@@ -80,11 +90,11 @@ void ShadowMap::bindResourcesAndSetNullRTV(ID3D11DeviceContext* context)
 
 }
 
-void ShadowMap::computeShadowMatrix(Vector3 playerPos)
+void ShadowMap::computeShadowMatrix(Vector3 focusPos)
 {
-	float radius = 60.f; //Remember to change in the shader as well
-	Vector4 lightPos = (-1 * radius * m_direction) + playerPos;
-	Vector3 targetPos = playerPos;
+	float radius = 90.f; //Remember to change in the shader as well
+	Vector4 lightPos = (-2 * radius * m_direction) + focusPos;
+	Vector3 targetPos = focusPos;
 
 	Matrix V = XMMatrixLookAtLH(XMVECTOR(lightPos), targetPos, { 0.0f, 1.0f, 0.0f, 0.0f });//Matrix::CreateLookAt(Vector3(lightPos), targetPos, Vector3(0, 1, 0));
 	
