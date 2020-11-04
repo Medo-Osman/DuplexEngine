@@ -90,18 +90,18 @@ void Scene::addCheckpoint(const Vector3& position)
 	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.1f));
 }
 
-void Scene::addPushTrap(const Vector3& position)
-{
-	Entity* pushTrap = addEntity("pushTrap" + std::to_string(m_nrOftraps++));
-	addComponent(pushTrap, "mesh", new MeshComponent("testCube_pCube1.lrm"));
-	
-	pushTrap->setPosition(position + Vector3(0, -0.25f, 0));
-	pushTrap->scale(10, 1.5, 10);
-	pushTrap->rotate(1,0,0);
-	addComponent(pushTrap, "pushTrap", new SlowTrapComponent(pushTrap,TrapType::PUSH));
-	static_cast<TriggerComponent*>(pushTrap->getComponent("pushTrap"))->initTrigger(pushTrap, { 4,4,4 });
-
-}
+//void Scene::addPushTrap(const Vector3& position)
+//{
+//	Entity* pushTrap = addEntity("pushTrap" + std::to_string(m_nrOftraps++));
+//	addComponent(pushTrap, "mesh", new MeshComponent("testCube_pCube1.lrm"));
+//	
+//	pushTrap->setPosition(position + Vector3(0, -0.25f, 0));
+//	pushTrap->scale(10, 1.5, 10);
+//	pushTrap->rotate(1,0,0);
+//	addComponent(pushTrap, "pushTrap", new SlowTrapComponent(pushTrap,TrapType::PUSH));
+//	static_cast<TriggerComponent*>(pushTrap->getComponent("pushTrap"))->initTrigger(pushTrap, { 4,4,4 });
+//
+//}
 
 void Scene::addTrap(const Vector3& position)
 {
@@ -166,6 +166,8 @@ void Scene::loadLobby()
 			new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
 	}
 
+	
+
 	Entity* skybox = addEntity("SkyBox");
 	if (skybox)
 	{
@@ -192,9 +194,25 @@ void Scene::loadScene(std::string path)
 	addCheckpoint(Vector3(-11, 40, 218.5));
 
 	addTrap(Vector3(0, 9, 13));
-	addPushTrap(Vector3(0, 9, 15));
+	//addPushTrap(Vector3(0, 9, 15));
 
 	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
+
+	Entity* pushWall = addEntity("wall");
+	if (pushWall)
+	{
+
+		addComponent(pushWall, "mesh",
+			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
+		pushWall->setScale(Vector3(10, 5, 0.2));
+		pushWall->rotate(1,1.57,1);
+
+		createNewPhysicsComponent(pushWall, true);
+		static_cast<PhysicsComponent*>(pushWall->getComponent("physics"))->makeKinematic();
+
+		addComponent(pushWall, "sweep",
+			new SweepingComponent(pushWall, Vector3(0, 9, 10), Vector3(0, 9, 0), 5));
+	}
 
 	Entity* floor = addEntity("floor"); // Floor:
 	if (floor)
