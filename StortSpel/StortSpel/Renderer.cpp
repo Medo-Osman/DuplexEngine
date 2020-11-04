@@ -473,6 +473,7 @@ void Renderer::downSamplePass()
 	m_dContextPtr->Dispatch(m_settings.width / 16, m_settings.height / 16, 1);
 
 	m_dContextPtr->CSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->CSSetShaderResources(1, 1, &nullSrv);
 	m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &nullUav, 0);
 }
 
@@ -770,9 +771,9 @@ void Renderer::render()
 	renderShadowPass();
 	
 	
-
-	ID3D11RenderTargetView* renderTargets[1] = { 0 };
-	m_dContextPtr->OMSetRenderTargets(1, renderTargets, nullptr);
+	//Set to null, otherwise we get error saying it's still bound to input.
+	ID3D11RenderTargetView* nullRenderTargets[1] = { 0 };
+	m_dContextPtr->OMSetRenderTargets(1, nullRenderTargets, nullptr);
 
 	
 
