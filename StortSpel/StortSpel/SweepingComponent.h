@@ -32,9 +32,7 @@ public:
 		this->m_travelTime = travelTime;
 		this->m_singleSweeps = singleSweeps;
 
-		//m_transform->setPosition(m_startPos);
-		/*m_physicsComponent ? m_physicsComponent->kinematicMove(m_startPos) : 
-									  m_transform->setPosition(m_startPos);*/
+
 	}
 
 	void activate()
@@ -47,7 +45,12 @@ public:
 		Component::setComponentMapPointer(componentMap);
 		m_physicsComponent = dynamic_cast<PhysicsComponent*>(this->findSiblingComponentOfType(ComponentType::PHYSICS));
 		if (m_physicsComponent)
+		{
 			m_physicsComponent->setSlide(false);
+			m_transform->setPosition(m_startPos);
+			m_physicsComponent ? m_physicsComponent->kinematicMove(m_startPos, m_transform->getRotation()) :
+				m_transform->setPosition(m_startPos);
+		}
 	}
 
 	~SweepingComponent() {}
