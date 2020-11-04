@@ -743,7 +743,6 @@ void Renderer::render()
 
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	//m_rTargetViewsArray[0] = m_finalRenderTargetViewPtr.Get();
-	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
 	// Skybox constant buffer:
@@ -778,7 +777,7 @@ void Renderer::render()
 	
 
 	//Run ordinary pass
-	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
+	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	renderScene(&frust, &wvp, &V, &P);
