@@ -61,7 +61,7 @@ public:
 		if (swap == false) // Move from start to end pos
 		{
 			somePos = Vector3(XMVectorLerp(m_startPos, m_endPos, ParametricBlend(m_time / m_travelTime)));
-			m_physicsComponent ? m_physicsComponent->kinematicMove(somePos) :
+			m_physicsComponent ? m_physicsComponent->kinematicMove(somePos, m_transform->getRotation()) :
 										  m_transform->setPosition(somePos);
 			//m_transform->setPosition(Vector3(XMVectorLerp(m_startPos, m_endPos, ParametricBlend(m_time / m_travelTime))));
 		}
@@ -69,7 +69,7 @@ public:
 		else // Move from end to start pos
 		{
 			somePos = Vector3(XMVectorLerp(m_endPos, m_startPos, ParametricBlend(m_time / m_travelTime)));
-			m_physicsComponent ? m_physicsComponent->kinematicMove(somePos) :
+			m_physicsComponent ? m_physicsComponent->kinematicMove(somePos, m_transform->getRotation()) :
 										  m_transform->setPosition(somePos);
 			//m_transform->setPosition(Vector3(XMVectorLerp(m_endPos, m_startPos, ParametricBlend(m_time / m_travelTime))));
 		}
