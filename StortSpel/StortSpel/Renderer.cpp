@@ -121,7 +121,7 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	hr = m_devicePtr->CreateRenderTargetView(geometryTexture, 0, m_geometryRenderTargetViewPtr.GetAddressOf());
 	if (!SUCCEEDED(hr)) return hr;
-	
+
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Format = textureDesc.Format;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
@@ -140,8 +140,20 @@ HRESULT Renderer::initialize(const HWND& window)
 	createViewPort(m_defaultViewport, m_settings.width, m_settings.height);
 	rasterizerSetup();
 
+	// Setup glowMap
+	ID3D11Texture2D* glowTexture;
 
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &glowTexture);
+	if (!SUCCEEDED(hr)) return hr;
 
+	hr = m_devicePtr->CreateRenderTargetView(glowTexture, 0, m_glowMapRenderTargetViewPtr.GetAddressOf());
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateShaderResourceView(glowTexture, &srvDesc, &m_glowMapShaderResourceView);
+	if (!SUCCEEDED(hr)) return hr;
+
+	m_geometryPassRTVs[0] = m_geometryRenderTargetViewPtr.Get();
+	m_geometryPassRTVs[1] = m_glowMapRenderTargetViewPtr.Get();
 
 	//Setup samplerstate
 	D3D11_SAMPLER_DESC samplerStateDesc;
@@ -450,6 +462,7 @@ void Renderer::downSamplePass()
 
 	m_dContextPtr->CSSetShader(m_CSDownSample.Get(), 0, 0);
 	m_dContextPtr->CSSetShaderResources(0, 1, m_geometryShaderResourceView.GetAddressOf());
+	m_dContextPtr->CSSetShaderResources(1, 1, m_glowMapShaderResourceView.GetAddressOf());
 	m_dContextPtr->CSSetUnorderedAccessViews(0, 1, m_downSampledUnorderedAccessView.GetAddressOf(), 0);
 	m_dContextPtr->Dispatch(m_settings.width / 16, m_settings.height / 16, 1);
 
@@ -551,8 +564,11 @@ void Renderer::render()
 			m_dContextPtr->ClearRenderTargetView(m_rTargetViewsArray[i], m_clearColor);
 		}
 	}*/
+
 	m_dContextPtr->ClearRenderTargetView(m_geometryRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_finalRenderTargetViewPtr.Get(), m_clearColor);
+	m_dContextPtr->ClearRenderTargetView(m_glowMapRenderTargetViewPtr.Get(), m_blackClearColor);
+
 	if (m_depthStencilViewPtr)
 	{
 		m_dContextPtr->ClearDepthStencilView(m_depthStencilViewPtr.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
@@ -564,7 +580,7 @@ void Renderer::render()
 
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	//m_rTargetViewsArray[0] = m_finalRenderTargetViewPtr.Get();
-	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
+	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
 	// Skybox constant buffer:

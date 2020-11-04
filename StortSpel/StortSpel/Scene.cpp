@@ -118,18 +118,42 @@ void Scene::loadLobby()
 	Entity* floor = addEntity("Floor");
 	if (floor)
 	{
-		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", 
+			Material({ L"DarkGrayTexture.png", L"BlackTexture.png" })));
 		floor->scale({ 30, 1, 30 });
 		floor->translate({ 0,-2,0 });
 		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
+
+
+
+	Entity* test = addEntity("test");
+	if (test)
+	{
+		addComponent(test, "mesh", 
+			new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"DevTexture1m.png", L"GlowTex.png" })));
+
+		test->setScale({ 1, 1, 1 });
+		test->setPosition({ 0,2,3 });
+
+		createNewPhysicsComponent(test, true);
+		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
+
+		addComponent(test, "flipp",
+			new FlippingComponent(test, 1, 1));
+	}
+
+
+
+
+
 	Entity* sign = addEntity("sign");
 	if(sign)
 	{
-
 		addComponent(sign, "mesh", 
-			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
+			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png", L"BlackTexture.png" })));
 		sign->setScale(Vector3(10, 5, 0.2));
 
 		createNewPhysicsComponent(sign, true);
@@ -148,7 +172,7 @@ void Scene::loadLobby()
 			new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 	}
 
-	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
+	//createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
 }
 
 void Scene::loadScene(std::string path)
@@ -170,7 +194,7 @@ void Scene::loadScene(std::string path)
 	if (floor)
 	{
 		addComponent(floor, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png", L"BlackTexture.png" })));
 			//new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::OBJECTSPACEGRID , ObjectSpaceGrid));
 
 		floor->setPosition({ 0, 6, 0 });
