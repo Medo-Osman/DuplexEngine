@@ -137,7 +137,8 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::IDLE;
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
-			m_animMesh->playAnimation("Running4.1", true);
+			//m_animMesh->playAnimation("Running4.1", true);
+			m_animMesh->playBlendState("runOrIdle",0.3f);
 		}
 		else
 		{
@@ -155,6 +156,7 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
+			m_animMesh->playBlendState("runOrIdle", 0.5f);
 		}
 		else
 		{
@@ -275,20 +277,22 @@ void Player::playerStateLogic(const float& dt)
 	m_controller->move(m_velocity, dt);
 	m_lastPosition = m_playerEntity->getTranslation();
 
-	// Animation
-	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).LengthSquared();
-	if (m_state != PlayerState::ROLL)
-	{
-		m_animMesh->setAnimationSpeed(1);
 
-		if (vectorLen > 0)
-		{
-			m_animMesh->playAnimation("Running4.1", true);
-		}
-		else
-		{
-			m_animMesh->playAnimation("platformer_guy_idle", true);
-		}
+	//float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
+	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).Length();
+	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
+	{
+		float blend = vectorLen / (PLAYER_SPEED * dt);
+		
+		if ((PLAYER_SPEED * dt) <= 0.0f)
+			blend = 0.0f;
+		
+		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
+		//// analog animation:
+		//if (vectorLen > 0)
+		//	m_animMesh->setCurrentBlend(1.f);
+		//else
+		//	m_animMesh->setCurrentBlend(0);
 	}
 
 	// Deceleration
@@ -430,7 +434,6 @@ void Player::setScore(int newScore)
 {
 	m_score = newScore;
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
-
 }
 
 Entity* Player::getPlayerEntity() const
@@ -559,8 +562,9 @@ void Player::roll()
 	m_controller->setControllerSize(ROLL_HEIGHT);
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
-	m_animMesh->playAnimation("platformer_guy_roll1", true);
-	m_animMesh->setAnimationSpeed(1.85f);
+
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
+	m_animMesh->setAnimationSpeed(1.6f);
 }
 
 bool Player::canDash() const
@@ -572,6 +576,8 @@ void Player::dash()
 {
 	prepDistVariables();
 	m_state = PlayerState::DASH;
+
+	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true);
 }
 
 void Player::prepDistVariables()

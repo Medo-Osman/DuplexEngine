@@ -29,6 +29,10 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
 
 	// Bloom stuff
+	ID3D11RenderTargetView* m_geometryPassRTVs[2];
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_glowMapRenderTargetViewPtr = NULL;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_glowMapShaderResourceView = NULL;
+
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_downSampledShaderResourceView = NULL;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_downSampledUnorderedAccessView = NULL;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_geometryShaderResourceView = NULL;
@@ -60,7 +64,7 @@ private:
 	Buffer<PositionTextureVertex> m_renderQuadBuffer;
 
 	CS_BLUR_CBUFFER m_blurData;
-	float m_weightSigma = 5.f;
+	float m_weightSigma = 10.f;
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
@@ -88,6 +92,10 @@ private:
 	Camera* m_camera = nullptr;
 	
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
+	float m_blackClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
+
+	//FrustumCulling
+	bool m_frustumCullingOn = true;
 
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
@@ -122,6 +130,7 @@ public:
 	HRESULT initialize(const HWND& window);
 	void release();
 	void update(const float& dt);
+	void frustumCull();
 	void render();
 	ID3D11Device* getDevice();
 	ID3D11DeviceContext* getDContext();
