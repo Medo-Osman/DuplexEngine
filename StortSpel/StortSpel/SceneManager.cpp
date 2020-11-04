@@ -98,7 +98,7 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 	{
 		if ((TrapType)physicsData.associatedTriggerEnum == TrapType::PUSH)
 		{
-			static_cast<Entity*>(physicsData.pointer);
+			static_cast<PushTrapComponent*>(physicsData.pointer)->push();
 		}
 	}
 }

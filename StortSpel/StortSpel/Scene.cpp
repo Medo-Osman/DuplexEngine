@@ -205,13 +205,26 @@ void Scene::loadScene(std::string path)
 		addComponent(pushWall, "mesh",
 			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
 		pushWall->setScale(Vector3(10, 5, 0.2));
-		pushWall->rotate(1,1.57,1);
+		pushWall->rotate(0,1.57,0);
 
 		createNewPhysicsComponent(pushWall, true);
 		static_cast<PhysicsComponent*>(pushWall->getComponent("physics"))->makeKinematic();
 
 		addComponent(pushWall, "sweep",
-			new SweepingComponent(pushWall, Vector3(0, 9, 10), Vector3(0, 9, 0), 5));
+			new SweepingComponent(pushWall, Vector3(-5, 9, 10), Vector3(5, 9, 10), 5, true));
+	}
+
+	Entity* pushWallTrigger = addEntity("pushTrigger");
+	if (pushWallTrigger)
+	{
+		PushTrapComponent* pushComponentTrigger = new PushTrapComponent(pushWall);
+		addComponent(pushWallTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
+	
+		pushWallTrigger->setPosition(0,9, 10);
+
+		addComponent(pushWallTrigger, "trigger", pushComponentTrigger);
+		pushComponentTrigger->initTrigger(pushWallTrigger, {1,1,1});
 	}
 
 	Entity* floor = addEntity("floor"); // Floor:

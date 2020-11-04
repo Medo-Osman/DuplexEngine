@@ -1,19 +1,21 @@
 #pragma once
 #include "Component.h"
 #include "Transform.h"
-#include "PhysicsComponent.h"
+#include "SweepingComponent.h"
 #include"TriggerComponent.h"
+
+
 
 class PushTrapComponent : public TriggerComponent
 {
 private:
-	PhysicsComponent* m_controlledPhysicsComponent;
+	SweepingComponent* m_controlledSweepingComponent;
 	bool shouldPush = false;
 public:
-	PushTrapComponent(Transform* transform, Vector3 startPos, Vector3 endPos, float travelTime, TrapType trapType, Entity* entity)
+	PushTrapComponent(Entity* entity)
 		:TriggerComponent()
 	{
-		m_controlledPhysicsComponent = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
+		m_controlledSweepingComponent = static_cast<SweepingComponent*>(entity->getComponent("physics"));
 		//m_physicsData.associatedTriggerEnum = 2;
 		//m_physicsData.triggerType = TriggerType::TRAP;
 		m_physicsData.pointer = this;
@@ -23,6 +25,7 @@ public:
 	void push()
 	{
 		shouldPush = true;
+		m_controlledSweepingComponent->activate();
 	}
 
 	void update(float dt)

@@ -32,7 +32,6 @@ public:
 		this->m_travelTime = travelTime;
 		this->m_singleSweeps = singleSweeps;
 
-
 	}
 
 	void activate()
