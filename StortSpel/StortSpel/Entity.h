@@ -66,4 +66,6 @@ public:
 			}
 		}
 	}
+
+	bool m_canCull = true;
 };

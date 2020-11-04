@@ -125,7 +125,6 @@ float lerp(const float& a, const float &b, const float &t)
 
 void Player::playerStateLogic(const float& dt)
 {
-
 	m_velocity = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt * this->m_currentSpeedModifier) + Vector3(0, m_velocity.y, 0);
 
 	switch (m_state)
@@ -138,7 +137,8 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::IDLE;
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
-			m_animMesh->playAnimation("Running4.1", true);
+			//m_animMesh->playAnimation("Running4.1", true);
+			m_animMesh->playBlendState("runOrIdle",0.3f);
 		}
 		else
 		{
@@ -156,6 +156,7 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
+			m_animMesh->playBlendState("runOrIdle", 0.5f);
 		}
 		else
 		{
@@ -232,19 +233,21 @@ void Player::playerStateLogic(const float& dt)
 	m_lastPosition = m_playerEntity->getTranslation();
 
 
-	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).LengthSquared();
-	if (m_state != PlayerState::ROLL)
+	//float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
+	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).Length();
+	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
 	{
-		m_animMesh->setAnimationSpeed(1);
-
-		if (vectorLen > 0)
-		{
-			m_animMesh->playAnimation("Running4.1", true);
-		}
-		else
-		{
-			m_animMesh->playAnimation("platformer_guy_idle", true);
-		}
+		float blend = vectorLen / (PLAYER_SPEED * dt);
+		
+		if ((PLAYER_SPEED * dt) <= 0.0f)
+			blend = 0.0f;
+		
+		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
+		//// analog animation:
+		//if (vectorLen > 0)
+		//	m_animMesh->setCurrentBlend(1.f);
+		//else
+		//	m_animMesh->setCurrentBlend(0);
 	}
 
 	if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
@@ -365,7 +368,6 @@ void Player::setScore(int newScore)
 {
 	m_score = newScore;
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
-
 }
 
 Entity* Player::getPlayerEntity() const
@@ -486,8 +488,9 @@ void Player::roll()
 	m_controller->setControllerSize(ROLL_HEIGHT);
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
-	m_animMesh->playAnimation("platformer_guy_roll1", true);
-	m_animMesh->setAnimationSpeed(1.85f);
+
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
+	m_animMesh->setAnimationSpeed(1.6f);
 }
 
 bool Player::canDash() const
@@ -499,6 +502,8 @@ void Player::dash()
 {
 	prepDistVariables();
 	m_state = PlayerState::DASH;
+
+	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true);
 }
 
 void Player::prepDistVariables()

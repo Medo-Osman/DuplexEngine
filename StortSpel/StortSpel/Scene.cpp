@@ -180,6 +180,7 @@ void Scene::loadLobby()
 	}
 
 	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
@@ -344,6 +345,7 @@ void Scene::loadScene(std::string path)
 	*/
 
 	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
@@ -429,6 +431,7 @@ void Scene::loadArena()
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
@@ -615,6 +618,7 @@ void Scene::loadMaterialTest()
 	}
 
 	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;

@@ -95,7 +95,7 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 	);
 	assert(_d3d11Window);
 
-	//RedirectIOToConsole(); // Disabled For PlayTest
+	RedirectIOToConsole(); // Disabled For PlayTest
 }
 
 void ApplicationLayer::RedirectIOToConsole()
@@ -146,9 +146,12 @@ void ApplicationLayer::applicationLoop()
 }
 
 
-
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
+		return true;
+
 	ApplicationLayer* g_ApplicationLayer = &ApplicationLayer::getInstance();
 	g_ApplicationLayer->m_input.handleMessages(hwnd, uMsg, wParam, lParam);
 	switch (uMsg)
