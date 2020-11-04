@@ -279,7 +279,7 @@ void Player::playerStateLogic(const float& dt)
 
 
 	//float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
-	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).Length();
+	float vectorLen = Vector3(m_velocity.x * dt, 0, m_velocity.z * dt).Length();
 	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
 	{
 		float blend = vectorLen / (PLAYER_MAX_SPEED * dt);

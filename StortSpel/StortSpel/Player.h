@@ -36,7 +36,7 @@ private:
 
     //WALK CONFIG
     const float PLAYER_MAX_SPEED = 0.2f;
-    const float PLAYER_ACCELERATION = 0.1f;
+    const float PLAYER_ACCELERATION = 0.05f;
     const float PLAYER_DECELERATION = 0.01f;
     float m_verticalMultiplier;
     float m_horizontalMultiplier;
