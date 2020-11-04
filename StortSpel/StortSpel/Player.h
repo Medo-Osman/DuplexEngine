@@ -23,6 +23,7 @@ enum class PlayerState
 };
 
 using namespace DirectX;
+using namespace SimpleMath;
 
 class Player : public InputObserver, public PhysicsObserver
 {
@@ -34,7 +35,11 @@ private:
     const float CAPSULE_RADIUS = 0.01f;
 
     //WALK CONFIG
-    const float PLAYER_SPEED = 10.f;
+    const float PLAYER_MAX_SPEED = 0.1f;
+    const float PLAYER_ACCELERATION = 0.1f;
+    const float PLAYER_DECELERATION = 0.1f;
+    float m_verticalMultiplier;
+    float m_horizontalMultiplier;
     DirectX::XMVECTOR m_movementVector;
 
     //JUMP CONFIG
@@ -94,7 +99,7 @@ private:
 
     //Checkpoint
     Vector3 m_checkpointPos = Vector3(0, 9, 5);
-    int m_heightLimitBeforeRespawn = -25;
+    int m_heightLimitBeforeRespawn = -15;
 
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);

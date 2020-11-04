@@ -68,7 +68,7 @@ void Player::setStates(std::vector<State> states)
 				break;
 			case WALK_BACKWARD:
 				m_movementVector += m_cameraTransform->getBackwardVector();
-				break;
+				break;	
 			default:
 				break;
 			}
@@ -125,9 +125,8 @@ float lerp(const float& a, const float &b, const float &t)
 
 void Player::playerStateLogic(const float& dt)
 {
-
-	m_velocity = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt * this->m_currentSpeedModifier) + Vector3(0, m_velocity.y, 0);
-
+	Vector3 directionalMovement = Vector3(XMVector3Normalize({XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector)}));
+	
 	switch (m_state)
 	{
 	case PlayerState::ROLL:
@@ -144,7 +143,7 @@ void Player::playerStateLogic(const float& dt)
 		{
 			m_currentDistance += ROLL_SPEED * dt;
 			Vector3 move = m_moveDirection * ROLL_SPEED * dt;
-			move.y += -GRAVITY * dt;
+			move.y += -GRAVITY;
 			m_velocity += move;
 			//m_controller->move(move, dt);
 		}
@@ -159,16 +158,26 @@ void Player::playerStateLogic(const float& dt)
 		}
 		else
 		{
-			m_currentDistance += DASH_TRAVEL_DISTANCE * DASH_SPEED * dt;
-			m_velocity += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt;
+			m_currentDistance += DASH_TRAVEL_DISTANCE * DASH_SPEED;
+			m_velocity += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE;
 			//m_controller->move(m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt, dt);
 		}
 		break;
 	case PlayerState::FALLING:
 		std::cout << "FALLING\n";
+
+		// Add Speed
+		m_horizontalMultiplier += PLAYER_ACCELERATION;
+
+		// Limit Speed
+		if (std::abs(m_horizontalMultiplier) > PLAYER_MAX_SPEED)
+			m_horizontalMultiplier = PLAYER_MAX_SPEED;
+
+		// Limit Jump
 		if (m_jumps == 0) // Can only jump once in air
 			m_jumps = ALLOWED_NR_OF_JUMPS - 1;
 
+		// On Ground Check
 		if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
 		{
 			m_lastState = PlayerState::FALLING;
@@ -176,15 +185,17 @@ void Player::playerStateLogic(const float& dt)
 			m_jumps = 0;
 			m_hasDashed = false;
 		}
-		//else 
-		//{
-		//	//finalMovement.y += finalMovement.y - 1.f*dt;//-JUMP_SPEED * FALL_MULTIPLIER * dt;
-		//	//m_controller->move(finalMovement, dt);
-		//}
 		break;
+
 	case PlayerState::JUMPING:
 		std::cout << "JUMPING\n";
-		//m_velocity.y = JUMP_SPEED * dt * m_playerScale;// * dt;
+
+		// Add Speed
+		m_horizontalMultiplier += PLAYER_ACCELERATION;
+
+		// Limit Speed
+		if (std::abs(m_horizontalMultiplier) > PLAYER_MAX_SPEED)
+			m_horizontalMultiplier = PLAYER_MAX_SPEED;
 
 		//m_currentDistance += JUMP_SPEED * dt;
 
@@ -204,11 +215,24 @@ void Player::playerStateLogic(const float& dt)
 		break;
 	case PlayerState::IDLE:
 		std::cout << "IDLE\n";
-		if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
+
+		if (directionalMovement.LengthSquared() > 0)
+		{
+			// Add Speed
+			m_horizontalMultiplier += PLAYER_ACCELERATION;
+
+			// Limit Speed
+			if (std::abs(m_horizontalMultiplier) > PLAYER_MAX_SPEED)
+			{
+				m_horizontalMultiplier = PLAYER_MAX_SPEED;
+			}
+		}
+
+		/*if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
 		{
 			m_lastState = PlayerState::IDLE;
 			m_state = PlayerState::FALLING;
-		}
+		}*/
 		break;
 	default:
 		break;
@@ -222,16 +246,52 @@ void Player::playerStateLogic(const float& dt)
 			m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
 	}
 
-	std::cout << m_velocity.y << "\n";
+	std::cout << m_horizontalMultiplier << "\n";
 
 	// Max Gravity Tests
 	if (m_velocity.y <= -MAX_FALL_SPEED)
 		m_velocity.y = -MAX_FALL_SPEED;
 
+	//// x
+	//if (m_velocity.x > 0.1f)
+	//	m_velocity.x += -PLAYER_DECELERATION;
+	//else if (m_velocity.x < -0.1f)
+	//	m_velocity.x -= -PLAYER_DECELERATION;
+	//else
+	//	m_velocity.x = 0.f;
+
+	//// z
+	//if (m_velocity.z > 0.1f)
+	//	m_velocity.z += -PLAYER_DECELERATION;
+	//else if (m_velocity.z < -0.1f)
+	//	m_velocity.z -= -PLAYER_DECELERATION;
+	//else
+	//	m_velocity.z = 0.f;
+
+	m_velocity = (Vector3(m_velocity.x, 0, m_velocity.z) + (directionalMovement * m_horizontalMultiplier)) + (Vector3(0, 1, 0) * m_verticalMultiplier);
 	m_controller->move(m_velocity, dt);
 	m_lastPosition = m_playerEntity->getTranslation();
 
+	// Deceleration
+	// x
+	if (m_velocity.x > 0.1f)
+		m_velocity.x += -PLAYER_DECELERATION;
+	else if (m_velocity.x < -0.1f)
+		m_velocity.x -= -PLAYER_DECELERATION;
+	else
+		m_velocity.x = 0.f;
 
+	// z
+	if (m_velocity.z > 0.1f)
+		m_velocity.z += -PLAYER_DECELERATION;
+	else if (m_velocity.z < -0.1f)
+		m_velocity.z -= -PLAYER_DECELERATION;
+	else
+		m_velocity.z = 0.f;
+	/*if (std::abs(m_horizontalMultiplier) > 0.001f)
+		m_horizontalMultiplier -= PLAYER_DECELERATION;*/
+
+	// Animation
 	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).LengthSquared();
 	if (m_state != PlayerState::ROLL)
 	{
@@ -349,6 +409,7 @@ void Player::respawnPlayer()
 {
 	m_state = PlayerState::IDLE;
 	m_controller->setPosition(m_checkpointPos);
+	m_velocity = Vector3();
 }
 
 float Player::getPlayerScale() const
@@ -385,6 +446,7 @@ void Player::inputUpdate(InputData& inputData)
 			if (m_state == PlayerState::IDLE || ((m_state == PlayerState::JUMPING || m_state == PlayerState::FALLING) && m_jumps < ALLOWED_NR_OF_JUMPS))
 				jump();
 			break;
+
 		case DASH:
 			if (m_state == PlayerState::IDLE)
 			{
@@ -397,12 +459,19 @@ void Player::inputUpdate(InputData& inputData)
 					dash();
 			}
 			break;
+
 		case USE:
 
 			break;
+
 		case CLOSEINTROGUI:
 			GUIHandler::get().setVisible(m_instructionGuiIndex, false);
 			break;
+
+		case RESPAWN:
+			respawnPlayer();
+			break;
+
 		default:
 			break;
 		}

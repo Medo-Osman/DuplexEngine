@@ -16,6 +16,7 @@ public:
 		m_actionMapping['\x10'] = Action::DASH; // Shift: '\x10'
 		m_actionMapping[(char)'m_rp'] = Action::USE; // Example of using mouse for action, m_rp is right mouse pressed.
 		m_actionMapping[(char)'\x0D'] = Action::CLOSEINTROGUI; //Enter 
+		m_actionMapping[(char)'\x24'] = Action::RESPAWN; //Home 
 
 		//States
 		m_stateMapping['W'] = State::WALK_FORWARD;

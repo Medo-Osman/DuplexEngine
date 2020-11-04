@@ -10,7 +10,8 @@ enum Action
 	USE,
 	PLAYSOUND,
 	SWAP_SCENES,
-	CLOSEINTROGUI
+	CLOSEINTROGUI,
+	RESPAWN
 };
 
 enum State
