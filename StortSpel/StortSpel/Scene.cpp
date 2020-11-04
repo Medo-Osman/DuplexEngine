@@ -127,7 +127,6 @@ void Scene::loadLobby()
 	Entity* sign = addEntity("sign");
 	if(sign)
 	{
-
 		addComponent(sign, "mesh", 
 			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
 		sign->setScale(Vector3(10, 5, 0.2));

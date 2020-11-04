@@ -221,6 +221,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.BufferCount = 2;
 	sChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sChainDesc.Windowed = true; //Windowed or fullscreen
+	//sChainDesc.Windowed = false; //Windowed or fullscreen
 	sChainDesc.BufferDesc.Height = m_settings.height; //Size of buffer in pixels, height
 	sChainDesc.BufferDesc.Width = m_settings.width; //Size of window in pixels, width
 	sChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //DXGI Format, 8 bits for Red, green, etc
@@ -644,7 +645,7 @@ void Renderer::render()
 
 	// Render ImGui
 	ImGui::Render();
-	//ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	m_swapChainPtr->Present(1, 0);
 }
