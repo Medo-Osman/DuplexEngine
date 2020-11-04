@@ -282,9 +282,9 @@ void Player::playerStateLogic(const float& dt)
 	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).Length();
 	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
 	{
-		float blend = vectorLen / (PLAYER_SPEED * dt);
+		float blend = vectorLen / (PLAYER_MAX_SPEED * dt);
 		
-		if ((PLAYER_SPEED * dt) <= 0.0f)
+		if ((PLAYER_MAX_SPEED * dt) <= 0.0f)
 			blend = 0.0f;
 		
 		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
