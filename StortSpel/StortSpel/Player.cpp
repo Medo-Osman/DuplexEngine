@@ -2,6 +2,7 @@
 #include "Player.h"
 #include"Pickup.h"
 #include"SpeedPickup.h"
+#include "Traps.h"
 
 Player::Player()
 {
@@ -258,17 +259,27 @@ void Player::playerStateLogic(const float& dt)
 
 void Player::updatePlayer(const float& dt)
 {
-	if(m_trapId == 1)
+	switch (m_activeTrap)
 	{
+	case TrapType::EMPTY:
+		break;
+	case TrapType::SLOW:
 		m_slowTimer += dt;
 		if (m_slowTimer >= m_slowTime)
 		{
-			m_trapId = -1;
 			m_slowTimer = 0;
 			m_currentSpeedModifier = 1;
+			m_activeTrap = TrapType::EMPTY;
 		}
-
+		break;
+	case TrapType::PUSH:
+		break;
+	case TrapType::BARREL:
+		break;
+	default:
+		break;
 	}
+
 
 	if (m_pickupPointer)
 	{
@@ -429,16 +440,23 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 	{
 		Entity* ptr = static_cast<Entity*>(physicsData.pointer);
 
-		TrapComponent* trapPtr = dynamic_cast<TrapComponent*>(ptr->getComponent("trap"));
+		SlowTrapComponent* trapPtr = dynamic_cast<SlowTrapComponent*>(ptr->getComponent("trap"));
+		switch ((TrapType)physicsData.associatedTriggerEnum)
+		{
+		case TrapType::SLOW:
 
-		m_trapId = physicsData.associatedTriggerEnum;
-		m_currentSpeedModifier = 0.5f;
-		m_goalSpeedModifier = physicsData.floatData;
-		m_speedModifierTime = 0;
+			m_activeTrap = (TrapType)physicsData.associatedTriggerEnum;
+			m_currentSpeedModifier = 0.5f;
+			m_goalSpeedModifier = physicsData.floatData;
+			m_speedModifierTime = 0;
+			break;
+		}
+
 
 
 	}
 
+	
 
 	if (!shouldTriggerEntityBeRemoved)
 	{

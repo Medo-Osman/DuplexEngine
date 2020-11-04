@@ -13,7 +13,8 @@
 #include "AudioComponent.h"
 #include "CheckpointComponent.h"
 #include "Camera.h"
-#include "TrapComponent.h"
+#include "SlowTrapComponent.h"
+#include "PushTrapComponent.h"
 
 struct Settings
 {

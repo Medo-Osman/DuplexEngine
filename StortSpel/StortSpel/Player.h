@@ -10,7 +10,9 @@
 #include"Physics.h"
 #include"Pickup.h"
 #include"CheckpointComponent.h"
-#include "TrapComponent.h"
+#include "Traps.h"
+#include "SlowTrapComponent.h"
+#include "PushTrapComponent.h"
 
 #include "GUIHandler.h"
 
@@ -81,6 +83,9 @@ private:
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
     Pickup* m_pickupPointer;
+   
+    //
+    TrapType m_activeTrap;
 
     Vector3 m_velocity = Vector3();
     Vector3 m_lastPosition = Vector3();

@@ -93,6 +93,14 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 			m_swapScene = true;
 		}
 	}
+
+	if (physicsData.triggerType == TriggerType::TRAP)
+	{
+		if ((TrapType)physicsData.associatedTriggerEnum == TrapType::PUSH)
+		{
+			static_cast<Entity*>(physicsData.pointer);
+		}
+	}
 }
 
 void SceneManager::swapScenes()

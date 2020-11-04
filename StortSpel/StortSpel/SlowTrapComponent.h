@@ -2,29 +2,20 @@
 #include"3DPCH.h"
 #include"TriggerComponent.h"
 
-class TrapComponent : public TriggerComponent
+class SlowTrapComponent : public TriggerComponent
 {
 private:
 	bool m_isOnTrap = true;
 public:
-	TrapComponent(Entity* entity)
+	SlowTrapComponent(Entity* entity, TrapType trapType)
 		:TriggerComponent()
 	{
-		m_physicsData.associatedTriggerEnum = 1;
+		m_physicsData.associatedTriggerEnum = (int)trapType;
 		m_physicsData.triggerType = TriggerType::TRAP;
 		m_physicsData.pointer = entity;
 		m_type = ComponentType::TRAP;
 	}
 
-	bool trapActive()
-	{
-		return m_isOnTrap;
-	}
-
-	void setUsing(bool state)
-	{
-		m_isOnTrap = state;
-	}
 
 	void update(float dt)
 	{

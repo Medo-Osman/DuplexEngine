@@ -54,6 +54,7 @@ private:
 	int m_nrOfScore = 0;
 	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
 	void addCheckpoint(const Vector3& position);
+	void addPushTrap(const Vector3& position);
 	void addTrap(const Vector3& position);
 	int m_nrOfCheckpoints = 0;
 	int m_nrOftraps = 0;

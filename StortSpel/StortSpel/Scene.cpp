@@ -90,6 +90,19 @@ void Scene::addCheckpoint(const Vector3& position)
 	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.1f));
 }
 
+void Scene::addPushTrap(const Vector3& position)
+{
+	Entity* pushTrap = addEntity("pushTrap" + std::to_string(m_nrOftraps++));
+	addComponent(pushTrap, "mesh", new MeshComponent("testCube_pCube1.lrm"));
+	
+	pushTrap->setPosition(position + Vector3(0, -0.25f, 0));
+	pushTrap->scale(10, 1.5, 10);
+	pushTrap->rotate(1,0,0);
+	addComponent(pushTrap, "pushTrap", new SlowTrapComponent(pushTrap,TrapType::PUSH));
+	static_cast<TriggerComponent*>(pushTrap->getComponent("pushTrap"))->initTrigger(pushTrap, { 4,4,4 });
+
+}
+
 void Scene::addTrap(const Vector3& position)
 {
 	Entity* slowTrap = addEntity("trap"+std::to_string(m_nrOftraps++));
@@ -97,7 +110,7 @@ void Scene::addTrap(const Vector3& position)
 	slowTrap->setPosition(position + Vector3(0, -0.25f, 0));
 	slowTrap->scale(1.5,1.5,1.5);
 
-	addComponent(slowTrap, "trap", new TrapComponent(slowTrap));
+	addComponent(slowTrap, "trap", new SlowTrapComponent(slowTrap, TrapType::SLOW));
 	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(slowTrap, { 4,4,4 });
 
 	addComponent(slowTrap, "sound", new AudioComponent(L"OnPickup.wav", false));
@@ -179,6 +192,7 @@ void Scene::loadScene(std::string path)
 	addCheckpoint(Vector3(-11, 40, 218.5));
 
 	addTrap(Vector3(0, 9, 13));
+	addPushTrap(Vector3(0, 9, 15));
 
 	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
@@ -238,6 +252,7 @@ void Scene::loadScene(std::string path)
 	createFlippingPlatform(Vector3(-11, 37.7, 200), Vector3(0, 180, 0), 2, 2);
 	createStaticPlatform(Vector3(-11, 37.7, 215), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-11, 37.7, 222.5), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
+
 
 	createSweepingPlatform(Vector3(-5, 37.7, 228), Vector3(-5, 43.85, 246));
 	createSweepingPlatform(Vector3(-17, 43.85, 246), Vector3(-17, 37.7, 228));
