@@ -73,39 +73,37 @@ public:
 	virtual void inputUpdate(InputData& inputData) override
 	{
 
-		float x = 0;
-		float y = 0;
-		for(int k = 0; k < inputData.rangeData.size(); k++)
-		{
-			if(inputData.rangeData[k].rangeFlag == Range::REL)
-			{
-				x = (float)inputData.rangeData[k].pos.x;
-				y = (float)inputData.rangeData[k].pos.y;
-
-				std::cout << x << ", " << y << std::endl;
-			}
-		}
 
 		auto states = inputData.actionData;
 		for (int i = 0; i < states.size(); i++)
 		{
 			if (states[i] == Action::USE)
 			{
-				//Input::getMouse
-				std::cout << "WE CLICKED YEEHAW" << std::endl;
 				
-				
-				std::cout << std::to_string(inputData.mousePtr->getPosx());
-				for(int k = 0; k < inputData.rangeData.size(); k++)
-				{
-					if(inputData.rangeData[k].rangeFlag == Range::REL)
-					{
-						float x = (float)inputData.rangeData[k].pos.x;
-						float y = (float)inputData.rangeData[k].pos.y;
+				float x = inputData.mousePtr->getPosx();
+				float y = inputData.mousePtr->getPosY();
 
-						std::cout << x << ", " << y << std::endl;
-					}
+				
+				D3D11_TEXTURE2D_DESC desc;
+				ID3D11Texture2D* localTexture;
+				ID3D11Resource* resource = nullptr;
+				texture->GetResource(&resource);//GetDesc(&desc);
+				localTexture = static_cast<ID3D11Texture2D*>(resource);
+				localTexture->GetDesc(&desc);
+
+				localTexture->Release();
+				resource->Release();
+
+
+				if (x > m_style.origin.x && x < (m_style.origin.x + (desc.Width * m_style.scale.x))
+					&& y > m_style.origin.y && y < (m_style.origin.y + (desc.Height * m_style.scale.y)))
+				{
+
+					std::cout << "WE CLICKED YEEHAW" << std::endl;
+					std::cout << x << ", " << y << "\t vs \t" << desc.Width * m_style.origin.x + (desc.Width * m_style.scale.x) << ", " << m_style.origin.y + (desc.Height * m_style.scale.y) << std::endl;
 				}
+				//Input::getMouse
+
 				
 			}
 		}
