@@ -75,6 +75,7 @@ public:
 	bool queueBlendState(std::string stateName, float transistionTime);
 	
 	void setCurrentBlend(float blend);
+	float getCurrentBlend();
 
 	virtual void update(float dt) override;
 

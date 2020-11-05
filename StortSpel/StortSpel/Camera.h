@@ -40,7 +40,7 @@ public:
 
 	BoundingFrustum getFrustum();
 
-	void update(const float& dt);
+	virtual void update(const float& dt);
 	void inputUpdate(InputData& inputData);
 
 

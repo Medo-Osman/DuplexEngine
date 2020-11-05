@@ -34,6 +34,11 @@ void Engine::update(const float& dt)
 	m_player->updatePlayer(dt);
 	m_camera.update(dt);
 
+	//Example for updating light direction
+	/*Vector4 dir = m_skyLightDir;
+	dir = XMVector3TransformCoord(dir, XMMatrixRotationY(XMConvertToRadians(2.f)));
+	m_skyLightDir = dir;*/
+
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
 
@@ -111,6 +116,11 @@ std::unordered_map<std::string, LightComponent*>* Engine::getLightComponentMap()
 std::unordered_map<std::string, Entity*>* Engine::getEntityMap()
 {
 	return m_entities;
+}
+
+Vector4& Engine::getSkyLightDir()
+{
+	return m_skyLightDir;
 }
 
 Settings Engine::getSettings() const
