@@ -70,6 +70,7 @@ private:
 
     int m_instructionGuiIndex = 0;
 
+    int m_testButtonIndex = 0;
 
     float m_angleY;
     float m_currentDistance;

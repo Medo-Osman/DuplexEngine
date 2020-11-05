@@ -37,6 +37,7 @@ Input::Input()
 {
 	m_cursorEnabled = false;
 	m_contexts.emplace_back(new MovementContext());
+	m_contexts.emplace_back(new GUIContext());
 }
 
 LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lParam)
@@ -58,7 +59,7 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 		{
 			m_contexts[0]->setMute(!m_contexts[0]->getMute());
 			m_cursorEnabled = !m_cursorEnabled;
-			ShowCursor(CURSOR_SHOWING);
+			ShowCursor(TRUE);
 		}
 
 		return 0;

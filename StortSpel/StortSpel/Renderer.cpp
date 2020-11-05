@@ -206,8 +206,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	/////////////////////////////////////////////////
 
 	initRenderQuad();
-
-	GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
+	
 
 	 //ImGui initialization
 	IMGUI_CHECKVERSION();

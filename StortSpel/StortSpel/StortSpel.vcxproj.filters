@@ -341,6 +341,12 @@
     <ClInclude Include="AnimationResource.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
+    <ClInclude Include="GUIButton.h">
+      <Filter>Source Files\Graphics\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIContext.h">
+      <Filter>Source Files\Application\Input\Context</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">

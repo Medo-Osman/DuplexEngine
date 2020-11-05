@@ -3,6 +3,8 @@
 #include "GUIElement.h"
 #include "GUIText.h"
 #include "GUIImageLabel.h"
+#include "GUIButton.h"
+#include "Input.h"
 
 class GUIHandler
 {
@@ -28,11 +30,16 @@ private:
 	std::unordered_map< std::wstring, SpriteFont* > m_fonts;
 	const std::wstring m_FONTS_PATH = L"../res/fonts/";
 
+	Input* m_input = nullptr;
+
 public:
 	static GUIHandler& get();
 	~GUIHandler();
 
-	void initialize(ID3D11Device* device, ID3D11DeviceContext* dContext);
+	void initialize(ID3D11Device* device, ID3D11DeviceContext* dContext, Input* input);
+
+	int addGUIButton(std::wstring buttonTextureString, GUIButtonStyle style = GUIButtonStyle());
+	void changeGUIButton(int index, std::wstring path);
 
 	int addGUIText(std::string textString, std::wstring fontName, GUITextStyle style = GUITextStyle());
 	void changeGUIText(int index, std::string newTextString);

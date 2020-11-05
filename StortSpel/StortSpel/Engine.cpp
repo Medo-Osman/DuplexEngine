@@ -113,6 +113,11 @@ std::unordered_map<std::string, Entity*>* Engine::getEntityMap()
 	return m_entities;
 }
 
+Input* Engine::getInput()
+{
+	return m_input;
+}
+
 Settings Engine::getSettings() const
 {
 	return m_settings;
@@ -134,8 +139,10 @@ void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContex
 	DeviceAndContextPtrsAreSet = true;
 }
 
-void Engine::initialize()
+void Engine::initialize(Input* input)
 {
+	m_input = input;
+
 	if (!DeviceAndContextPtrsAreSet)
 	{
 		// Renderer::initialize needs to be called and it needs to call setDeviceAndContextPtrs()
@@ -177,6 +184,7 @@ void Engine::initialize()
 
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
+	//GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
 }
 
 void Engine::updateLightData()

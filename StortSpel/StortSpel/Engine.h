@@ -48,6 +48,8 @@ private:
 	Player* m_player = nullptr;
 	Camera m_camera; 
 	Settings m_settings;
+
+	Input* m_input = nullptr;
 	
 
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
@@ -57,7 +59,7 @@ private:
 public:
 	static Engine& get();
 
-	void initialize();
+	void initialize(Input* input);
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 
 	~Engine();
@@ -74,6 +76,8 @@ public:
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
 	std::unordered_map<std::string, Entity*>* getEntityMap();
+
+	Input* getInput();
 
 	Settings getSettings() const;
 	Camera* getCameraPtr();

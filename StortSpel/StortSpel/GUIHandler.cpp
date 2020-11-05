@@ -26,14 +26,33 @@ GUIHandler::~GUIHandler()
 	delete m_spriteBatch;
 }
 
-void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext)
+void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext, Input* input)
 {
 	m_device = device;
 	m_dContext = dContext;
 
+	m_input = input;
+
 	m_states = std::make_unique< CommonStates >(m_device);
 
 	m_spriteBatch = new SpriteBatch(m_dContext);
+}
+
+int GUIHandler::addGUIButton(std::wstring buttonTextureString, GUIButtonStyle style)
+{
+	int index = m_elements.size();
+	GUIButton* image = new GUIButton(buttonTextureString, style);
+	image->setTexture(buttonTextureString);
+	m_elements.push_back(image);
+
+	m_input->Attach(image);
+
+	return index;
+}
+
+void GUIHandler::changeGUIButton(int index, std::wstring path)
+{
+	static_cast<GUIButton*>(m_elements[index])->setTexture(path);
 }
 
 int GUIHandler::addGUIText(std::string textString, std::wstring fontName, GUITextStyle style)
