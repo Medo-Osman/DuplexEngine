@@ -102,8 +102,7 @@ public:
 				if (x > m_style.position.x && x < (m_style.position.x + (desc.Width * m_style.scale.x))
 					&& y > m_style.position.y && y < (m_style.position.y + (desc.Height * m_style.scale.y)) && m_visible)
 				{
-					std::cout << "WE CLICKED YEEHAW" << std::endl;
-					std::cout << x << ", " << y << "\t vs \t" << m_style.position.x << " - " << m_style.position.x + (desc.Width * m_style.scale.x) << ", " << m_style.position.y << " - " << m_style.position.y + (desc.Height * m_style.scale.y) << std::endl;
+					//Notify all observers
 					Notify(GUIUpdateType::CLICKED);
 				}
 				//Input::getMouse
