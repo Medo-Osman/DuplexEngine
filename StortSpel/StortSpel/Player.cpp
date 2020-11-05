@@ -41,6 +41,7 @@ Player::Player()
 	imageStyle.scale = Vector2(0.9, 0.9);
 	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
+	//Test Button stuff
 	GUIButtonStyle btnStyle;
 	btnStyle.position = Vector2(140, 200);
 	btnStyle.scale = Vector2(0.5, 0.5);
