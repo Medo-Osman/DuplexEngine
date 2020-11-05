@@ -9,6 +9,7 @@
 #include <cmath>
 #include"Physics.h"
 #include"Pickup.h"
+
 #include"CheckpointComponent.h"
 
 #include "GUIHandler.h"
@@ -23,11 +24,13 @@ enum class PlayerState
 };
 
 using namespace DirectX;
-
 class Player : public InputObserver, public PhysicsObserver
 {
 private:
     float m_playerScale = 2.0f;
+
+    //NETWORK ID
+    int m_playerID = -1;
 
     //CONTROLLER CONFIG
     const float CAPSULE_HEIGHT = 1.5f;
@@ -129,6 +132,9 @@ public:
     void respawnPlayer();
 
     float getPlayerScale() const;
+
+    int getNetworkID() { return this->m_playerID; }
+    void setNetworkID(int id) { this->m_playerID = id; }
 
     int getScore();
     void setScore(int newScore);

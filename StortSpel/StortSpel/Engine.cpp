@@ -39,6 +39,28 @@ void Engine::update(const float& dt)
 
 	updateLightData();
 
+	if (m_player->getNetworkID() == -1)
+	{
+		m_player->setNetworkID(PacketHandler::get().getIDAt(0));
+	}
+	PacketHandler::get().setPlayerData(m_player->getPlayerEntity()->getTranslation());
+	PacketHandler::get().setPlayerData(m_player->getPlayerEntity()->getRotation());
+	Vector4 test = m_player->getPlayerEntity()->getRotation();
+	for (int i = 0; i < 3; i++)
+	{
+		if (serverPlayers->at(i)->getNetworkID() == -1)
+		{
+			serverPlayers->at(i)->setNetworkID(PacketHandler::get().getIDAt(i + 1));
+		}
+
+		serverPlayers->at(i)->getPlayerEntity()->setPosition(PacketHandler::get().getPosAt(i + 1));
+		serverPlayers->at(i)->getPlayerEntity()->setRotationQuat(PacketHandler::get().getRotAt(i + 1));
+		//std::cout << PacketHandler::get().getPosAt(i + 1).x;
+		//std::cout << ", ";
+		//std::cout << PacketHandler::get().getPosAt(i + 1).y;
+		//std::cout << ", ";
+		//std::cout << PacketHandler::get().getPosAt(i + 1).z << std::endl;
+	}
 }
 void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities)
 {
@@ -126,6 +148,11 @@ Player* Engine::getPlayerPtr()
 	return m_player;
 }
 
+std::vector<ServerPlayer*>* Engine::getServerPlayers()
+{
+	return this->serverPlayers;
+}
+
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
 	m_devicePtr = devicePtr;
@@ -174,6 +201,22 @@ void Engine::initialize()
 
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
+
+
+	serverPlayers = new std::vector<ServerPlayer*>(3);
+	for (int i = 0; i < 3; i++)
+	{
+		Entity* serverEntity = new Entity(PLAYER_ENTITY_NAME + std::to_string(i + 1));
+		serverEntity->setPosition({ (float)(10 * i), 0, 0 });
+
+		AnimatedMeshComponent* serverMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		serverEntity->addComponent("mesh", serverMeshComp);
+
+		serverPlayers->at(i) = (new ServerPlayer(-1));
+		serverPlayers->at(i)->setPlayerEntity(serverEntity);
+	}
+
+	
 }
 
 void Engine::updateLightData()

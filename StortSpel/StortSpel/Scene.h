@@ -1,7 +1,7 @@
 #pragma once
 #include "Player.h"
 #include "Engine.h"
-
+#include "ServerPlayer.h"
 enum class ScenesEnum
 {
 	LOBBY,
@@ -29,7 +29,7 @@ private:
 	void createPointLight(Vector3 position, Vector3 color, float intensity);
 
 	Player* m_player;
-
+	std::vector<ServerPlayer*>* m_serverPlayers;
 	Material ObjectSpaceGrid;	// Temp global grid material
 	
 	Vector3 m_sceneEntryPosition;

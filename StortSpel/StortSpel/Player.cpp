@@ -131,7 +131,7 @@ void Player::playerStateLogic(const float& dt)
 	switch (m_state)
 	{
 	case PlayerState::ROLL:
-		std::cout << "ROLL\n";
+		//std::cout << "ROLL\n";
 		if (m_currentDistance >= ROLL_TRAVEL_DISTANCE)
 		{
 			m_lastState = PlayerState::ROLL;
@@ -150,7 +150,7 @@ void Player::playerStateLogic(const float& dt)
 		}
 		break;
 	case PlayerState::DASH:
-		std::cout << "DASH\n";
+		//std::cout << "DASH\n";
 		if (m_currentDistance >= DASH_TRAVEL_DISTANCE)
 		{
 			m_lastState = PlayerState::DASH;
@@ -165,7 +165,7 @@ void Player::playerStateLogic(const float& dt)
 		}
 		break;
 	case PlayerState::FALLING:
-		std::cout << "FALLING\n";
+		//std::cout << "FALLING\n";
 		if (m_jumps == 0) // Can only jump once in air
 			m_jumps = ALLOWED_NR_OF_JUMPS - 1;
 
@@ -183,7 +183,7 @@ void Player::playerStateLogic(const float& dt)
 		//}
 		break;
 	case PlayerState::JUMPING:
-		std::cout << "JUMPING\n";
+		//std::cout << "JUMPING\n";
 		//m_velocity.y = JUMP_SPEED * dt * m_playerScale;// * dt;
 
 		//m_currentDistance += JUMP_SPEED * dt;
@@ -203,7 +203,7 @@ void Player::playerStateLogic(const float& dt)
 
 		break;
 	case PlayerState::IDLE:
-		std::cout << "IDLE\n";
+		//std::cout << "IDLE\n";
 		if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
 		{
 			m_lastState = PlayerState::IDLE;
@@ -222,7 +222,7 @@ void Player::playerStateLogic(const float& dt)
 			m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
 	}
 
-	std::cout << m_velocity.y << "\n";
+	//std::cout << m_velocity.y << "\n";
 
 	// Max Gravity Tests
 	if (m_velocity.y <= -MAX_FALL_SPEED)

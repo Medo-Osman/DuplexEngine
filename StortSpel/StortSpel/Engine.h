@@ -13,6 +13,8 @@
 #include "AudioComponent.h"
 #include "CheckpointComponent.h"
 #include "Camera.h"
+#include "ServerPlayer.h"
+#include "PacketHandler.h"
 
 
 struct Settings
@@ -46,10 +48,13 @@ private:
 	std::unordered_map<std::string, LightComponent*>* m_lightComponentMap;
 
 	Player* m_player = nullptr;
+	std::vector<ServerPlayer*>* serverPlayers;
+
+	
+
 	Camera m_camera; 
 	Settings m_settings;
 	
-
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
 	void updateLightData();
 
@@ -78,4 +83,6 @@ public:
 	Settings getSettings() const;
 	Camera* getCameraPtr();
 	Player* getPlayerPtr();
+
+	std::vector<ServerPlayer*>* getServerPlayers();
 };

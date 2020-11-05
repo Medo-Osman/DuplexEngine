@@ -13,6 +13,15 @@ Scene::Scene()
 
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
+
+
+	m_serverPlayers = Engine::get().getServerPlayers();
+	for (int i = 0; i < 3; i++)
+	{
+		m_entities[PLAYER_ENTITY_NAME + std::to_string(i + 1)] = m_serverPlayers->at(i)->getPlayerEntity();
+		MeshComponent* serverMeshComponent = dynamic_cast<MeshComponent*>(m_serverPlayers->at(i)->getPlayerEntity()->getComponent("mesh"));
+		addMeshComponent(serverMeshComponent);
+	}
 }
 
 Scene::~Scene()
