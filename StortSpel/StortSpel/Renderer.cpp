@@ -633,7 +633,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 	}
 }
 
-void Renderer::renderShadowPass()
+void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
 {
 	ID3D11ShaderResourceView* emptySRV[1] = { nullptr };
 	m_dContextPtr->PSSetShaderResources(2, 1, emptySRV);
@@ -650,12 +650,16 @@ void Renderer::renderShadowPass()
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
+		bool draw = true;
+		XMFLOAT3 min, max;
+
 		if (component.second->getShaderProgEnum() != ShaderProgramsEnum::SKEL_ANIM)
 		{
 			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
 			m_compiledShaders[meshShaderEnum]->setShaders();
 			m_currentSetShaderProg = meshShaderEnum;
 		}
+		
 		else
 		{
 			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH_ANIM;
@@ -669,9 +673,36 @@ void Renderer::renderShadowPass()
 		Entity* parentEntity;
 		parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
-		MeshComponent* comp = dynamic_cast<MeshComponent*>(component.second);
-		if (comp->castsShadow())
+		if (m_frustumCullingOn && parentEntity->m_canCull)
 		{
+			//Culling
+			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), *V);
+			XMFLOAT3 posFloat3;
+			XMStoreFloat3(&posFloat3, pos);
+
+			if (frust->Contains(pos) != ContainmentType::CONTAINS)
+			{
+				component.second->getMeshResourcePtr()->getMinMax(min, max);
+
+				XMFLOAT3 ext = (max - min);
+				ext = ext * parentEntity->getScaling();
+				XMFLOAT4 rot = parentEntity->getRotation();
+				BoundingOrientedBox box(posFloat3, ext, rot);
+				ContainmentType contType = frust->Contains(box);
+
+				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+			}
+			else
+			{
+				draw = true;
+			}
+		}
+
+		MeshComponent* comp = dynamic_cast<MeshComponent*>(component.second);
+		if (comp->castsShadow() && draw)
+		{
+			m_drawn++;
+
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);//XMMatrixTranspose(m_camera->getProjectionMatrix());
@@ -681,7 +712,6 @@ void Renderer::renderShadowPass()
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
 			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
-
 		}
 			
 	}
@@ -762,7 +792,7 @@ void Renderer::render()
 	m_dContextPtr->VSSetConstantBuffers(3, 1, m_shadowConstantBuffer.GetAddressOf());
 	
 	m_shadowMap->setLightDir(Engine::get().getSkyLightDir());
-	renderShadowPass();
+	renderShadowPass(&frust, &wvp, &V, &P);
 	
 	
 	//Set to null, otherwise we get error saying it's still bound to input.

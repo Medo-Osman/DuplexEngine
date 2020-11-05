@@ -120,7 +120,7 @@ private:
 	void blurPass();
 	void initRenderQuad();
 	void renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
-	void renderShadowPass();
+	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	Renderer(); //{};
 
 	int m_drawn = 0;
