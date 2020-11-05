@@ -21,6 +21,7 @@ struct InputData
 	std::vector<Action> actionData;
 	std::vector<State> stateData;
 	std::vector<RangeData> rangeData;
+	Mouse* mousePtr = nullptr;
 
 	void removeStateData(State stateID)
 	{
