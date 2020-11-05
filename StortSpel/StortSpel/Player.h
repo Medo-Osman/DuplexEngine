@@ -35,18 +35,15 @@ private:
     const float CAPSULE_RADIUS = 0.01f;
 
     //WALK CONFIG
-    const float PLAYER_MAX_SPEED = 8.f;
-    const float PLAYER_ACCELERATION = 5.0f;
+    const float PLAYER_MAX_SPEED = 15.f;
+    const float PLAYER_ACCELERATION = 3.0f;
     const float PLAYER_DECELERATION = 1.0f;
     float m_verticalMultiplier;
     float m_horizontalMultiplier;
-    DirectX::XMVECTOR m_movementVector;
+    Vector3 m_movementVector;
 
     //JUMP CONFIG
-    const float FALL_MULTIPLIER = 1.1f;
-    //const float JUMP_DISTANCE = 30.f; //deprecated
-    const float JUMP_SPEED = 0.10f;
-    //const float JUMP_DISTANCE = 3.f;
+    const float JUMP_SPEED = 1.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
 

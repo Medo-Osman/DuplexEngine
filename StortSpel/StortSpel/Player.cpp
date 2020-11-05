@@ -50,30 +50,22 @@ Player::~Player()
 
 void Player::setStates(std::vector<State> states)
 {
-	m_movementVector = XMVECTOR();
+	m_movementVector = Vector3();
 	if (m_state != PlayerState::DASH && m_state != PlayerState::ROLL)
 	{
-		for (std::vector<int>::size_type i = 0; i < states.size(); i++)
+		for (size_t i = 0; i < states.size(); i++)
 		{
 			switch (states[i])
 			{
-			case WALK_LEFT:
-				m_movementVector += m_cameraTransform->getLeftVector();
-				break;
-			case WALK_RIGHT:
-				m_movementVector += m_cameraTransform->getRightVector();
-				break;
-			case WALK_FORWARD:
-				m_movementVector += m_cameraTransform->getForwardVector();
-				break;
-			case WALK_BACKWARD:
-				m_movementVector += m_cameraTransform->getBackwardVector();
-				break;	
-			default:
-				break;
+			case WALK_LEFT:		m_movementVector += m_cameraTransform->getLeftVector(); break;
+			case WALK_RIGHT:	m_movementVector += m_cameraTransform->getRightVector(); break;
+			case WALK_FORWARD:	m_movementVector += m_cameraTransform->getForwardVector(); break;
+			case WALK_BACKWARD: m_movementVector += m_cameraTransform->getBackwardVector(); break;	
+			default: break;
 			}
 		}
 	}
+	m_movementVector.Normalize();
 }
 
 void Player::handleRotation(const float &dt)
@@ -125,8 +117,7 @@ float lerp(const float& a, const float &b, const float &t)
 
 void Player::playerStateLogic(const float& dt)
 {
-	Vector3 directionalMovement = Vector3(XMVector3Normalize({XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector)}));
-	
+	Vector3 directionalMovement = Vector3(m_movementVector.x, 0, m_movementVector.z);
 	switch (m_state)
 	{
 	case PlayerState::ROLL:
@@ -172,7 +163,7 @@ void Player::playerStateLogic(const float& dt)
 		m_horizontalMultiplier += PLAYER_ACCELERATION;
 
 		// Limit Speed
-		if (std::abs(m_horizontalMultiplier) > PLAYER_MAX_SPEED)
+		if (m_horizontalMultiplier > PLAYER_MAX_SPEED)
 			m_horizontalMultiplier = PLAYER_MAX_SPEED;
 
 		// Limit Jump
@@ -196,7 +187,7 @@ void Player::playerStateLogic(const float& dt)
 		m_horizontalMultiplier += PLAYER_ACCELERATION;
 
 		// Limit Speed
-		if (std::abs(m_horizontalMultiplier) > PLAYER_MAX_SPEED)
+		if (m_horizontalMultiplier > PLAYER_MAX_SPEED)
 			m_horizontalMultiplier = PLAYER_MAX_SPEED;
 
 		//m_currentDistance += JUMP_SPEED * dt;
@@ -225,9 +216,7 @@ void Player::playerStateLogic(const float& dt)
 
 			// Limit Speed
 			if (m_horizontalMultiplier > PLAYER_MAX_SPEED)
-			{
 				m_horizontalMultiplier = PLAYER_MAX_SPEED;
-			}
 		}
 
 		/*if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
@@ -273,8 +262,8 @@ void Player::playerStateLogic(const float& dt)
 	if (directionalMovement.LengthSquared() > 0)
 		m_lastDirectionalMovement = directionalMovement;
 	
-	m_velocity = (m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier);
-	m_velocity *= dt;
+	m_velocity = (m_lastDirectionalMovement * m_horizontalMultiplier * dt) + (Vector3(0, 1, 0) * m_verticalMultiplier * dt);
+
 	m_controller->move(m_velocity, dt);
 	m_lastPosition = m_playerEntity->getTranslation();
 
@@ -548,7 +537,7 @@ void Player::jump()
 {
 	m_currentDistance = 0;
 	m_state = PlayerState::JUMPING;
-	m_velocity.y = JUMP_SPEED * m_playerScale;// * dt;
+	m_verticalMultiplier = JUMP_SPEED * m_playerScale;// * dt;
 	m_jumps++;
 }
 
