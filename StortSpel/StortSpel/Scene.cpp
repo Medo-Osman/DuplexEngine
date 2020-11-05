@@ -109,6 +109,8 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 
 void Scene::loadLobby()
 {
+	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
+
 	Entity* music = addEntity("lobbyMusic");
 	if (music)
 	{
@@ -192,6 +194,8 @@ void Scene::loadLobby()
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
+
+	createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
 
 	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
 }
