@@ -228,13 +228,13 @@ void Player::playerStateLogic(const float& dt)
 	}
 
 	// Gravity
-	//if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING || m_state == PlayerState::ROLL)
-	//{
-		//if (m_playerEntity->getTranslation().y != m_lastPosition.y || m_verticalMultiplier == 0)
-	m_verticalMultiplier -= GRAVITY * m_gravityScale * dt;
-	//}
-	if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f) && m_state != PlayerState::JUMPING)
-		m_verticalMultiplier = 0.f;
+	if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING || m_state == PlayerState::ROLL)
+	{
+		if (m_playerEntity->getTranslation().y != m_lastPosition.y || m_verticalMultiplier == 0)
+			m_verticalMultiplier -= GRAVITY * m_gravityScale * dt;
+	}
+	/*if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f) && m_state != PlayerState::JUMPING)
+		m_verticalMultiplier = 0.f;*/
 
 	// Max Gravity Tests
 	if (m_verticalMultiplier <= -MAX_FALL_SPEED)
@@ -258,7 +258,7 @@ void Player::playerStateLogic(const float& dt)
 	m_lastPosition = m_playerEntity->getTranslation();
 
 	// Animation
-	//float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
+	//float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).LengthSquared();
 	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).Length();
 	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
 	{
@@ -279,22 +279,8 @@ void Player::playerStateLogic(const float& dt)
 	m_horizontalMultiplier -= PLAYER_DECELERATION * dt;
 	if (m_horizontalMultiplier < 0.f)
 		m_horizontalMultiplier = 0.f;
-	// x
-	//if (m_velocity.x > 0.0001f)
-	//	m_velocity.x += -PLAYER_DECELERATION;
-	//else if (m_velocity.x < -0.0001f)
-	//	m_velocity.x -= -PLAYER_DECELERATION;
-	//else
-	//	m_velocity.x = 0.f;
 
-	//// z
-	//if (m_velocity.z > 0.0001f)
-	//	m_velocity.z += -PLAYER_DECELERATION;
-	//else if (m_velocity.z < -0.0001f)
-	//	m_velocity.z -= -PLAYER_DECELERATION;
-	//else
-	//	m_velocity.z = 0.f;
-
+	// Respawning
 	if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
 	{
 		respawnPlayer();
