@@ -38,6 +38,7 @@ Input::Input()
 	m_cursorEnabled = false;
 	m_contexts.emplace_back(new MovementContext());
 	m_contexts.emplace_back(new GUIContext());
+	m_currentInputData.mousePtr = &m_Mouse;
 }
 
 LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lParam)

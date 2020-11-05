@@ -95,6 +95,17 @@ public:
 				std::cout << "WE CLICKED YEEHAW" << std::endl;
 				
 				
+				std::cout << std::to_string(inputData.mousePtr->getPosx());
+				for(int k = 0; k < inputData.rangeData.size(); k++)
+				{
+					if(inputData.rangeData[k].rangeFlag == Range::REL)
+					{
+						float x = (float)inputData.rangeData[k].pos.x;
+						float y = (float)inputData.rangeData[k].pos.y;
+
+						std::cout << x << ", " << y << std::endl;
+					}
+				}
 				
 			}
 		}
