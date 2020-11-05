@@ -35,19 +35,24 @@ private:
     const float CAPSULE_RADIUS = 0.01f;
 
     //WALK CONFIG
-    const float PLAYER_MAX_SPEED = 15.f;
-    const float PLAYER_ACCELERATION = 3.0f;
-    const float PLAYER_DECELERATION = 1.0f;
+    const float PLAYER_MAX_SPEED = 10.f;
+    const float PLAYER_ACCELERATION = 20.f;
+    const float PLAYER_DECELERATION = 10.f;
     float m_verticalMultiplier;
     float m_horizontalMultiplier;
     Vector3 m_movementVector;
+    float m_timeCounter = 0.f;
 
     //JUMP CONFIG
-    const float JUMP_SPEED = 1.f;
+    const float JUMP_SPEED = 10.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
 
-    float m_gravityScale = .0005f;
+    // Gravity
+    const float GRAVITY = 9.82f;
+    const float MAX_FALL_SPEED = 20.f;
+    float m_gravityScale = 3.f;
+    PlayerState m_lastState;
 
     //DASH CONFIG 
     const float DASH_TRAVEL_DISTANCE = 7.f;
@@ -57,10 +62,6 @@ private:
     //Roll CONFIG
     const float ROLL_TRAVEL_DISTANCE = 10.f;
     const float ROLL_SPEED = 15.0f;
-    PlayerState m_lastState;
-    const float GRAVITY = 9.82f;
-    //const float GRAVITY = 0.375f;
-    const float MAX_FALL_SPEED = 0.3f;
     const float ROLL_HEIGHT = 0.3f;
     const float ROLL_RADIUS = 0.2f;
 

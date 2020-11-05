@@ -237,7 +237,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.BufferDesc.Height = m_settings.height; //Size of buffer in pixels, height
 	sChainDesc.BufferDesc.Width = m_settings.width; //Size of window in pixels, width
 	sChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //DXGI Format, 8 bits for Red, green, etc
-	sChainDesc.BufferDesc.RefreshRate.Numerator = 30; //IF vSync is enabled and fullscreen, this specifies the max refreshRate
+	sChainDesc.BufferDesc.RefreshRate.Numerator = 60; //IF vSync is enabled and fullscreen, this specifies the max refreshRate
 	sChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	sChainDesc.SampleDesc.Quality = 0;
 	sChainDesc.SampleDesc.Count = 2;
