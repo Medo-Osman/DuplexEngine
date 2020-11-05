@@ -72,6 +72,20 @@ public:
 	// Inherited via InputObserver
 	virtual void inputUpdate(InputData& inputData) override
 	{
+
+		float x = 0;
+		float y = 0;
+		for(int k = 0; k < inputData.rangeData.size(); k++)
+		{
+			if(inputData.rangeData[k].rangeFlag == Range::REL)
+			{
+				x = (float)inputData.rangeData[k].pos.x;
+				y = (float)inputData.rangeData[k].pos.y;
+
+				std::cout << x << ", " << y << std::endl;
+			}
+		}
+
 		auto states = inputData.actionData;
 		for (int i = 0; i < states.size(); i++)
 		{
@@ -79,17 +93,8 @@ public:
 			{
 				//Input::getMouse
 				std::cout << "WE CLICKED YEEHAW" << std::endl;
-
-				for(int k = 0; k < inputData.rangeData.size(); k++)
-				{
-					if(inputData.rangeData[k].rangeFlag == Range::REL)
-					{
-						float x = (float)inputData.rangeData[k].pos.x;
-						float y = (float)inputData.rangeData[k].pos.y;
-
-						std::cout << x << ", " << y << std::endl;
-					}
-				}
+				
+				
 				
 			}
 		}
