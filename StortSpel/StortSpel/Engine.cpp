@@ -131,6 +131,9 @@ Player* Engine::getPlayerPtr()
 	return m_player;
 }
 
+
+
+
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
 	m_devicePtr = devicePtr;
@@ -142,6 +145,7 @@ void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContex
 void Engine::initialize(Input* input)
 {
 	m_input = input;
+
 
 	if (!DeviceAndContextPtrsAreSet)
 	{

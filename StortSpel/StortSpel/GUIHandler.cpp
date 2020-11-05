@@ -1,6 +1,7 @@
 #include "3DPCH.h"
 #include "GUIHandler.h"
 
+int GUIObserver::nr = 0;
 GUIHandler::GUIHandler()
 {
 	m_device = nullptr;
@@ -42,6 +43,7 @@ int GUIHandler::addGUIButton(std::wstring buttonTextureString, GUIButtonStyle st
 {
 	int index = m_elements.size();
 	GUIButton* image = new GUIButton(buttonTextureString, style);
+	image->m_index = index;
 	image->setTexture(buttonTextureString);
 	m_elements.push_back(image);
 
@@ -67,6 +69,7 @@ int GUIHandler::addGUIText(std::string textString, std::wstring fontName, GUITex
 	// Text Element
 	int index = m_elements.size();
 	GUIText* text = new GUIText();
+	text->m_index = index;
 	text->setText(textString, m_fonts[fontName], style);
 	m_elements.push_back(text);
 
@@ -85,6 +88,7 @@ int GUIHandler::addGUIImage(std::wstring textureString, GUIImageStyle style)
 	// Gui Element
 	int index = m_elements.size();
 	GUIImageLabel* image = new GUIImageLabel(textureString, style);
+	image->m_index = index;
 	image->setTexture(textureString);
 	m_elements.push_back(image);
 
@@ -109,6 +113,11 @@ void GUIHandler::setVisible(int index, bool value)
 bool GUIHandler::getVisible(int index)
 {
 	return (m_elements[index]->isVisible());
+}
+
+std::vector<GUIElement*>* GUIHandler::getElementMap()
+{
+	return &this->m_elements;
 }
 
 void GUIHandler::render()

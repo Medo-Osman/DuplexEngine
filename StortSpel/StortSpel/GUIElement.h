@@ -1,6 +1,7 @@
 #pragma once
-
 enum class GUIType { NONE, TEXT, IMAGE, BUTTON };
+enum class GUIUpdateType {CLICKED, HOVER};
+
 
 class GUIElement
 {
@@ -9,6 +10,7 @@ protected:
 	bool m_visible = true;
 
 public:
+	int m_index = 0;
 	GUIElement()
 	{
 		m_type = GUIType::NONE;
@@ -31,4 +33,22 @@ public:
 	}
 
 	virtual void render(SpriteBatch* spriteBatch) = 0;
+};
+
+
+class GUIObserver {
+public:
+	GUIObserver() {};
+	virtual void update(GUIUpdateType type, GUIElement* guiElement) = 0;
+
+	static int nr;
+	int index = 0;
+};
+
+class GUISubject {
+public:
+	virtual ~GUISubject() {};
+	virtual void Attach(GUIObserver* observer) = 0;
+	virtual void Detach(GUIObserver* observer) = 0;
+	virtual void Notify(GUIUpdateType type) = 0;
 };

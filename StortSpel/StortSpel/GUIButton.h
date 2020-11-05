@@ -24,13 +24,14 @@ struct GUIButtonStyle
 	}
 };
 
-class GUIButton : public GUIElement, public InputObserver
+class GUIButton : public GUIElement, public InputObserver, public GUISubject
 {
 private:
 	// Sprite
 	GUIButtonStyle m_style;
-
 	ID3D11ShaderResourceView* texture = nullptr;
+
+	std::map<int, GUIObserver*> m_observers;
 
 public:
 	GUIButton(std::wstring texturePath, GUIButtonStyle style)
@@ -77,13 +78,15 @@ public:
 		auto states = inputData.actionData;
 		for (int i = 0; i < states.size(); i++)
 		{
+			//If clicked left or right mouse button
 			if (states[i] == Action::USE)
 			{
-				
-				float x = inputData.mousePtr->getPosx();
+				//Mouse pos
+				float x = inputData.mousePtr->getPosX();
 				float y = inputData.mousePtr->getPosY();
 
 				
+				//Messy way to get the texture width and height
 				D3D11_TEXTURE2D_DESC desc;
 				ID3D11Texture2D* localTexture;
 				ID3D11Resource* resource = nullptr;
@@ -93,14 +96,15 @@ public:
 
 				localTexture->Release();
 				resource->Release();
+				//
 
-
-				if (x > m_style.origin.x && x < (m_style.origin.x + (desc.Width * m_style.scale.x))
-					&& y > m_style.origin.y && y < (m_style.origin.y + (desc.Height * m_style.scale.y)))
+				//Bounds & visibility check
+				if (x > m_style.position.x && x < (m_style.position.x + (desc.Width * m_style.scale.x))
+					&& y > m_style.position.y && y < (m_style.position.y + (desc.Height * m_style.scale.y)) && m_visible)
 				{
-
 					std::cout << "WE CLICKED YEEHAW" << std::endl;
-					std::cout << x << ", " << y << "\t vs \t" << desc.Width * m_style.origin.x + (desc.Width * m_style.scale.x) << ", " << m_style.origin.y + (desc.Height * m_style.scale.y) << std::endl;
+					std::cout << x << ", " << y << "\t vs \t" << m_style.position.x << " - " << m_style.position.x + (desc.Width * m_style.scale.x) << ", " << m_style.position.y << " - " << m_style.position.y + (desc.Height * m_style.scale.y) << std::endl;
+					Notify(GUIUpdateType::CLICKED);
 				}
 				//Input::getMouse
 
@@ -108,6 +112,26 @@ public:
 			}
 		}
 
+	}
+
+
+	// Inherited via GUISubject
+	virtual void Attach(GUIObserver* observer) override
+	{
+		m_observers[GUIObserver::nr++] = observer;
+	}
+
+	virtual void Detach(GUIObserver* observer) override
+	{
+		m_observers.erase(observer->index);
+	}
+
+	virtual void Notify(GUIUpdateType type) override
+	{
+		for (auto observer : m_observers)
+		{
+			observer.second->update(type, this);
+		}
 	}
 
 };

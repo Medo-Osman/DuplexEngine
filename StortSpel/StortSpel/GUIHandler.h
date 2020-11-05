@@ -51,5 +51,7 @@ public:
 	void setVisible(int index, bool value);
 	bool getVisible(int index);
 
+	std::vector< GUIElement* >* getElementMap();
+
 	void render();
 };
