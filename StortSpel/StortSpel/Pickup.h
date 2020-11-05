@@ -135,7 +135,7 @@ public:
 		}
 		if (m_depletedSound != L"")
 		{
-			m_entityToDoEffectsOn->addComponent("OnDepeleted", addAudioComponent(m_depletedSound, false, 0.01f));
+			m_entityToDoEffectsOn->addComponent("OnDepeleted", addAudioComponent(m_depletedSound, false, 0.3f));
 			m_audioComponents.back()->playSound();
 		}
 	}
