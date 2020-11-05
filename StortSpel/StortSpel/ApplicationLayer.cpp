@@ -21,7 +21,7 @@ ApplicationLayer::~ApplicationLayer()
 bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd)
 {
 	if (hWnd != NULL) return true;
-	const wchar_t WINDOWTILE[] = L"3DProject";
+	const wchar_t WINDOWTILE[] = L"Lucid Runners";
 	HRESULT hr = 0;
 	bool initOK = false;
 	CoInitializeEx(nullptr, COINIT_MULTITHREADED);

@@ -59,7 +59,7 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 		{
 			m_contexts[0]->setMute(!m_contexts[0]->getMute());
 			m_cursorEnabled = !m_cursorEnabled;
-			ShowCursor(TRUE);
+			ShowCursor(CURSOR_SHOWING);
 		}
 
 		return 0;
