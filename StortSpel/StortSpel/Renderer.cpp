@@ -222,7 +222,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
 
-	//Shadows
+	//Shadows - don't forget to update resolution constant in shader(s) as well
 	m_shadowMap = new ShadowMap((UINT)4096, (UINT)4096, m_devicePtr.Get(), Engine::get().getSkyLightDir());
 	m_shadowMap->createRasterState();
 
@@ -640,7 +640,7 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 
 	//Shadow
 	m_shadowMap->bindResourcesAndSetNullRTV(m_dContextPtr.Get());
-	m_shadowMap->computeShadowMatrix(Engine::get().getCameraPtr()->getPosition());//(Vector3(dynamic_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + Vector3(0, 0.5, 0));
+	m_shadowMap->computeShadowMatrix(Engine::get().getCameraPtr()->getPosition());
 
 	shadowBuffer shadowBufferStruct;
 	shadowBufferStruct.lightProjMatrix = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);
@@ -650,8 +650,6 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
-		bool draw = true;
-		XMFLOAT3 min, max;
 
 		if (component.second->getShaderProgEnum() != ShaderProgramsEnum::SKEL_ANIM)
 		{
@@ -673,35 +671,9 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 		Entity* parentEntity;
 		parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
-		if (m_frustumCullingOn && parentEntity->m_canCull)
-		{
-			//Culling
-			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), *V);
-			XMFLOAT3 posFloat3;
-			XMStoreFloat3(&posFloat3, pos);
-
-			if (frust->Contains(pos) != ContainmentType::CONTAINS)
-			{
-				component.second->getMeshResourcePtr()->getMinMax(min, max);
-
-				XMFLOAT3 ext = (max - min);
-				ext = ext * parentEntity->getScaling();
-				XMFLOAT4 rot = parentEntity->getRotation();
-				BoundingOrientedBox box(posFloat3, ext, rot);
-				ContainmentType contType = frust->Contains(box);
-
-				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
-			}
-			else
-			{
-				draw = true;
-			}
-		}
-
 		MeshComponent* comp = dynamic_cast<MeshComponent*>(component.second);
-		if (comp->castsShadow() && draw)
+		if (comp->castsShadow())
 		{
-			m_drawn++;
 
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());

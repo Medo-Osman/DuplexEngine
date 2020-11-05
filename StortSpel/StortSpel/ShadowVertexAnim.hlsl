@@ -72,11 +72,6 @@ vs_out main(vs_in input, in uint vID : SV_VertexID)
     output.shadowPos = mul(float4(input.pos, 1), worldMatrix);
     output.shadowPos = mul(output.shadowPos, lightViewMatrix);
     output.shadowPos = mul(output.shadowPos, lightProjMatrix);
-	
-	//output.wsPos = mul(localPosition, worldMatrix);
-    //output.wsTangent = mul(input.tangent, (float3x3) worldMatrix);
-    
-    //output.hsShadowPos = mul(localPosition, shadowTransform);
 
     
     return output;

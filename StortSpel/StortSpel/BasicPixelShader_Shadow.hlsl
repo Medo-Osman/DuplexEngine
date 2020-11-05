@@ -2,7 +2,7 @@
 
 static const float SHADOW_MAP_SIZE = 4096.f;
 static const float SHADOW_MAP_DELTA = 1.f / SHADOW_MAP_SIZE;
-static const float RANGE = 60.f;
+static const float RANGE = 90.f;
 
 struct pointLight
 {
@@ -75,36 +75,6 @@ struct lightComputeResult
     float diffuseLightFactor;
     float intensity;
 };
-
-//float computeShadowFactor(float4 shadowPosH)
-//{
-//    shadowPosH.xyz /= shadowPosH.w; //Finish projection
-    
-//    float depth = shadowPosH.z; //In NDC, depthFromLightPosToPoint
-    
-//    const float delta = SHADOW_MAP_DELTA;
-//    float percentLit = 0.0f;
-    
-//    //Filtering matrix
-//    const float2 offsets[9] =
-//    {
-//        float2(-delta, -delta), float2(0.0f, -delta),   float2(delta, -delta),
-//        float2(-delta, 0.0f),   float2(0.0f, 0.0f),     float2(delta, 0.0f),
-//        float2(-delta, +delta), float2(0.0f, +delta),   float2(delta, +delta)
-//    };
-    
-//    //sum all the samples
-//    //[unroll]
-//    //for (int i = 0; i < 9; i++) //9 because matrix size
-//    //{
-//    //    //percentLit += shadowMap.SampleCmp(shadowSampState, shadowPosH.xy + offsets[i], depth).r;
-//    //    percentLit += shadowMap.SampleCmpLevelZero(shadowSampState,shadowPosH.xy + offsets[i], depth).r;
-//    //}
-//    percentLit += (float) shadowMap.SampleCmpLevelZero(shadowSampState, shadowPosH.xy, depth).r;
-    
-//    //Avg of all samples
-//    return percentLit; //percentLit/9.f; //percentLit /= 9.f; //9 because matrix size.
-//};
 
 float2 texOffset(int u, int v)
 {

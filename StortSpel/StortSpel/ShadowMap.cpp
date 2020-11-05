@@ -18,7 +18,7 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 	textureDesc.Height = m_width;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
-	textureDesc.Format = DXGI_FORMAT_R32_TYPELESS;//DXGI_FORMAT_R24G8_TYPELESS; //24 bit for the red channel, 8 for the green.
+	textureDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -30,14 +30,14 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
 	dsvDesc.Flags = 0;
-	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;//DXGI_FORMAT_D24_UNORM_S8_UINT; //32-bit z-buffer, 24 for depth and 8 for stencil.
+	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	dsvDesc.Texture2D.MipSlice = 0;
 	succ = m_devicePtr->CreateDepthStencilView(depthMap, &dsvDesc, &m_depthMapDSV);
 	assert(SUCCEEDED(succ));
 	
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;//DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = textureDesc.MipLevels;
 	srvDesc.Texture2D.MostDetailedMip = 0;
@@ -62,15 +62,12 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 
 	m_direction = lightDir;
 
-	//depthMap->Release();
-
 }
 
 ShadowMap::~ShadowMap()
 {
 	SAFE_RELEASE(m_rasterizerStatePtr);
 	SAFE_RELEASE(m_sampleState);
-	//SAFE_RELEASE(m_devicePtr);
 	SAFE_RELEASE(m_depthMapDSV);
 	SAFE_RELEASE(m_depthMapSRV);
 
