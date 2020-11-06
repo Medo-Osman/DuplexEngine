@@ -100,12 +100,17 @@ void PacketHandler::playerData(Packet* _packet)
 	int ID = _packet->ReadInt();
 	Vector3 position = _packet->ReadVector3();
 	Vector4 rotation = _packet->ReadVector4();
+	int state = _packet->ReadInt();
+	float blend = _packet->ReadFloat();
 	for (int i = 1; i < 4; i++)
 	{
 		if (serverPlayerData[i].ID == ID)
 		{
 			serverPlayerData[i].pos = position;
 			serverPlayerData[i].rot = rotation;
+			serverPlayerData[i].state = state;
+			serverPlayerData[i].blend = blend;
+
 			//std::cout << "Player at ID " + std::to_string(ID) + " has moved" << std::endl;
 		}
 	}
@@ -145,6 +150,13 @@ void PacketHandler::sendPlayerData()
 	//Write Player Rotation
 	_packet.Write(serverPlayerData[0].rot);
 
+	//Write Player State
+	_packet.Write(serverPlayerData[0].state);
+
+	//Write Player Animation Blend
+	_packet.Write(serverPlayerData[0].blend);
+
+
 	//Send Packet
 	int sendResult = send(sock, _packet.ToArray(), _packet.Lenght() + 1, 0);
 }
@@ -164,6 +176,16 @@ Vector4 PacketHandler::getRotAt(int i)
 	return serverPlayerData[i].rot;
 }
 
+int PacketHandler::getStateAt(int i)
+{
+	return this->serverPlayerData[i].state;
+}
+
+float PacketHandler::getBlendAt(int i)
+{
+	return this->serverPlayerData[i].blend;
+}
+
 void PacketHandler::setPlayerData(Vector3 pos)
 {
 	this->serverPlayerData[0].pos = pos;
@@ -172,6 +194,16 @@ void PacketHandler::setPlayerData(Vector3 pos)
 void PacketHandler::setPlayerData(Vector4 rot)
 {
 	this->serverPlayerData[0].rot = rot;
+}
+
+void PacketHandler::setPlayerData(int state)
+{
+	this->serverPlayerData[0].state = state;
+}
+
+void PacketHandler::setPlayerData(float blend)
+{
+	this->serverPlayerData[0].blend = blend;
 }
 
 void PacketHandler::update()

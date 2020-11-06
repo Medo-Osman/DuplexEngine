@@ -7,6 +7,8 @@ struct SimpleData
 	int ID;
 	Vector3 pos;
 	Vector4 rot;
+	int state;
+	float blend;
 };
 class PacketHandler
 {
@@ -34,8 +36,14 @@ public:
 	int getIDAt(int i);
 	Vector3 getPosAt(int i);
 	Vector4 getRotAt(int i);
+	int getStateAt(int i);
+	float getBlendAt(int i);
+
 	void setPlayerData(Vector3 pos);
 	void setPlayerData(Vector4 rot);
+	void setPlayerData(int state);
+	void setPlayerData(float blend);
+
 	void update();
 	
 private:

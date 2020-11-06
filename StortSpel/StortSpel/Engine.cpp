@@ -39,6 +39,8 @@ void Engine::update(const float& dt)
 
 	updateLightData();
 
+
+
 	if (m_player->getNetworkID() == -1)
 	{
 		m_player->setNetworkID(PacketHandler::get().getIDAt(0));
@@ -55,11 +57,7 @@ void Engine::update(const float& dt)
 
 		serverPlayers->at(i)->getPlayerEntity()->setPosition(PacketHandler::get().getPosAt(i + 1));
 		serverPlayers->at(i)->getPlayerEntity()->setRotationQuat(PacketHandler::get().getRotAt(i + 1));
-		//std::cout << PacketHandler::get().getPosAt(i + 1).x;
-		//std::cout << ", ";
-		//std::cout << PacketHandler::get().getPosAt(i + 1).y;
-		//std::cout << ", ";
-		//std::cout << PacketHandler::get().getPosAt(i + 1).z << std::endl;
+
 	}
 }
 void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities)
