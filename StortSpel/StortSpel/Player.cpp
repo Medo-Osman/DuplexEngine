@@ -41,6 +41,15 @@ Player::Player()
 	imageStyle.scale = Vector2(0.9, 0.9);
 	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
+	//Test Button stuff
+	GUIButtonStyle btnStyle;
+	btnStyle.position = Vector2(140, 200);
+	btnStyle.scale = Vector2(0.5, 0.5);
+	closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
+	
+	//Attach to the click listener for the button
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
+
 }
 
 Player::~Player()
@@ -125,7 +134,6 @@ float lerp(const float& a, const float &b, const float &t)
 
 void Player::playerStateLogic(const float& dt)
 {
-
 	m_velocity = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt * this->m_currentSpeedModifier) + Vector3(0, m_velocity.y, 0);
 
 	switch (m_state)
@@ -138,7 +146,8 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::IDLE;
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
-			m_animMesh->playAnimation("Running4.1", true);
+			//m_animMesh->playAnimation("Running4.1", true);
+			idleAnimation();
 		}
 		else
 		{
@@ -156,6 +165,7 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
+			idleAnimation();
 		}
 		else
 		{
@@ -232,19 +242,21 @@ void Player::playerStateLogic(const float& dt)
 	m_lastPosition = m_playerEntity->getTranslation();
 
 
-	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).LengthSquared();
-	if (m_state != PlayerState::ROLL)
+	//float vectorLen = Vector3(m_finalMovement.x, 0, m_finalMovement.z).LengthSquared();
+	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).Length();
+	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
 	{
-		m_animMesh->setAnimationSpeed(1);
-
-		if (vectorLen > 0)
-		{
-			m_animMesh->playAnimation("Running4.1", true);
-		}
-		else
-		{
-			m_animMesh->playAnimation("platformer_guy_idle", true);
-		}
+		float blend = vectorLen / (PLAYER_SPEED * dt);
+		
+		if ((PLAYER_SPEED * dt) <= 0.0f)
+			blend = 0.0f;
+		
+		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
+		//// analog animation:
+		//if (vectorLen > 0)
+		//	m_animMesh->setCurrentBlend(1.f);
+		//else
+		//	m_animMesh->setCurrentBlend(0);
 	}
 
 	if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
@@ -365,7 +377,6 @@ void Player::setScore(int newScore)
 {
 	m_score = newScore;
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
-
 }
 
 Entity* Player::getPlayerEntity() const
@@ -467,6 +478,58 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 	}
 }
 
+void Player::update(GUIUpdateType type, GUIElement* guiElement)
+{
+	if (type == GUIUpdateType::CLICKED)
+	{
+		GUIHandler::get().setVisible(guiElement->m_index, false);
+
+		//Set instructions to not visible
+		GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+	}
+
+
+	if (type == GUIUpdateType::HOVER_ENTER)
+	{
+		GUIButton* button = dynamic_cast<GUIButton*>(guiElement);
+		button->setTexture(L"closeButtonSelected.png");
+	}
+
+	if (type == GUIUpdateType::HOVER_EXIT)
+	{
+		GUIButton* button = dynamic_cast<GUIButton*>(guiElement);
+		button->setTexture(L"closeButton.png");
+	}
+}
+void Player::serverPlayerAnimationChange(PlayerState currentState, float currentBlend)
+{
+	m_animMesh->setCurrentBlend(currentBlend);
+
+	if (currentState != m_state)
+	{
+		m_state = currentState;
+
+		switch (currentState)
+		{
+		case PlayerState::IDLE:
+			idleAnimation();
+			break;
+		case PlayerState::JUMPING:
+
+			break;
+		case PlayerState::FALLING:
+
+			break;
+		case PlayerState::DASH:
+			dashAnimation();
+			break;
+		case PlayerState::ROLL:
+			rollAnimation();
+			break;
+		}
+	}
+}
+
 void Player::jump()
 {
 	m_currentDistance = 0;
@@ -486,8 +549,8 @@ void Player::roll()
 	m_controller->setControllerSize(ROLL_HEIGHT);
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
-	m_animMesh->playAnimation("platformer_guy_roll1", true);
-	m_animMesh->setAnimationSpeed(1.85f);
+
+	rollAnimation();
 }
 
 bool Player::canDash() const
@@ -499,10 +562,28 @@ void Player::dash()
 {
 	prepDistVariables();
 	m_state = PlayerState::DASH;
+
+	dashAnimation();
 }
 
 void Player::prepDistVariables()
 {
 	m_currentDistance = 0;
 	m_moveDirection = m_playerEntity->getForwardVector();
+}
+
+void Player::rollAnimation()
+{
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
+	m_animMesh->setAnimationSpeed(1.6f);
+}
+
+void Player::dashAnimation()
+{
+	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true);
+}
+
+void Player::idleAnimation()
+{
+	m_animMesh->playBlendState("runOrIdle", 0.3f);
 }

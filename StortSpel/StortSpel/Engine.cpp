@@ -34,6 +34,11 @@ void Engine::update(const float& dt)
 	m_player->updatePlayer(dt);
 	m_camera.update(dt);
 
+	//Example for updating light direction
+	/*Vector4 dir = m_skyLightDir;
+	dir = XMVector3TransformCoord(dir, XMMatrixRotationY(XMConvertToRadians(2.f)));
+	m_skyLightDir = dir;*/
+
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
 
@@ -133,6 +138,16 @@ std::unordered_map<std::string, Entity*>* Engine::getEntityMap()
 	return m_entities;
 }
 
+Input* Engine::getInput()
+{
+	return m_input;
+}
+
+Vector4& Engine::getSkyLightDir()
+{
+	return m_skyLightDir;
+}
+
 Settings Engine::getSettings() const
 {
 	return m_settings;
@@ -146,10 +161,6 @@ Player* Engine::getPlayerPtr()
 	return m_player;
 }
 
-std::vector<ServerPlayer*>* Engine::getServerPlayers()
-{
-	return this->serverPlayers;
-}
 
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
@@ -159,8 +170,11 @@ void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContex
 	DeviceAndContextPtrsAreSet = true;
 }
 
-void Engine::initialize()
+void Engine::initialize(Input* input)
 {
+	m_input = input;
+
+
 	if (!DeviceAndContextPtrsAreSet)
 	{
 		// Renderer::initialize needs to be called and it needs to call setDeviceAndContextPtrs()
@@ -183,7 +197,10 @@ void Engine::initialize()
 	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 	playerEntity->addComponent("mesh", animMeshComp);
 
-	animMeshComp->playAnimation("Running4.1", true);
+	//animMeshComp->playAnimation("Running4.1", true);
+	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
+	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+
 
 	m_player->setAnimMeshPtr(animMeshComp);
 
@@ -215,6 +232,7 @@ void Engine::initialize()
 	}
 
 	
+
 }
 
 void Engine::updateLightData()

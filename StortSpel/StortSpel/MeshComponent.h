@@ -18,6 +18,7 @@ private:
 	std::string  m_filePath;
 	Material m_material;
 
+	bool m_castShadow = true;
 public:
 
 	MeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum = ShaderProgramsEnum::DEFAULT, Material material = Material());
@@ -37,6 +38,16 @@ public:
 
 	// Update
 	virtual void update(float dt) override {}
+
+	bool castsShadow()
+	{
+		return m_castShadow;
+	}
+
+	void setCastsShadow(bool value)
+	{
+		m_castShadow = value;
+	}
 
 protected:
 	MeshComponent(ShaderProgramsEnum shaderEnum = ShaderProgramsEnum::DEFAULT, Material material = Material());
