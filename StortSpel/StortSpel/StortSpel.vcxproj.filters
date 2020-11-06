@@ -58,6 +58,9 @@
     <Filter Include="Source Files\Graphics\GUI">
       <UniqueIdentifier>{7155dc50-d617-41f6-a310-ab0c68149543}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Graphics\Particles">
+      <UniqueIdentifier>{df34a05a-8cc6-4e67-91db-bedc4fbf50ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -398,6 +401,21 @@
     </FxCompile>
     <FxCompile Include="ObjectSpaceGridPS.hlsl">
       <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\DrawParticlePixelShader.hlsl">
+      <Filter>Source Files\Graphics\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\DrawStreamVertexShader.hlsl">
+      <Filter>Source Files\Graphics\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\RainGeometryShaderDraw.hlsl">
+      <Filter>Source Files\Graphics\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\RainGeometryShaderStreamOut.hlsl">
+      <Filter>Source Files\Graphics\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\StreamOutVertexShader.hlsl">
+      <Filter>Source Files\Graphics\Particles</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
