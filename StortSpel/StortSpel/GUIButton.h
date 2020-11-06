@@ -96,6 +96,7 @@ public:
 		float x = inputData.mousePtr->getPosX();
 		float y = inputData.mousePtr->getPosY();
 
+		//Check if mouse is hovering over button
 		if (x > m_style.position.x && x < (m_style.position.x + (m_textureWidth * m_style.scale.x))
 			&& y > m_style.position.y && y < (m_style.position.y + (m_textureHeight * m_style.scale.y)) && m_visible)
 		{
@@ -107,11 +108,11 @@ public:
 				m_hovered = true;
 			}
 		}
-		else
+		else //When it is not hovering over the button
 		{
 			if (m_hovered)
 			{
-				//Send message to observers that something has happened
+				//Send message to observers that something has happened if it was previously hovered over.
 				Notify(GUIUpdateType::HOVER_EXIT);
 				m_hovered = false;
 			}
@@ -125,14 +126,13 @@ public:
 			if (states[i] == Action::USE)
 			{
 
-				//Bounds & visibility check
+				//Bounds & visibility check for button vs mouse
 				if (x > m_style.position.x && x < (m_style.position.x + (m_textureWidth * m_style.scale.x))
 					&& y > m_style.position.y && y < (m_style.position.y + (m_textureHeight * m_style.scale.y)) && m_visible)
 				{
-					//Notify all observers
+					//Notify all observers if clicked
 					Notify(GUIUpdateType::CLICKED);
 				}
-				//Input::getMouse
 
 				
 			}
