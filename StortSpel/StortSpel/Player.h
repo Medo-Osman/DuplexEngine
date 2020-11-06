@@ -108,7 +108,9 @@ private:
     void jump();
     void prepDistVariables();
 
-    
+    void rollAnimation();
+    void dashAnimation();
+    void idleAnimation();
   
 public:
     Player();
@@ -139,4 +141,5 @@ public:
 
     // Inherited via GUIObserver
     virtual void update(GUIUpdateType type, GUIElement* guiElement) override;
+    void serverPlayerAnimationChange(PlayerState currentState, float currentBlend);
 };

@@ -6,6 +6,7 @@
 #include "Engine.h"
 #include "GUIHandler.h"
 #include "Scene.h"
+#include "ShadowMap.h"
 //#include "LightComponent.h"
 
 
@@ -55,6 +56,7 @@ private:
 	Buffer<lightBufferStruct> m_lightBuffer;
 	Buffer<cameraBufferStruct> m_cameraBuffer;
 	Buffer<skyboxMVP> m_skyboxConstantBuffer;
+	Buffer<shadowBuffer> m_shadowConstantBuffer;
 	
 	Buffer<skeletonAnimationCBuffer> m_skelAnimationConstantBuffer;
 	Buffer<MATERIAL_CONST_BUFFER> m_currentMaterialConstantBuffer;
@@ -102,6 +104,10 @@ private:
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
 	unsigned int long m_currentSetMaterialId = 1000;
 
+
+	//Shadowmap
+	ShadowMap* m_shadowMap = nullptr;
+
 	//Functions
 	HRESULT createDeviceAndSwapChain();
 	HRESULT createDepthStencil();
@@ -113,7 +119,11 @@ private:
 	void downSamplePass();
 	void blurPass();
 	void initRenderQuad();
+	void renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
+	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	Renderer(); //{};
+
+	int m_drawn = 0;
 
 public:
 	Renderer(const Renderer&) = delete;

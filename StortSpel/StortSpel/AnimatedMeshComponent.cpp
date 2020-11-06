@@ -311,6 +311,18 @@ void AnimatedMeshComponent::setCurrentBlend(float blend)
 
 }
 
+float AnimatedMeshComponent::getCurrentBlend()
+{
+	if (m_transitionTime > 0.f)
+	{
+		return m_animationQueue.front()->blend;
+	}
+	else
+	{
+		return m_currentState->blend;
+	}
+}
+
 void AnimatedMeshComponent::applyAnimationFrame()
 {
 	if (m_inBindPose)

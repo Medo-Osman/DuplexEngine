@@ -69,7 +69,7 @@ public:
 			m_physicsComponent ? m_physicsComponent->kinematicMove(m_pos, Quaternion::CreateFromRotationMatrix(m_rotation)) : m_transform->setPosition(m_pos);
 		}
 		else
-			m_physicsComponent ? m_physicsComponent->kinematicMove(m_pos) : m_transform->setPosition(m_pos);
+			m_physicsComponent ? m_physicsComponent->kinematicMove(m_pos, m_transform->getRotation()) : m_transform->setPosition(m_pos);
 
 	}
 };

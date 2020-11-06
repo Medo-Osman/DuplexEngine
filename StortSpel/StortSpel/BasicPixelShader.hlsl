@@ -68,6 +68,16 @@ struct lightComputeResult
     float intensity;
 };
 
+float computeShadowFactor(float4 shadowPosH)
+{
+    shadowPosH.xyz /= shadowPosH.w; //Finish projection
+    
+    float depth = shadowPosH.z; //In NDC
+    
+    
+    
+};
+
 //Only calculating diffuse light
 lightComputeResult computeLightFactor(ps_in input)
 {
@@ -109,7 +119,7 @@ lightComputeResult computeLightFactor(ps_in input)
         finalColor = saturate(finalColor + (diffuseLightFactor * spotLights[j].color * attenuationFactor));
     }
     
-    finalColor = finalColor + saturate(dot(skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
+    finalColor = finalColor + saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
     
     result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel));
     

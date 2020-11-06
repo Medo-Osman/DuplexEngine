@@ -147,7 +147,7 @@ void Player::playerStateLogic(const float& dt)
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
 			//m_animMesh->playAnimation("Running4.1", true);
-			m_animMesh->playBlendState("runOrIdle",0.3f);
+			idleAnimation();
 		}
 		else
 		{
@@ -165,7 +165,7 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
-			m_animMesh->playBlendState("runOrIdle", 0.5f);
+			idleAnimation();
 		}
 		else
 		{
@@ -501,6 +501,34 @@ void Player::update(GUIUpdateType type, GUIElement* guiElement)
 		button->setTexture(L"closeButton.png");
 	}
 }
+void Player::serverPlayerAnimationChange(PlayerState currentState, float currentBlend)
+{
+	m_animMesh->setCurrentBlend(currentBlend);
+
+	if (currentState != m_state)
+	{
+		m_state = currentState;
+
+		switch (currentState)
+		{
+		case PlayerState::IDLE:
+			idleAnimation();
+			break;
+		case PlayerState::JUMPING:
+
+			break;
+		case PlayerState::FALLING:
+
+			break;
+		case PlayerState::DASH:
+			dashAnimation();
+			break;
+		case PlayerState::ROLL:
+			rollAnimation();
+			break;
+		}
+	}
+}
 
 void Player::jump()
 {
@@ -522,8 +550,7 @@ void Player::roll()
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
 
-	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
-	m_animMesh->setAnimationSpeed(1.6f);
+	rollAnimation();
 }
 
 bool Player::canDash() const
@@ -536,11 +563,27 @@ void Player::dash()
 	prepDistVariables();
 	m_state = PlayerState::DASH;
 
-	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true);
+	dashAnimation();
 }
 
 void Player::prepDistVariables()
 {
 	m_currentDistance = 0;
 	m_moveDirection = m_playerEntity->getForwardVector();
+}
+
+void Player::rollAnimation()
+{
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
+	m_animMesh->setAnimationSpeed(1.6f);
+}
+
+void Player::dashAnimation()
+{
+	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true);
+}
+
+void Player::idleAnimation()
+{
+	m_animMesh->playBlendState("runOrIdle", 0.3f);
 }
