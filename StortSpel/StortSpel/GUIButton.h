@@ -77,18 +77,6 @@ public:
 		}
 	}
 
-	/*
-	if (inputData.rangeData[i].rangeFlag == Range::RAW)
-		{
-			if (!m_newIncrements)
-			{
-				m_incrementRotation = XMVectorZero();
-				m_newIncrements = true;
-			}
-
-			XMFLOAT2 mouseDelta = XMFLOAT2((float)inputData.rangeData[i].pos.x, (float)inputData.rangeData[i].pos.y);
-	*/
-
 	// Inherited via InputObserver
 	virtual void inputUpdate(InputData& inputData) override
 	{
