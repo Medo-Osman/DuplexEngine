@@ -63,7 +63,7 @@ public:
 		localTexture->GetDesc(&desc);
 
 		localTexture->Release();
-		resource->Release();
+		//resource->Release();
 		m_textureWidth = desc.Width;
 		m_textureHeight = desc.Height;
 		//
