@@ -33,6 +33,11 @@ private:
 
 	std::map<int, GUIObserver*> m_observers;
 
+	int m_textureWidth = 0;
+	int m_textureHeight = 0;
+
+	bool m_hovered = false;
+
 public:
 	GUIButton(std::wstring texturePath, GUIButtonStyle style)
 	{
@@ -48,6 +53,20 @@ public:
 	void setTexture(std::wstring texturePath)
 	{
 		texture = ResourceHandler::get().loadTexture(texturePath.data());
+
+		//Messy way to get the texture width and height
+		D3D11_TEXTURE2D_DESC desc;
+		ID3D11Texture2D* localTexture;
+		ID3D11Resource* resource = nullptr;
+		texture->GetResource(&resource);//GetDesc(&desc);
+		localTexture = static_cast<ID3D11Texture2D*>(resource);
+		localTexture->GetDesc(&desc);
+
+		localTexture->Release();
+		resource->Release();
+		m_textureWidth = desc.Width;
+		m_textureHeight = desc.Height;
+		//
 	}
 
 	void render(SpriteBatch* spriteBatch) override
@@ -73,6 +92,30 @@ public:
 	// Inherited via InputObserver
 	virtual void inputUpdate(InputData& inputData) override
 	{
+		//Mouse pos
+		float x = inputData.mousePtr->getPosX();
+		float y = inputData.mousePtr->getPosY();
+
+		if (x > m_style.position.x && x < (m_style.position.x + (m_textureWidth * m_style.scale.x))
+			&& y > m_style.position.y && y < (m_style.position.y + (m_textureHeight * m_style.scale.y)) && m_visible)
+		{
+			//Notify all observers
+			if (m_hovered == false)
+			{
+				//Send message to observers that something has happened
+				Notify(GUIUpdateType::HOVER_ENTER);
+				m_hovered = true;
+			}
+		}
+		else
+		{
+			if (m_hovered)
+			{
+				//Send message to observers that something has happened
+				Notify(GUIUpdateType::HOVER_EXIT);
+				m_hovered = false;
+			}
+		}
 
 
 		auto states = inputData.actionData;
@@ -81,26 +124,10 @@ public:
 			//If clicked left or right mouse button
 			if (states[i] == Action::USE)
 			{
-				//Mouse pos
-				float x = inputData.mousePtr->getPosX();
-				float y = inputData.mousePtr->getPosY();
-
-				
-				//Messy way to get the texture width and height
-				D3D11_TEXTURE2D_DESC desc;
-				ID3D11Texture2D* localTexture;
-				ID3D11Resource* resource = nullptr;
-				texture->GetResource(&resource);//GetDesc(&desc);
-				localTexture = static_cast<ID3D11Texture2D*>(resource);
-				localTexture->GetDesc(&desc);
-
-				localTexture->Release();
-				resource->Release();
-				//
 
 				//Bounds & visibility check
-				if (x > m_style.position.x && x < (m_style.position.x + (desc.Width * m_style.scale.x))
-					&& y > m_style.position.y && y < (m_style.position.y + (desc.Height * m_style.scale.y)) && m_visible)
+				if (x > m_style.position.x && x < (m_style.position.x + (m_textureWidth * m_style.scale.x))
+					&& y > m_style.position.y && y < (m_style.position.y + (m_textureHeight * m_style.scale.y)) && m_visible)
 				{
 					//Notify all observers
 					Notify(GUIUpdateType::CLICKED);

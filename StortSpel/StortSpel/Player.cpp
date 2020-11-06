@@ -45,10 +45,10 @@ Player::Player()
 	GUIButtonStyle btnStyle;
 	btnStyle.position = Vector2(140, 200);
 	btnStyle.scale = Vector2(0.5, 0.5);
-	m_testButtonIndex = GUIHandler::get().addGUIButton(L"ButtonStart.png", btnStyle);
+	closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
 	
 	//Attach to the click listener for the button
-	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_testButtonIndex))->Attach(this);
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
 
 }
 
@@ -483,6 +483,22 @@ void Player::update(GUIUpdateType type, GUIElement* guiElement)
 	if (type == GUIUpdateType::CLICKED)
 	{
 		GUIHandler::get().setVisible(guiElement->m_index, false);
+
+		//Set instructions to not visible
+		GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+	}
+
+
+	if (type == GUIUpdateType::HOVER_ENTER)
+	{
+		GUIButton* button = dynamic_cast<GUIButton*>(guiElement);
+		button->setTexture(L"closeButtonSelected.png");
+	}
+
+	if (type == GUIUpdateType::HOVER_EXIT)
+	{
+		GUIButton* button = dynamic_cast<GUIButton*>(guiElement);
+		button->setTexture(L"closeButton.png");
 	}
 }
 

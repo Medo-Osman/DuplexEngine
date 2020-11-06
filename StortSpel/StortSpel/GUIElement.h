@@ -1,6 +1,6 @@
 #pragma once
 enum class GUIType { NONE, TEXT, IMAGE, BUTTON };
-enum class GUIUpdateType {CLICKED, HOVER};
+enum class GUIUpdateType {CLICKED, HOVER_ENTER, HOVER_EXIT};
 
 
 class GUIElement
