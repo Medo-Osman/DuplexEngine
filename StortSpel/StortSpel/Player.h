@@ -107,7 +107,9 @@ private:
     void jump();
     void prepDistVariables();
 
-    
+    void rollAnimation();
+    void dashAnimation();
+    void idleAnimation();
   
 public:
     Player();
@@ -135,4 +137,6 @@ public:
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
+
+    void serverPlayerAnimationChange(PlayerState currentState, float currentBlend);
 };
