@@ -306,7 +306,10 @@ void AnimatedMeshComponent::setCurrentBlend(float blend)
 	}
 	else
 	{
-		m_currentState->blend = blend;
+		if (m_currentState != nullptr)
+		{
+			m_currentState->blend = blend;
+		}
 	}
 
 }

@@ -48,7 +48,7 @@ private:
 	std::unordered_map<std::string, LightComponent*>* m_lightComponentMap;
 
 	Player* m_player = nullptr;
-	std::vector<ServerPlayer*>* serverPlayers;
+	std::vector<Player*>* serverPlayers;
 
 	
 
@@ -89,5 +89,5 @@ public:
 	Camera* getCameraPtr();
 	Player* getPlayerPtr();
 
-	std::vector<ServerPlayer*>* getServerPlayers();
+	std::vector<Player*>* getServerPlayers();
 };

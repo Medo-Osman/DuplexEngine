@@ -175,7 +175,10 @@ Client::Client(Player* player, std::vector<ServerPlayer*> *serverPlayers)
 		m_serverPlayers->at(i) = serverPlayers->at(i);
 	}
 	m_serverPlayers->at(0)->getNetworkID();
-	ipAddress = "127.0.0.1";
+	//LOCALHOST
+	//ipAddress = "127.0.0.1";
+	//REGULAR IP
+	ipAddress = "109.228.165.63";
 	port = 54000;
 
 	//Connect to server

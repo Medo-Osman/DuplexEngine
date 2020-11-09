@@ -35,7 +35,7 @@ void runClient()
 	{
 
 		PacketHandler::get().update();
-		//std::this_thread::sleep_for(3ms);
+		std::this_thread::sleep_for(0.3ms);
 
 	}
 }

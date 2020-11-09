@@ -52,6 +52,8 @@ void Engine::update(const float& dt)
 	}
 	PacketHandler::get().setPlayerData(m_player->getPlayerEntity()->getTranslation());
 	PacketHandler::get().setPlayerData(m_player->getPlayerEntity()->getRotation());
+	PacketHandler::get().setPlayerData(m_player->getState());
+	PacketHandler::get().setPlayerData(m_player->getAnimMeshComp()->getCurrentBlend());
 	Vector4 test = m_player->getPlayerEntity()->getRotation();
 	for (int i = 0; i < 3; i++)
 	{
@@ -62,6 +64,7 @@ void Engine::update(const float& dt)
 
 		serverPlayers->at(i)->getPlayerEntity()->setPosition(PacketHandler::get().getPosAt(i + 1));
 		serverPlayers->at(i)->getPlayerEntity()->setRotationQuat(PacketHandler::get().getRotAt(i + 1));
+		serverPlayers->at(i)->serverPlayerAnimationChange((PlayerState)PacketHandler::get().getStateAt(i + 1), PacketHandler::get().getBlendAt(i + 1));
 
 	}
 }
@@ -161,6 +164,11 @@ Player* Engine::getPlayerPtr()
 	return m_player;
 }
 
+std::vector<Player*>* Engine::getServerPlayers()
+{
+	return this->serverPlayers;
+}
+
 
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
@@ -218,7 +226,7 @@ void Engine::initialize(Input* input)
 	m_player->setPlayerEntity(playerEntity);
 
 
-	serverPlayers = new std::vector<ServerPlayer*>(3);
+	serverPlayers = new std::vector<Player*>(3);
 	for (int i = 0; i < 3; i++)
 	{
 		Entity* serverEntity = new Entity(PLAYER_ENTITY_NAME + std::to_string(i + 1));
@@ -226,9 +234,13 @@ void Engine::initialize(Input* input)
 
 		AnimatedMeshComponent* serverMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 		serverEntity->addComponent("mesh", serverMeshComp);
+		serverMeshComp->addBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", true);
 
-		serverPlayers->at(i) = (new ServerPlayer(-1));
-		serverPlayers->at(i)->setPlayerEntity(serverEntity);
+		serverPlayers->at(i) = new Player();
+		serverPlayers->at(i)->setAnimMeshPtr(serverMeshComp);
+		serverPlayers->at(i)->setNetworkID(-1);
+		serverPlayers->at(i)->setPlayerEntity(serverEntity, false);
+
 	}
 
 	

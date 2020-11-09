@@ -29,7 +29,7 @@ private:
 	void createPointLight(Vector3 position, Vector3 color, float intensity);
 
 	Player* m_player;
-	std::vector<ServerPlayer*>* m_serverPlayers;
+	std::vector<Player*>* m_serverPlayers;
 	Material ObjectSpaceGrid;	// Temp global grid material
 	
 	Vector3 m_sceneEntryPosition;

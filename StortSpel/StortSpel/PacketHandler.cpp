@@ -9,6 +9,9 @@ PacketHandler::PacketHandler()
 	for (int i = 0; i < 4; i++)
 	{
 		serverPlayerData[i].ID = -1;
+		serverPlayerData[i].rot = XMQuaternionIdentity();
+		serverPlayerData[i].state = 9;
+		serverPlayerData[i].blend = 0;
 	}
 
 	ipAddress = "127.0.0.1";
@@ -102,6 +105,7 @@ void PacketHandler::playerData(Packet* _packet)
 	Vector4 rotation = _packet->ReadVector4();
 	int state = _packet->ReadInt();
 	float blend = _packet->ReadFloat();
+
 	for (int i = 1; i < 4; i++)
 	{
 		if (serverPlayerData[i].ID == ID)

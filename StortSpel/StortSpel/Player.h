@@ -122,7 +122,7 @@ public:
 
     void updatePlayer(const float& dt);
     
-    void setPlayerEntity(Entity* entity);
+    void setPlayerEntity(Entity* entity, bool local = true);
 
     Vector3 getCheckpointPos();
     void setCheckpoint(Vector3 newPosition);
@@ -141,6 +141,7 @@ public:
     void setNetworkID(int id) { this->m_playerID = id; }
 
     int getScore();
+    int getState();
     void setScore(int newScore);
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
@@ -149,4 +150,6 @@ public:
     // Inherited via GUIObserver
     virtual void update(GUIUpdateType type, GUIElement* guiElement) override;
     void serverPlayerAnimationChange(PlayerState currentState, float currentBlend);
+
+    AnimatedMeshComponent* getAnimMeshComp();
 };

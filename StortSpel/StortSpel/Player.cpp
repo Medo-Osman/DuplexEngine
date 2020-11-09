@@ -318,10 +318,13 @@ void Player::updatePlayer(const float& dt)
 	ImGui::End();
 }
 
-void Player::setPlayerEntity(Entity* entity)
+void Player::setPlayerEntity(Entity* entity, bool local)
 {
 	m_playerEntity = entity;
-	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
+	if (local)
+	{
+		m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
+	}
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
 }
 
@@ -371,6 +374,11 @@ float Player::getPlayerScale() const
 int Player::getScore()
 {
 	return m_score;
+}
+
+int Player::getState()
+{
+	return (int)this->m_state;
 }
 
 void Player::setScore(int newScore)
@@ -528,6 +536,11 @@ void Player::serverPlayerAnimationChange(PlayerState currentState, float current
 			break;
 		}
 	}
+}
+
+AnimatedMeshComponent* Player::getAnimMeshComp()
+{
+	return this->m_animMesh;
 }
 
 void Player::jump()
