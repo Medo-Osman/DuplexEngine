@@ -61,6 +61,18 @@
     <Filter Include="Source Files\Graphics\Particles">
       <UniqueIdentifier>{df34a05a-8cc6-4e67-91db-bedc4fbf50ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Graphics\Particles\RainingDog">
+      <UniqueIdentifier>{318e3fb0-0cbf-49b0-8345-a5e0f16d6197}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\Score">
+      <UniqueIdentifier>{5f471fb5-6b40-4b04-aed7-0dd0cf8ac577}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\RainingDog\Streamout">
+      <UniqueIdentifier>{c6fa122f-a9b8-43f6-8f61-94e4d0e5c2be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\RainingDog\Draw">
+      <UniqueIdentifier>{cb4f9acb-35a2-4e50-afe7-523299c12978}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -152,6 +164,9 @@
     </ClCompile>
     <ClCompile Include="SceneManager.cpp">
       <Filter>Source Files\Game\Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="Particles\Particle.cpp">
+      <Filter>Source Files\Graphics\Particles</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -344,6 +359,18 @@
     <ClInclude Include="AnimationResource.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
+    <ClInclude Include="Particles\Particle.h">
+      <Filter>Source Files\Graphics\Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="RainingDogsParticle.h">
+      <Filter>Source Files\Graphics\Particles\RainingDog</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles\ScorePickupParticle.h">
+      <Filter>Source Files\Graphics\Particles\Score</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">
@@ -402,20 +429,23 @@
     <FxCompile Include="ObjectSpaceGridPS.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
-    <FxCompile Include="Particles\DrawParticlePixelShader.hlsl">
-      <Filter>Source Files\Graphics\Particles</Filter>
-    </FxCompile>
-    <FxCompile Include="Particles\DrawStreamVertexShader.hlsl">
-      <Filter>Source Files\Graphics\Particles</Filter>
-    </FxCompile>
-    <FxCompile Include="Particles\RainGeometryShaderDraw.hlsl">
-      <Filter>Source Files\Graphics\Particles</Filter>
-    </FxCompile>
-    <FxCompile Include="Particles\RainGeometryShaderStreamOut.hlsl">
-      <Filter>Source Files\Graphics\Particles</Filter>
+    <FxCompile Include="Particles\ScorePickupGeometryShaderStreamOut.hlsl">
+      <Filter>Source Files\Graphics\Particles\Score</Filter>
     </FxCompile>
     <FxCompile Include="Particles\StreamOutVertexShader.hlsl">
-      <Filter>Source Files\Graphics\Particles</Filter>
+      <Filter>Source Files\Graphics\Particles\RainingDog\Streamout</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\RainGeometryShaderStreamOut.hlsl">
+      <Filter>Source Files\Graphics\Particles\RainingDog\Streamout</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\RainGeometryShaderDraw.hlsl">
+      <Filter>Source Files\Graphics\Particles\RainingDog\Draw</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\DrawStreamVertexShader.hlsl">
+      <Filter>Source Files\Graphics\Particles\RainingDog\Draw</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\DrawParticlePixelShader.hlsl">
+      <Filter>Source Files\Graphics\Particles\RainingDog\Draw</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

@@ -67,3 +67,52 @@ struct CS_BLUR_CBUFFER
     int direction;
     XMFLOAT2 pad;
 };
+
+__declspec(align(16)) struct projectionMatrix
+{
+    XMMATRIX g_viewProjectionMatrix;
+    XMFLOAT3 g_cameraPos;
+    int pad;
+    void* operator new(size_t i)
+    {
+        return _mm_malloc(i, 16);
+    }
+
+    void operator delete(void* p)
+    {
+        _mm_free(p);
+    }
+};
+__declspec(align(16)) struct acceleration
+{
+    XMFLOAT3 worldAcceleration;
+    int pad;
+
+    void* operator new(size_t i)
+    {
+        return _mm_malloc(i, 16);
+    }
+
+    void operator delete(void* p)
+    {
+        _mm_free(p);
+    }
+};
+__declspec(align(16)) struct ParticleDataVS //VS
+{
+    XMVECTOR worldEmitPosition;
+    float gameTime;
+    float dt;
+    float intensity; //1 - 100
+    int pad;
+
+    void* operator new(size_t i)
+    {
+        return _mm_malloc(i, 16);
+    }
+
+    void operator delete(void* p)
+    {
+        _mm_free(p);
+    }
+};

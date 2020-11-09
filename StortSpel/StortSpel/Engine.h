@@ -77,5 +77,6 @@ public:
 
 	Settings getSettings() const;
 	Camera* getCameraPtr();
+	float getGameTime();
 	Player* getPlayerPtr();
 };

@@ -3,6 +3,9 @@
 #include"PickupComponent.h"
 #include"RotateComponent.h"
 #include"Pickup.h"
+#include"ParticleComponent.h"
+#include"Particles\ScorePickupParticle.h"
+#include"Renderer.h"
 
 Scene::Scene()
 {
@@ -33,10 +36,29 @@ Scene::~Scene()
 	m_entities.clear();
 }
 
+void Scene::createParticleEntity(void* particleComponent, Vector3 position)
+{
+	ParticleComponent* pc = static_cast<ParticleComponent*>(particleComponent);
+	std::string name = "tempParticleEntity" + std::to_string(m_tempParticleID++);
+	Entity* particleEntity = this->addEntity(name);
+	particleEntity->setPosition(position);
+	pc->setTransform(particleEntity);
+	particleEntity->addComponent("particle", pc);
+	pc->activate();
+}
+
 void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
 {
+	Entity* entity = m_entities[physicsData.entityIdentifier];
+	if (physicsData.triggerType == TriggerType::PICKUP)
+	{
+		if (physicsData.associatedTriggerEnum == (int)PickupType::SCORE)
+		{
+			this->createParticleEntity(physicsData.pointer, entity->getTranslation());
+		}
+	}
 	std::vector<Component*> vec;
-	m_entities[physicsData.entityIdentifier]->getComponentsOfType(vec, ComponentType::MESH);
+	entity->getComponentsOfType(vec, ComponentType::MESH);
 	for (size_t i = 0; i < vec.size(); i++)
 	{
 		int id = static_cast<MeshComponent*>(vec[i])->getRenderId();
@@ -70,9 +92,12 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 		name = "score_" + std::to_string(m_nrOfScore++);
 
 	Entity* pickupPtr = addEntity(name);
+
+	ParticleComponent* particleComponent = new ParticleComponent(pickupPtr, new RainingDogParticle(), Renderer::get().getDevice());
+
 	pickupPtr->setPosition(position);
 	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST));
-	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
+	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6, particleComponent));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger(pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
@@ -139,7 +164,7 @@ void Scene::loadLobby()
 			new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
 	}
 
-	Entity* skybox = addEntity("SkyBox");
+	/*Entity* skybox = addEntity("SkyBox");
 	skybox->m_canCull = false;
 	if (skybox)
 	{
@@ -147,7 +172,7 @@ void Scene::loadLobby()
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		addComponent(skybox, "cube", 
 			new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-	}
+	}*/
 
 	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
 }
@@ -304,14 +329,14 @@ void Scene::loadScene(std::string path)
 	}
 	*/
 
-	Entity* skybox = addEntity("SkyBox");
+	/*Entity* skybox = addEntity("SkyBox");
 	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-	}
+	}*/
 	/////////////////////////////////////////////////////////////////////////////////////
 
 

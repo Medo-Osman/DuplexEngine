@@ -2,6 +2,7 @@
 #include "Player.h"
 #include"Pickup.h"
 #include"SpeedPickup.h"
+#include"ParticleComponent.h"
 
 Player::Player()
 {

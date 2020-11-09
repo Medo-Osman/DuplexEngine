@@ -1,6 +1,7 @@
 #include"3DPCH.h"
 //#include "MeshComponent.h"
 #include"Renderer.h"
+#include"ParticleComponent.h"
 
 Renderer::Renderer()
 {
@@ -207,6 +208,9 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
+
+
+	Particle::setupStaticDataForParticle(m_devicePtr.Get());
 
 	return hr;
 }
@@ -538,6 +542,16 @@ void Renderer::update(const float& dt)
 	{
 		m_frustumCullingOn = !m_frustumCullingOn;
 	}
+
+}
+
+void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
+{
+	this->m_dContextPtr->VSSetShader(vsPtr, nullptr, 0);
+	this->m_dContextPtr->HSSetShader(hsPtr, nullptr, 0);
+	this->m_dContextPtr->DSSetShader(dsPtr, nullptr, 0);
+	this->m_dContextPtr->GSSetShader(gsPtr, nullptr, 0);
+	this->m_dContextPtr->PSSetShader(psPtr, nullptr, 0);
 }
 
 void Renderer::render()
@@ -571,6 +585,27 @@ void Renderer::render()
 	//m_rTargetViewsArray[0] = m_finalRenderTargetViewPtr.Get();
 	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+
+	//Particles
+	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
+	//Draw all particles here
+	//this->particle.draw(this->m_dContextPtr.Get());
+
+	for (auto& entity : *Engine::get().getEntityMap())
+	{
+		std::vector<Component*> vec;
+		entity.second->getComponentsOfType(vec, ComponentType::PARTICLE);
+
+		for (int i = 0; i < vec.size(); i++)
+		{
+			static_cast<ParticleComponent*>(vec[i])->draw(m_dContextPtr.Get());
+		}
+	}
+	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
+	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
+	this->m_dContextPtr->PSSetSamplers(1, 1, this->m_psSamplerState.GetAddressOf());
+
+	//End of particles
 
 	// Skybox constant buffer:
 	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);

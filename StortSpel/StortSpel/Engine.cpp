@@ -121,6 +121,11 @@ Camera* Engine::getCameraPtr()
 {
 	return &m_camera;
 }
+
+float Engine::getGameTime()
+{
+	return ApplicationLayer::getInstance().getGameTime();
+}
 Player* Engine::getPlayerPtr()
 {
 	return m_player;

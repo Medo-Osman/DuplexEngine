@@ -1,6 +1,7 @@
 #pragma once
 #include "Player.h"
 #include "Engine.h"
+#include"ParticleComponent.h"
 
 enum class ScenesEnum
 {
@@ -12,6 +13,7 @@ enum class ScenesEnum
 class Scene : public PhysicsObserver
 {
 private:
+	int m_tempParticleID = 0;
 	//std::unordered_map<std::string, Entity*> m_entities;
 	//Entity* m_player;
 	//std::vector<
@@ -54,6 +56,8 @@ private:
 	int m_nrOfScore = 0;
 	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
 	void addCheckpoint(const Vector3& position);
+	void createParticleEntity(void* particleComponent, Vector3 position);
+
 	int m_nrOfCheckpoints = 0;
 public:
 	Scene();

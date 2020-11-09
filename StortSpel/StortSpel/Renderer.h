@@ -7,7 +7,9 @@
 #include "GUIHandler.h"
 #include "Scene.h"
 //#include "LightComponent.h"
-
+#include"Particles\Particle.h"
+#include"Particles\RainingDogsParticle.h"
+#include"Particles\ScorePickupParticle.h"
 
 
 class Renderer
@@ -78,7 +80,6 @@ private:
 		D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_11_0,
 	};
 
-
 	//Variables
 	ID3D11DepthStencilState* skyboxDSSPtr;
 
@@ -91,7 +92,6 @@ private:
 
 	//FrustumCulling
 	bool m_frustumCullingOn = true;
-
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
@@ -125,7 +125,7 @@ public:
 	HRESULT initialize(const HWND& window);
 	void release();
 	void update(const float& dt);
-	void frustumCull();
+	void setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr);
 	void render();
 	ID3D11Device* getDevice();
 	ID3D11DeviceContext* getDContext();
