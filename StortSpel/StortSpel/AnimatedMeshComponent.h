@@ -39,6 +39,8 @@ struct animState
 
 	float startTransitionDuration;
 	bool playDuringStartTransistion;
+
+	std::string stateName;
 };
 
 class AnimatedMeshComponent : public MeshComponent
