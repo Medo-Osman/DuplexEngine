@@ -102,7 +102,7 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	pickupPtr = addEntity(name);
 	pickupPtr->setPosition(position);
 	addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, 1.f, 6));
+	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, 2.f, 6));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger(pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
@@ -198,6 +198,12 @@ void Scene::loadLobby()
 	createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
 
 	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
+
+	// Test Powerup
+	addPickup(Vector3(-10.f, 5.f, 5.f));
+	addPickup(Vector3(-5.f, 5.f, 5.f));
+	addPickup(Vector3(0.f, 5.f, 5.f));
+	addPickup(Vector3(5.f, 5.f, 5.f));
 }
 
 void Scene::loadScene(std::string path)

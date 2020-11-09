@@ -100,7 +100,7 @@ void Player::handleRotation(const float &dt)
 		targetRot.Normalize();
 	
 		//Land somewhere in between target and current
-		slerped = Quaternion::Slerp(currentRotation, targetRot, dt / 0.08f);
+		slerped = Quaternion::Slerp(currentRotation, targetRot, dt / PLAYER_ROTATION_SPEED);
 		slerped.Normalize();
 
 		//Display slerped result
@@ -121,7 +121,7 @@ void Player::playerStateLogic(const float& dt)
 	switch (m_state)
 	{
 	case PlayerState::ROLL:
-		std::cout << "ROLL\n";
+
 		if (m_currentDistance >= ROLL_TRAVEL_DISTANCE)
 		{
 			m_lastState = PlayerState::ROLL;
@@ -133,40 +133,55 @@ void Player::playerStateLogic(const float& dt)
 		}
 		else
 		{
+			/*Vector3 move = m_moveDirection * ROLL_SPEED * dt;
+			move.y += -GRAVITY;*/
+			directionalMovement = m_moveDirection;
+			m_horizontalMultiplier += ROLL_SPEED * dt;
+
 			m_currentDistance += ROLL_SPEED * dt;
-			Vector3 move = m_moveDirection * ROLL_SPEED * dt;
-			move.y += -GRAVITY;
-			m_velocity += move;
-			//m_controller->move(move, dt);
 		}
 		break;
+
 	case PlayerState::DASH:
-		std::cout << "DASH\n";
+
 		if (m_currentDistance >= DASH_TRAVEL_DISTANCE)
 		{
 			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
 			m_animMesh->playBlendState("runOrIdle", 0.5f);
+			m_horizontalMultiplier = PLAYER_MAX_SPEED;
+			m_beginDashSpeed = -1.f;
 		}
 		else
 		{
-			m_currentDistance += DASH_TRAVEL_DISTANCE * DASH_SPEED;
-			m_velocity += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE;
-			//m_controller->move(m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE * dt, dt);
+			/*m_currentDistance += DASH_TRAVEL_DISTANCE * DASH_SPEED;
+			m_velocity += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE;*/
+
+			m_currentDistance += DASH_SPEED * dt * m_currentSpeedModifier;
+
+			float t = m_currentDistance / (DASH_TRAVEL_DISTANCE * m_currentSpeedModifier);
+			float sqt = t * t;
+			float parametricBlend = sqt / (2.0f * (sqt - t) + 1.0f);
+			float speedValue = lerp(m_beginDashSpeed, DASH_TRAVEL_DISTANCE * m_currentSpeedModifier, parametricBlend); // m_beginDashSpeed is set in dash() function
+			m_horizontalMultiplier = speedValue;
+
+			directionalMovement = m_moveDirection;
+			//m_horizontalMultiplier += m_currentDistance * DASH_SPEED * dt;
+			m_verticalMultiplier = 0.f;
 		}
 		break;
+
 	case PlayerState::FALLING:
-		std::cout << "FALLING\n";
 
 		if (directionalMovement.LengthSquared() > 0)
 		{
 			// Add Speed
-			m_horizontalMultiplier += PLAYER_ACCELERATION * dt;
+			m_horizontalMultiplier += PLAYER_AIR_ACCELERATION * dt * m_currentSpeedModifier;
 
 			// Limit Speed
-			if (m_horizontalMultiplier > PLAYER_MAX_SPEED)
-				m_horizontalMultiplier = PLAYER_MAX_SPEED;
+			if (m_horizontalMultiplier > PLAYER_MAX_SPEED * m_currentSpeedModifier)
+				m_horizontalMultiplier = PLAYER_MAX_SPEED * m_currentSpeedModifier;
 		}
 
 		// Limit Jump
@@ -184,15 +199,15 @@ void Player::playerStateLogic(const float& dt)
 		break;
 
 	case PlayerState::JUMPING:
-		std::cout << "JUMPING\n";
+
 		if (directionalMovement.LengthSquared() > 0)
 		{
 			// Add Speed
-			m_horizontalMultiplier += PLAYER_ACCELERATION * dt;
+			m_horizontalMultiplier += PLAYER_AIR_ACCELERATION * dt * m_currentSpeedModifier;
 
 			// Limit Speed
-			if (m_horizontalMultiplier > PLAYER_MAX_SPEED)
-				m_horizontalMultiplier = PLAYER_MAX_SPEED;
+			if (m_horizontalMultiplier > PLAYER_MAX_SPEED * m_currentSpeedModifier)
+				m_horizontalMultiplier = PLAYER_MAX_SPEED * m_currentSpeedModifier;
 		}
 
 		if (m_verticalMultiplier < 0.f)
@@ -203,17 +218,17 @@ void Player::playerStateLogic(const float& dt)
 		}
 
 		break;
+
 	case PlayerState::IDLE:
-		//std::cout << "IDLE\n";
 
 		if (directionalMovement.LengthSquared() > 0)
 		{
 			// Add Speed
-			m_horizontalMultiplier += PLAYER_ACCELERATION * dt;
+			m_horizontalMultiplier += PLAYER_ACCELERATION * dt * m_currentSpeedModifier;
 
 			// Limit Speed
-			if (m_horizontalMultiplier > PLAYER_MAX_SPEED)
-				m_horizontalMultiplier = PLAYER_MAX_SPEED;
+			if (m_horizontalMultiplier > PLAYER_MAX_SPEED * m_currentSpeedModifier)
+				m_horizontalMultiplier = PLAYER_MAX_SPEED * m_currentSpeedModifier;
 		}
 
 		if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
@@ -223,6 +238,7 @@ void Player::playerStateLogic(const float& dt)
 			m_verticalMultiplier = 0.f;
 		}
 		break;
+
 	default:
 		break;
 	}
@@ -244,8 +260,22 @@ void Player::playerStateLogic(const float& dt)
 	m_timeCounter += dt;
 	if (m_timeCounter > 1.f)
 	{
-		std::cout << m_verticalMultiplier << "\n";
-		m_timeCounter = 0.f;
+		std::cout << m_horizontalMultiplier << "\n";
+		std::cout << m_currentSpeedModifier << "\n";
+
+		switch (m_state)
+		{
+		case PlayerState::DASH:		std::cout << "DASH\n"; break;
+		case PlayerState::ROLL:		std::cout << "ROLL\n"; break;
+		case PlayerState::JUMPING:	std::cout << "JUMPING\n"; break;
+		case PlayerState::FALLING:	std::cout << "FALLING\n"; break;
+		case PlayerState::IDLE:		std::cout << "IDLE\n"; break;
+		default: break;
+		}
+
+		std::cout << "\n";
+
+		m_timeCounter -= 1.f;
 	}
 
 	// Final frame velocity
@@ -267,7 +297,7 @@ void Player::playerStateLogic(const float& dt)
 		if ((PLAYER_MAX_SPEED * dt) <= 0.0f)
 			blend = 0.0f;
 		
-		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
+		m_animMesh->setCurrentBlend( std::fmin(blend, 1.4f) );
 		//// analog animation:
 		//if (vectorLen > 0)
 		//	m_animMesh->setCurrentBlend(1.f);
@@ -276,7 +306,11 @@ void Player::playerStateLogic(const float& dt)
 	}
 
 	// Deceleration
-	m_horizontalMultiplier -= PLAYER_DECELERATION * dt;
+	if (m_state == PlayerState::FALLING)
+		m_horizontalMultiplier -= PLAYER_AIR_DECELERATION * dt;
+	else
+		m_horizontalMultiplier -= PLAYER_DECELERATION * dt;
+
 	if (m_horizontalMultiplier < 0.f)
 		m_horizontalMultiplier = 0.f;
 
@@ -532,7 +566,7 @@ void Player::roll()
 	m_state = PlayerState::ROLL;
 
 	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
-	m_animMesh->setAnimationSpeed(1.6f);
+	m_animMesh->setAnimationSpeed(2.f);
 }
 
 bool Player::canDash() const
@@ -544,12 +578,12 @@ void Player::dash()
 {
 	prepDistVariables();
 	m_state = PlayerState::DASH;
-
-	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true);
+	m_beginDashSpeed = m_horizontalMultiplier;
+	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.2f, true);
 }
 
 void Player::prepDistVariables()
 {
-	m_currentDistance = 0;
+	m_currentDistance = 0.f;
 	m_moveDirection = m_playerEntity->getForwardVector();
 }

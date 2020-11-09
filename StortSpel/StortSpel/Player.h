@@ -36,8 +36,9 @@ private:
 
     //WALK CONFIG
     const float PLAYER_MAX_SPEED = 10.f;
-    const float PLAYER_ACCELERATION = 30.f;
-    const float PLAYER_DECELERATION = 15.f;
+    const float PLAYER_ACCELERATION = 50.f; // times dt
+    const float PLAYER_DECELERATION = 30.f; // times dt
+    const float PLAYER_ROTATION_SPEED = 0.07f;
     float m_verticalMultiplier;
     float m_horizontalMultiplier;
     Vector3 m_movementVector;
@@ -45,23 +46,25 @@ private:
 
     //JUMP CONFIG
     const float JUMP_SPEED = 10.f;
+    const float PLAYER_AIR_ACCELERATION = 40.f;
+    const float PLAYER_AIR_DECELERATION = 30.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
 
-    // Gravity
-    const float GRAVITY = 9.82f;
+    //FALLING / GRAVITY CONFIG
+    const float GRAVITY = 9.82f; // times dt
     const float MAX_FALL_SPEED = 20.f;
-    float m_gravityScale = 3.f;
-    PlayerState m_lastState;
+    float m_gravityScale = 4.f;
 
     //DASH CONFIG 
-    const float DASH_TRAVEL_DISTANCE = 7.f;
-    const float DASH_SPEED = 10.0f;
+    const float DASH_TRAVEL_DISTANCE = 25.f;
+    const float DASH_SPEED = 80.0f;
+    float m_beginDashSpeed = -1.f;
     bool m_hasDashed;
 
     //Roll CONFIG
-    const float ROLL_TRAVEL_DISTANCE = 10.f;
-    const float ROLL_SPEED = 15.0f;
+    const float ROLL_TRAVEL_DISTANCE = 30.f;
+    const float ROLL_SPEED = 60.0f;
     const float ROLL_HEIGHT = 0.3f;
     const float ROLL_RADIUS = 0.2f;
 
@@ -78,6 +81,7 @@ private:
     float m_currentDistance;
     Vector3 m_moveDirection;
     PlayerState m_state;
+    PlayerState m_lastState;
     Entity* m_playerEntity;
     AnimatedMeshComponent* m_animMesh;
     CharacterControllerComponent* m_controller;
@@ -97,8 +101,8 @@ private:
     AudioComponent* m_audioComponent;
 
     //Checkpoint
-    Vector3 m_checkpointPos = Vector3(0, 9, 5);
-    int m_heightLimitBeforeRespawn = -15;
+    Vector3 m_checkpointPos = Vector3(0.f, 9.f, 5.f);
+    int m_heightLimitBeforeRespawn = -10.f;
 
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);

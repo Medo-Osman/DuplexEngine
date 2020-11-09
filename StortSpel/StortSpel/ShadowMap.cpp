@@ -61,7 +61,6 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 	assert(SUCCEEDED(succ));
 
 	m_direction = lightDir;
-
 }
 
 ShadowMap::~ShadowMap()
