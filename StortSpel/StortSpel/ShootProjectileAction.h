@@ -7,7 +7,7 @@ private:
 	BossStructures::BossActionData m_data;
 	BossStructures::actionTimeData m_timeData;
 	Timer m_timer;
-	float m_shootInterval = 1.f; //Seconds
+	float m_shootInterval = 15.f; //Seconds
 
 public:
 	ShootProjectileAction(Entity* bossEntity, BossSubject* bossSubject)
@@ -46,7 +46,7 @@ public:
 		{
 			m_data.origin = m_bossEntity->getTranslation();
 			m_data.direction = m_data.direction;//Vector3(0, 0, 1);
-			m_data.speed = 0.6f;
+			m_data.speed = 1.f;
 
 			m_subjectPtr->Notify(BossMovementType::ShootProjectile, m_data);
 			m_timer.restart();

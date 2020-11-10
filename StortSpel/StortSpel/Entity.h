@@ -29,6 +29,11 @@ public:
 			component.second->update(dt);
 	}
 
+	std::string getIdentifier()
+	{
+		return m_identifier;
+	}
+
 	// Component Handling
 	void addComponent(std::string newComponentName, Component* newComponent)
 	{

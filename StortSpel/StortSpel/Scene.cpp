@@ -129,6 +129,7 @@ void Scene::loadLobby()
 		m_boss->Attach(this);
 		actionID = m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss));
 		dynamic_cast<ShootProjectileAction*>(m_boss->getActionQueue()->at(actionID))->setTarget(m_player->getPlayerEntity()->getTranslation());
+		//Physics::get().Attach(m_boss, false, true);
 		//action->setTarget(m_player->getPlayerEntity()->getTranslation());
 	}
 
@@ -769,6 +770,14 @@ Entity* Scene::addEntity(std::string identifier)
 
 void Scene::removeEntity(std::string identifier)
 {
+	std::vector<Component*> meshCompVec;
+	m_entities[identifier]->getComponentsOfType(meshCompVec, ComponentType::MESH);
+	for (auto meshComponent : meshCompVec)
+	{
+		int index = static_cast<MeshComponent*>(meshComponent)->getRenderId();
+		m_meshComponentMap.erase(index);
+		m_entities[identifier]->removeComponent(meshComponent);
+	}
 	delete m_entities[identifier];
 	m_entities.erase(identifier);
 }
@@ -970,7 +979,10 @@ void Scene::createProjectile(Vector3 origin, Vector3 dir, float speed)
 		createNewPhysicsComponent(projectileEntity, true);
 		static_cast<PhysicsComponent*>(projectileEntity->getComponent("physics"))->makeKinematic();
 
-		addComponent(projectileEntity, "bullet",
-			new ProjectileComponent(projectileEntity, origin, dir, speed));
+		addComponent(projectileEntity, "projectile",
+			new ProjectileComponent(projectileEntity, projectileEntity, origin, dir, speed));
+		
+		static_cast<TriggerComponent*>(projectileEntity->getComponent("projectile"))->initTrigger(projectileEntity, { 1, 1, 1 });
+
 	}
 }

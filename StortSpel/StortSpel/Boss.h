@@ -13,7 +13,7 @@ E.g. spawn a meteor
 Drop points, but only up to a max, or maybe mark a move as point drop move
 */
 
-class Boss : public BossSubject
+class Boss : public BossSubject, public PhysicsObserver
 {
 private:
 	std::map<int, BossObserver*> m_observers;
@@ -25,6 +25,7 @@ private:
 	UINT m_uniqueActionID = 0;
 public:
 	Boss() { };
+	~Boss();
 	void update();
 	void initialize(Entity* entity);
 	UINT addAction(BossStructures::BaseAction* action);
@@ -37,6 +38,9 @@ public:
 	virtual void Attach(BossObserver* observer) override;
 	virtual void Detach(BossObserver* observer) override;
 	virtual void Notify(BossMovementType type, BossStructures::BossActionData data) override;
+
+	// Inherited via PhysicsObserver
+	virtual void sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity) override;
 };
 
 

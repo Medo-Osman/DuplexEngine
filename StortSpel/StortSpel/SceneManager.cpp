@@ -93,6 +93,22 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 			m_swapScene = true;
 		}
 	}
+
+	if (physicsData.triggerType == TriggerType::PROJECTILE)
+	{
+		if ((EventType)physicsData.associatedTriggerEnum == EventType::BOSS_PROJECTILE_HIT)
+		{
+			Entity* ptr = static_cast<Entity*>(physicsData.pointer);
+			auto component = static_cast<ProjectileComponent*>(ptr->getComponent("projectile"));
+
+			if (component->m_timer.timeElapsed() > component->m_removalDebounce)
+			{
+				std::cout << "Delete star!" << std::endl;
+
+				//m_currentScene->removeEntity(ptr->getIdentifier());
+			}
+		}
+	}
 }
 
 void SceneManager::swapScenes()

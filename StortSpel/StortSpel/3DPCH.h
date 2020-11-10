@@ -104,4 +104,5 @@ enum class TriggerType
 enum class EventType
 {
 	SWAPSCENE,
+	BOSS_PROJECTILE_HIT,
 };

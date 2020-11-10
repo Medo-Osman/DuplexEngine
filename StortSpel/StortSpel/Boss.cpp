@@ -2,6 +2,11 @@
 #include "Boss.h"
 int BossObserver::nr = 0;
 
+Boss::~Boss()
+{
+	Physics::get().Detach(this, true, false);
+}
+
 void Boss::update()
 {
 	if (m_currentAction && !m_currentAction->isDone())
@@ -14,6 +19,7 @@ void Boss::update()
 void Boss::initialize(Entity* entity)
 {
 	m_bossEntity = entity;
+	Physics::get().Attach(this, true, false);
 }
 
 UINT Boss::addAction(BossStructures::BaseAction* action)
@@ -61,5 +67,17 @@ void Boss::Notify(BossMovementType type, BossStructures::BossActionData data)
 	for (auto observer : m_observers)
 	{
 		observer.second->bossEventUpdate(type, data);
+	}
+}
+
+void Boss::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity)
+{
+	if (physicsData.triggerType == TriggerType::PROJECTILE)
+	{
+
+		if ((EventType)physicsData.associatedTriggerEnum == EventType::BOSS_PROJECTILE_HIT)
+		{
+			std::cout << "Drop points!" << std::endl;
+		}
 	}
 }

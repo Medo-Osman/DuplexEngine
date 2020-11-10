@@ -424,6 +424,9 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 {
 	if (!shouldTriggerEntityBeRemoved)
 	{
+		/*if (physicsData.triggerType == TriggerType::PROJECTILE)
+			std::cout << "PROJECTILE HIT SOMETHING" << std::endl;*/
+
 		if (physicsData.triggerType == TriggerType::CHECKPOINT)
 		{
 			Entity* ptr = static_cast<Entity*>(physicsData.pointer);
