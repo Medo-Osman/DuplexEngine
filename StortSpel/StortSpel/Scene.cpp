@@ -92,17 +92,16 @@ void Scene::addCheckpoint(const Vector3& position)
 	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.1f));
 }
 
-void Scene::addBarrelDrop()
+void Scene::addBarrelDrop(Vector3 Position)
 {
 	Entity* rollingBarrel = addEntity("barrel"); //+ std::to_string(m_nrOfBarrelDrops++));
 
 	if (rollingBarrel)
 	{
-
 		addComponent(rollingBarrel, "mesh",
 			new MeshComponent("testCube_pCube1.lrm"));
 
-		rollingBarrel->setPosition(-30, 50, 130);
+		rollingBarrel->setPosition(Position);
 		createNewPhysicsComponent(rollingBarrel, true, "", PxGeometryType::eSPHERE, "wood", true);
 		static_cast<PhysicsComponent*>(rollingBarrel->getComponent("physics"))->setMass(100.0f);
 		addComponent(rollingBarrel, "barrel", new BarrelComponent());
@@ -112,29 +111,27 @@ void Scene::addBarrelDrop()
 	}
 }
 
-void Scene::addSlowTrap(const Vector3& position)
+void Scene::addSlowTrap(const Vector3& position, Vector3 scale)
 {
 	Entity* slowTrap = addEntity("trap"+std::to_string(m_nrOftraps++));
 	addComponent(slowTrap,"mesh", new MeshComponent("testCube_pCube1.lrm"));
 	slowTrap->setPosition(position + Vector3(0, -0.25f, 0));
-	slowTrap->scale(1.5,1.5,1.5);
+	slowTrap->scale(scale);
 
 	addComponent(slowTrap, "trap", new SlowTrapComponent(slowTrap, TrapType::SLOW));
-	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(slowTrap, { 1,1,1 });
+	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(slowTrap, { scale });
 
 	addComponent(slowTrap, "sound", new AudioComponent(L"OnPickup.wav", false));
 
 }
 
-void Scene::addPushTrap()
+void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition)
 {
-
 	Entity* pushWall = addEntity("wall");
 	if (pushWall)
 	{
-
 		addComponent(pushWall, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
+			new MeshComponent("testCube_pCube1.lrm"));
 		pushWall->setScale(Vector3(10, 5, 1));
 		pushWall->rotate(0, 1.57, 0);
 
@@ -142,8 +139,9 @@ void Scene::addPushTrap()
 		static_cast<PhysicsComponent*>(pushWall->getComponent("physics"))->makeKinematic();
 
 		addComponent(pushWall, "sweep",
-			new SweepingComponent(pushWall, Vector3(-5, 20, 58), Vector3(5, 20, 58), 1, true));
+			new SweepingComponent(pushWall, Vector3(wallPosition1), Vector3(wallPosition2), 1, true));
 	}
+
 	Entity* pushWallTrigger = addEntity("pushTrigger");
 	if (pushWallTrigger)
 	{
@@ -282,8 +280,9 @@ void Scene::loadScene(std::string path)
 	addCheckpoint(Vector3(-30, 40, 144));
 	addCheckpoint(Vector3(-11, 40, 218.5));
 
-	addSlowTrap(Vector3(0, 13, 30));
-	addPushTrap();
+	addSlowTrap(Vector3(0, 13, 30), Vector3(3,3,3));
+	addPushTrap(Vector3(-5, 20, 58), Vector3(5, 20, 58), Vector3(0, 18, 50));
+	
 	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
 

@@ -55,7 +55,6 @@ private:
 
 	Input* m_input = nullptr;
 	
-	std::vector<Entity*>* m_barrelVector;
 
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
 	void updateLightData();

@@ -110,7 +110,7 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 		
 			if (barrelTriggerPtr->m_triggerTimer.timeElapsed() >= 3)
 			{
-				m_currentScene->addBarrelDrop();
+				m_currentScene->addBarrelDrop(Vector3(-30, 50, 130));
 				barrelTriggerPtr->m_triggerTimer.restart();
 				m_currentScene->addedBarrel = true;
 			}
