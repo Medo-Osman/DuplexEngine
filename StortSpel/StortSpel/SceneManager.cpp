@@ -99,6 +99,10 @@ void SceneManager::swapScenes()
 {
 	m_swapScene = false;
 	Physics::get().Detach(m_currentScene, false, true);
+	
+	//Reset boss
+	if (m_currentScene->m_boss)
+		m_currentScene->m_boss->Detach(m_currentScene);
 
 	// Swap
 	delete m_currentScene;

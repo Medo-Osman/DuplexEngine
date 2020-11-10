@@ -13,6 +13,7 @@
 #include "AudioComponent.h"
 #include "CheckpointComponent.h"
 #include "Camera.h"
+#include "ProjectileComponent.h"
 
 
 struct Settings

@@ -218,6 +218,7 @@
     <ClCompile Include="AnimatedMeshComponent.cpp" />
     <ClCompile Include="ApplicationLayer.cpp" />
     <ClCompile Include="AudioHandler.cpp" />
+    <ClCompile Include="Boss.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Component.h" />
     <ClCompile Include="Engine.cpp" />
@@ -255,6 +256,8 @@
     <ClInclude Include="ApplicationLayer.h" />
     <ClInclude Include="AudioComponent.h" />
     <ClInclude Include="AudioHandler.h" />
+    <ClInclude Include="BaseAction.h" />
+    <ClInclude Include="Boss.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CharacterControllerComponent.h" />
@@ -282,10 +285,12 @@
     <ClInclude Include="MeshResource.h" />
     <ClInclude Include="PerformanceTester.h" />
     <ClInclude Include="PickupComponent.h" />
+    <ClInclude Include="ProjectileComponent.h" />
     <ClInclude Include="RotateComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="ShadowMap.h" />
+    <ClInclude Include="ShootProjectileAction.h" />
     <ClInclude Include="SpeedPickup.h" />
     <ClInclude Include="SweepingComponent.h" />
     <ClInclude Include="PhysicsComponent.h" />

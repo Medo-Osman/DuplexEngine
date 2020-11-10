@@ -31,6 +31,10 @@ Scene::~Scene()
 	}
 
 	m_entities.clear();
+
+	//Clean boss
+	if (m_boss)
+		delete m_boss;
 }
 
 void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
@@ -107,8 +111,28 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
 
+UINT actionID;
 void Scene::loadLobby()
 {
+	Entity* bossEnt = addEntity("boss");
+	if (bossEnt)
+	{
+		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		bossEnt->addComponent("mesh", animMeshComp);
+		addMeshComponent(animMeshComp);
+		bossEnt->scale({ 4, 4, 4 });
+		bossEnt->translate({ 0,2,0 });
+
+		//ShootProjectileAction* action = ;
+		m_boss = new Boss();
+		m_boss->initialize(bossEnt);
+		m_boss->Attach(this);
+		actionID = m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss));
+		dynamic_cast<ShootProjectileAction*>(m_boss->getActionQueue()->at(actionID))->setTarget(m_player->getPlayerEntity()->getTranslation());
+		//action->setTarget(m_player->getPlayerEntity()->getTranslation());
+	}
+
+
 	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
 	Entity* music = addEntity("lobbyMusic");
@@ -366,7 +390,9 @@ void Scene::loadScene(std::string path)
 		//a6->playAnimation("dropkickRigTest2", true);
 		
 		//a4->playAnimation("skelTestBranchAnimation",true);  // skelTestBaked_pCube1.lrsm skelTestBaked skelTestStairsAnimation_stairs.lrsm skelTestStairsAnimation Running3.1_Cube.lrsm Running3.1 
-															// skelTestBranchAnimation_skelTestBranch.lrsm skelTestBranchAnimation
+															// skelTestBranchAnimation_skelTestBranch.
+															
+skelTestBranchAnimation
 		skelTest->translate({ 0.f, 1.5f, -20.f });
 	}
 	*/
@@ -696,6 +722,11 @@ void Scene::loadMaterialTest()
 
 void Scene::updateScene(const float& dt)
 {
+	if (m_boss)
+		m_boss->update();
+
+	dynamic_cast<ShootProjectileAction*>(m_boss->getActionQueue()->at(actionID))->setTarget(m_player->getPlayerEntity()->getTranslation());
+
 	// AUDIO TEST
 	/*m_nightVolume += dt * m_nightSlide;
 	if (m_nightVolume < 0.f)
@@ -864,6 +895,13 @@ std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMa
 	return &m_meshComponentMap;
 }
 
+void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionData data)
+{
+	//std::cout << "BOSS FIRED" << nr << std::endl;
+	createProjectile(data.origin, data.direction, data.speed);
+
+}
+
 void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)
 {
 	m_nrOfSweepingPlatforms++;
@@ -912,5 +950,27 @@ void Scene::createPointLight(Vector3 position, Vector3 color, float intensity)
 		pointLight->setIntensity(intensity);
 		addComponent(pLight, "point-" + std::to_string(m_nrOfPointLight), pointLight);
 		pLight->setPosition(position);
+	}
+}
+
+void Scene::createProjectile(Vector3 origin, Vector3 dir, float speed)
+{
+	m_nrOfProjectiles++;
+
+	Entity* projectileEntity = addEntity("Projectile-" + std::to_string(m_nrOfProjectiles));
+	if (projectileEntity)
+	{
+		addComponent(projectileEntity, "mesh",
+			new MeshComponent("Star.lrm", Material({ L"DarkGrayTexture.png" })));
+		//new MeshComponent("SquarePlatform.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
+
+		projectileEntity->setPosition(origin);
+		projectileEntity->scale(1, 1, 1);
+
+		createNewPhysicsComponent(projectileEntity, true);
+		static_cast<PhysicsComponent*>(projectileEntity->getComponent("physics"))->makeKinematic();
+
+		addComponent(projectileEntity, "bullet",
+			new ProjectileComponent(projectileEntity, origin, dir, speed));
 	}
 }

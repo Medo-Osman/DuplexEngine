@@ -58,6 +58,12 @@
     <Filter Include="Source Files\Graphics\GUI">
       <UniqueIdentifier>{7155dc50-d617-41f6-a310-ab0c68149543}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Game\Boss">
+      <UniqueIdentifier>{c67d7d09-c5ba-4473-8184-1258674324e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Game\Boss\Moves">
+      <UniqueIdentifier>{121a8da7-4fb3-4c20-8b12-22d9839235f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -152,6 +158,9 @@
     </ClCompile>
     <ClCompile Include="ShadowMap.cpp">
       <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Boss.cpp">
+      <Filter>Source Files\Game\Boss</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -352,6 +361,18 @@
     </ClInclude>
     <ClInclude Include="ShadowMap.h">
       <Filter>Source Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Boss.h">
+      <Filter>Source Files\Game\Boss</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="ShootProjectileAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectileComponent.h">
+      <Filter>Source Files\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

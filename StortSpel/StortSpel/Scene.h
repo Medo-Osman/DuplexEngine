@@ -1,6 +1,7 @@
 #pragma once
 #include "Player.h"
 #include "Engine.h"
+#include "Boss.h"
 
 enum class ScenesEnum
 {
@@ -9,7 +10,7 @@ enum class ScenesEnum
 	ARENA,
 };
 
-class Scene : public PhysicsObserver
+class Scene : public PhysicsObserver, public BossObserver
 {
 private:
 	//std::unordered_map<std::string, Entity*> m_entities;
@@ -27,6 +28,8 @@ private:
 	void createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity);
 	int m_nrOfPointLight = 0;
 	void createPointLight(Vector3 position, Vector3 color, float intensity);
+	int m_nrOfProjectiles = 0;
+	void createProjectile(Vector3 origin, Vector3 dir, float speed);
 
 	Player* m_player;
 
@@ -55,7 +58,10 @@ private:
 	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
 	void addCheckpoint(const Vector3& position);
 	int m_nrOfCheckpoints = 0;
+
+	//Boss variables
 public:
+	Boss* m_boss = nullptr;
 	Scene();
 	~Scene();
 	void loadScene(std::string path);
@@ -75,9 +81,14 @@ public:
 	void removeLightComponent(LightComponent* component);
 	void removeLightComponentFromMap(LightComponent* component);
 	void createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false);
+	
 
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
+
+
+	// Inherited via BossObserver
+	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
 
 };

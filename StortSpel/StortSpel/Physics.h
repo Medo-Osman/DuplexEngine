@@ -16,6 +16,7 @@ struct PhysicsData
 	int intData;
 	void* pointer;
 	std::string entityIdentifier;
+	bool isProjectile = false;
 	PhysicsData()
 	{
 		triggerType = TriggerType::UNDEFINED;
@@ -24,6 +25,7 @@ struct PhysicsData
 		floatData = 0;
 		intData = 0;
 		entityIdentifier = "";
+		isProjectile = false;
 	}
 };
 class PhysicsObserver {
@@ -231,15 +233,21 @@ public:
 		{
 			bool shouldBeRemoved = false;
 			// ignore pairs when shapes have been deleted
+
+
 			if (pairs[i].flags & (PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER | PxTriggerPairFlag::eREMOVED_SHAPE_OTHER))
 				continue;
 
+
+			
+
 			//Checks
-			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor())
+			PhysicsData* data = static_cast<PhysicsData*>(pairs[i].triggerActor->userData);
+			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor() || data->triggerType == TriggerType::PROJECTILE)
 			{
 				for (size_t j = 0; j < m_reactOnTriggerObservers.size(); j++)
 				{
-					m_reactOnTriggerObservers[j]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), shouldBeRemoved);
+					m_reactOnTriggerObservers[j]->sendPhysicsMessage(*data, shouldBeRemoved);
 					if (shouldBeRemoved)
 					{
 						bool stopLoop = false;
@@ -256,7 +264,9 @@ public:
 	void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) {}
 	void onWake(PxActor** actors, PxU32 count) {}
 	void onSleep(PxActor** actors, PxU32 count) {}
-	void onContact(const PxContactPairHeader & pairHeader, const PxContactPair * pairs, PxU32 nbPairs) {}
+	void onContact(const PxContactPairHeader & pairHeader, const PxContactPair * pairs, PxU32 nbPairs) 
+	{
+	}
 	void onAdvance(const PxRigidBody* const* bodyBuffer, const PxTransform * poseBuffer, const PxU32 count) {}
 
 
