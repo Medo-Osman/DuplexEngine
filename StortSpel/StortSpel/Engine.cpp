@@ -33,7 +33,7 @@ void Engine::update(const float& dt)
 {
 	m_player->updatePlayer(dt);
 	m_camera.update(dt);
-
+	
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
 
@@ -58,10 +58,10 @@ bool Engine::addComponentToPlayer(std::string componentIdentifier, Component* co
 {
 	Entity* playerEntity = m_player->getPlayerEntity();
 	playerEntity->addComponent(componentIdentifier, component);
-
+	
 	if (component->getType() == ComponentType::MESH)
 	{
-		//MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
+		//M eshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
 		//m_currentScene->addMeshComponent(meshComponent);
 		//meshComponent->setRenderId(++m_meshCount);
 		//m_meshComponentMap->insert({m_meshCount, meshComponent});
@@ -96,6 +96,7 @@ void Engine::removeLightComponentFromPlayer(LightComponent* component)
 	//	m_lightCount -= nrOfErased;
 	//}
 	//m_currentScene->removeLightComponentFromMap(component);
+	
 }
 
 std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()

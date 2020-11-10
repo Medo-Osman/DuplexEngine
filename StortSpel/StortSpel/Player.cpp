@@ -272,10 +272,6 @@ void Player::updatePlayer(const float& dt)
 			m_activeTrap = TrapType::EMPTY;
 		}
 		break;
-	case TrapType::PUSH:
-		break;
-	case TrapType::BARREL:
-		break;
 	default:
 		break;
 	}
@@ -449,7 +445,17 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 		}
 		
 	}
-	
+
+	if (physicsData.triggerType == TriggerType::BARREL)
+	{
+		
+		//spelare - barrel
+		/*	Vector3 direction = ->getTranslation() - m_playerEntity->getTranslation();
+		direction.Normalize();
+		m_playerEntity->translate(direction);*/
+		
+		jump();
+	}
 	if (!shouldTriggerEntityBeRemoved)
 	{
 		if (physicsData.triggerType == TriggerType::CHECKPOINT)
@@ -461,7 +467,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 			{
 				AudioComponent* audioPtr = dynamic_cast<AudioComponent*>(ptr->getComponent("sound"));
 				audioPtr->playSound();
-
+				
 				m_checkpointPos = ptr->getTranslation();
 
 				checkpointPtr->setUsed(true);
@@ -502,8 +508,6 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				m_audioComponent->playSound();
 				shouldTriggerEntityBeRemoved = true;
 			}
-
-
 
 		}
 	}

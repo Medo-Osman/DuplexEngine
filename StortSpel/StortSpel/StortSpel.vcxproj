@@ -255,6 +255,7 @@
     <ClInclude Include="AudioComponent.h" />
     <ClInclude Include="AudioHandler.h" />
     <ClInclude Include="BarrelComponent.h" />
+    <ClInclude Include="BarrelTriggerComponent.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CharacterControllerComponent.h" />

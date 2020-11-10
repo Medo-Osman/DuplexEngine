@@ -5,7 +5,6 @@
 class SlowTrapComponent : public TriggerComponent
 {
 private:
-	bool m_isOnTrap = true;
 public:
 	SlowTrapComponent(Entity* entity, TrapType trapType)
 		:TriggerComponent()

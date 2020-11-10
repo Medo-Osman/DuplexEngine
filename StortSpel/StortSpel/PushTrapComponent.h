@@ -21,7 +21,6 @@ public:
 		m_physicsData.associatedTriggerEnum = (int)TrapType::PUSH;
 		m_physicsData.triggerType = TriggerType::TRAP;
 		m_physicsData.pointer = this;
-		//m_type = ComponentType::TRAP;
 	}
 
 	void push()
@@ -33,7 +32,5 @@ public:
 	void update(float dt)
 	{
 		TriggerComponent::update(dt);
-
-
 	}
 };

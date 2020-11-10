@@ -11,6 +11,8 @@ Scene::Scene()
 	m_entities[PLAYER_ENTITY_NAME] = m_player->getPlayerEntity();
 	m_sceneEntryPosition = { 0, 0, 0 };
 
+	
+
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
 }
@@ -90,20 +92,27 @@ void Scene::addCheckpoint(const Vector3& position)
 	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.1f));
 }
 
-//void Scene::addPushTrap(const Vector3& position)
-//{
-//	Entity* pushTrap = addEntity("pushTrap" + std::to_string(m_nrOftraps++));
-//	addComponent(pushTrap, "mesh", new MeshComponent("testCube_pCube1.lrm"));
-//	
-//	pushTrap->setPosition(position + Vector3(0, -0.25f, 0));
-//	pushTrap->scale(10, 1.5, 10);
-//	pushTrap->rotate(1,0,0);
-//	addComponent(pushTrap, "pushTrap", new SlowTrapComponent(pushTrap,TrapType::PUSH));
-//	static_cast<TriggerComponent*>(pushTrap->getComponent("pushTrap"))->initTrigger(pushTrap, { 4,4,4 });
-//
-//}
+void Scene::addBarrelDrop()
+{
+	Entity* rollingBarrel = addEntity("barrel"); //+ std::to_string(m_nrOfBarrelDrops++));
+	
+	if (rollingBarrel)
+	{
 
-void Scene::addTrap(const Vector3& position)
+		addComponent(rollingBarrel, "mesh",
+			new MeshComponent("testCube_pCube1.lrm"));
+
+		rollingBarrel->setPosition(-30, 50, 130);
+		createNewPhysicsComponent(rollingBarrel, true, "", PxGeometryType::eSPHERE, "wood", true);
+		static_cast<PhysicsComponent*>(rollingBarrel->getComponent("physics"))->setMass(100.0f);
+		addComponent(rollingBarrel, "barrel", new BarrelComponent());
+		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger(rollingBarrel, { 1,1,1 });
+		m_despawnBarrelTimer.restart();
+		addedBarrel = true;
+	}
+}
+
+void Scene::addSlowTrap(const Vector3& position)
 {
 	Entity* slowTrap = addEntity("trap"+std::to_string(m_nrOftraps++));
 	addComponent(slowTrap,"mesh", new MeshComponent("testCube_pCube1.lrm"));
@@ -115,6 +124,38 @@ void Scene::addTrap(const Vector3& position)
 
 	addComponent(slowTrap, "sound", new AudioComponent(L"OnPickup.wav", false));
 
+}
+
+void Scene::addPushTrap()
+{
+
+	Entity* pushWall = addEntity("wall");
+	if (pushWall)
+	{
+
+		addComponent(pushWall, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
+		pushWall->setScale(Vector3(10, 5, 1));
+		pushWall->rotate(0, 1.57, 0);
+
+		createNewPhysicsComponent(pushWall, true, "", PxGeometryType::eBOX, "default", true);
+		static_cast<PhysicsComponent*>(pushWall->getComponent("physics"))->makeKinematic();
+
+		addComponent(pushWall, "sweep",
+			new SweepingComponent(pushWall, Vector3(-5, 20, 58), Vector3(5, 20, 58), 1, true));
+	}
+	Entity* pushWallTrigger = addEntity("pushTrigger");
+	if (pushWallTrigger)
+	{
+		PushTrapComponent* pushComponentTrigger = new PushTrapComponent(pushWall);
+		addComponent(pushWallTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
+
+		pushWallTrigger->setPosition(0, 18, 50);
+
+		addComponent(pushWallTrigger, "trigger", pushComponentTrigger);
+		pushComponentTrigger->initTrigger(pushWallTrigger, { 1,1,1 });
+	}
 }
 
 void Scene::addPickup(const Vector3& position, const int tier, std::string name)
@@ -159,7 +200,7 @@ void Scene::loadLobby()
 			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
 		sign->setScale(Vector3(10, 5, 0.2));
 
-		createNewPhysicsComponent(sign, true);
+		createNewPhysicsComponent(sign, true,"",PxGeometryType::eBOX,"default", true);
 		static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
 
 		addComponent(sign, "sweep",
@@ -186,46 +227,31 @@ void Scene::loadScene(std::string path)
 
 	loadPickups();
 	loadScore();
-
 	addCheckpoint(Vector3(0, 9, 5));
 	addCheckpoint(Vector3(14.54, 30, 105));
 	addCheckpoint(Vector3(14.54, 30, 105));
 	addCheckpoint(Vector3(-30, 40, 144));
 	addCheckpoint(Vector3(-11, 40, 218.5));
 	
-	addTrap(Vector3(0, 13, 30));
-	//addPushTrap(Vector3(0, 9, 15));
-
+	addSlowTrap(Vector3(0, 13, 30));
+	addPushTrap();
 	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
-	Entity* pushWall = addEntity("wall");
-	if (pushWall)
-	{
-
-		addComponent(pushWall, "mesh",
-			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
-		pushWall->setScale(Vector3(10, 5, 1));
-		pushWall->rotate(0,1.57,0);
-
-		createNewPhysicsComponent(pushWall, true);
-		static_cast<PhysicsComponent*>(pushWall->getComponent("physics"))->makeKinematic();
-
-		addComponent(pushWall, "sweep",
-			new SweepingComponent(pushWall, Vector3(-5, 9, 10), Vector3(5, 9, 10), 1, true));
-	}
-
-	Entity* pushWallTrigger = addEntity("pushTrigger");
-	if (pushWallTrigger)
-	{
-		PushTrapComponent* pushComponentTrigger = new PushTrapComponent(pushWall);
-		addComponent(pushWallTrigger, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
 	
-		pushWallTrigger->setPosition(0,9, 10);
+	Entity* barrelDropTrigger = addEntity("dropTrigger");
+	if (barrelDropTrigger)
+	{
+		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
+		addComponent(barrelDropTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
+		
+		barrelDropTrigger->setPosition(-30, 30, 105);
 
-		addComponent(pushWallTrigger, "trigger", pushComponentTrigger);
-		pushComponentTrigger->initTrigger(pushWallTrigger, {1,1,1});
+		addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
+		barrelComponentTrigger->initTrigger(barrelDropTrigger, { 1,1,1 });
 	}
+
+	
 
 	Entity* floor = addEntity("floor"); // Floor:
 	if (floor)
@@ -682,6 +708,18 @@ void Scene::loadMaterialTest()
 
 void Scene::updateScene(const float& dt)
 {
+	if (addedBarrel)
+	{
+		
+		if (m_despawnBarrelTimer.timeElapsed() >= 3)
+		{
+			static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->clearForce();
+			static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->setPosition({ -30, 50, 130 });
+			m_despawnBarrelTimer.restart();
+		}
+		addedBarrel = false;
+	}
+
 	// AUDIO TEST
 	/*m_nightVolume += dt * m_nightSlide;
 	if (m_nightVolume < 0.f)
@@ -724,6 +762,14 @@ Entity* Scene::addEntity(std::string identifier)
 
 void Scene::removeEntity(std::string identifier)
 {
+	std::vector<Component*> meshCompVec;
+	m_entities[identifier]->getComponentsOfType(meshCompVec,ComponentType::MESH);
+	for (auto meshComponent : meshCompVec)
+	{
+		int index = static_cast<MeshComponent*>(meshComponent)->getRenderId();
+		m_meshComponentMap.erase(index);
+		m_entities[identifier]->removeComponent(meshComponent);
+	}
 	delete m_entities[identifier];
 	m_entities.erase(identifier);
 }

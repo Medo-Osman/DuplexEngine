@@ -68,7 +68,7 @@ public:
 
 	virtual void update(float dt)
 	{
-		m_physicsPtr->setPosition(m_actor, m_transform->getTranslation());
+ 		m_physicsPtr->setPosition(m_actor, m_transform->getTranslation());
 	}
 
 	const TriggerType& getTriggerType()

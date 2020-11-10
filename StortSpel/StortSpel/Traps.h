@@ -8,6 +8,7 @@ enum class TrapType
 	SLOW,
 	PUSH,
 	BARREL,
+	BARRELTRIGGER,
 };
 
 class Traps

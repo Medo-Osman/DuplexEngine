@@ -356,6 +356,9 @@
     <ClInclude Include="Traps.h">
       <Filter>Source Files\Game\Traps</Filter>
     </ClInclude>
+    <ClInclude Include="BarrelTriggerComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">

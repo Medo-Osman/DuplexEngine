@@ -13,8 +13,8 @@
 #include "Traps.h"
 #include "SlowTrapComponent.h"
 #include "PushTrapComponent.h"
-
 #include "GUIHandler.h"
+#include "BarrelComponent.h"
 
 enum class PlayerState
 {

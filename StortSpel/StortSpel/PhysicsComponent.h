@@ -278,6 +278,13 @@ public:
 		m_dynamic ? m_physicsPtr->setMassOfActor(m_actor, mass) : ErrorLogger::get().logError("Trying to change mass on a static actor.");
 	}
 
+	void clearForce()
+	{
+		if (m_dynamic)
+		{
+			m_physicsPtr->clearForce(static_cast<PxRigidDynamic*>(m_actor));
+		}
+	}
 
 	void addForce(XMFLOAT3 forceAdd, bool massIndependant = true)
 	{
