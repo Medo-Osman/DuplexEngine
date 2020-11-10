@@ -27,7 +27,7 @@ enum class PlayerState
 
 using namespace DirectX;
 
-class Player : public InputObserver, public PhysicsObserver
+class Player : public InputObserver, public PhysicsObserver, public GUIObserver
 {
 private:
     float m_playerScale = 2.0f;
@@ -73,6 +73,7 @@ private:
 
     int m_instructionGuiIndex = 0;
 
+    int closeInstructionsBtnIndex = 0;
 
     float m_angleY;
     float m_currentDistance;
@@ -119,7 +120,9 @@ private:
     void jump();
     void prepDistVariables();
 
-    
+    void rollAnimation();
+    void dashAnimation();
+    void idleAnimation();
   
 public:
     Player();
@@ -147,4 +150,8 @@ public:
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
+
+    // Inherited via GUIObserver
+    virtual void update(GUIUpdateType type, GUIElement* guiElement) override;
+    void serverPlayerAnimationChange(PlayerState currentState, float currentBlend);
 };

@@ -153,6 +153,9 @@
     <ClCompile Include="SceneManager.cpp">
       <Filter>Source Files\Game\Scenes</Filter>
     </ClCompile>
+    <ClCompile Include="ShadowMap.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">
@@ -359,6 +362,15 @@
     <ClInclude Include="BarrelTriggerComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="GUIButton.h">
+      <Filter>Source Files\Graphics\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIContext.h">
+      <Filter>Source Files\Application\Input\Context</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowMap.h">
+      <Filter>Source Files\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">
@@ -415,6 +427,21 @@
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
     <FxCompile Include="ObjectSpaceGridPS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowVertex.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowPixel.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="BasicPixelShader_Shadow.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowVertexAnim.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="EmissivePixelShader.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
   </ItemGroup>

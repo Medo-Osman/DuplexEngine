@@ -76,6 +76,8 @@ void Camera::inputUpdate(InputData& inputData)
 
 			XMFLOAT2 mouseDelta = XMFLOAT2((float)inputData.rangeData[i].pos.x, (float)inputData.rangeData[i].pos.y);
 
+			//(float)inputData.rangeData[i].pos
+
 			// Set Pitch
 			XMFLOAT3 rotationF3;
 			XMStoreFloat3(&rotationF3, m_rotation);

@@ -39,6 +39,8 @@ struct animState
 
 	float startTransitionDuration;
 	bool playDuringStartTransistion;
+
+	std::string stateName;
 };
 
 class AnimatedMeshComponent : public MeshComponent
@@ -75,6 +77,7 @@ public:
 	bool queueBlendState(std::string stateName, float transistionTime);
 	
 	void setCurrentBlend(float blend);
+	float getCurrentBlend();
 
 	virtual void update(float dt) override;
 

@@ -22,6 +22,7 @@ struct vs_out
     float3 tangent : TANGENT;
     float3 bitangent : BITANGENT;
     float4 worldPos : POSITION;
+    float4 shadowPos : SPOS;
 };
 
 cbuffer perModel : register(b0)
@@ -30,6 +31,13 @@ cbuffer perModel : register(b0)
 	float4x4 viewMatrix;
 	float4x4 projectionMatrix;
     float4x4 wvpMatrix;
+};
+
+cbuffer shadowMap : register(b3)
+{
+    float4x4 lightViewMatrix;
+    float4x4 lightProjMatrix;
+    float4x4 shadowMatrix;
 };
 
 
@@ -43,6 +51,18 @@ vs_out main(vs_in input)
     output.tangent = input.tangent;
     output.bitangent = input.bitangent;
     output.worldPos = mul(float4(input.pos, 1), worldMatrix);
+    //output.shadowPos = mul(float4(input.pos, 1), shadowMatrix);
+    
+    /*
+    output.shadowPosition = mul(worldMatrix, float4(input.position, 1.f));
+    output.shadowPosition = mul(lightViewMatrix, output.shadowPosition);
+    output.shadowPosition = mul(lightProjectionMatrix, output.shadowPosition);
+    */
+    output.shadowPos = mul(float4(input.pos, 1), worldMatrix);
+    output.shadowPos = mul(output.shadowPos, lightViewMatrix);
+    output.shadowPos = mul(output.shadowPos, lightProjMatrix);
+    //output.shadowPos = mul(output.sh)
+    
     
     return output;
 }

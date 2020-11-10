@@ -11,7 +11,7 @@ Scene::Scene()
 	m_entities[PLAYER_ENTITY_NAME] = m_player->getPlayerEntity();
 	m_sceneEntryPosition = { 0, 0, 0 };
 
-	
+
 
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
@@ -95,7 +95,7 @@ void Scene::addCheckpoint(const Vector3& position)
 void Scene::addBarrelDrop()
 {
 	Entity* rollingBarrel = addEntity("barrel"); //+ std::to_string(m_nrOfBarrelDrops++));
-	
+
 	if (rollingBarrel)
 	{
 
@@ -177,6 +177,8 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 
 void Scene::loadLobby()
 {
+	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
+
 	Entity* music = addEntity("lobbyMusic");
 	if (music)
 	{
@@ -186,16 +188,57 @@ void Scene::loadLobby()
 	Entity* floor = addEntity("Floor");
 	if (floor)
 	{
-		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"DarkGrayTexture.png" })));
 		floor->scale({ 30, 1, 30 });
 		floor->translate({ 0,-2,0 });
 		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
+
+
+
+	Entity* test = addEntity("test");
+	if (test)
+	{
+		addComponent(test, "mesh",
+			new MeshComponent("GlowCube.lrm",
+			EMISSIVE,
+			Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
+
+		test->setScale({ 5, 5, 5 });
+		test->setPosition({ 9, 2, 10 });
+
+		createNewPhysicsComponent(test, true);
+		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
+
+		addComponent(test, "flipp",
+			new FlippingComponent(test, 1, 1));
+	}
+
+	Entity* test2 = addEntity("test2");
+	if (test2)
+	{
+		addComponent(test2, "mesh",
+			new MeshComponent("GlowCube.lrm",
+				Material({ L"DarkGrayTexture.png" })));
+
+		test2->setScale({ 5, 5, 5 });
+		test2->setPosition({ -9, 2, 10 });
+
+		createNewPhysicsComponent(test2, true);
+		static_cast<PhysicsComponent*>(test2->getComponent("physics"))->makeKinematic();
+
+		addComponent(test2, "flipp",
+			new FlippingComponent(test2, 1, 1));
+	}
+
+
+
+
 	Entity* sign = addEntity("sign");
 	if(sign)
 	{
-
 		addComponent(sign, "mesh",
 			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
 		sign->setScale(Vector3(10, 5, 0.2));
@@ -207,16 +250,22 @@ void Scene::loadLobby()
 			new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
 	}
 
-	
+
 
 	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		addComponent(skybox, "cube",
 			new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+
+		//Disable shadow casting
+		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
+
+	createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
 
 	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
 }
@@ -232,26 +281,26 @@ void Scene::loadScene(std::string path)
 	addCheckpoint(Vector3(14.54, 30, 105));
 	addCheckpoint(Vector3(-30, 40, 144));
 	addCheckpoint(Vector3(-11, 40, 218.5));
-	
+
 	addSlowTrap(Vector3(0, 13, 30));
 	addPushTrap();
 	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
-	
+
 	Entity* barrelDropTrigger = addEntity("dropTrigger");
 	if (barrelDropTrigger)
 	{
 		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
 		addComponent(barrelDropTrigger, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
-		
+
 		barrelDropTrigger->setPosition(-30, 30, 105);
 
 		addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
 		barrelComponentTrigger->initTrigger(barrelDropTrigger, { 1,1,1 });
 	}
 
-	
+
 
 	Entity* floor = addEntity("floor"); // Floor:
 	if (floor)
@@ -263,6 +312,24 @@ void Scene::loadScene(std::string path)
 		floor->setPosition({ 0, 6, 0 });
 		floor->scale({ 20, 2, 20 });
 		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	Entity* test = addEntity("test");
+	if (test)
+	{
+		addComponent(test, "mesh",
+			new MeshComponent("GlowCube.lrm",
+				EMISSIVE,
+				Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
+
+		test->setScale({ 5, 5, 5 });
+		test->setPosition({ 0, 10, -10 });
+
+		createNewPhysicsComponent(test, true);
+		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
+
+		addComponent(test, "flipp",
+			new FlippingComponent(test, 1, 1));
 	}
 
 	// Start:
@@ -319,6 +386,7 @@ void Scene::loadScene(std::string path)
 	createStaticPlatform(Vector3(-11, 50, 275), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-11, 51.68, 282.02), Vector3(-20, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
 	createStaticPlatform(Vector3(-11, 53.4, 289), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+
 
 	Entity* clownMask = addEntity("ClownMask");
 	if (clownMask)
@@ -392,11 +460,17 @@ void Scene::loadScene(std::string path)
 	*/
 
 	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
 	if (skybox)
 	{
+
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+
+
+		//Disable shadow casting
+		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -477,6 +551,7 @@ void Scene::loadArena()
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
@@ -578,7 +653,7 @@ void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 sca
 		//	new MeshComponent(meshPath.c_str(), ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 
 
-		staticPlatform->setPosition(position);
+		staticPlatform->setPosition(position);// -Vector3(0, 25, 0));
 		staticPlatform->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 		staticPlatform->setScale(scale);
 
@@ -663,6 +738,7 @@ void Scene::loadMaterialTest()
 	}
 
 	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
@@ -710,7 +786,7 @@ void Scene::updateScene(const float& dt)
 {
 	if (addedBarrel)
 	{
-		
+
 		if (m_despawnBarrelTimer.timeElapsed() >= 3)
 		{
 			static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->clearForce();
