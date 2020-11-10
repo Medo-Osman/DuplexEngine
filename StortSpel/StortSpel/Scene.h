@@ -55,10 +55,15 @@ private:
 	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
 	void addCheckpoint(const Vector3& position);
 	int m_nrOfCheckpoints = 0;
+	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData);
+
+	const std::string m_LEVELS_PATH = "../res/";
+
 public:
 	Scene();
 	~Scene();
 	void loadScene(std::string path);
+	void loadTestLevel();
 	void loadLobby();
 	void loadArena();
 	void loadMaterialTest();

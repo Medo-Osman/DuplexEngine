@@ -23,6 +23,7 @@ public:
 
 	MeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum = ShaderProgramsEnum::DEFAULT, Material material = Material());
 	MeshComponent(const char* filepath, Material material);
+	MeshComponent(char* paramData);
 
 	~MeshComponent() {}
 
