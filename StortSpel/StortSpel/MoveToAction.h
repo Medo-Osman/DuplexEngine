@@ -1,8 +1,9 @@
 #pragma once
 #include "BaseAction.h"
+#include "Entity.h"
 #include <random>
 
-class ShootProjectileAction : public BossStructures::BaseAction
+class MoveToAction : public BossStructures::BaseAction
 {
 private:
 	BossStructures::BossActionData m_data;
@@ -12,7 +13,7 @@ private:
 
 
 public:
-	ShootProjectileAction(Entity* bossEntity, BossSubject* bossSubject, int howLongShouldActionLast = 10, int coolDownAfterAction = 5)
+	MoveToAction(Entity* bossEntity, BossSubject* bossSubject, int howLongShouldActionLast = 10, int coolDownAfterAction = 5)
 		:BaseAction(bossEntity, bossSubject)
 	{
 		m_movementActionType = BossMovementType::ShootProjectile;
@@ -43,9 +44,8 @@ public:
 	// Inherited via BaseAction
 	virtual void beginAction() override
 	{
-		//Do initialization stuff for action
+		//std::cout << "Began action!" << std::endl;
 	}
-
 	virtual void update() override
 	{
 		if (m_timer.timeElapsed() > m_shootInterval)
@@ -57,10 +57,10 @@ public:
 			//Send event to scene triggering the shoot projectile with the parameters in m_data.
 
 			std::default_random_engine generator;
-			std::normal_distribution<float> distribution(0.f, m_maxDirectionOffset*2); //Only generates unsigned ints
+			std::normal_distribution<float> distribution(0.f, m_maxDirectionOffset * 2); //Only generates unsigned ints
 
 			Vector3 originalDir = m_data.direction;
-			
+
 			//Generate random offsets
 			float offY = distribution(generator);
 			float offZ = distribution(generator);
@@ -77,20 +77,11 @@ public:
 			//Reset clock to count from 0
 			m_timer.restart();
 		}
-			
+
 	}
 	virtual bool isDone() override
 	{
-		bool isDone = false;
-
-		auto timeData = &m_timeData;
-		//If we're after the cooldown period, switch actions
-		if ((float)timeData->timer.timeElapsed() >= timeData->maxDuration + timeData->cooldownAfterAction)
-		{
-			isDone = true;
-		}
-
-		return isDone;
+		return false;
 	}
 
 };

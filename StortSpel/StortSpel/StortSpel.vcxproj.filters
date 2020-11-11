@@ -374,6 +374,9 @@
     <ClInclude Include="ProjectileComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="MoveToAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">

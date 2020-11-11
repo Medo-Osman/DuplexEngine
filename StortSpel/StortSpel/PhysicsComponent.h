@@ -333,6 +333,11 @@ public:
 		m_physicsPtr->setGlobalTransform(m_actor, pos, rotQ);
 	}
 
+	void setVelocity(Vector3 velocity)
+	{
+		m_physicsPtr->setVelocity(static_cast<PxRigidBody*>(m_actor), velocity);
+	}
+
 	bool checkGround(Vector3 origin, Vector3 unitDirection, float distance)
 	{
 		return m_physicsPtr->castRay(origin, unitDirection, distance);

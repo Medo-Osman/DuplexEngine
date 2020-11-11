@@ -39,13 +39,14 @@ Scene::~Scene()
 
 void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
 {
-	std::vector<Component*> vec;
-	m_entities[physicsData.entityIdentifier]->getComponentsOfType(vec, ComponentType::MESH);
-	for (size_t i = 0; i < vec.size(); i++)
+	//std::vector<Component*> vec;
+	//m_entities[physicsData.entityIdentifier]->getComponentsOfType(vec, ComponentType::MESH);
+	/*for (size_t i = 0; i < vec.size(); i++)
 	{
 		int id = static_cast<MeshComponent*>(vec[i])->getRenderId();
 		m_meshComponentMap.erase(id);
-	}
+	}*/
+	//if (physicsData.entityIdentifier != "")
 	removeEntity(physicsData.entityIdentifier);
 	removed = true;
 }
@@ -114,6 +115,9 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 UINT actionID;
 void Scene::loadLobby()
 {
+	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
+
+	addScore({ 0, 3, 5 });
 	Entity* bossEnt = addEntity("boss");
 	if (bossEnt)
 	{
@@ -121,20 +125,16 @@ void Scene::loadLobby()
 		bossEnt->addComponent("mesh", animMeshComp);
 		addMeshComponent(animMeshComp);
 		bossEnt->scale({ 4, 4, 4 });
-		bossEnt->translate({ 0,2,0 });
+		bossEnt->translate({ 10,8,0 });
 
 		//ShootProjectileAction* action = ;
 		m_boss = new Boss();
-		m_boss->initialize(bossEnt);
 		m_boss->Attach(this);
+		m_boss->initialize(bossEnt);
 		actionID = m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss));
 		dynamic_cast<ShootProjectileAction*>(m_boss->getActionQueue()->at(actionID))->setTarget(m_player->getPlayerEntity()->getTranslation());
-		//Physics::get().Attach(m_boss, false, true);
-		//action->setTarget(m_player->getPlayerEntity()->getTranslation());
+		Physics::get().Attach(m_boss, true, false);
 	}
-
-
-	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
 	Entity* music = addEntity("lobbyMusic");
 	if (music)
@@ -231,6 +231,7 @@ void Scene::loadScene(std::string path)
 
 	loadPickups();
 	loadScore();
+
 
 	addCheckpoint(Vector3(0, 9, 5));
 	addCheckpoint(Vector3(14.54, 30, 105));
@@ -724,9 +725,15 @@ void Scene::loadMaterialTest()
 void Scene::updateScene(const float& dt)
 {
 	if (m_boss)
+	{
 		m_boss->update();
 
-	dynamic_cast<ShootProjectileAction*>(m_boss->getActionQueue()->at(actionID))->setTarget(m_player->getPlayerEntity()->getTranslation());
+		ShootProjectileAction* ptr = dynamic_cast<ShootProjectileAction*>(m_boss->getCurrentAction());
+
+		if (ptr)
+			ptr->setTarget(m_player->getPlayerEntity()->getTranslation() + Vector3(0, 1, 0));
+	}
+
 
 	// AUDIO TEST
 	/*m_nightVolume += dt * m_nightSlide;
@@ -907,7 +914,17 @@ std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMa
 void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionData data)
 {
 	//std::cout << "BOSS FIRED" << nr << std::endl;
-	createProjectile(data.origin, data.direction, data.speed);
+
+	if(type == BossMovementType::ShootProjectile)
+		createProjectile(data.origin, data.direction, data.speed);
+
+	if (type == BossMovementType::DropPoints)
+	{
+		Entity* projectile = static_cast<Entity*>(data.pointer0);
+		addScore(data.origin+Vector3(0,2,0));
+		removeEntity(projectile->getIdentifier());
+	}
+		
 
 }
 
@@ -964,17 +981,38 @@ void Scene::createPointLight(Vector3 position, Vector3 color, float intensity)
 
 void Scene::createProjectile(Vector3 origin, Vector3 dir, float speed)
 {
+	/*
+	Entity* checkPoint = addEntity("checkpoint"+std::to_string(m_nrOfCheckpoints++));
+	addComponent(checkPoint, "mesh", new MeshComponent("Flag_pPlane2.lrm"));
+	checkPoint->setPosition(position + Vector3(0,-0.2f,0));
+	checkPoint->scale(1.5, 1.5, 1.5);
+
+	addComponent(checkPoint, "checkpoint", new CheckpointComponent(checkPoint));
+	static_cast<TriggerComponent*>(checkPoint->getComponent("checkpoint"))->initTrigger(checkPoint, { 4, 4, 4 });
+
+	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.1f));
+	*/
+
 	m_nrOfProjectiles++;
 
 	Entity* projectileEntity = addEntity("Projectile-" + std::to_string(m_nrOfProjectiles));
 	if (projectileEntity)
 	{
+
+		/* 
+		addComponent(test, "mesh", 
+			new MeshComponent("GlowCube.lrm",
+			EMISSIVE,
+			Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
+		*/
+
+
 		addComponent(projectileEntity, "mesh",
-			new MeshComponent("Star.lrm", Material({ L"DarkGrayTexture.png" })));
+			new MeshComponent("testCube_pCube1.lrm", EMISSIVE, Material({ L"red.png", L"red.png" })));
 		//new MeshComponent("SquarePlatform.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 
 		projectileEntity->setPosition(origin);
-		projectileEntity->scale(1, 1, 1);
+		projectileEntity->scale(0.5f, 0.5f, 0.5f);
 
 		createNewPhysicsComponent(projectileEntity, true);
 		static_cast<PhysicsComponent*>(projectileEntity->getComponent("physics"))->makeKinematic();
@@ -982,7 +1020,6 @@ void Scene::createProjectile(Vector3 origin, Vector3 dir, float speed)
 		addComponent(projectileEntity, "projectile",
 			new ProjectileComponent(projectileEntity, projectileEntity, origin, dir, speed));
 		
-		static_cast<TriggerComponent*>(projectileEntity->getComponent("projectile"))->initTrigger(projectileEntity, { 1, 1, 1 });
-
+		static_cast<TriggerComponent*>(projectileEntity->getComponent("projectile"))->initTrigger(projectileEntity, { 0.5f, 0.5f, 0.5f });	
 	}
 }

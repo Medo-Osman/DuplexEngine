@@ -47,7 +47,6 @@ public:
 	void removeComponent(Component* component)
 	{
 		int deleted = m_components.erase(component->getIdentifier());
-		std::cout << std::to_string(deleted);
 	}
 
 	Component* getComponent(std::string componentName)

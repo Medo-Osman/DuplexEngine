@@ -29,7 +29,7 @@ public:
 	void update();
 	void initialize(Entity* entity);
 	UINT addAction(BossStructures::BaseAction* action);
-	void forceNextAction();
+	void nextAction();
 	BossStructures::BaseAction* getCurrentAction();
 	std::vector<BossStructures::BaseAction*>* getActionQueue();
 	

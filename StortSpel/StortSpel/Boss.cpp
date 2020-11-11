@@ -11,7 +11,12 @@ void Boss::update()
 {
 	if (m_currentAction && !m_currentAction->isDone())
 	{
-		m_currentAction->update();
+
+		if (!m_currentAction->isDone())
+			m_currentAction->update();
+		else
+			nextAction();
+
 	}
 	
 }
@@ -19,7 +24,7 @@ void Boss::update()
 void Boss::initialize(Entity* entity)
 {
 	m_bossEntity = entity;
-	Physics::get().Attach(this, true, false);
+	//Physics::get().Attach(this, true, false);
 }
 
 UINT Boss::addAction(BossStructures::BaseAction* action)
@@ -34,11 +39,19 @@ UINT Boss::addAction(BossStructures::BaseAction* action)
 	return action->m_actionID;
 }
 
-void Boss::forceNextAction()
+void Boss::nextAction()
 {
-	m_actionQueue.pop_back();
-	m_currentAction = m_actionQueue.back();
-	m_currentAction->beginAction();
+	if (m_actionQueue.size() > 0)
+	{
+		m_currentAction = m_actionQueue.back();
+		m_actionQueue.pop_back();
+		m_currentAction->beginAction();
+	}
+	else
+	{
+		m_currentAction = nullptr;
+		ErrorLogger::get().logError(L"Boss error - No other action to switch to!");
+	}
 }
 
 BossStructures::BaseAction* Boss::getCurrentAction()
@@ -63,7 +76,6 @@ void Boss::Detach(BossObserver* observer)
 
 void Boss::Notify(BossMovementType type, BossStructures::BossActionData data)
 {
-
 	for (auto observer : m_observers)
 	{
 		observer.second->bossEventUpdate(type, data);
@@ -74,10 +86,17 @@ void Boss::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity)
 {
 	if (physicsData.triggerType == TriggerType::PROJECTILE)
 	{
-
 		if ((EventType)physicsData.associatedTriggerEnum == EventType::BOSS_PROJECTILE_HIT)
 		{
-			std::cout << "Drop points!" << std::endl;
+			Entity* ptr = static_cast<Entity*>(physicsData.pointer);
+			auto component = static_cast<ProjectileComponent*>(ptr->getComponent("projectile"));
+			BossStructures::BossActionData data;
+			data.origin = ptr->getTranslation();//Vector3(0, 1, 0);//static_cast<PhysicsComponent*>(ptr->getComponent("physics"))->getActorPosition();//->getTranslation();
+			data.pointer0 = ptr;
+
+			//If no longer debouncing, drop points
+			if (component->m_timer.timeElapsed() > component->m_removalDebounce)
+				Notify(BossMovementType::DropPoints, data);
 		}
 	}
 }

@@ -16,7 +16,6 @@ struct PhysicsData
 	int intData;
 	void* pointer;
 	std::string entityIdentifier;
-	bool isProjectile = false;
 	PhysicsData()
 	{
 		triggerType = TriggerType::UNDEFINED;
@@ -25,7 +24,6 @@ struct PhysicsData
 		floatData = 0;
 		intData = 0;
 		entityIdentifier = "";
-		isProjectile = false;
 	}
 };
 class PhysicsObserver {
@@ -238,14 +236,13 @@ public:
 			if (pairs[i].flags & (PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER | PxTriggerPairFlag::eREMOVED_SHAPE_OTHER))
 				continue;
 
-
-			
-
 			//Checks
 			PhysicsData* data = static_cast<PhysicsData*>(pairs[i].triggerActor->userData);
-			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor() || data->triggerType == TriggerType::PROJECTILE)
+			PhysicsData* otherData = static_cast<PhysicsData*>(pairs[i].otherActor->userData);
+			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor() || (data->triggerType == TriggerType::PROJECTILE || otherData->triggerType == TriggerType::PROJECTILE))
 			{
-				for (size_t j = 0; j < m_reactOnTriggerObservers.size(); j++)
+				//PhysicsData* data = static_cast<PhysicsData*>(pairs[i].triggerActor->userData);
+				for (size_t j = 0; j < m_reactOnTriggerObservers.size() && !shouldBeRemoved; j++)
 				{
 					m_reactOnTriggerObservers[j]->sendPhysicsMessage(*data, shouldBeRemoved);
 					if (shouldBeRemoved)
@@ -253,7 +250,7 @@ public:
 						bool stopLoop = false;
 						for (size_t k = 0; k < m_reactOnRemoveObservers.size() && !stopLoop; k++)
 						{
-							m_reactOnRemoveObservers[k]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), stopLoop);
+							m_reactOnRemoveObservers[k]->sendPhysicsMessage(*data, stopLoop);
 						}
 					}
 				}
@@ -505,6 +502,11 @@ public:
 	{
 		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, false);
 		actor->setMass(newMass);
+	}
+
+	void setVelocity(PxRigidBody* actor, Vector3 velocity)
+	{
+		actor->setLinearVelocity(PxVec3(velocity.x, velocity.y, velocity.z));
 	}
 
 	void kinematicMove(PxRigidDynamic* actor, XMFLOAT3 destination, XMFLOAT4 quatRot)

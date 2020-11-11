@@ -1,7 +1,7 @@
 #pragma once
 #include "3DPCH.h"
 
-enum class BossMovementType {NONE, ShootProjectile };
+enum class BossMovementType {NONE, ShootProjectile, DropPoints };
 
 class BossSubject;
 
@@ -12,11 +12,12 @@ namespace BossStructures
 		Vector3 direction;
 		Vector3 origin;
 		float speed = 0;
+		void* pointer0 = nullptr;
 	};
 
-	struct actionTimeData
+	struct ActionTimeData
 	{
-		//Timer timer;
+		Timer timer;
 		float maxDuration = 5; //For how many seconds the action should be performed for
 		float cooldownAfterAction = 0.2; //For many seconds long it should wait before
 	};
@@ -29,12 +30,21 @@ namespace BossStructures
 		Entity* m_bossEntity = nullptr;
 		BossSubject* m_subjectPtr;
 
+		ActionTimeData m_timeData;
+
 	public:
 		UINT m_actionID = -1; //Will look like garbage value, should raise eyebrows if not set.
 		BaseAction(Entity* bossEntity, BossSubject* bossSubject)
 		{
 			m_bossEntity = bossEntity;
 			m_subjectPtr = bossSubject;
+
+			m_timeData.timer.start();
+		}
+
+		ActionTimeData* getTimeData()
+		{
+			return &m_timeData;
 		}
 
 		BossMovementType getType()
