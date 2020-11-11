@@ -11,7 +11,7 @@ private:
 	bool m_isPositional;
 	Transform* m_emitterTransform;
 public:
-	AudioComponent(std::wstring soundName, bool loop = false, float volume = 1.0f, bool isPositional = false, Transform* emitterTransform = nullptr)
+	AudioComponent(std::wstring soundName, bool loop = false, float volume = 1.0f, float pitch = 0.f, bool isPositional = false, Transform* emitterTransform = nullptr)
 	{
 		m_type = ComponentType::AUDIO;
 		m_isLooping = loop;
@@ -25,7 +25,7 @@ public:
 		else
 			emitterPosition = Vector3(0.f);
 		
-		m_audioIndex = AudioHandler::get().addSoundInstance(soundName.c_str(), volume, loop, isPositional, emitterPosition);
+		m_audioIndex = AudioHandler::get().addSoundInstance(soundName.c_str(), loop, volume, pitch, isPositional, emitterPosition);
 	}
 	virtual ~AudioComponent() override 
 	{
@@ -35,6 +35,11 @@ public:
 	void setVolume(float volume)
 	{
 		AudioHandler::get().setVolume(m_audioIndex, volume, m_isLooping);
+	}
+
+	void setPitch(float pitch)
+	{
+		AudioHandler::get().setPitch(m_audioIndex, pitch, m_isLooping);
 	}
 
 	void playSound()
@@ -50,6 +55,7 @@ public:
 	// Update
 	virtual void update(float dt) override
 	{
-
+		if (m_emitterTransform)
+			AudioHandler::get().setEmitterPosition(m_audioIndex, m_emitterTransform->getTranslation(), m_isLooping);
 	}
 };

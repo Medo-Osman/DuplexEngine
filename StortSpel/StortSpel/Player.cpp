@@ -408,7 +408,6 @@ void Player::inputUpdate(InputData& inputData)
 			}
 			break;
 		case USE:
-			dynamic_cast<AudioComponent*>(m_playerEntity->getComponent("3Dsound"))->playSound();
 			break;
 		case CLOSEINTROGUI:
 			GUIHandler::get().setVisible(m_instructionGuiIndex, false);

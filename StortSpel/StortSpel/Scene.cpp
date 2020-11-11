@@ -111,11 +111,11 @@ void Scene::loadLobby()
 {
 	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
-	Entity* music = addEntity("lobbyMusic");
+	/*Entity* music = addEntity("lobbyMusic");
 	if (music)
 	{
 		addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
-	}
+	}*/
 
 	Entity* floor = addEntity("Floor");
 	if (floor)
@@ -146,6 +146,9 @@ void Scene::loadLobby()
 
 		addComponent(test, "flipp",
 			new FlippingComponent(test, 1, 1));
+
+		// 3D Audio Test
+		test->addComponent("3Dsound", new AudioComponent(L"fireplace.wav", true, 3.f, 0.f, true, test));
 	}
 
 	Entity* test2 = addEntity("test2");
@@ -240,9 +243,6 @@ void Scene::loadScene(std::string path)
 
 		createNewPhysicsComponent(test, true);
 		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
-
-		addComponent(test, "flipp",
-			new FlippingComponent(test, 1, 1));
 	}
 
 	// Start:

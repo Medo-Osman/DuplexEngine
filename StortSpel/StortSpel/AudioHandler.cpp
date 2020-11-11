@@ -36,12 +36,12 @@ void AudioHandler::initialize(HWND& handle)
 		ErrorLogger::get().logError("AudioError: No audio device found");
 
 	// Audio Listener(for 3d positional audio)
-	m_listener.SetPosition(XMFLOAT3(0.f, 1.f, 0.f));
+	m_listener.OrientFront = Vector3(0.f, 0.f, 1.f);
+	m_listener.SetPosition(Vector3(0.f, 1.f, 0.f));
+	m_listener.SetOrientation(Vector3(0.f, 0.f, 1.f), Vector3(0.f, 1.f, 0.f));
 
 	// Audio Emittors
-	AudioEmitter emitter;
-	emitter.SetPosition(XMFLOAT3(0.f, 0.f, 0.f));
-	m_emitter.push_back(emitter);
+	m_emitter.SetPosition(XMFLOAT3(0.f, 0.f, 0.f));
 
 	// Device Setup
 	DEV_BROADCAST_DEVICEINTERFACE filter = {};
@@ -60,46 +60,37 @@ void AudioHandler::setListenerTransformPtr(Transform* listenerTransform)
 {
 	m_listenerTransformPtr = listenerTransform;
 	m_listener.SetPosition(m_listenerTransformPtr->getTranslation());
+	m_listener.SetOrientation(m_listenerTransformPtr->getForwardVector(), Vector3(0.f, 1.f, 0.f));
 }
 
-int AudioHandler::addSoundInstance(const WCHAR* name, float volume, bool isLooping, bool isPositional, Vector3 position)
+int AudioHandler::addSoundInstance(const WCHAR* name, bool isLooping, float volume, float pitch, bool isPositional, Vector3 emitterPosition)
 {
-	int index;
 	SoundEffect* soundEffect = ResourceHandler::get().loadSound(name, m_audioEngine.get());
 	SOUND_EFFECT_INSTANCE_FLAGS soundflags = SoundEffectInstance_Default;
+	int index = m_idNum++;
+
 	if (isPositional)
 	{
-		soundflags = DirectX::SOUND_EFFECT_INSTANCE_FLAGS::SoundEffectInstance_Use3D | DirectX::SoundEffectInstance_ReverbUseFilters;
-		/*AudioEmitter emitter;
-		emitter.SetPosition(...);*/
+		soundflags = SoundEffectInstance_Use3D | SoundEffectInstance_ReverbUseFilters;
+		m_emitter.SetPosition(emitterPosition);
 	}
 
 	if(isLooping)
 	{
-		index = m_idNum++;
-		if (isPositional)
-			m_loopingSoundInstances[index] = soundEffect->CreateInstance(DirectX::SOUND_EFFECT_INSTANCE_FLAGS::SoundEffectInstance_Use3D | DirectX::SoundEffectInstance_ReverbUseFilters);
-		else	
-			m_loopingSoundInstances[index] = soundEffect->CreateInstance(SoundEffectInstance_Default);
+		m_loopingSoundInstances[index] = soundEffect->CreateInstance(soundflags);
 		m_loopingSoundInstances[index]->SetVolume(volume);
-		m_loopingSoundInstances[index]->SetPitch(0.f);
+		m_loopingSoundInstances[index]->SetPitch(pitch);
 		m_loopingSoundInstances[index]->Play(true);
 		if (isPositional)
-			m_loopingSoundInstances[index]->Apply3D(m_listener, m_emitter.at(0));
-		//m_loopingSoundInstances[index]->SetPan(0.1f);
+			m_loopingSoundInstances[index]->Apply3D(m_listener, m_emitter, false);
 	}
 	else
 	{
-		index = m_idNum++;
-		if (isPositional)
-			m_soundInstances[index] = soundEffect->CreateInstance(DirectX::SOUND_EFFECT_INSTANCE_FLAGS::SoundEffectInstance_Use3D | DirectX::SoundEffectInstance_ReverbUseFilters);
-		else
-			m_soundInstances[index] = soundEffect->CreateInstance(SoundEffectInstance_Default);
+		m_soundInstances[index] = soundEffect->CreateInstance(soundflags);
 		m_soundInstances[index]->SetVolume(volume);
-		m_soundInstances[index]->SetPitch(0.f);
+		m_soundInstances[index]->SetPitch(pitch);
 		if (isPositional)
-			m_soundInstances[index]->Apply3D(m_listener, m_emitter.at(0));
-		//m_soundInstances[index]->SetPan(0.1f);
+			m_soundInstances[index]->Apply3D(m_listener, m_emitter, false);
 	}
 	return index;
 }
@@ -120,17 +111,14 @@ void AudioHandler::emitSound(int index, Vector3 position)
 		m_soundInstances[index]->Stop();
 	}
 
-	m_emitter.at(0).SetPosition(position);
-	AudioEmitter emitter;
-	emitter.SetPosition(Vector3(0.f, 10.f, 0.f));
+	m_emitter.SetPosition(position);
 	m_soundInstances[index]->Play();
-	m_soundInstances[index]->Apply3D(m_listener, emitter);
-	//m_soundInstances[index]->SetPan(0.1f);
+	m_soundInstances[index]->Apply3D(m_listener, m_emitter, false);
 }
 
-void AudioHandler::setVolume(int index, float volume, bool loop)
+void AudioHandler::setVolume(int index, float volume, bool isLooping)
 {
-	if(loop)
+	if(isLooping)
 	{
 		m_loopingSoundInstances[index]->SetVolume(volume);
 	}
@@ -140,16 +128,32 @@ void AudioHandler::setVolume(int index, float volume, bool loop)
 	}
 }
 
+void AudioHandler::setPitch(int index, float pitch, bool isLooping)
+{
+	if (isLooping)
+	{
+		m_loopingSoundInstances[index]->SetPitch(pitch);
+	}
+	else
+	{
+		m_soundInstances[index]->SetPitch(pitch);
+	}
+}
+
+void AudioHandler::setEmitterPosition(int index, Vector3 position, bool isLooping)
+{
+	m_emitter.SetPosition(position);
+	if (isLooping)
+		m_loopingSoundInstances[index]->Apply3D(m_listener, m_emitter, false);
+}
+
 void AudioHandler::update(float dt)
 {
 	if (m_listenerTransformPtr)
-		m_listener.SetPosition(m_listenerTransformPtr->getTranslation());
-
-	/*for (auto& loopingSound : m_loopingSoundInstances)
 	{
-		if()
-			loopingSound.second->Apply3D(m_listener, m_emitter.at(0));
-	}*/
+		m_listener.SetPosition(m_listenerTransformPtr->getTranslation());
+		m_listener.SetOrientation(m_listenerTransformPtr->getForwardVector(), Vector3(0.f, 1.f, 0.f));
+	}
 	
 	if (m_newAudio)
 	{
@@ -162,14 +166,14 @@ void AudioHandler::update(float dt)
 		{
 			for(auto& loopingSound : m_loopingSoundInstances)
 			{
+				loopingSound.second->Play(true);
 				//try
 				//{
+				//	loopingSound.second->Apply3D(m_listener, m_emitter, false);
 				//}
 				//catch (std::exception e) // 
 				//{
 				//}
-				loopingSound.second->Play(true);
-				loopingSound.second->Apply3D(m_listener, m_emitter.at(0));
 			}
 		}
 	}

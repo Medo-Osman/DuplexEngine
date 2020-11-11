@@ -11,13 +11,13 @@ private:
 	bool m_retryAudio;
 	HDEVNOTIFY m_newAudio = nullptr;
 
+	// Sound Instances
 	std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_soundInstances;
 	std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_loopingSoundInstances;
-	std::vector<int> m_positionalLoopingIndexes;
 	size_t m_idNum = 0;
 	
 	// 3D Positional Audio
-	std::deque<AudioEmitter> m_emitter;
+	AudioEmitter m_emitter;
 
 	AudioListener m_listener;
 	Transform* m_listenerTransformPtr;
@@ -36,10 +36,12 @@ public:
 	void setListenerTransformPtr(Transform* listenerTransform);
 	void onNewAudioDevice() { m_retryAudio = true; }
 
-	int addSoundInstance(const WCHAR* name, float volume, bool isLooping, bool isPositional, Vector3 position);
+	int addSoundInstance(const WCHAR* name, bool isLooping, float volume, float pitch, bool isPositional, Vector3 position);
 	void playSound(int index);
 	void emitSound(int index, Vector3 position);
-	void setVolume(int index, float volume, bool loop);
+	void setVolume(int index, float volume, bool isLooping);
+	void setPitch(int index, float pitch, bool isLooping);
+	void setEmitterPosition(int index, Vector3 position, bool isLooping);
 	void update(float dt);
 	void suspend();
 	void resume();
