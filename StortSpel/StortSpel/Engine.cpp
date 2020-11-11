@@ -165,7 +165,8 @@ void Engine::initialize(Input* input)
 	}
 	
 	m_camera.setProjectionMatrix(80.f,  (float)m_settings.width/(float)m_settings.height, 0.01f, 1000.0f);
-	
+
+	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
 	// Player
 	m_player = new Player();
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
@@ -199,6 +200,13 @@ void Engine::initialize(Input* input)
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
 	//GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
+	Transform* posAudioTest = new Transform();
+	posAudioTest->setPosition(0, 1, 0);
+	// 3D Audio Test
+	playerEntity->addComponent("3Dsound", new AudioComponent(L"Explosion_mono.wav", false, 5.f, true, posAudioTest));
+
+	// Audio Handler needs Camera Transform ptr for 3D positional audio
+	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
 }
 
 void Engine::updateLightData()

@@ -388,8 +388,8 @@ void Scene::loadScene(std::string path)
 
 
 	// MUSIC
-	Entity* music = addEntity("music");
-	addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.1f));
+	//Entity* music = addEntity("music");
+	//addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.1f));
 	
 
 	// Lights

@@ -2,6 +2,12 @@
 #include "AudioHandler.h"
 #include "ApplicationLayer.h"
 
+AudioHandler::AudioHandler()
+{
+	m_retryAudio = false;
+	m_listenerTransformPtr = nullptr;
+}
+
 AudioHandler::~AudioHandler()
 {
 	if (m_audioEngine)
@@ -17,13 +23,27 @@ AudioHandler::~AudioHandler()
 
 void AudioHandler::initialize(HWND& handle)
 {
-	AUDIO_ENGINE_FLAGS eflags = AudioEngine_Default;
-#ifdef _DEBUG
-	eflags = AudioEngine_Default | AudioEngine_Debug;
-#endif
+	// Audio Engine Setup
+	// - Flags
+	AUDIO_ENGINE_FLAGS eflags = AudioEngine_EnvironmentalReverb | AudioEngine_ReverbUseFilters;
+	#ifdef _DEBUG
+		eflags = eflags | AudioEngine_Debug;
+	#endif
+	// - Engine
 	m_audioEngine = std::make_shared<AudioEngine>(eflags);
-	m_retryAudio = false;
+	m_audioEngine->SetReverb(Reverb_Plain);
+	if (!m_audioEngine->IsAudioDevicePresent())
+		ErrorLogger::get().logError("AudioError: No audio device found");
 
+	// Audio Listener(for 3d positional audio)
+	m_listener.SetPosition(XMFLOAT3(0.f, 1.f, 0.f));
+
+	// Audio Emittors
+	AudioEmitter emitter;
+	emitter.SetPosition(XMFLOAT3(0.f, 0.f, 0.f));
+	m_emitter.push_back(emitter);
+
+	// Device Setup
 	DEV_BROADCAST_DEVICEINTERFACE filter = {};
 	filter.dbcc_size = sizeof(filter);
 	filter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
@@ -31,27 +51,55 @@ void AudioHandler::initialize(HWND& handle)
 	m_newAudio = RegisterDeviceNotification(handle, &filter,
 		DEVICE_NOTIFY_WINDOW_HANDLE);
 
-	ApplicationLayer::getInstance().m_input.Attach(this);
+	// Initialize Maps
 	m_soundInstances.clear();
 	m_loopingSoundInstances.clear();
 }
 
-int AudioHandler::addSoundInstance(const WCHAR* name, float volume, bool isLooping)
+void AudioHandler::setListenerTransformPtr(Transform* listenerTransform)
 {
-	SoundEffect* soundEffect = ResourceHandler::get().loadSound(name, m_audioEngine.get());
+	m_listenerTransformPtr = listenerTransform;
+	m_listener.SetPosition(m_listenerTransformPtr->getTranslation());
+}
+
+int AudioHandler::addSoundInstance(const WCHAR* name, float volume, bool isLooping, bool isPositional, Vector3 position)
+{
 	int index;
+	SoundEffect* soundEffect = ResourceHandler::get().loadSound(name, m_audioEngine.get());
+	SOUND_EFFECT_INSTANCE_FLAGS soundflags = SoundEffectInstance_Default;
+	if (isPositional)
+	{
+		soundflags = DirectX::SOUND_EFFECT_INSTANCE_FLAGS::SoundEffectInstance_Use3D | DirectX::SoundEffectInstance_ReverbUseFilters;
+		/*AudioEmitter emitter;
+		emitter.SetPosition(...);*/
+	}
+
 	if(isLooping)
 	{
 		index = m_idNum++;
-		m_loopingSoundInstances[index] = soundEffect->CreateInstance();
+		if (isPositional)
+			m_loopingSoundInstances[index] = soundEffect->CreateInstance(DirectX::SOUND_EFFECT_INSTANCE_FLAGS::SoundEffectInstance_Use3D | DirectX::SoundEffectInstance_ReverbUseFilters);
+		else	
+			m_loopingSoundInstances[index] = soundEffect->CreateInstance(SoundEffectInstance_Default);
 		m_loopingSoundInstances[index]->SetVolume(volume);
+		m_loopingSoundInstances[index]->SetPitch(0.f);
 		m_loopingSoundInstances[index]->Play(true);
+		if (isPositional)
+			m_loopingSoundInstances[index]->Apply3D(m_listener, m_emitter.at(0));
+		//m_loopingSoundInstances[index]->SetPan(0.1f);
 	}
 	else
 	{
 		index = m_idNum++;
-		m_soundInstances[index] = soundEffect->CreateInstance();
+		if (isPositional)
+			m_soundInstances[index] = soundEffect->CreateInstance(DirectX::SOUND_EFFECT_INSTANCE_FLAGS::SoundEffectInstance_Use3D | DirectX::SoundEffectInstance_ReverbUseFilters);
+		else
+			m_soundInstances[index] = soundEffect->CreateInstance(SoundEffectInstance_Default);
 		m_soundInstances[index]->SetVolume(volume);
+		m_soundInstances[index]->SetPitch(0.f);
+		if (isPositional)
+			m_soundInstances[index]->Apply3D(m_listener, m_emitter.at(0));
+		//m_soundInstances[index]->SetPan(0.1f);
 	}
 	return index;
 }
@@ -63,6 +111,21 @@ void AudioHandler::playSound(int index)
 		m_soundInstances[index]->Stop();
 	}
 	m_soundInstances[index]->Play();
+}
+
+void AudioHandler::emitSound(int index, Vector3 position)
+{
+	if (m_soundInstances[index]->GetState() == SoundState::PLAYING)
+	{
+		m_soundInstances[index]->Stop();
+	}
+
+	m_emitter.at(0).SetPosition(position);
+	AudioEmitter emitter;
+	emitter.SetPosition(Vector3(0.f, 10.f, 0.f));
+	m_soundInstances[index]->Play();
+	m_soundInstances[index]->Apply3D(m_listener, emitter);
+	//m_soundInstances[index]->SetPan(0.1f);
 }
 
 void AudioHandler::setVolume(int index, float volume, bool loop)
@@ -77,21 +140,17 @@ void AudioHandler::setVolume(int index, float volume, bool loop)
 	}
 }
 
-void AudioHandler::inputUpdate(InputData& inputData)
-{
-	/*for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
-	{
-		if (inputData.actionData[i] == PLAYSOUND)
-		{
-			m_explode->Play();
-		}
-	}*/
-}
-
 void AudioHandler::update(float dt)
 {
-	
+	if (m_listenerTransformPtr)
+		m_listener.SetPosition(m_listenerTransformPtr->getTranslation());
 
+	/*for (auto& loopingSound : m_loopingSoundInstances)
+	{
+		if()
+			loopingSound.second->Apply3D(m_listener, m_emitter.at(0));
+	}*/
+	
 	if (m_newAudio)
 	{
 		UnregisterDeviceNotification(m_newAudio);
@@ -103,7 +162,14 @@ void AudioHandler::update(float dt)
 		{
 			for(auto& loopingSound : m_loopingSoundInstances)
 			{
+				//try
+				//{
+				//}
+				//catch (std::exception e) // 
+				//{
+				//}
 				loopingSound.second->Play(true);
+				loopingSound.second->Apply3D(m_listener, m_emitter.at(0));
 			}
 		}
 	}

@@ -49,7 +49,6 @@ Player::Player()
 	
 	//Attach to the click listener for the button
 	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
-
 }
 
 Player::~Player()
@@ -409,10 +408,11 @@ void Player::inputUpdate(InputData& inputData)
 			}
 			break;
 		case USE:
-
+			dynamic_cast<AudioComponent*>(m_playerEntity->getComponent("3Dsound"))->playSound();
 			break;
 		case CLOSEINTROGUI:
 			GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+			GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
 			break;
 		default:
 			break;
