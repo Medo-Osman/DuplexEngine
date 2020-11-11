@@ -25,7 +25,7 @@ struct PhysicsMaterial
 	{
 		vec.emplace_back("default", 0.5f, 0.5f, 0.0f, physx::PxCombineMode::eMIN, physx::PxCombineMode::eMAX);
 		vec.emplace_back("ice", 0.f, 0.f, 0.0f, physx::PxCombineMode::eMIN, physx::PxCombineMode::eMAX);
-		vec.emplace_back("wood", 0.7f, 0.7f, 0.05f, physx::PxCombineMode::eMIN, physx::PxCombineMode::eMAX);
+		vec.emplace_back("wood", 0.5f, 0.5f, 0.0f, physx::PxCombineMode::eMIN, physx::PxCombineMode::eMIN);
 		vec.emplace_back("earth", 0.5f, 0.5f, 0.05f, physx::PxCombineMode::eMIN, physx::PxCombineMode::eMAX);
 		vec.emplace_back("human", 1.f, 1.f, 0.f, physx::PxCombineMode::eAVERAGE, physx::PxCombineMode::eMAX);
 	}

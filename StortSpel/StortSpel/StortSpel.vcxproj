@@ -255,6 +255,8 @@
     <ClInclude Include="ApplicationLayer.h" />
     <ClInclude Include="AudioComponent.h" />
     <ClInclude Include="AudioHandler.h" />
+    <ClInclude Include="BarrelComponent.h" />
+    <ClInclude Include="BarrelTriggerComponent.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CharacterControllerComponent.h" />
@@ -282,6 +284,7 @@
     <ClInclude Include="MeshResource.h" />
     <ClInclude Include="PerformanceTester.h" />
     <ClInclude Include="PickupComponent.h" />
+    <ClInclude Include="PushTrapComponent.h" />
     <ClInclude Include="RotateComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
@@ -307,6 +310,8 @@
     <ClInclude Include="TestComponent.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="SlowTrapComponent.h" />
+    <ClInclude Include="Traps.h" />
     <ClInclude Include="TriggerComponent.h" />
     <ClInclude Include="VertexStructs.h" />
   </ItemGroup>

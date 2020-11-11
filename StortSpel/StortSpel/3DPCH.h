@@ -98,6 +98,8 @@ enum class TriggerType
 	EVENT,
 	PICKUP,
 	CHECKPOINT,
+	TRAP,
+	BARREL,
 };
 
 enum class EventType

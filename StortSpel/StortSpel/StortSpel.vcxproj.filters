@@ -58,6 +58,9 @@
     <Filter Include="Source Files\Graphics\GUI">
       <UniqueIdentifier>{7155dc50-d617-41f6-a310-ab0c68149543}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Game\Traps">
+      <UniqueIdentifier>{fda73094-e463-4574-9c83-c0425d6076d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -343,6 +346,21 @@
     </ClInclude>
     <ClInclude Include="AnimationResource.h">
       <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="BarrelComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="PushTrapComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="SlowTrapComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Traps.h">
+      <Filter>Source Files\Game\Traps</Filter>
+    </ClInclude>
+    <ClInclude Include="BarrelTriggerComponent.h">
+      <Filter>Source Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="GUIButton.h">
       <Filter>Source Files\Graphics\GUI</Filter>

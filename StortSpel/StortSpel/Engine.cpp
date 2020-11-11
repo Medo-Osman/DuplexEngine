@@ -66,7 +66,7 @@ bool Engine::addComponentToPlayer(std::string componentIdentifier, Component* co
 
 	if (component->getType() == ComponentType::MESH)
 	{
-		//MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
+		//M eshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
 		//m_currentScene->addMeshComponent(meshComponent);
 		//meshComponent->setRenderId(++m_meshCount);
 		//m_meshComponentMap->insert({m_meshCount, meshComponent});
@@ -101,6 +101,7 @@ void Engine::removeLightComponentFromPlayer(LightComponent* component)
 	//	m_lightCount -= nrOfErased;
 	//}
 	//m_currentScene->removeLightComponentFromMap(component);
+
 }
 
 std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
@@ -163,10 +164,12 @@ void Engine::initialize(Input* input)
 		// before this function call be called.
 		assert(false);
 	}
-	
+
 	m_camera.setProjectionMatrix(80.f,  (float)m_settings.width/(float)m_settings.height, 0.01f, 1000.0f);
 
+	// Audio Handler Listener setup
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
+	
 	// Player
 	m_player = new Player();
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
@@ -259,4 +262,3 @@ void Engine::updateLightData()
 
 	Renderer::get().setPointLightRenderStruct(lightInfo);
 }
-
