@@ -15,6 +15,8 @@ Scene::Scene()
 
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
+
+
 }
 
 Scene::~Scene()
@@ -33,6 +35,12 @@ Scene::~Scene()
 	}
 
 	m_entities.clear();
+}
+
+void Scene::loadMainMenu()
+{
+
+	
 }
 
 void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
@@ -94,7 +102,7 @@ void Scene::addCheckpoint(const Vector3& position)
 
 void Scene::addBarrelDrop(Vector3 Position)
 {
-	Entity* rollingBarrel = addEntity("barrel"); //+ std::to_string(m_nrOfBarrelDrops++));
+	Entity* rollingBarrel = addEntity("barrel");
 
 	if (rollingBarrel)
 	{
@@ -180,7 +188,7 @@ void Scene::loadLobby()
 	Entity* music = addEntity("lobbyMusic");
 	if (music)
 	{
-		addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
+		addComponent(music, "Music", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
 	}
 
 	Entity* floor = addEntity("Floor");
@@ -784,14 +792,11 @@ void Scene::loadMaterialTest()
 void Scene::updateScene(const float& dt)
 {
 	if (addedBarrel)
-	{
-
-		if (m_despawnBarrelTimer.timeElapsed() >= 3)
-		{
-			static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->clearForce();
-			static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->setPosition({ -30, 50, 130 });
-			m_despawnBarrelTimer.restart();
-		}
+	{	
+		static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->clearForce();
+		static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->setPosition({ -30, 50, 130 });
+		m_despawnBarrelTimer.restart();
+		
 		addedBarrel = false;
 	}
 
@@ -970,6 +975,16 @@ std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMa
 {
 	return &m_meshComponentMap;
 }
+
+//void Scene::update(GUIUpdateType type, GUIElement* guiElement)
+//{
+//	if (type == GUIUpdateType::CLICKED)
+//	{
+//		GUIHandler::get().setVisible(startGameIndex, false);
+//
+//		gameStarted = true;
+//	}
+//}
 
 void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)
 {

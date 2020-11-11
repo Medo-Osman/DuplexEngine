@@ -196,7 +196,7 @@ void Engine::initialize(Input* input)
 
 	// - Camera Follow Transform ptr
 	m_player->setCameraTranformPtr(m_camera.getTransform());
-
+	
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
 	//GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());

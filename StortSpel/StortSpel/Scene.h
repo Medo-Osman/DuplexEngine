@@ -1,12 +1,15 @@
 #pragma once
 #include "Player.h"
 #include "Engine.h"
+#include "GUIHandler.h"
 
 enum class ScenesEnum
 {
 	LOBBY,
 	START,
 	ARENA,
+	MAINMENU,
+	ENDSCENE,
 };
 
 class Scene : public PhysicsObserver
@@ -60,13 +63,15 @@ private:
 	void addCheckpoint(const Vector3& position);
 	void addSlowTrap(const Vector3& position, Vector3 scale);
 	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
-	
+
 	int m_nrOfCheckpoints = 0;
 	int m_nrOfBarrelDrops = 0;
 	int m_nrOftraps = 0;
+	int startGameIndex = 0;
 public:
 	Scene();
 	~Scene();
+	void loadMainMenu();
 	void loadScene(std::string path);
 	void loadLobby();
 	void loadArena();
@@ -78,6 +83,7 @@ public:
 	void removeEntity(std::string identifier);
 
 	bool addedBarrel = false;
+	bool gameStarted = false;
 
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 	void addMeshComponent(MeshComponent* component);
@@ -92,5 +98,7 @@ public:
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
+
+	//virtual void update(GUIUpdateType type, GUIElement* guiElement) override;
 
 };

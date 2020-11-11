@@ -8,6 +8,7 @@ SceneManager::SceneManager()
 	m_gameStarted = false;
 	m_swapScene = false;
 	Physics::get().Attach(this, true, false);
+
 }
 
 SceneManager::~SceneManager()
@@ -18,6 +19,42 @@ SceneManager::~SceneManager()
 
 void SceneManager::initalize()
 {
+
+
+	//define gui button
+	GUIButtonStyle btnStyle;
+	//start button
+	btnStyle.position = Vector2(140, 100);
+	btnStyle.scale = Vector2(0.5, 0.5);
+	m_startGameIndex = GUIHandler::get().addGUIButton(L"ButtonStart.png", btnStyle);
+
+
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_startGameIndex))->Attach(this);
+
+	//customization button
+	btnStyle.position = Vector2(840, 200);
+	btnStyle.scale = Vector2(0.5, 0.5);
+	m_customization = GUIHandler::get().addGUIButton(L"customizationBtn.png", btnStyle);
+
+
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_customization))->Attach(this);
+
+	//join button
+	btnStyle.position = Vector2(140, 600);
+	btnStyle.scale = Vector2(0.5, 0.5);
+	m_joinGameIndex = GUIHandler::get().addGUIButton(L"JoinBtn.png", btnStyle);
+
+	
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_joinGameIndex))->Attach(this);
+	//Host Button
+	btnStyle.position = Vector2(140, 700);
+	btnStyle.scale = Vector2(0.5, 0.5);
+	m_hostGameIndex = GUIHandler::get().addGUIButton(L"HostBtn.png", btnStyle);
+
+	
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_hostGameIndex))->Attach(this);
+
+	
 	// Start Scene
 	m_currentScene = new Scene();
 	m_currentScene->loadLobby();
@@ -45,14 +82,25 @@ void SceneManager::updateScene(const float &dt)
 		case ScenesEnum::LOBBY:
 			m_nextScene->loadLobby();
 			//Reset game variables that are needed here
+			GUIHandler::get().setVisible(m_startGameIndex, true);
+			GUIHandler::get().setVisible(m_hostGameIndex, true);
+			GUIHandler::get().setVisible(m_joinGameIndex, true);
+			GUIHandler::get().setVisible(m_customization, true);
+
 			Engine::get().getPlayerPtr()->setScore(0);
-			m_gameStarted = false;
+			
 			break;
 		case ScenesEnum::START:
 			m_nextScene->loadScene("Ogorki");
 			break;
 		case ScenesEnum::ARENA:
 			m_nextScene->loadArena();
+			break;
+		case ScenesEnum::MAINMENU:
+			m_nextScene->loadMainMenu();
+			break;
+		case ScenesEnum::ENDSCENE:
+			//
 			break;
 		default:
 			break;
@@ -80,8 +128,6 @@ void SceneManager::inputUpdate(InputData& inputData)
 		}
 	}
 }
-
-
 //Can't swap scenes when using onTrigger function due to it being triggered in physx simulations, ie it could result in a crash and is not best practice. 
 void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity)
 {
@@ -114,8 +160,6 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 				barrelTriggerPtr->m_triggerTimer.restart();
 				m_currentScene->addedBarrel = true;
 			}
-			
-			
 		}
 	}
 }
@@ -139,4 +183,39 @@ void SceneManager::swapScenes()
 	Physics::get().Attach(m_currentScene, false, true);
 
 	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
+}
+
+void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
+{
+	if (type == GUIUpdateType::CLICKED)
+	{
+		
+		if (guiElement->m_index = m_startGameIndex)
+		{
+			GUIHandler::get().setVisible(m_startGameIndex, false);
+			GUIHandler::get().setVisible(m_hostGameIndex, false);
+			GUIHandler::get().setVisible(m_joinGameIndex, false);
+			GUIHandler::get().setVisible(m_customization, false);
+
+			m_nextSceneEnum = ScenesEnum::START;
+			m_swapScene = true;
+		}
+		if (guiElement->m_index = m_joinGameIndex)
+		{
+			//do stuff
+		}
+		if (guiElement->m_index = m_hostGameIndex)
+		{
+			//do stuff
+		}
+		if (guiElement->m_index = m_customization)
+		{
+			//do stuff
+		}
+		
+		
+		//m_gameStarted = true;
+		//m_gameRestarted = false;
+	
+	}
 }

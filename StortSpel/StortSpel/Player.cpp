@@ -26,7 +26,7 @@ Player::Player()
 		vec.emplace_back(new SpeedPickup());
 		Pickup::initPickupArray(vec);
 	}
-
+	
 	//GUI
 	m_score = 0;
 	GUITextStyle style;

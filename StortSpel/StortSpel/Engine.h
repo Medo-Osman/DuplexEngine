@@ -18,7 +18,6 @@
 #include "BarrelComponent.h"
 #include "BarrelTriggerComponent.h"
 
-
 struct Settings
 {
 	int width = 1920;
@@ -77,9 +76,7 @@ public:
 	bool addComponentToPlayer(std::string componentIdentifier, Component* component);
 	void removeLightComponentFromPlayer(LightComponent* component);
 
-	void setBarrelVector(std::vector<Entity*>* entitiesVector);
-	std::vector<Entity*>* getBarrelVector();
-
+	
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
 	std::unordered_map<std::string, Entity*>* getEntityMap();
