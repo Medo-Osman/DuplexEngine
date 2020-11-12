@@ -199,30 +199,7 @@ void Scene::loadLobby()
 {
 	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
-	Entity* bossEnt = addEntity("boss");
-	if (bossEnt)
-	{
-		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
-		bossEnt->addComponent("mesh", animMeshComp);
-		addMeshComponent(animMeshComp);
-		bossEnt->scale({ 4, 4, 4 });
-		bossEnt->translate({ 10,8,0 });
-
-		m_boss = new Boss();
-		m_boss->Attach(this);
-		m_boss->initialize(bossEnt, false);
-		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(-30, 9, 0), 13.f));
-		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
-		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(-30, 9, -30), 13.f));
-		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
-		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(30, 9, -30), 13.f));
-		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
-		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(0, 9, 0), 13.f));
-		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
-
-		Physics::get().Attach(m_boss, true, false);
-	}
+	
 
 	Entity* music = addEntity("lobbyMusic");
 	if (music)
@@ -547,6 +524,30 @@ void Scene::loadArena()
 
 	m_sceneEntryPosition = Vector3(0, 0, 0);
 
+	Entity* bossEnt = addEntity("boss");
+	if (bossEnt)
+	{
+		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+		bossEnt->addComponent("mesh", animMeshComp);
+		addMeshComponent(animMeshComp);
+		bossEnt->scale({ 4, 4, 4 });
+		bossEnt->translate({ 10,8,0 });
+
+		m_boss = new Boss();
+		m_boss->Attach(this);
+		m_boss->initialize(bossEnt, false);
+		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(-30, 9, 0), 13.f));
+		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
+		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(-30, 9, -30), 13.f));
+		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
+		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(30, 9, -30), 13.f));
+		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
+		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(0, 9, 0), 13.f));
+		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
+
+		Physics::get().Attach(m_boss, true, false);
+	}
 
 	Material gridTest = Material({ L"BlackGridBlueLines.png" });
 	entity = addEntity("floor");
@@ -843,6 +844,13 @@ void Scene::updateScene(const float& dt)
 	
 		//Check projectiles and their lifetime so they do not continue on forever in case they missed.
 		checkProjectiles();
+
+		for (int i = 0; i < deferredPointInstantiationList.size(); i++)
+		{
+			addScore(deferredPointInstantiationList[i]);
+		}
+
+		deferredPointInstantiationList.clear();
 	}
 
 
@@ -1043,7 +1051,8 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 	if (type == BossMovementType::DropPoints)
 	{
 		Entity* projectile = static_cast<Entity*>(data.pointer0);
-		addScore(data.origin+Vector3(0,2,0));
+		//addScore(data.origin+Vector3(0,2,0));
+		deferredPointInstantiationList.push_back(data.origin + Vector3(0, 2, 0));
 		
 		ProjectileComponent* component = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
 		m_projectiles.erase(component->m_id);

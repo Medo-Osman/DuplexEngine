@@ -39,6 +39,8 @@ private:
 	//For projectiles
 	std::unordered_map<UINT, Entity*> m_projectiles;
 
+	std::vector<Vector3> deferredPointInstantiationList;
+
 	
 
 	Player* m_player;
