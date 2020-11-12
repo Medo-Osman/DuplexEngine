@@ -76,6 +76,8 @@ void Camera::inputUpdate(InputData& inputData)
 
 			XMFLOAT2 mouseDelta = XMFLOAT2((float)inputData.rangeData[i].pos.x, (float)inputData.rangeData[i].pos.y);
 
+			//(float)inputData.rangeData[i].pos
+
 			// Set Pitch
 			XMFLOAT3 rotationF3;
 			XMStoreFloat3(&rotationF3, m_rotation);
@@ -112,6 +114,7 @@ void Camera::update(const float &dt)
 	//}
 	
 	m_position = Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation() + Vector3(0, 2, -5);
+	m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
 	
 	this->updateViewMatrix();
 }

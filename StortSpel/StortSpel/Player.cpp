@@ -3,6 +3,7 @@
 #include"Pickup.h"
 #include"SpeedPickup.h"
 #include"ParticleComponent.h"
+#include "Traps.h"
 
 Player::Player()
 {
@@ -42,11 +43,19 @@ Player::Player()
 	imageStyle.scale = Vector2(0.9, 0.9);
 	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
+	//Test Button stuff
+	GUIButtonStyle btnStyle;
+	btnStyle.position = Vector2(140, 200);
+	btnStyle.scale = Vector2(0.5, 0.5);
+	closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
+
+	//Attach to the click listener for the button
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
 }
 
 Player::~Player()
 {
-	
+
 }
 
 bool Player::isRunning()
@@ -102,7 +111,7 @@ void Player::handleRotation(const float &dt)
 
 		auto cameraRot = m_cameraTransform->getRotation();
 		auto offset = Vector4(XMVector3AngleBetweenNormals(XMVector3Normalize(m_movementVector), m_cameraTransform->getForwardVector()));
-		
+
 		//if this vector has posisitv value the character is facing the positiv x axis, checks movementVec against cameraForward
 		if (XMVectorGetY(XMVector3Cross(m_movementVector, m_cameraTransform->getForwardVector())) > 0.0f)
 		{
@@ -113,7 +122,7 @@ void Player::handleRotation(const float &dt)
 		//This is the angleY target quaternion
 		targetRot = Quaternion(0, cameraRot.y, 0, cameraRot.w) * Quaternion::CreateFromYawPitchRoll(offset.y, 0, 0);//Quaternion::CreateFromYawPitchRoll(m_angleY, 0, 0);
 		targetRot.Normalize();
-	
+
 		//Land somewhere in between target and current
 		slerped = Quaternion::Slerp(currentRotation, targetRot, dt / 0.08f);
 		slerped.Normalize();
@@ -137,7 +146,7 @@ void Player::playerStateLogic(const float& dt)
 	switch (m_state)
 	{
 	case PlayerState::ROLL:
-		std::cout << "ROLL\n";
+		//std::cout << "ROLL\n";
 		if (m_currentDistance >= ROLL_TRAVEL_DISTANCE)
 		{
 			m_lastState = PlayerState::ROLL;
@@ -145,7 +154,7 @@ void Player::playerStateLogic(const float& dt)
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
 			//m_animMesh->playAnimation("Running4.1", true);
-			m_animMesh->playBlendState("runOrIdle",0.3f);
+			idleAnimation();
 		}
 		else
 		{
@@ -157,13 +166,13 @@ void Player::playerStateLogic(const float& dt)
 		}
 		break;
 	case PlayerState::DASH:
-		std::cout << "DASH\n";
+		//std::cout << "DASH\n";
 		if (m_currentDistance >= DASH_TRAVEL_DISTANCE)
 		{
 			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
-			m_animMesh->playBlendState("runOrIdle", 0.5f);
+			idleAnimation();
 		}
 		else
 		{
@@ -173,7 +182,7 @@ void Player::playerStateLogic(const float& dt)
 		}
 		break;
 	case PlayerState::FALLING:
-		std::cout << "FALLING\n";
+		//std::cout << "FALLING\n";
 		if (m_jumps == 0) // Can only jump once in air
 			m_jumps = ALLOWED_NR_OF_JUMPS - 1;
 
@@ -184,14 +193,14 @@ void Player::playerStateLogic(const float& dt)
 			m_jumps = 0;
 			m_hasDashed = false;
 		}
-		//else 
+		//else
 		//{
 		//	//finalMovement.y += finalMovement.y - 1.f*dt;//-JUMP_SPEED * FALL_MULTIPLIER * dt;
 		//	//m_controller->move(finalMovement, dt);
 		//}
 		break;
 	case PlayerState::JUMPING:
-		std::cout << "JUMPING\n";
+		//std::cout << "JUMPING\n";
 		//m_velocity.y = JUMP_SPEED * dt * m_playerScale;// * dt;
 
 		//m_currentDistance += JUMP_SPEED * dt;
@@ -202,7 +211,7 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::JUMPING;
 			m_state = PlayerState::FALLING;
 		}
-		
+
 		//if (m_currentDistance > JUMP_DISTANCE)
 		//{
 		//	m_currentDistance = 0.f;
@@ -211,7 +220,7 @@ void Player::playerStateLogic(const float& dt)
 
 		break;
 	case PlayerState::IDLE:
-		std::cout << "IDLE\n";
+		//std::cout << "IDLE\n";
 		if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
 		{
 			m_lastState = PlayerState::IDLE;
@@ -230,7 +239,7 @@ void Player::playerStateLogic(const float& dt)
 			m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
 	}
 
-	std::cout << m_velocity.y << "\n";
+	//std::cout << m_velocity.y << "\n";
 
 	// Max Gravity Tests
 	if (m_velocity.y <= -MAX_FALL_SPEED)
@@ -245,10 +254,10 @@ void Player::playerStateLogic(const float& dt)
 	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
 	{
 		float blend = vectorLen / (PLAYER_SPEED * dt);
-		
+
 		if ((PLAYER_SPEED * dt) <= 0.0f)
 			blend = 0.0f;
-		
+
 		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
 		//// analog animation:
 		//if (vectorLen > 0)
@@ -265,6 +274,24 @@ void Player::playerStateLogic(const float& dt)
 
 void Player::updatePlayer(const float& dt)
 {
+	switch (m_activeTrap)
+	{
+	case TrapType::EMPTY:
+		break;
+	case TrapType::SLOW:
+		m_slowTimer += dt;
+		if (m_slowTimer >= m_slowTime)
+		{
+			m_slowTimer = 0;
+			m_currentSpeedModifier = 1;
+			m_activeTrap = TrapType::EMPTY;
+		}
+		break;
+	default:
+		break;
+	}
+
+
 	if (m_pickupPointer)
 	{
 		switch (m_pickupPointer->getPickupType())
@@ -283,7 +310,7 @@ void Player::updatePlayer(const float& dt)
 					m_goalSpeedModifier *= -1;;
 					m_speedModifierTime = 0.f;
 				}
-				
+
 				if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
 				{
 					m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
@@ -390,7 +417,7 @@ Entity* Player::getPlayerEntity() const
 void Player::inputUpdate(InputData& inputData)
 {
 	this->setStates(inputData.stateData);
-	
+
 	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
 	{
 		switch (inputData.actionData[i])
@@ -412,10 +439,10 @@ void Player::inputUpdate(InputData& inputData)
 			}
 			break;
 		case USE:
-
 			break;
 		case CLOSEINTROGUI:
 			GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+			GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
 			break;
 		default:
 			break;
@@ -425,6 +452,30 @@ void Player::inputUpdate(InputData& inputData)
 
 void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEntityBeRemoved)
 {
+	if (physicsData.triggerType == TriggerType::TRAP)
+	{
+		switch ((TrapType)physicsData.associatedTriggerEnum)
+		{
+		case TrapType::SLOW:
+			m_activeTrap = (TrapType)physicsData.associatedTriggerEnum;
+			m_currentSpeedModifier = 0.5f;
+			m_goalSpeedModifier = physicsData.floatData;
+			m_speedModifierTime = 0;
+			break;
+		}
+
+	}
+
+	if (physicsData.triggerType == TriggerType::BARREL)
+	{
+
+		//spelare - barrel
+		/*	Vector3 direction = ->getTranslation() - m_playerEntity->getTranslation();
+		direction.Normalize();
+		m_playerEntity->translate(direction);*/
+
+		jump();
+	}
 	if (!shouldTriggerEntityBeRemoved)
 	{
 		if (physicsData.triggerType == TriggerType::CHECKPOINT)
@@ -469,7 +520,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 					m_pickupPointer->onPickup(m_playerEntity, duration);
 				}
 			}
-			
+
 			if((PickupType)physicsData.associatedTriggerEnum == PickupType::SCORE)
 			{
 				int amount = (int)physicsData.floatData;
@@ -477,6 +528,59 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				m_audioComponent->playSound();
 				shouldTriggerEntityBeRemoved = true;
 			}
+
+		}
+	}
+}
+
+void Player::update(GUIUpdateType type, GUIElement* guiElement)
+{
+	if (type == GUIUpdateType::CLICKED)
+	{
+		GUIHandler::get().setVisible(guiElement->m_index, false);
+
+		//Set instructions to not visible
+		GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+	}
+
+
+	if (type == GUIUpdateType::HOVER_ENTER)
+	{
+		GUIButton* button = dynamic_cast<GUIButton*>(guiElement);
+		button->setTexture(L"closeButtonSelected.png");
+	}
+
+	if (type == GUIUpdateType::HOVER_EXIT)
+	{
+		GUIButton* button = dynamic_cast<GUIButton*>(guiElement);
+		button->setTexture(L"closeButton.png");
+	}
+}
+void Player::serverPlayerAnimationChange(PlayerState currentState, float currentBlend)
+{
+	m_animMesh->setCurrentBlend(currentBlend);
+
+	if (currentState != m_state)
+	{
+		m_state = currentState;
+
+		switch (currentState)
+		{
+		case PlayerState::IDLE:
+			idleAnimation();
+			break;
+		case PlayerState::JUMPING:
+
+			break;
+		case PlayerState::FALLING:
+
+			break;
+		case PlayerState::DASH:
+			dashAnimation();
+			break;
+		case PlayerState::ROLL:
+			rollAnimation();
+			break;
 		}
 	}
 }
@@ -501,8 +605,7 @@ void Player::roll()
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
 
-	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
-	m_animMesh->setAnimationSpeed(1.6f);
+	rollAnimation();
 }
 
 bool Player::canDash() const
@@ -515,11 +618,27 @@ void Player::dash()
 	prepDistVariables();
 	m_state = PlayerState::DASH;
 
-	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true);
+	dashAnimation();
 }
 
 void Player::prepDistVariables()
 {
 	m_currentDistance = 0;
 	m_moveDirection = m_playerEntity->getForwardVector();
+}
+
+void Player::rollAnimation()
+{
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
+	m_animMesh->setAnimationSpeed(1.6f);
+}
+
+void Player::dashAnimation()
+{
+	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true);
+}
+
+void Player::idleAnimation()
+{
+	m_animMesh->playBlendState("runOrIdle", 0.3f);
 }

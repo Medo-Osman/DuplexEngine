@@ -95,7 +95,7 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	hr = m_devicePtr->CreateRenderTargetView(geometryTexture, 0, m_geometryRenderTargetViewPtr.GetAddressOf());
 	if (!SUCCEEDED(hr)) return hr;
-	
+
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Format = textureDesc.Format;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
@@ -114,8 +114,20 @@ HRESULT Renderer::initialize(const HWND& window)
 	createViewPort(m_defaultViewport, m_settings.width, m_settings.height);
 	rasterizerSetup();
 
+	// Setup glowMap
+	ID3D11Texture2D* glowTexture;
 
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &glowTexture);
+	if (!SUCCEEDED(hr)) return hr;
 
+	hr = m_devicePtr->CreateRenderTargetView(glowTexture, 0, m_glowMapRenderTargetViewPtr.GetAddressOf());
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateShaderResourceView(glowTexture, &srvDesc, &m_glowMapShaderResourceView);
+	if (!SUCCEEDED(hr)) return hr;
+
+	m_geometryPassRTVs[0] = m_geometryRenderTargetViewPtr.Get();
+	m_geometryPassRTVs[1] = m_glowMapRenderTargetViewPtr.Get();
 
 	//Setup samplerstate
 	D3D11_SAMPLER_DESC samplerStateDesc;
@@ -145,6 +157,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);
 	m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
 
+	m_shadowConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &shadowBuffer(), 1);
+
 	m_cameraBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cameraBufferStruct(), 1);
 	m_dContextPtr->PSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
 
@@ -168,8 +182,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	/////////////////////////////////////////////////
 
 	initRenderQuad();
-
-	GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
+	
 
 	 //ImGui initialization
 	IMGUI_CHECKVERSION();
@@ -182,8 +195,11 @@ HRESULT Renderer::initialize(const HWND& window)
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
 
-
 	Particle::setupStaticDataForParticle(m_devicePtr.Get());
+
+	//Shadows - don't forget to update resolution constant in shader(s) as well
+	m_shadowMap = new ShadowMap((UINT)4096, (UINT)4096, m_devicePtr.Get(), Engine::get().getSkyLightDir());
+	m_shadowMap->createRasterState();
 
 	return hr;
 }
@@ -427,10 +443,12 @@ void Renderer::downSamplePass()
 
 	m_dContextPtr->CSSetShader(m_CSDownSample.Get(), 0, 0);
 	m_dContextPtr->CSSetShaderResources(0, 1, m_geometryShaderResourceView.GetAddressOf());
+	m_dContextPtr->CSSetShaderResources(1, 1, m_glowMapShaderResourceView.GetAddressOf());
 	m_dContextPtr->CSSetUnorderedAccessViews(0, 1, m_downSampledUnorderedAccessView.GetAddressOf(), 0);
 	m_dContextPtr->Dispatch(m_settings.width / 16, m_settings.height / 16, 1);
 
 	m_dContextPtr->CSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->CSSetShaderResources(1, 1, &nullSrv);
 	m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &nullUav, 0);
 }
 
@@ -494,109 +512,10 @@ void Renderer::initRenderQuad()
 	m_renderQuadBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_VERTEX_BUFFER, fullScreenQuad.data(), fullScreenQuad.size());
 }
 
-void Renderer::rasterizerSetup()
+void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
 {
-	HRESULT hr = 0;
-	D3D11_RASTERIZER_DESC rasterizerDesc;
-	ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 
-	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
-	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
-
-	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
-	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
-
-	
-}
-
-void Renderer::update(const float& dt)
-{
-	if (ImGui::Button("Toggle FrustumCulling"))
-	{
-		m_frustumCullingOn = !m_frustumCullingOn;
-	}
-
-}
-
-void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
-{
-	this->m_dContextPtr->VSSetShader(vsPtr, nullptr, 0);
-	this->m_dContextPtr->HSSetShader(hsPtr, nullptr, 0);
-	this->m_dContextPtr->DSSetShader(dsPtr, nullptr, 0);
-	this->m_dContextPtr->GSSetShader(gsPtr, nullptr, 0);
-	this->m_dContextPtr->PSSetShader(psPtr, nullptr, 0);
-}
-
-void Renderer::render()
-{
-	int drawn = 0;
-	//Update camera position for pixel shader buffer
-	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
-	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
-
-	//Clear the context of render and depth target
-	//m_dContextPtr->OMGetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, m_rTargetViewsArray, m_depthStencilViewPtr.GetAddressOf());
-	/*for (UINT i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
-	{
-		if (m_rTargetViewsArray[i] != NULL)
-		{
-			m_dContextPtr->ClearRenderTargetView(m_rTargetViewsArray[i], m_clearColor);
-		}
-	}*/
-	m_dContextPtr->ClearRenderTargetView(m_geometryRenderTargetViewPtr.Get(), m_clearColor);
-	m_dContextPtr->ClearRenderTargetView(m_finalRenderTargetViewPtr.Get(), m_clearColor);
-	if (m_depthStencilViewPtr)
-	{
-		m_dContextPtr->ClearDepthStencilView(m_depthStencilViewPtr.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
-	}
-
-	//NormalPass
-	m_dContextPtr->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	UINT offset = 0;
-
-	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
-	//m_rTargetViewsArray[0] = m_finalRenderTargetViewPtr.Get();
-	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
-	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
-
-	//Particles
-	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
-	//Draw all particles here
-	//this->particle.draw(this->m_dContextPtr.Get());
-
-	for (auto& entity : *Engine::get().getEntityMap())
-	{
-		std::vector<Component*> vec;
-		entity.second->getComponentsOfType(vec, ComponentType::PARTICLE);
-
-		for (int i = 0; i < vec.size(); i++)
-		{
-			static_cast<ParticleComponent*>(vec[i])->draw(m_dContextPtr.Get());
-		}
-	}
-	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
-	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
-	this->m_dContextPtr->PSSetSamplers(1, 1, this->m_psSamplerState.GetAddressOf());
-
-	//End of particles
-
-	// Skybox constant buffer:
-	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
-	skyboxMVP constantBufferSkyboxStruct;
-	XMMATRIX W = XMMatrixTranslation(XMVectorGetX(m_camera->getPosition()), XMVectorGetY(m_camera->getPosition()), XMVectorGetZ(m_camera->getPosition()));
-	XMMATRIX V = m_camera->getViewMatrix();
-	XMMATRIX P = m_camera->getProjectionMatrix();
-	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(W * V * P);
-	m_skyboxConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferSkyboxStruct);
-
-	// Mesh WVP buffer, needs to be set every frame bacause of SpriteBatch(GUIHandler)
-	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
-
-	BoundingFrustum frust;
-	XMMATRIX world, wvp;
-	world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition());
-	wvp = world * V * P;
-	BoundingFrustum::CreateFromMatrix(frust, wvp);
+	m_drawn = 0;
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
@@ -615,11 +534,11 @@ void Renderer::render()
 		if (m_frustumCullingOn && parentEntity->m_canCull)
 		{
 			//Culling
-			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), V);
+			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), *V);
 			XMFLOAT3 posFloat3;
 			XMStoreFloat3(&posFloat3, pos);
 
-			if (frust.Contains(pos) != ContainmentType::CONTAINS)
+			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
 				component.second->getMeshResourcePtr()->getMinMax(min, max);
 
@@ -627,7 +546,7 @@ void Renderer::render()
 				ext = ext * parentEntity->getScaling();
 				XMFLOAT4 rot = parentEntity->getRotation();
 				BoundingOrientedBox box(posFloat3, ext, rot);
-				ContainmentType contType = frust.Contains(box);
+				ContainmentType contType = frust->Contains(box);
 
 				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
 			}
@@ -641,7 +560,7 @@ void Renderer::render()
 
 		if (draw)
 		{
-			drawn++;
+			m_drawn++;
 			ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum();
 			if (m_currentSetShaderProg != meshShaderEnum)
 			{
@@ -663,7 +582,7 @@ void Renderer::render()
 
 				m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 			}
-
+			m_dContextPtr->PSSetShaderResources(2, 1, &m_shadowMap->m_depthMapSRV);
 
 
 			perObjectMVP constantBufferPerObjectStruct;
@@ -688,10 +607,181 @@ void Renderer::render()
 		}
 		
 	}
+}
+
+void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
+{
+	ID3D11ShaderResourceView* emptySRV[1] = { nullptr };
+	m_dContextPtr->PSSetShaderResources(2, 1, emptySRV);
+
+	//Shadow
+	m_shadowMap->bindResourcesAndSetNullRTV(m_dContextPtr.Get());
+	m_shadowMap->computeShadowMatrix(Engine::get().getCameraPtr()->getPosition());
+
+	shadowBuffer shadowBufferStruct;
+	shadowBufferStruct.lightProjMatrix = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);
+	shadowBufferStruct.lightViewMatrix = XMMatrixTranspose(m_shadowMap->m_lightViewMatrix);
+	shadowBufferStruct.shadowMatrix = XMMatrixTranspose(m_shadowMap->m_shadowTransform);
+	m_shadowConstantBuffer.updateBuffer(m_dContextPtr.Get(), &shadowBufferStruct);
+
+	for (auto& component : *Engine::get().getMeshComponentMap())
+	{
+
+		if (component.second->getShaderProgEnum() != ShaderProgramsEnum::SKEL_ANIM)
+		{
+			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
+			m_compiledShaders[meshShaderEnum]->setShaders();
+			m_currentSetShaderProg = meshShaderEnum;
+		}
+		
+		else
+		{
+			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH_ANIM;
+			m_compiledShaders[meshShaderEnum]->setShaders();
+			m_currentSetShaderProg = meshShaderEnum;
+		}
+
+		// Get Entity map from Engine
+		std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+
+		Entity* parentEntity;
+		parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
+
+		MeshComponent* comp = dynamic_cast<MeshComponent*>(component.second);
+		if (comp->castsShadow())
+		{
+
+			perObjectMVP constantBufferPerObjectStruct;
+			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
+			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);//XMMatrixTranspose(m_camera->getProjectionMatrix());
+			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_shadowMap->m_lightViewMatrix);//XMMatrixTranspose(m_camera->getViewMatrix());
+			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+
+			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
+		}
+			
+	}
+
+
+}
+
+void Renderer::rasterizerSetup()
+{
+	HRESULT hr = 0;
+	D3D11_RASTERIZER_DESC rasterizerDesc;
+	ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
+
+	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+
+	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
+	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
+
+	
+}
+
+void Renderer::update(const float& dt)
+{
+	if (ImGui::Button("Toggle FrustumCulling"))
+	{
+		m_frustumCullingOn = !m_frustumCullingOn;
+	}
+}
+
+void Renderer::render()
+{
+	
+	//Update camera position for pixel shader buffer
+	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
+	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
+
+	
+
+	m_dContextPtr->ClearRenderTargetView(m_geometryRenderTargetViewPtr.Get(), m_clearColor);
+	m_dContextPtr->ClearRenderTargetView(m_finalRenderTargetViewPtr.Get(), m_clearColor);
+	m_dContextPtr->ClearRenderTargetView(m_glowMapRenderTargetViewPtr.Get(), m_blackClearColor);
+
+	if (m_depthStencilViewPtr)
+	{
+		m_dContextPtr->ClearDepthStencilView(m_depthStencilViewPtr.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+	}
+
+	//NormalPass
+	m_dContextPtr->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	UINT offset = 0;
+
+	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
+	//m_rTargetViewsArray[0] = m_finalRenderTargetViewPtr.Get();
+	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+
+	
+		//Particles
+	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
+	//Draw all particles here
+	//this->particle.draw(this->m_dContextPtr.Get());
+
+	for (auto& entity : *Engine::get().getEntityMap())
+	{
+		std::vector<Component*> vec;
+		entity.second->getComponentsOfType(vec, ComponentType::PARTICLE);
+
+		for (int i = 0; i < vec.size(); i++)
+		{
+			static_cast<ParticleComponent*>(vec[i])->draw(m_dContextPtr.Get());
+		}
+	}
+	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
+	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
+	this->m_dContextPtr->PSSetSamplers(1, 1, this->m_psSamplerState.GetAddressOf());
+
+	//End of particles
+	// Skybox constant buffer:
+	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
+	skyboxMVP constantBufferSkyboxStruct;
+	XMMATRIX W = XMMatrixTranslation(XMVectorGetX(m_camera->getPosition()), XMVectorGetY(m_camera->getPosition()), XMVectorGetZ(m_camera->getPosition()));
+	XMMATRIX V = m_camera->getViewMatrix();
+	XMMATRIX P = m_camera->getProjectionMatrix();
+	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(W * V * P);
+	m_skyboxConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferSkyboxStruct);
+
+
+	// Mesh WVP buffer, needs to be set every frame bacause of SpriteBatch(GUIHandler)
+	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+
+	//Calculate the frumstum required
+	BoundingFrustum frust;
+	XMMATRIX world, wvp;
+	world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition());
+	wvp = world * V * P;
+	BoundingFrustum::CreateFromMatrix(frust, wvp);
+
+	//Run the shadow pass before everything else
+	m_dContextPtr->VSSetConstantBuffers(3, 1, m_shadowConstantBuffer.GetAddressOf());
+	
+	m_shadowMap->setLightDir(Engine::get().getSkyLightDir());
+	renderShadowPass(&frust, &wvp, &V, &P);
+	
+	
+	//Set to null, otherwise we get error saying it's still bound to input.
+	ID3D11RenderTargetView* nullRenderTargets[1] = { 0 };
+	m_dContextPtr->OMSetRenderTargets(1, nullRenderTargets, nullptr);
+
+	
+
+	//Run ordinary pass
+	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
+	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
+	renderScene(&frust, &wvp, &V, &P);
+
+	ID3D11ShaderResourceView* srv[1] = { 0 };
+	m_dContextPtr->PSSetShaderResources(0, 1, srv);
 
 
 	ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
-	ImGui::Text("Nr of draw calls per frame: %d .", (int)drawn);
+	ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
 	ImGui::End();
 	// [ Bloom Filter ]
 

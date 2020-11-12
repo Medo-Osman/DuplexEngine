@@ -123,7 +123,7 @@ bool Mouse::isMDown() const
 {
 	return m_MDown;
 }
-int Mouse::getPosx() const
+int Mouse::getPosX() const
 {
 	return m_mousePos.x;
 }

@@ -12,6 +12,7 @@ private:
 	std::string m_identifier;
 
 	std::unordered_map<std::string, Component*> m_components;
+	
 
 public:
 	Entity(std::string identifier) { m_identifier = identifier; }

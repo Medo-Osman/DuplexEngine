@@ -10,6 +10,6 @@ SamplerState sampState : SAMPLER : register(s0);
 
 float4 main(ps_in input) : SV_TARGET
 {
-    //return mad(0.75f, glowTexture.Sample(sampState, input.uv), phongTexture.Load(input.pos.xy, 0));
-    return phongTexture.Load(input.pos.xy, 0);
+    return mad(0.75f, glowTexture.Sample(sampState, input.uv), phongTexture.Load(input.pos.xy, 0));
+    //return phongTexture.Load(input.pos.xy, 0);
 }

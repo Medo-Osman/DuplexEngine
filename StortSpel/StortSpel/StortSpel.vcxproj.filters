@@ -76,6 +76,9 @@
     <Filter Include="Source Files\Graphics\Particles\PlayerLines">
       <UniqueIdentifier>{a1c79bd5-2660-43a9-b262-d5a650067a8a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Game\Traps">
+      <UniqueIdentifier>{fda73094-e463-4574-9c83-c0425d6076d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -170,6 +173,9 @@
     </ClCompile>
     <ClCompile Include="Particles\Particle.cpp">
       <Filter>Source Files\Graphics\Particles</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowMap.cpp">
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -377,6 +383,30 @@
     <ClInclude Include="Particles\PlayerLineParticle.h">
       <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
     </ClInclude>
+    <ClInclude Include="BarrelComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="PushTrapComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="SlowTrapComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Traps.h">
+      <Filter>Source Files\Game\Traps</Filter>
+    </ClInclude>
+    <ClInclude Include="BarrelTriggerComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIButton.h">
+      <Filter>Source Files\Graphics\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIContext.h">
+      <Filter>Source Files\Application\Input\Context</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowMap.h">
+      <Filter>Source Files\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">
@@ -467,6 +497,21 @@
     </FxCompile>
     <FxCompile Include="Particles\PlayerLineDrawGS.hlsl">
       <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowVertex.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowPixel.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="BasicPixelShader_Shadow.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowVertexAnim.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="EmissivePixelShader.hlsl">
+      <Filter>Resource Files\Shader</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

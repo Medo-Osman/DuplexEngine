@@ -1,6 +1,7 @@
 #include "3DPCH.h"
 #include "GUIHandler.h"
 
+int GUIObserver::nr = 0;
 GUIHandler::GUIHandler()
 {
 	m_device = nullptr;
@@ -26,14 +27,34 @@ GUIHandler::~GUIHandler()
 	delete m_spriteBatch;
 }
 
-void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext)
+void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext, Input* input)
 {
 	m_device = device;
 	m_dContext = dContext;
 
+	m_input = input;
+
 	m_states = std::make_unique< CommonStates >(m_device);
 
 	m_spriteBatch = new SpriteBatch(m_dContext);
+}
+
+int GUIHandler::addGUIButton(std::wstring buttonTextureString, GUIButtonStyle style)
+{
+	int index = m_elements.size();
+	GUIButton* image = new GUIButton(buttonTextureString, style);
+	image->m_index = index;
+	image->setTexture(buttonTextureString);
+	m_elements.push_back(image);
+
+	m_input->Attach(image);
+
+	return index;
+}
+
+void GUIHandler::changeGUIButton(int index, std::wstring path)
+{
+	static_cast<GUIButton*>(m_elements[index])->setTexture(path);
 }
 
 int GUIHandler::addGUIText(std::string textString, std::wstring fontName, GUITextStyle style)
@@ -48,6 +69,7 @@ int GUIHandler::addGUIText(std::string textString, std::wstring fontName, GUITex
 	// Text Element
 	int index = m_elements.size();
 	GUIText* text = new GUIText();
+	text->m_index = index;
 	text->setText(textString, m_fonts[fontName], style);
 	m_elements.push_back(text);
 
@@ -66,6 +88,7 @@ int GUIHandler::addGUIImage(std::wstring textureString, GUIImageStyle style)
 	// Gui Element
 	int index = m_elements.size();
 	GUIImageLabel* image = new GUIImageLabel(textureString, style);
+	image->m_index = index;
 	image->setTexture(textureString);
 	m_elements.push_back(image);
 
@@ -90,6 +113,11 @@ void GUIHandler::setVisible(int index, bool value)
 bool GUIHandler::getVisible(int index)
 {
 	return (m_elements[index]->isVisible());
+}
+
+std::vector<GUIElement*>* GUIHandler::getElementMap()
+{
+	return &this->m_elements;
 }
 
 void GUIHandler::render()

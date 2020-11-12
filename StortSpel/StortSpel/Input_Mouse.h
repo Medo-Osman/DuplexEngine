@@ -62,7 +62,7 @@ public:
 	bool isLDown() const;
 	bool isRDown() const;
 	bool isMDown() const;
-	int getPosx() const;
+	int getPosX() const;
 	int getPosY() const;
 	MousePos getPos() const;
 };

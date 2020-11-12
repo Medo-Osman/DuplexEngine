@@ -30,6 +30,8 @@ private:
 	int m_nrOfPointLight = 0;
 	void createPointLight(Vector3 position, Vector3 color, float intensity);
 
+	
+
 	Player* m_player;
 
 	Material ObjectSpaceGrid;	// Temp global grid material
@@ -41,6 +43,8 @@ private:
 
 	unsigned int long m_meshCount = 0;
 	unsigned int long m_lightCount = 0;
+
+	Timer m_despawnBarrelTimer;
 
 	std::unordered_map<std::string, Entity*> m_entities;
 	std::unordered_map<unsigned int long, MeshComponent*> m_meshComponentMap;
@@ -58,7 +62,12 @@ private:
 	void addCheckpoint(const Vector3& position);
 	void createParticleEntity(void* particleComponent, Vector3 position);
 
+	void addSlowTrap(const Vector3& position, Vector3 scale);
+	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
+	
 	int m_nrOfCheckpoints = 0;
+	int m_nrOfBarrelDrops = 0;
+	int m_nrOftraps = 0;
 public:
 	Scene();
 	~Scene();
@@ -68,14 +77,18 @@ public:
 	void loadMaterialTest();
 	void updateScene(const float &dt);
 	Vector3 getEntryPosition();
-
 	Entity* getEntity(std::string key);
 	Entity* addEntity(std::string identifier);
 	void removeEntity(std::string identifier);
 
+	bool addedBarrel = false;
+
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 	void addMeshComponent(MeshComponent* component);
 	void addLightComponent(LightComponent* component);
+	void addBarrelDrop(Vector3 Position);
+
+	
 	void removeLightComponent(LightComponent* component);
 	void removeLightComponentFromMap(LightComponent* component);
 	void createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false);

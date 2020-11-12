@@ -6,6 +6,7 @@
 #include "Engine.h"
 #include "GUIHandler.h"
 #include "Scene.h"
+#include "ShadowMap.h"
 //#include "LightComponent.h"
 #include"Particles\Particle.h"
 #include"Particles\RainingDogsParticle.h"
@@ -31,6 +32,10 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
 
 	// Bloom stuff
+	ID3D11RenderTargetView* m_geometryPassRTVs[2];
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_glowMapRenderTargetViewPtr = NULL;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_glowMapShaderResourceView = NULL;
+
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_downSampledShaderResourceView = NULL;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_downSampledUnorderedAccessView = NULL;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_geometryShaderResourceView = NULL;
@@ -53,6 +58,7 @@ private:
 	Buffer<lightBufferStruct> m_lightBuffer;
 	Buffer<cameraBufferStruct> m_cameraBuffer;
 	Buffer<skyboxMVP> m_skyboxConstantBuffer;
+	Buffer<shadowBuffer> m_shadowConstantBuffer;
 	
 	Buffer<skeletonAnimationCBuffer> m_skelAnimationConstantBuffer;
 	Buffer<MATERIAL_CONST_BUFFER> m_currentMaterialConstantBuffer;
@@ -62,7 +68,7 @@ private:
 	Buffer<PositionTextureVertex> m_renderQuadBuffer;
 
 	CS_BLUR_CBUFFER m_blurData;
-	float m_weightSigma = 5.f;
+	float m_weightSigma = 10.f;
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
@@ -89,6 +95,7 @@ private:
 	Camera* m_camera = nullptr;
 	
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
+	float m_blackClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
 
 	//FrustumCulling
 	bool m_frustumCullingOn = true;
@@ -96,6 +103,10 @@ private:
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
 	unsigned int long m_currentSetMaterialId = 1000;
+
+
+	//Shadowmap
+	ShadowMap* m_shadowMap = nullptr;
 
 	//Functions
 	HRESULT createDeviceAndSwapChain();
@@ -108,7 +119,11 @@ private:
 	void downSamplePass();
 	void blurPass();
 	void initRenderQuad();
+	void renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
+	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	Renderer(); //{};
+
+	int m_drawn = 0;
 
 public:
 	Renderer(const Renderer&) = delete;

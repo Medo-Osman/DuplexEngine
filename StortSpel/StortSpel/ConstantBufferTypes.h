@@ -51,6 +51,13 @@ struct skyboxMVP
     XMMATRIX mvpMatrix; //Model/view/projection
 };
 
+struct shadowBuffer
+{
+    XMMATRIX lightViewMatrix;
+    XMMATRIX lightProjMatrix;
+    XMMATRIX shadowMatrix;
+};
+
 const int MAX_JOINT_COUNT = 30; // if this is changed, also change it in the shader.
 
 struct skeletonAnimationCBuffer
@@ -58,7 +65,7 @@ struct skeletonAnimationCBuffer
     XMMATRIX boneMatrixPallet[MAX_JOINT_COUNT]; // 30 is currently the max number of joint, this can be changed later if needed
 };
 
-const int BLUR_RADIUS = 8;
+const int BLUR_RADIUS = 12;
 
 struct CS_BLUR_CBUFFER
 {

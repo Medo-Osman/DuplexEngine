@@ -13,6 +13,10 @@
 #include "AudioComponent.h"
 #include "CheckpointComponent.h"
 #include "Camera.h"
+#include "SlowTrapComponent.h"
+#include "PushTrapComponent.h"
+#include "BarrelComponent.h"
+#include "BarrelTriggerComponent.h"
 
 
 struct Settings
@@ -35,10 +39,10 @@ private:
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
 
-	Vector4 m_skyLightDir = Vector4(0, 0.8, -0.5, 0);
+	Vector4 m_skyLightDir = Vector4(0.5, -0.5, 0, 0);//Vector4(-0.8f, 1.0f, -0.7f, 0);//Vector4(-0.5, 0, -0.5, 0);
 	Vector4 m_skyLightColor = Vector4(1, 1, 1, 1);
-	FLOAT m_skyLightBrightness = 1.75f;
-	FLOAT m_ambientLightLevel = 0.05f;
+	FLOAT m_skyLightBrightness = 4.f;
+	FLOAT m_ambientLightLevel = 0.3f;
 
 	// Entities
 	std::unordered_map<std::string, Entity*>* m_entities;
@@ -48,6 +52,8 @@ private:
 	Player* m_player = nullptr;
 	Camera m_camera; 
 	Settings m_settings;
+
+	Input* m_input = nullptr;
 	
 
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
@@ -57,7 +63,7 @@ private:
 public:
 	static Engine& get();
 
-	void initialize();
+	void initialize(Input* input);
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 
 	~Engine();
@@ -71,9 +77,15 @@ public:
 	bool addComponentToPlayer(std::string componentIdentifier, Component* component);
 	void removeLightComponentFromPlayer(LightComponent* component);
 
+	void setBarrelVector(std::vector<Entity*>* entitiesVector);
+	std::vector<Entity*>* getBarrelVector();
+
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
 	std::unordered_map<std::string, Entity*>* getEntityMap();
+	Vector4& getSkyLightDir();
+
+	Input* getInput();
 
 	Settings getSettings() const;
 	Camera* getCameraPtr();

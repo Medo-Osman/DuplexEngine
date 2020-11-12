@@ -21,15 +21,12 @@ ApplicationLayer::~ApplicationLayer()
 bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd)
 {
 	if (hWnd != NULL) return true;
-	const wchar_t WINDOWTILE[] = L"3DProject";
+	const wchar_t WINDOWTILE[] = L"Lucid Runners";
 	HRESULT hr = 0;
 	bool initOK = false;
-	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 	SetCursor(NULL);
 	this->createWin32Window(hInstance, WINDOWTILE, hWnd);// hwnd is refference, is set to created window.
 	m_window = hWnd;
-
-	AudioHandler::get().initialize(m_window);
 
 	RAWINPUTDEVICE rawIDevice;
 	rawIDevice.usUsagePage = 0x01;
@@ -46,12 +43,22 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		initOK = true;
 		ShowWindow(m_window, showCmd);
 	}
+	// Audio
+	hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+	if (FAILED(hr))
+	{
+		// Thread mode has been chosen before, this HRESULT error should be ignored
+	}
+	AudioHandler::get().initialize(m_window);
+	
 	//PhysX
 	m_physics = &Physics::get();
 	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
+	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input);
 
-	Engine::get().initialize();
+	Engine::get().initialize(&m_input);
 	m_enginePtr = &Engine::get();
+
 
 	m_scenemanager.initalize();
 	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
@@ -81,13 +88,13 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 	// Create the window.
 	_d3d11Window = CreateWindowEx(
 		0,                          // Optional window styles.
-		windowTitle,                 // Window class
+		windowTitle,                // Window class
 		windowTitle,				// Window text
 		WS_OVERLAPPEDWINDOW,        // Window style
-		windowRect.left,				// Position, X
+		windowRect.left,			// Position, X
 		windowRect.top,				// Position, Y
-		(float)this->width,	// Width
-		(float)this->height,	// Height
+		(float)this->width,			// Width
+		(float)this->height,		// Height
 		NULL,						// Parent window
 		NULL,						// Menu
 		hInstance,					// Instance handle

@@ -35,6 +35,11 @@ void Engine::update(const float& dt)
 	m_player->updatePlayer(dt);
 	m_camera.update(dt);
 
+	//Example for updating light direction
+	/*Vector4 dir = m_skyLightDir;
+	dir = XMVector3TransformCoord(dir, XMMatrixRotationY(XMConvertToRadians(2.f)));
+	m_skyLightDir = dir;*/
+
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
 
@@ -62,7 +67,7 @@ bool Engine::addComponentToPlayer(std::string componentIdentifier, Component* co
 
 	if (component->getType() == ComponentType::MESH)
 	{
-		//MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
+		//M eshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
 		//m_currentScene->addMeshComponent(meshComponent);
 		//meshComponent->setRenderId(++m_meshCount);
 		//m_meshComponentMap->insert({m_meshCount, meshComponent});
@@ -97,6 +102,7 @@ void Engine::removeLightComponentFromPlayer(LightComponent* component)
 	//	m_lightCount -= nrOfErased;
 	//}
 	//m_currentScene->removeLightComponentFromMap(component);
+
 }
 
 std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
@@ -112,6 +118,16 @@ std::unordered_map<std::string, LightComponent*>* Engine::getLightComponentMap()
 std::unordered_map<std::string, Entity*>* Engine::getEntityMap()
 {
 	return m_entities;
+}
+
+Input* Engine::getInput()
+{
+	return m_input;
+}
+
+Vector4& Engine::getSkyLightDir()
+{
+	return m_skyLightDir;
 }
 
 Settings Engine::getSettings() const
@@ -132,6 +148,9 @@ Player* Engine::getPlayerPtr()
 	return m_player;
 }
 
+
+
+
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
 	m_devicePtr = devicePtr;
@@ -140,16 +159,22 @@ void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContex
 	DeviceAndContextPtrsAreSet = true;
 }
 
-void Engine::initialize()
+void Engine::initialize(Input* input)
 {
+	m_input = input;
+
+
 	if (!DeviceAndContextPtrsAreSet)
 	{
 		// Renderer::initialize needs to be called and it needs to call setDeviceAndContextPtrs()
 		// before this function call be called.
 		assert(false);
 	}
-	
+
 	m_camera.setProjectionMatrix(80.f,  (float)m_settings.width/(float)m_settings.height, 0.01f, 1000.0f);
+
+	// Audio Handler Listener setup
+	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
 	
 	// Player
 	m_player = new Player();
@@ -184,6 +209,10 @@ void Engine::initialize()
 
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
+	//GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
+
+	// Audio Handler needs Camera Transform ptr for 3D positional audio
+	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
 }
 
 void Engine::updateLightData()
@@ -240,4 +269,3 @@ void Engine::updateLightData()
 
 	Renderer::get().setPointLightRenderStruct(lightInfo);
 }
-

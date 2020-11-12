@@ -10,8 +10,11 @@
 #include"Physics.h"
 #include"Pickup.h"
 #include"CheckpointComponent.h"
-
+#include "Traps.h"
+#include "SlowTrapComponent.h"
+#include "PushTrapComponent.h"
 #include "GUIHandler.h"
+#include "BarrelComponent.h"
 
 enum class PlayerState
 {
@@ -24,7 +27,7 @@ enum class PlayerState
 
 using namespace DirectX;
 
-class Player : public InputObserver, public PhysicsObserver
+class Player : public InputObserver, public PhysicsObserver, public GUIObserver
 {
 private:
     float m_playerScale = 2.0f;
@@ -70,6 +73,7 @@ private:
 
     int m_instructionGuiIndex = 0;
 
+    int closeInstructionsBtnIndex = 0;
 
     float m_angleY;
     float m_currentDistance;
@@ -80,6 +84,9 @@ private:
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
     Pickup* m_pickupPointer;
+   
+    //
+    TrapType m_activeTrap;
 
     Vector3 m_velocity = Vector3();
     Vector3 m_lastPosition = Vector3();
@@ -96,6 +103,12 @@ private:
     Vector3 m_checkpointPos = Vector3(0, 9, 5);
     int m_heightLimitBeforeRespawn = -25;
 
+    //trap
+    Vector3 m_trapPos = Vector3(0, 9, 20);
+    int m_slowTime = 3;
+    float m_slowTimer = 0;
+    int m_trapId = -1;
+
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
     void playerStateLogic(const float& dt);
@@ -107,7 +120,9 @@ private:
     void jump();
     void prepDistVariables();
 
-    
+    void rollAnimation();
+    void dashAnimation();
+    void idleAnimation();
   
 public:
     Player();
@@ -138,4 +153,8 @@ public:
     Entity* getPlayerEntity() const;
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
+
+    // Inherited via GUIObserver
+    virtual void update(GUIUpdateType type, GUIElement* guiElement) override;
+    void serverPlayerAnimationChange(PlayerState currentState, float currentBlend);
 };
