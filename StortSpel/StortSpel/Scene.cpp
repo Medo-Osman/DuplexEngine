@@ -1063,7 +1063,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 	{
 		Entity* projectile = static_cast<Entity*>(data.pointer0);
 		//addScore(data.origin+Vector3(0,2,0));
-		deferredPointInstantiationList.push_back(data.origin + Vector3(0, 2, 0));
+		deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
 		
 		ProjectileComponent* component = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
 		m_projectiles.erase(component->m_id);
