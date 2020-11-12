@@ -1,7 +1,5 @@
 #pragma once
 #include "Packet.h"
-#include "3DPCH.h"
-#include <WS2tcpip.h>
 struct SimpleData
 {
 	int ID;

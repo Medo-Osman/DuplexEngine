@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <WS2tcpip.h>
 #include "Player.h"
 using namespace DirectX;
 class Packet

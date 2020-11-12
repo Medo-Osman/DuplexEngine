@@ -28,14 +28,25 @@ Scene::~Scene()
 {
 	for (std::pair<std::string, Entity*> entityElement : m_entities)
 	{
+		
 		if (entityElement.first != PLAYER_ENTITY_NAME)
 		{
-			delete entityElement.second;
-			entityElement.second = nullptr;
+			std::string temp = entityElement.first;
+			temp.erase(temp.size() - 1);
+			if (temp != PLAYER_ENTITY_NAME)
+			{
+				delete entityElement.second;
+				entityElement.second = nullptr;
+
+			}
+			else
+				entityElement.second = nullptr;
+	
 		}
 		else
 		{
 			entityElement.second = nullptr;
+
 		}
 	}
 

@@ -14,6 +14,7 @@ PacketHandler::PacketHandler()
 		serverPlayerData[i].blend = 0;
 	}
 
+	//ipAddress = "109.225.98.105";
 	ipAddress = "127.0.0.1";
 	port = 54000;
 

@@ -114,4 +114,9 @@ void SceneManager::swapScenes()
 	Physics::get().Attach(m_currentScene, false, true);
 
 	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
+	for (int i = 0; i < 3; i++)
+	{
+		Engine::get().getServerPlayers()->at(i)->getPlayerEntity()->setPosition(m_currentScene->getEntryPosition());
+
+	}
 }

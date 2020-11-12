@@ -219,7 +219,6 @@
     <ClCompile Include="ApplicationLayer.cpp" />
     <ClCompile Include="AudioHandler.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Client.cpp" />
     <ClCompile Include="Component.h" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Entity.h" />
@@ -238,6 +237,7 @@
     <ClCompile Include="ResourceHandler.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="Server.cpp" />
     <ClCompile Include="ServerPlayer.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="ShadowMap.cpp" />
@@ -263,7 +263,6 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CharacterControllerComponent.h" />
     <ClInclude Include="CheckpointComponent.h" />
-    <ClInclude Include="Client.h" />
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
     <ClInclude Include="FlippingComponent.h" />
@@ -290,6 +289,7 @@
     <ClInclude Include="RotateComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="Server.h" />
     <ClInclude Include="ServerPlayer.h" />
     <ClInclude Include="ShadowMap.h" />
     <ClInclude Include="SpeedPickup.h" />
