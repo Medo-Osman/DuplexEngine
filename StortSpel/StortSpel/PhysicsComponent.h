@@ -129,18 +129,20 @@ public:
 					}
 					else //Create shape and add shape for sharing
 					{
-						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, unique);
-						m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, entity->getScaling());
+						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true);
+						m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
 						m_physicsPtr->addShapeForSharing(m_shape, name);
 					}
+
 				}
 
 			}
-			if(addGeom)
+			if (addGeom)
 			{
-				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, unique);
-				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, entity->getScaling());
+				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false);
+				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
 			}
+
 		}
 		
 
@@ -245,7 +247,7 @@ public:
 	}
 
 
-	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool unique)
+	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool saveGeometry)
 	{
 		XMFLOAT3 min, max;
 		PxGeometry* bb = nullptr;
@@ -253,10 +255,12 @@ public:
 		
 		std::string name = meshComponent->getFilePath() + std::to_string(geometry);
 		bb = m_physicsPtr->getGeometry(name);
+
 		if (!bb)
 		{
 			bb = createPrimitiveGeometry(geometry, min, max, meshComponent->getMeshResourcePtr()->getVertexArray(), meshComponent->getMeshResourcePtr()->getVertexBuffer().getSize());
-			m_physicsPtr->addGeometry(name, bb);
+			if(saveGeometry)
+				m_physicsPtr->addGeometry(name, bb);
 		}
 		
 		return bb;
@@ -274,6 +278,13 @@ public:
 		m_dynamic ? m_physicsPtr->setMassOfActor(m_actor, mass) : ErrorLogger::get().logError("Trying to change mass on a static actor.");
 	}
 
+	void clearForce()
+	{
+		if (m_dynamic)
+		{
+			m_physicsPtr->clearForce(static_cast<PxRigidDynamic*>(m_actor));
+		}
+	}
 
 	void addForce(XMFLOAT3 forceAdd, bool massIndependant = true)
 	{

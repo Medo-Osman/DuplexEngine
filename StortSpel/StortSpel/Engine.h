@@ -14,6 +14,10 @@
 #include "CheckpointComponent.h"
 #include "Camera.h"
 #include "ProjectileComponent.h"
+#include "SlowTrapComponent.h"
+#include "PushTrapComponent.h"
+#include "BarrelComponent.h"
+#include "BarrelTriggerComponent.h"
 
 
 struct Settings
@@ -74,6 +78,9 @@ public:
 	bool addComponentToPlayer(std::string componentIdentifier, Component* component);
 	void removeLightComponentFromPlayer(LightComponent* component);
 
+	void setBarrelVector(std::vector<Entity*>* entitiesVector);
+	std::vector<Entity*>* getBarrelVector();
+
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
 	std::unordered_map<std::string, Entity*>* getEntityMap();
@@ -83,5 +90,9 @@ public:
 
 	Settings getSettings() const;
 	Camera* getCameraPtr();
+	float getGameTime();
 	Player* getPlayerPtr();
+
+	ID3D11DeviceContext* getDeviceContextPtr() { return m_dContextPtr; }
+	ID3D11Device* getDevicePtr() { return m_devicePtr; }
 };

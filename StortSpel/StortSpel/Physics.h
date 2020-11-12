@@ -213,6 +213,15 @@ public:
 		this->loadDefaultMaterials();
 	}
 
+	void clearForce(PxRigidDynamic* actor)
+	{
+		actor->clearForce();
+		actor->clearTorque();
+		actor->setLinearVelocity({ 0,0,0 });
+		actor->setAngularVelocity({ 0,0,0 });
+
+	}
+
 	void addShapeForSharing(PxShape* shape, const std::string &name)
 	{
 		if (shape->isExclusive())
@@ -369,6 +378,9 @@ public:
 	void setMassOfActor(PxRigidActor* actor, const float &weight)
 	{
 		static_cast<PxRigidDynamic*>(actor)->setMass(weight);
+		//static_cast<PxRigidDynamic*>(actor)->;
+
+
 	}
 
 	void addPhysicsMaterial(const PhysicsMaterial &physicsMaterial)

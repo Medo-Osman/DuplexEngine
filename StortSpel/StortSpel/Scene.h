@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "Boss.h"
 #include <map>
+#include"ParticleComponent.h"
 
 enum class ScenesEnum
 {
@@ -14,6 +15,7 @@ enum class ScenesEnum
 class Scene : public PhysicsObserver, public BossObserver
 {
 private:
+	int m_tempParticleID = 0;
 	//std::unordered_map<std::string, Entity*> m_entities;
 	//Entity* m_player;
 	//std::vector<
@@ -37,6 +39,8 @@ private:
 	//For projectiles
 	std::unordered_map<UINT, Entity*> m_projectiles;
 
+	
+
 	Player* m_player;
 
 	Material ObjectSpaceGrid;	// Temp global grid material
@@ -48,6 +52,8 @@ private:
 
 	unsigned int long m_meshCount = 0;
 	unsigned int long m_lightCount = 0;
+
+	Timer m_despawnBarrelTimer;
 
 	std::unordered_map<std::string, Entity*> m_entities;
 	std::unordered_map<unsigned int long, MeshComponent*> m_meshComponentMap;
@@ -63,9 +69,15 @@ private:
 	int m_nrOfScore = 0;
 	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
 	void addCheckpoint(const Vector3& position);
+	void createParticleEntity(void* particleComponent, Vector3 position);
+
+	void addSlowTrap(const Vector3& position, Vector3 scale);
+	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
+	
 	int m_nrOfCheckpoints = 0;
 
-	//Boss variables
+	int m_nrOfBarrelDrops = 0;
+	int m_nrOftraps = 0;
 public:
 	Boss* m_boss = nullptr;
 	Scene();
@@ -76,14 +88,18 @@ public:
 	void loadMaterialTest();
 	void updateScene(const float &dt);
 	Vector3 getEntryPosition();
-
 	Entity* getEntity(std::string key);
 	Entity* addEntity(std::string identifier);
 	void removeEntity(std::string identifier);
 
+	bool addedBarrel = false;
+
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 	void addMeshComponent(MeshComponent* component);
 	void addLightComponent(LightComponent* component);
+	void addBarrelDrop(Vector3 Position);
+
+	
 	void removeLightComponent(LightComponent* component);
 	void removeLightComponentFromMap(LightComponent* component);
 	void createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false);
