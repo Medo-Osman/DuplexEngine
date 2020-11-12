@@ -1,15 +1,11 @@
-/*
-    OBS!
-    Denna kommer bara köras en gång.
-    (Kan inte återskapa nya partiklar)
-*/
-
 struct particle
 {
     float3 wPos : POSITION;
+	float3 wOldPos : OLDPOS;
     float3 wVel : VEL;
     float2 wSize : SIZE;
     float time : TIME;
+	float oldTime : OLDTIME;
     uint type : TYPE;
 };
 
@@ -25,44 +21,29 @@ cbuffer particle : register(b0)
 SamplerState textureSampler : register(s0);
 Texture1D randomTexture : register(t0);
 
-
-
-[maxvertexcount(10)]
+[maxvertexcount(31)]
 void main(point particle input[1], inout PointStream<particle> output)
 {
-    const int MAX_PARTICLE_COUNT = 10;
-    const int MIN_PARTICLE_COUNT = 4;
-
-    input[0].time += g_dt;
-    if (input[0].type == 0) //Emitter
+	float oldTime = input[0].time;
+	input[0].time += g_dt;
+    if (input[0].type == 1) //Emitter
     {
-
-  
-        float randomNumber = randomTexture.SampleLevel(textureSampler, g_gameTime, 0).x;  // Between -1 and 1
-        /*                         |         0 - 6        |  (+4)    4 - 10   |                     */
-        int nrOfParticlesToSpawn = 3 + (randomNumber * 3) + MIN_PARTICLE_COUNT;     // Between 4 and 10
-
-        float3 randomPointAroundEmitter;
-        float3 randomDirectionVectorFromEmitter;
-        float2 randomSize;
-        const float PARTICLE_VELOCITY = 3;
-
-        for (int i = 0; i < nrOfParticlesToSpawn; i++)
+        for (int i = 0; i < 30; i++)
         {
-            randomNumber = randomTexture.SampleLevel(textureSampler, g_gameTime, 0).x; // Get a new random number for every new particle
-
-            randomPointAroundEmitter = g_worldEmitPosition.xyz + randomNumber;
-            randomDirectionVectorFromEmitter = normalize(randomPointAroundEmitter - g_worldEmitPosition.xyz);
-            /*         |             0 - 1            |  0.5 - 1.5  |       */
-            randomSize = 0.5f + (randomNumber * 0.5f) + 0.5f;
-            randomSize.x = 1;
+            float offset = (float)((float)i / (float)30);
+            float3 randomDirectionVectorFromEmitter = randomTexture.SampleLevel(textureSampler, offset, 0).xyz; // Get a new random number for every new particle
+            //randomDirectionVectorFromEmitter.y = 1;
+            //randomDirectionVectorFromEmitter.z = 0;
+			randomDirectionVectorFromEmitter = normalize(randomDirectionVectorFromEmitter) * 7;
 
             particle newParticle;
             newParticle.wPos = g_worldEmitPosition.xyz;
-            newParticle.wVel = randomDirectionVectorFromEmitter * PARTICLE_VELOCITY;
-            newParticle.wSize = randomSize;
+            newParticle.wVel = randomDirectionVectorFromEmitter;
+            newParticle.wSize = float2(0.2, 0.2);
             newParticle.time = 0.f;
-            newParticle.type = 1;
+            newParticle.type = 2;
+			newParticle.wOldPos = g_worldEmitPosition.xyz;
+            newParticle.oldTime = 0;
             output.Append(newParticle);
         }
 
@@ -73,6 +54,7 @@ void main(point particle input[1], inout PointStream<particle> output)
     {
         if (input[0].time <= 4.0f)
         {
+			input[0].oldTime = oldTime;
             output.Append(input[0]);
         }
     }

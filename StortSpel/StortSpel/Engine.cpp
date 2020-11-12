@@ -5,6 +5,7 @@
 #include"TriggerComponent.h"
 #include"RotateComponent.h"
 #include"PickupComponent.h"
+#include"Particles\PlayerLineParticle.h"
 
 Engine::Engine()
 {
@@ -162,6 +163,7 @@ void Engine::initialize()
 	// - Mesh Componenet
 	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 	playerEntity->addComponent("mesh", animMeshComp);
+
 
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);

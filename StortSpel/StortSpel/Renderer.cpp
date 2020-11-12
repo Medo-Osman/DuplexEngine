@@ -18,34 +18,7 @@ void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
 
 void Renderer::release()
 {
-	
-	m_swapChainPtr->Release();
-	m_debugPtr->Release();
-	m_swapChainBufferPtr->Release();
-	m_depthStencilBufferPtr->Release();
-	m_depthStencilViewPtr->Release();
-	m_depthStencilStatePtr->Release();
-
-	m_geometryShaderResourceView->Release();
-	m_geometryUnorderedAccessView->Release();
-
-	m_downSampledShaderResourceView->Release();
-	m_downSampledUnorderedAccessView->Release();
-
-	//m_vertexShaderConstantBuffer.release();
-	m_rasterizerStatePtr->Release();
-
-	m_finalRenderTargetViewPtr->Release();
-	m_geometryRenderTargetViewPtr->Release();
-	/*for (int i = 0; i < 8; i++)
-	{
-		if (m_rTargetViewsArray != nullptr)
-		{
-			SAFE_RELEASE(m_rTargetViewsArray[i]);
-		}
-	}
-
-	delete[] m_rTargetViewsArray;*/
+	Particle::cleanStaticDataForParticles();
 }
 
 Renderer::~Renderer()

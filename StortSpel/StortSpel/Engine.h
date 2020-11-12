@@ -79,4 +79,7 @@ public:
 	Camera* getCameraPtr();
 	float getGameTime();
 	Player* getPlayerPtr();
+
+	ID3D11DeviceContext* getDeviceContextPtr() { return m_dContextPtr; }
+	ID3D11Device* getDevicePtr() { return m_devicePtr; }
 };

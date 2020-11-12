@@ -12,15 +12,15 @@ private:
 	const std::wstring drawGS = L"Particles/RainGeometryShaderDraw.hlsl";
 	const std::wstring drawPS = L"Particles/DrawParticlePixelShader.hlsl";
 
-	void setupCBStreamOutPass()
+	void setupCBStreamOutPass(ID3D11DeviceContext* deviceContext)
 	{
 
 	}
-	void setupCBDrawPass()
+	void setupCBDrawPass(ID3D11DeviceContext* deviceContext)
 	{
 
 	}
-	void ownEndOfDraw()
+	void ownEndOfDraw(ID3D11DeviceContext* deviceContext)
 	{
 
 	}
@@ -29,7 +29,7 @@ public:
 	RainingDogParticle()
 		: Particle(ParticleEffect::RAININGDOG, true)
 	{
-		this->m_maxNrOfParticles = 1000;
+		this->m_maxNrOfParticles = 360;
 		this->m_textureName = L"T_tempTestDog.jpeg";
 		this->setShaders(streamOutVS, streamOutGS, drawVS, drawGS, drawPS);
 	}

@@ -14,12 +14,16 @@ enum class ParticleEffect
 {
 	RAININGDOG,
 	SCOREPICKUP,
+	PLAYERLINES,
 };
 
 class Particle
 {
 private:
 	static Microsoft::WRL::ComPtr<ID3D11InputLayout> m_particleLayoutPtr;
+	static std::map<std::wstring,ID3D11VertexShader*> m_vsMap;
+	static std::map<std::wstring,ID3D11GeometryShader*> m_gsMap;
+	static std::map<std::wstring,ID3D11PixelShader*> m_psMap;
 
 	Buffer<ParticleDataVS> m_particleDataCB;
 	ParticleDataVS m_particleData;
@@ -38,26 +42,26 @@ private:
 
 	Transform* m_transform;
 
-	Microsoft::WRL::ComPtr<ID3DBlob> m_shaderBlob;
+	ID3DBlob* m_shaderBlob;
 	static Microsoft::WRL::ComPtr<ID3DBlob> m_vertexShaderBlob;
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_resourceViewTexture;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_resourceViewRandomTextureArray;
+	static Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_resourceViewRandomTextureArray;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_linearSamplerStatePtr;
 
 	//Shaders SteamOut
-	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_streamOutVertexShaderPtr;
-	Microsoft::WRL::ComPtr<ID3D11GeometryShader> m_streamOutGeometryShaderPtr;
+	ID3D11VertexShader* m_streamOutVertexShaderPtr;
+	ID3D11GeometryShader* m_streamOutGeometryShaderPtr;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_noDepthNoWriteStencilState; //NO depth test no depth write
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthNoWriteStencilState; //Depth Test no depth write
 
 
 	//Shaders draw
-	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_drawVertexShaderPtr;
-	Microsoft::WRL::ComPtr<ID3D11GeometryShader> m_drawGeometryShaderPtr;
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_drawPixelShaderPtr;
+	ID3D11VertexShader* m_drawVertexShaderPtr;
+	ID3D11GeometryShader* m_drawGeometryShaderPtr;
+	ID3D11PixelShader* m_drawPixelShaderPtr;
 
-	
+
 	float m_time;
 	bool m_doneFirstEmitter;
 
@@ -74,7 +78,6 @@ private:
 		ZeroMemory(&m_init, sizeof(ParticleVertex));
 
 		m_resourceViewTexture = nullptr;
-		m_resourceViewRandomTextureArray = nullptr;
 		m_streamOutVertexShaderPtr = nullptr;
 		m_streamOutGeometryShaderPtr = nullptr;
 		m_noDepthNoWriteStencilState = nullptr;
@@ -88,12 +91,112 @@ private:
 		m_maxNrOfParticles = 0;
 		m_time = 0.f;
 		m_doneFirstEmitter = false;
-		m_doLifeCycklePass = true;
+		m_neverDie = true;
 	}
 
-	virtual void setupCBStreamOutPass() = 0;
-	virtual void setupCBDrawPass() = 0;
-	virtual void ownEndOfDraw() = 0;
+	virtual void setupCBStreamOutPass(ID3D11DeviceContext* deviceContext) = 0;
+	virtual void setupCBDrawPass(ID3D11DeviceContext* deviceContext) = 0;
+	virtual void ownEndOfDraw(ID3D11DeviceContext* deviceContext) = 0;
+
+
+	ID3D11GeometryShader* getGSShader(bool streamout, std::wstring name)
+	{
+		HRESULT hr = 0;
+		if (streamout)
+		{
+			if (m_gsMap.find(name) != m_gsMap.end())
+			{
+				return m_gsMap[name];
+			}
+			else
+			{
+				const D3D11_SO_DECLARATION_ENTRY declarationEntryArray[] =
+				{
+					{ 0,"POSITION", 0, 0 , 3, 0 },
+					{ 0,"OLDPOS", 0, 0, 3, 0 },
+					{ 0,"VEL", 0, 0, 3, 0 },
+					{ 0,"SIZE", 0, 0, 2, 0 },
+					{ 0,"TIME", 0, 0, 1, 0 },
+					{ 0,"OLDTIME", 0, 0, 1, 0 },
+					{ 0,"TYPE", 0, 0, 1, 0 }
+				};
+
+				hr = compileShader(name.c_str(), "main", "gs_5_0", &this->m_shaderBlob);
+
+				assert(SUCCEEDED(hr));
+
+				hr = m_device->CreateGeometryShaderWithStreamOutput(this->m_shaderBlob->GetBufferPointer(), this->m_shaderBlob->GetBufferSize(),
+					declarationEntryArray, _countof(declarationEntryArray), nullptr, 0, D3D11_SO_NO_RASTERIZED_STREAM, nullptr, &m_gsMap[name]);
+
+				assert(SUCCEEDED(hr));
+
+				this->m_shaderBlob->Release();
+				return m_gsMap[name];
+			}
+		}
+		else
+		{
+			if (m_gsMap.find(name) != m_gsMap.end())
+			{
+				return m_gsMap[name];
+			}
+			else
+			{
+				HRESULT hr = compileShader(name.c_str(), "main", "gs_5_0", &this->m_shaderBlob);
+
+				assert(SUCCEEDED(hr));
+
+
+				hr = m_device->CreateGeometryShader(this->m_shaderBlob->GetBufferPointer(), this->m_shaderBlob->GetBufferSize(), NULL, &m_gsMap[name]);
+
+				assert(SUCCEEDED(hr));
+
+				this->m_shaderBlob->Release();
+				return m_gsMap[name];
+			}
+		}
+	}
+
+	ID3D11PixelShader* getPixelShader(std::wstring name)
+	{
+		if (m_psMap.find(name) != m_psMap.end())
+		{
+			return m_psMap[name];
+		}
+		else
+		{
+			HRESULT hr = compileShader(name.c_str(), "main", "ps_5_0", &this->m_shaderBlob);
+
+			assert(SUCCEEDED(hr));
+
+
+			hr = m_device->CreatePixelShader(this->m_shaderBlob->GetBufferPointer(), this->m_shaderBlob->GetBufferSize(), NULL, &m_psMap[name]);
+
+			assert(SUCCEEDED(hr));
+
+			this->m_shaderBlob->Release();
+			return m_psMap[name];
+		}
+	}
+
+	ID3D11VertexShader* getVertexShader(std::wstring name)
+	{
+		if (m_vsMap.find(name) != m_vsMap.end())
+		{
+			return m_vsMap[name];
+		}
+		else
+		{
+			HRESULT hr = compileShader(name.c_str(), "main", "vs_5_0", &this->m_shaderBlob);
+			assert(SUCCEEDED(hr));
+
+			hr = m_device->CreateVertexShader(this->m_shaderBlob->GetBufferPointer(), this->m_shaderBlob->GetBufferSize(), NULL, &m_vsMap[name]);
+			assert(SUCCEEDED(hr));
+
+			this->m_shaderBlob->Release();
+			return m_vsMap[name];
+		}
+	}
 
 protected:
 	std::wstring m_streamOutVertexShader;
@@ -102,23 +205,30 @@ protected:
 	std::wstring m_drawGSShader;
 	std::wstring m_drawPSPixel;
 
-	bool m_doLifeCycklePass;
+	bool m_neverDie;
 	int m_maxNrOfParticles;
 	ParticleEffect m_particleType;
 	std::wstring m_textureName = L"";
 
-public:
+	float m_particleSystemLifeTime;
+	ID3D11Device* m_device;
 
+
+public:
+	~Particle()
+	{
+
+	}
 	Particle()
 	{
 		defaultConstructor();
 	}
 
-	Particle(ParticleEffect particleType, bool doLifeCycklePass = true)
+	Particle(ParticleEffect particleType, bool neverDie = true)
 	{
 		defaultConstructor();
 		m_particleType = particleType;
-		m_doLifeCycklePass = doLifeCycklePass;
+		m_neverDie = neverDie;
 
 	}
 
@@ -135,6 +245,31 @@ public:
 			m_vertexShaderBlob->GetBufferSize(), //Bytecode length
 			m_particleLayoutPtr.GetAddressOf()
 		);
+
+		setupRandomVectorArray(device);
+	}
+
+	static void cleanStaticDataForParticles()
+	{
+		std::for_each(m_vsMap.begin(), m_vsMap.end(),
+			[](std::pair<std::wstring, ID3D11VertexShader*> element) {
+
+			 SAFE_RELEASE(element.second);
+			
+		});
+		std::for_each(m_gsMap.begin(), m_gsMap.end(),
+			[](std::pair<std::wstring, ID3D11GeometryShader*> element) {
+
+			SAFE_RELEASE(element.second);
+
+		});
+		std::for_each(m_psMap.begin(), m_psMap.end(),
+			[](std::pair<std::wstring, ID3D11PixelShader*> element) {
+
+			SAFE_RELEASE(element.second);
+
+		});
+
 	}
 
 	void setShaders(std::wstring streamOutVertexShader, std::wstring streamOutGS, std::wstring drawVertexShader, std::wstring drawGSShader, std::wstring drawPSPixel, bool doLifeCycklePass = true)
@@ -158,20 +293,19 @@ public:
 		this->m_resourceViewTexture = resourceHandler->loadTexture(m_textureName.c_str());
 		this->m_camera = camera;
 		m_transform = transform;
-
-		setupRandomVectorArray(device);
+		m_device = device;
 
 		m_accelerationData.worldAcceleration = { -15.0f, -1.8f, 0.0f };
 		m_particleData.intensity = 100.f;
 
 
-		m_init = ParticleVertex(XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT2(1, 1), 0.f, (unsigned int)ParticleType::Emitter);
+		m_init = ParticleVertex(XMFLOAT3(666, 666, 666), XMFLOAT3(5, 5, 5), XMFLOAT3(0, 0, 0), XMFLOAT2(1, 1), 0.f, (unsigned int)ParticleType::Emitter);
 		m_particleDataCB.initializeBuffer(device, true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_particleData, 1);
 		m_accelerationDataCB.initializeBuffer(device, true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_accelerationData, 1);
 		m_projectionMatrixCB.initializeBuffer(device, true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_viewProjData, 1);
 		m_initVBuffer.initializeBuffer(device, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, &m_init, 1, true);
-		m_vertexBuffer.initializeBuffer(device, false, (D3D11_BIND_FLAG)(D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER | D3D11_BIND_FLAG::D3D11_BIND_STREAM_OUTPUT), &m_init , m_maxNrOfParticles, true);
-		m_streamOut.initializeBuffer(device, false, (D3D11_BIND_FLAG)(D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER | D3D11_BIND_FLAG::D3D11_BIND_STREAM_OUTPUT), &m_init, m_maxNrOfParticles, true);
+		m_vertexBuffer.initializeBuffer(device, false, (D3D11_BIND_FLAG)(D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER | D3D11_BIND_FLAG::D3D11_BIND_STREAM_OUTPUT), nullptr, m_maxNrOfParticles, true);
+		m_streamOut.initializeBuffer(device, false, (D3D11_BIND_FLAG)(D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER | D3D11_BIND_FLAG::D3D11_BIND_STREAM_OUTPUT), nullptr, m_maxNrOfParticles, true);
 
 
 		D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
@@ -183,6 +317,7 @@ public:
 
 		depthStencilDesc.DepthEnable = true;
 		depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 		hr = device->CreateDepthStencilState(&depthStencilDesc, this->m_DepthNoWriteStencilState.GetAddressOf());
 
 		
@@ -202,74 +337,17 @@ public:
 
 		assert(SUCCEEDED(hr));
 
-		const D3D11_SO_DECLARATION_ENTRY declarationEntryArray[] =
-		{
-			{ 0,"POSITION", 0, 0 , 3, 0 },
-			{ 0,"VEL", 0, 0, 3, 0 },
-			{ 0,"SIZE", 0, 0, 2, 0 },
-			{ 0,"TIME", 0, 0, 1, 0 },
-			{ 0,"TYPE", 0, 0, 1, 0 }
-		};
-
 		//GS steamout
-		hr = compileShader(this->m_streamOutGS.c_str(), "main", "gs_5_0", this->m_shaderBlob.GetAddressOf());
-
-		assert(SUCCEEDED(hr));
-
-		hr = device->CreateGeometryShaderWithStreamOutput(this->m_shaderBlob->GetBufferPointer(), this->m_shaderBlob->GetBufferSize(),
-			declarationEntryArray, _countof(declarationEntryArray), nullptr, 0, D3D11_SO_NO_RASTERIZED_STREAM, nullptr, this->m_streamOutGeometryShaderPtr.GetAddressOf());
-
-		assert(SUCCEEDED(hr));
-
-		this->m_shaderBlob->Release();
-
-
-
+		m_streamOutGeometryShaderPtr = this->getGSShader(true, this->m_streamOutGS.c_str());
 		//Draw pixel shader
-		hr = compileShader(this->m_drawPSPixel.c_str(), "main", "ps_5_0", this->m_shaderBlob.GetAddressOf());
-
-		assert(SUCCEEDED(hr));
-
-
-		hr = device->CreatePixelShader(this->m_shaderBlob->GetBufferPointer(), this->m_shaderBlob->GetBufferSize(), NULL, this->m_drawPixelShaderPtr.GetAddressOf());
-
-		assert(SUCCEEDED(hr));
-
-		this->m_shaderBlob->Release();
-
-
-
-		hr = compileShader(this->m_drawVertexShader.c_str(), "main", "vs_5_0", this->m_shaderBlob.GetAddressOf());
-
-		assert(SUCCEEDED(hr));
-
-
-		hr = device->CreateVertexShader(this->m_shaderBlob->GetBufferPointer(), this->m_shaderBlob->GetBufferSize(), NULL, this->m_drawVertexShaderPtr.GetAddressOf());
-
-		assert(SUCCEEDED(hr));
-
-		this->m_shaderBlob->Release();
-
-		//GS steamout
-		hr = compileShader(this->m_drawGSShader.c_str(), "main", "gs_5_0", this->m_shaderBlob.GetAddressOf());
-
-		assert(SUCCEEDED(hr));
-
-
-		hr = device->CreateGeometryShader(this->m_shaderBlob->GetBufferPointer(), this->m_shaderBlob->GetBufferSize(), NULL, this->m_drawGeometryShaderPtr.GetAddressOf());
-
-		assert(SUCCEEDED(hr));
+		m_drawPixelShaderPtr = this->getPixelShader(this->m_drawPSPixel.c_str());
+		//Draw Vertex Shader
+		m_drawVertexShaderPtr = this->getVertexShader(this->m_drawVertexShader.c_str());
+		//Draw GS 
+		m_drawGeometryShaderPtr = this->getGSShader(false, this->m_drawGSShader.c_str());
 
 		//Steream out vertexshader
-		hr = compileShader(this->m_streamOutVertexShader.c_str(), "main", "vs_5_0", this->m_shaderBlob.GetAddressOf());
-
-		assert(SUCCEEDED(hr));
-
-
-		hr = device->CreateVertexShader(this->m_shaderBlob->GetBufferPointer(), this->m_shaderBlob->GetBufferSize(), NULL, this->m_streamOutVertexShaderPtr.GetAddressOf());
-
-		assert(SUCCEEDED(hr));
-
+		m_streamOutVertexShaderPtr = this->getVertexShader(this->m_streamOutVertexShader.c_str());
 
 
 		D3D11_BUFFER_DESC vbd;
@@ -284,7 +362,7 @@ public:
 		ParticleVertex p;
 		ZeroMemory(&p, sizeof(ParticleVertex));
 		p.time = 0.0f;
-		p.type = 0;
+		p.type = 1;
 
 		D3D11_SUBRESOURCE_DATA vinitData;
 		vinitData.pSysMem = &p;
@@ -307,12 +385,12 @@ public:
 		this->m_particleData.gameTime = gameTime;
 		this->m_particleData.worldEmitPosition = m_transform->getTranslation();
 
-		this->m_viewProjData.g_viewProjectionMatrix = DirectX::XMMatrixTranspose( this->m_camera->getViewMatrix() * this->m_camera->getProjectionMatrix());
+		this->m_viewProjData.g_viewProjectionMatrix = DirectX::XMMatrixTranspose(XMMatrixIdentity() *  this->m_camera->getViewMatrix() * this->m_camera->getProjectionMatrix());
 		this->m_viewProjData.g_cameraPos = this->m_camera->getFloat3Position();
 	}
 
 	//Entire shader in pipeline should be null before this function is called and the particle layout should be set.
-	void draw(ID3D11DeviceContext* dContext)
+	bool draw(ID3D11DeviceContext* dContext)
 	{
 		UINT offset = 0;
 		UINT stride = sizeof(ParticleVertex);
@@ -328,56 +406,52 @@ public:
 		dContext->GSSetSamplers(0, 1, this->m_linearSamplerStatePtr.GetAddressOf());
 
 
-		if (m_doLifeCycklePass || !m_doneFirstEmitter)
+		//UpdatePhase/Streamout
+		dContext->VSSetShader(m_streamOutVertexShaderPtr, nullptr, 0);
+		dContext->GSSetShader(m_streamOutGeometryShaderPtr, nullptr, 0);
+		dContext->GSSetShaderResources(0, 1, Particle::m_resourceViewRandomTextureArray.GetAddressOf());
+		dContext->GSSetConstantBuffers(0, 1, this->m_particleDataCB.GetAddressOf());
+		this->setupCBStreamOutPass(dContext);
+
+		if (m_doneFirstEmitter)
 		{
-			//UpdatePhase/Streamout
-			dContext->VSSetShader(m_streamOutVertexShaderPtr.Get(), nullptr, 0);
-			dContext->GSSetShader(m_streamOutGeometryShaderPtr.Get(), nullptr, 0);
-			dContext->GSSetShaderResources(0, 1, this->m_resourceViewRandomTextureArray.GetAddressOf());
-			dContext->GSSetConstantBuffers(0, 1, this->m_particleDataCB.GetAddressOf());
-			this->setupCBStreamOutPass();
-
-			if (m_doneFirstEmitter)
-			{
-				dContext->IASetVertexBuffers(0, 1, &m_vertexBufferRaw, &stride, &offset);
-
-			}
-			else
-			{
-				dContext->IASetVertexBuffers(0, 1, &m_initBufferRaw, &stride, &offset);
-			}
-
-			//Set streamout
-			dContext->SOSetTargets(1, &this->m_streamOutBufferRaw, &offset);
-			//Disable depth write
-			dContext->OMSetDepthStencilState(m_noDepthNoWriteStencilState.Get(), 0);
-
-
-			if (m_doneFirstEmitter)
-			{
-				dContext->DrawAuto();
-			}
-			else
-			{
-				dContext->Draw(1, 0);
-				m_doneFirstEmitter = true;
-			}
-
-			//Draw state
-			ID3D11Buffer* buffer[1] = { 0 };
-			dContext->SOSetTargets(1, buffer, &offset); //Unbind steamout target 
-
-			std::swap(this->m_vertexBufferRaw, this->m_streamOutBufferRaw);
+			dContext->IASetVertexBuffers(0, 1, &m_vertexBufferRaw, &stride, &offset);
 
 		}
+		else
+		{
+			dContext->IASetVertexBuffers(0, 1, &m_initBufferRaw, &stride, &offset);
+		}
+
+		//Set streamout
+		dContext->SOSetTargets(1, &this->m_streamOutBufferRaw, &offset);
+		//Disable depth write
+		dContext->OMSetDepthStencilState(m_noDepthNoWriteStencilState.Get(), 0);
+
+
+		if (m_doneFirstEmitter)
+		{
+			dContext->DrawAuto();
+		}
+		else
+		{
+			dContext->Draw(1, 0);
+			m_doneFirstEmitter = true;
+		}
+
+		//Draw state
+		ID3D11Buffer* buffer[1] = { 0 };
+		dContext->SOSetTargets(1, buffer, &offset); //Unbind steamout target 
+
+		std::swap(this->m_vertexBufferRaw, this->m_streamOutBufferRaw);
 		
-		this->setupCBDrawPass();
+		this->setupCBDrawPass(dContext);
 		//Draw pass
 		dContext->IASetVertexBuffers(0, 1, &this->m_vertexBufferRaw, &stride, &offset);
 		//Change to draw
-		dContext->VSSetShader(m_drawVertexShaderPtr.Get(), nullptr, 0);
-		dContext->GSSetShader(m_drawGeometryShaderPtr.Get(), nullptr, 0);
-		dContext->PSSetShader(m_drawPixelShaderPtr.Get(), nullptr, 0);
+		dContext->VSSetShader(m_drawVertexShaderPtr, nullptr, 0);
+		dContext->GSSetShader(m_drawGeometryShaderPtr, nullptr, 0);
+		dContext->PSSetShader(m_drawPixelShaderPtr, nullptr, 0);
 
 		dContext->OMSetDepthStencilState(m_DepthNoWriteStencilState.Get(), 0);
 		dContext->PSSetSamplers(0, 1, this->m_linearSamplerStatePtr.GetAddressOf());
@@ -389,8 +463,17 @@ public:
 		dContext->DrawAuto();
 		//"Parent" draw function needs to set pipeline and depthstate to wished functionality after this draw function.
 
-		this->ownEndOfDraw();
-		
+		this->ownEndOfDraw(dContext);
+
+		bool shouldDie = false;
+		if (!m_neverDie)
+		{
+			if (m_time > m_particleSystemLifeTime)
+			{
+				shouldDie = true;
+			}
+		}
+		return shouldDie;
 	}
 
 	void restart()
@@ -399,19 +482,14 @@ public:
 		this->m_time = 0.f;
 	}
 
-	ID3DBlob* getVertexShaderBlob()
-	{
-		return this->m_shaderBlob.Get();
-	}
 
-
-	float randomFloat()
+	static float randomFloat()
 	{
 		float r = (static_cast <float> (rand()) / static_cast <float> (RAND_MAX)) * 2.0f;
 		return r;
 	}
 
-	void setupRandomVectorArray(ID3D11Device* device)
+	static void setupRandomVectorArray(ID3D11Device* device)
 	{
 		const int ARRAYSIZE = 640;
 		XMFLOAT4 randomArray[ARRAYSIZE];
@@ -449,7 +527,7 @@ public:
 		randomViewTextureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		randomViewTextureDesc.Texture1D.MipLevels = 1;
 
-		device->CreateShaderResourceView(randomTexture, &randomViewTextureDesc, this->m_resourceViewRandomTextureArray.GetAddressOf());
+		device->CreateShaderResourceView(randomTexture, &randomViewTextureDesc, Particle::m_resourceViewRandomTextureArray.GetAddressOf());
 
 		randomTexture->Release();
 		randomTexture = nullptr;

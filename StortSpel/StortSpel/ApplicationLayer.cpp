@@ -144,6 +144,7 @@ void ApplicationLayer::applicationLoop()
 		}
 	}
 	m_physics->release();
+	m_rendererPtr->release();
 }
 
 

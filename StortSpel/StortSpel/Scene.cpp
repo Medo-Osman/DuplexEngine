@@ -93,7 +93,7 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 
 	Entity* pickupPtr = addEntity(name);
 
-	ParticleComponent* particleComponent = new ParticleComponent(pickupPtr, new RainingDogParticle(), Renderer::get().getDevice());
+	ParticleComponent* particleComponent = new ParticleComponent(pickupPtr, new ScorePickupParticle());
 
 	pickupPtr->setPosition(position);
 	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST));

@@ -49,6 +49,12 @@ Player::~Player()
 	
 }
 
+bool Player::isRunning()
+{
+	Vector3 vec = m_movementVector;
+	return (vec.Length() > 0);
+}
+
 void Player::setStates(std::vector<State> states)
 {
 	m_movementVector = XMVECTOR();
@@ -320,6 +326,11 @@ void Player::setPlayerEntity(Entity* entity)
 Vector3 Player::getCheckpointPos()
 {
 	return m_checkpointPos;
+}
+
+Vector3 Player::getVelocity()
+{
+	return m_velocity;
 }
 
 void Player::setCheckpoint(Vector3 newPosition)

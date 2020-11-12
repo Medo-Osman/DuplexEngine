@@ -4,6 +4,7 @@ using namespace DirectX;
 
 enum class ParticleType
 {
+	EMPTY,
 	Emitter,
 	Particle
 };
@@ -122,25 +123,31 @@ struct TextureNormalTangentVertexAnim : public TextureNormalTangentVertex
 struct ParticleVertex
 {
 	XMFLOAT3 position;
+	XMFLOAT3 oldPos;
 	XMFLOAT3 velocity;
 	XMFLOAT2 size;
 	float time;
+	float oldTime;
 	unsigned int type;
 
 	ParticleVertex()
 	{
 		this->position = { 0.f, 0.f, 0.f };
+		this->oldPos = { 0.f, 0.f, 0.f };
 		this->velocity = { 0.f, 0.f, 0.f };
 		this->size = { 1, 1 };
 		this->time = 0;
+		this->oldTime = 0;
 		this->type = (unsigned int)ParticleType::Emitter;
 	}
-	ParticleVertex(XMFLOAT3 pos, XMFLOAT3 velocity, XMFLOAT2 size, float time, unsigned int type)
+	ParticleVertex(XMFLOAT3 pos, XMFLOAT3 oldPos, XMFLOAT3 velocity, XMFLOAT2 size, float time, unsigned int type)
 	{
 		this->position = pos;
+		this->oldPos = oldPos;
 		this->velocity = velocity;
 		this->size = size;
 		this->time = time;
+		this->oldTime = time;
 		this->type = type;
 	}
 

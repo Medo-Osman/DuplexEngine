@@ -113,11 +113,14 @@ public:
     Player();
     ~Player();
 
+    bool isRunning();
+
     void updatePlayer(const float& dt);
     
     void setPlayerEntity(Entity* entity);
 
     Vector3 getCheckpointPos();
+    Vector3 getVelocity();
     void setCheckpoint(Vector3 newPosition);
 
     void setCameraTranformPtr(Transform* transform);

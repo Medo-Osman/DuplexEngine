@@ -2,6 +2,7 @@
 struct particleGSDrawInput
 {
     float3 wPos : POSITION;
+	float3 wOldPos : OLDPOS;
     float2 wSize : SIZE;
     uint type : TYPE;
 };
@@ -33,7 +34,7 @@ void main(
 )
 {
     
-	if(input[0].type == 1) //rain Particle
+	if(input[0].type == 2)
     {
         particleGSDrawOutput points[4];
         
@@ -42,10 +43,8 @@ void main(
         centerToEye = normalize(centerToEye);
         float right = cross(centerToEye, worldUp);
         right = normalize(right);
-        float3 up = cross(centerToEye, right);
-        
-        
-        
+        float3 up = normalize(cross(centerToEye, right));
+
         points[0].uv = float2(0, 1);
         points[0].hPos = mul(float4(input[0].wPos + (input[0].wSize.x / 2 * right) - (input[0].wSize.y / 2 * up), 1), g_viewProjectionMatrix); //Lower left from camera
         points[1].uv = float2(0, 0);
