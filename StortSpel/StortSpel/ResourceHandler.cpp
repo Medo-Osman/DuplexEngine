@@ -193,7 +193,7 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 	isResourceHandlerReady();
 
 	// checks if the mesh is in the cache 
-	if (m_meshCache.find(path) != m_meshCache.end())
+	if (m_meshCache.find(std::string(path)) != m_meshCache.end())
 	{
 		// returns the buffers
 		return m_meshCache[path];
