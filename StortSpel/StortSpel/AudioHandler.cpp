@@ -34,6 +34,7 @@ void AudioHandler::initialize(HWND& handle)
 	m_audioEngine->SetReverb(Reverb_Plain);
 	if (!m_audioEngine->IsAudioDevicePresent())
 		ErrorLogger::get().logError("AudioError: No audio device found");
+	m_audioEngine->Reset();
 
 	// Audio Listener(for 3d positional audio)
 	m_listener.OrientFront = Vector3(0.f, 0.f, 1.f);
@@ -161,26 +162,19 @@ void AudioHandler::update(float dt)
 	}
 	if (m_retryAudio)
 	{
-		m_retryAudio = false;
+		ErrorLogger::get().logError("Retrying Audio!");
 		if (m_audioEngine->Reset())
 		{
 			for(auto& loopingSound : m_loopingSoundInstances)
-			{
 				loopingSound.second->Play(true);
-				//try
-				//{
-				//	loopingSound.second->Apply3D(m_listener, m_emitter, false);
-				//}
-				//catch (std::exception e) // 
-				//{
-				//}
-			}
 		}
+		m_retryAudio = false;
 	}
 	else if (!m_audioEngine->Update())
 	{
 		if (m_audioEngine->IsCriticalError())
 		{
+			ErrorLogger::get().logError("AudioError: Audio device was lost.");
 			m_retryAudio = true;
 		}
 	}

@@ -44,8 +44,12 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		ShowWindow(m_window, showCmd);
 	}
 	// Audio
+	hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+	if (FAILED(hr))
+	{
+		// Thread mode has been chosen before, this HRESULT error should be ignored
+	}
 	AudioHandler::get().initialize(m_window);
-	//CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 	
 	//PhysX
 	m_physics = &Physics::get();
@@ -84,13 +88,13 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 	// Create the window.
 	_d3d11Window = CreateWindowEx(
 		0,                          // Optional window styles.
-		windowTitle,                 // Window class
+		windowTitle,                // Window class
 		windowTitle,				// Window text
 		WS_OVERLAPPEDWINDOW,        // Window style
-		windowRect.left,				// Position, X
+		windowRect.left,			// Position, X
 		windowRect.top,				// Position, Y
-		(float)this->width,	// Width
-		(float)this->height,	// Height
+		(float)this->width,			// Width
+		(float)this->height,		// Height
 		NULL,						// Parent window
 		NULL,						// Menu
 		hInstance,					// Instance handle

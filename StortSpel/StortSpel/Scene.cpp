@@ -177,11 +177,11 @@ void Scene::loadLobby()
 {
 	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
-	/*Entity* music = addEntity("lobbyMusic");
+	Entity* music = addEntity("lobbyMusic");
 	if (music)
 	{
 		addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
-	}*/
+	}
 
 	Entity* floor = addEntity("Floor");
 	if (floor)
