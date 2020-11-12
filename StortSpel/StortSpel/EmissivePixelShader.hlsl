@@ -131,8 +131,7 @@ ps_out main(ps_in input) : SV_TARGET
     lightComputeResult lightResult = computeLightFactor(input);
     
     output.diffuse = float4(lightResult.lightColor, 1) + emissive;
-    output.glow = emissive;
+    output.glow = float4(emissive.rgb, 0.5f);
     
     return output;
-
 }

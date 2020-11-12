@@ -10,7 +10,6 @@ void main(uint3 gruoupId : SV_GroupID, uint3 groupThredId : SV_GroupThreadID, ui
     // Downsampling
     uint2 inputPixelIndex = pixelIndex * 2;
    
-    
     // Thresholding on Downsample
     float4 value = glowInputTex.Load(inputPixelIndex, 0); 
     float4 value2 = glowInputTex.Load(inputPixelIndex + uint2(1, 0), 0);
@@ -19,7 +18,7 @@ void main(uint3 gruoupId : SV_GroupID, uint3 groupThredId : SV_GroupThreadID, ui
     value = glowInputTex.Load(inputPixelIndex + uint2(0, 1), 0);
     value2 = glowInputTex.Load(inputPixelIndex + uint2(1, 1), 0);
     float4 hIntensity1 = lerp(value, value2, 0.5);
-        
+    
     float4 glowIntensity = lerp(hIntensity0, hIntensity1, 0.5);
     
     if (glowIntensity.x == 0 && glowIntensity.y == 0 && glowIntensity.z == 0)
@@ -34,7 +33,7 @@ void main(uint3 gruoupId : SV_GroupID, uint3 groupThredId : SV_GroupThreadID, ui
         
         float4 intensity = lerp(hIntensity0, hIntensity1, 0.5);
     
-        if (length(intensity.rgb) > 1.7f)
+        if (length(pow(intensity.rgb, 3.f)) > 1.0f)
         {
             outputTex[pixelIndex] = float4(intensity.rgb, 1.0);
         }
