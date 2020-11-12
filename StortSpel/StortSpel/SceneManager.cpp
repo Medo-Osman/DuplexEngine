@@ -24,32 +24,32 @@ void SceneManager::initalize()
 	//define gui button
 	GUIButtonStyle btnStyle;
 	//start button
-	btnStyle.position = Vector2(140, 100);
+	btnStyle.position = Vector2(140, 200);
 	btnStyle.scale = Vector2(0.5, 0.5);
-	m_startGameIndex = GUIHandler::get().addGUIButton(L"ButtonStart.png", btnStyle);
+	m_singleplayerIndex = GUIHandler::get().addGUIButton(L"singleplayerBtn.png", btnStyle);
 
 
-	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_startGameIndex))->Attach(this);
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_singleplayerIndex))->Attach(this);
 
-	//customization button
-	btnStyle.position = Vector2(840, 200);
-	btnStyle.scale = Vector2(0.5, 0.5);
-	m_customization = GUIHandler::get().addGUIButton(L"customizationBtn.png", btnStyle);
+	//Exit button
+	btnStyle.position = Vector2(1600, 900);
+	btnStyle.scale = Vector2(1, 1);
+	m_exitIndex = GUIHandler::get().addGUIButton(L"exitBtn.png", btnStyle);
 
 
-	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_customization))->Attach(this);
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_exitIndex))->Attach(this);
 
 	//join button
-	btnStyle.position = Vector2(140, 600);
-	btnStyle.scale = Vector2(0.5, 0.5);
-	m_joinGameIndex = GUIHandler::get().addGUIButton(L"JoinBtn.png", btnStyle);
+	btnStyle.position = Vector2(140, 550);
+	btnStyle.scale = Vector2(1, 1);
+	m_joinGameIndex = GUIHandler::get().addGUIButton(L"joinBtn.png", btnStyle);
 
 	
 	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_joinGameIndex))->Attach(this);
 	//Host Button
 	btnStyle.position = Vector2(140, 700);
-	btnStyle.scale = Vector2(0.5, 0.5);
-	m_hostGameIndex = GUIHandler::get().addGUIButton(L"HostBtn.png", btnStyle);
+	btnStyle.scale = Vector2(1, 1);
+	m_hostGameIndex = GUIHandler::get().addGUIButton(L"hostBtn.png", btnStyle);
 
 	
 	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_hostGameIndex))->Attach(this);
@@ -82,10 +82,10 @@ void SceneManager::updateScene(const float &dt)
 		case ScenesEnum::LOBBY:
 			m_nextScene->loadLobby();
 			//Reset game variables that are needed here
-			GUIHandler::get().setVisible(m_startGameIndex, true);
+			GUIHandler::get().setVisible(m_singleplayerIndex, true);
 			GUIHandler::get().setVisible(m_hostGameIndex, true);
 			GUIHandler::get().setVisible(m_joinGameIndex, true);
-			GUIHandler::get().setVisible(m_customization, true);
+			GUIHandler::get().setVisible(m_exitIndex, true);
 
 			Engine::get().getPlayerPtr()->setScore(0);
 			
@@ -190,13 +190,13 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 	if (type == GUIUpdateType::CLICKED)
 	{
 		
-		if (guiElement->m_index = m_startGameIndex)
+		if (guiElement->m_index = m_singleplayerIndex)
 		{
-			GUIHandler::get().setVisible(m_startGameIndex, false);
+			GUIHandler::get().setVisible(m_singleplayerIndex, false);
 			GUIHandler::get().setVisible(m_hostGameIndex, false);
 			GUIHandler::get().setVisible(m_joinGameIndex, false);
-			GUIHandler::get().setVisible(m_customization, false);
-
+			GUIHandler::get().setVisible(m_exitIndex, false);
+			m_gameStarted = true;
 			m_nextSceneEnum = ScenesEnum::START;
 			m_swapScene = true;
 		}
@@ -208,7 +208,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			//do stuff
 		}
-		if (guiElement->m_index = m_customization)
+		if (guiElement->m_index = m_exitIndex)
 		{
 			//do stuff
 		}
