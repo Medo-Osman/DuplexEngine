@@ -112,27 +112,32 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
 
-UINT actionID;
 void Scene::loadLobby()
 {
 	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
-	addScore({ 0, 3, 5 });
 	Entity* bossEnt = addEntity("boss");
 	if (bossEnt)
 	{
 		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
 		bossEnt->addComponent("mesh", animMeshComp);
 		addMeshComponent(animMeshComp);
 		bossEnt->scale({ 4, 4, 4 });
 		bossEnt->translate({ 10,8,0 });
 
-		//ShootProjectileAction* action = ;
 		m_boss = new Boss();
 		m_boss->Attach(this);
-		m_boss->initialize(bossEnt);
-		actionID = m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss));
-		dynamic_cast<ShootProjectileAction*>(m_boss->getActionQueue()->at(actionID))->setTarget(m_player->getPlayerEntity()->getTranslation());
+		m_boss->initialize(bossEnt, false);
+		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(-30, 9, 0), 13.f));
+		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
+		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(-30, 9, -30), 13.f));
+		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
+		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(30, 9, -30), 13.f));
+		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
+		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(0, 9, 0), 13.f));
+		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
+
 		Physics::get().Attach(m_boss, true, false);
 	}
 
@@ -726,12 +731,15 @@ void Scene::updateScene(const float& dt)
 {
 	if (m_boss)
 	{
-		m_boss->update();
+		m_boss->update(dt);
 
 		ShootProjectileAction* ptr = dynamic_cast<ShootProjectileAction*>(m_boss->getCurrentAction());
 
 		if (ptr)
-			ptr->setTarget(m_player->getPlayerEntity()->getTranslation() + Vector3(0, 1, 0));
+			ptr->setTarget(static_cast<CharacterControllerComponent*>(m_player->getPlayerEntity()->getComponent("CCC"))->getFootPosition() + Vector3(0, 1, 0));
+	
+		//Check projectiles and their lifetime so they do not continue on forever in case they missed.
+		checkProjectiles();
 	}
 
 
@@ -913,7 +921,6 @@ std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMa
 
 void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionData data)
 {
-	//std::cout << "BOSS FIRED" << nr << std::endl;
 
 	if(type == BossMovementType::ShootProjectile)
 		createProjectile(data.origin, data.direction, data.speed);
@@ -922,6 +929,9 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 	{
 		Entity* projectile = static_cast<Entity*>(data.pointer0);
 		addScore(data.origin+Vector3(0,2,0));
+		
+		ProjectileComponent* component = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
+		m_projectiles.erase(component->m_id);
 		removeEntity(projectile->getIdentifier());
 	}
 		
@@ -981,34 +991,13 @@ void Scene::createPointLight(Vector3 position, Vector3 color, float intensity)
 
 void Scene::createProjectile(Vector3 origin, Vector3 dir, float speed)
 {
-	/*
-	Entity* checkPoint = addEntity("checkpoint"+std::to_string(m_nrOfCheckpoints++));
-	addComponent(checkPoint, "mesh", new MeshComponent("Flag_pPlane2.lrm"));
-	checkPoint->setPosition(position + Vector3(0,-0.2f,0));
-	checkPoint->scale(1.5, 1.5, 1.5);
-
-	addComponent(checkPoint, "checkpoint", new CheckpointComponent(checkPoint));
-	static_cast<TriggerComponent*>(checkPoint->getComponent("checkpoint"))->initTrigger(checkPoint, { 4, 4, 4 });
-
-	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.1f));
-	*/
-
 	m_nrOfProjectiles++;
 
 	Entity* projectileEntity = addEntity("Projectile-" + std::to_string(m_nrOfProjectiles));
 	if (projectileEntity)
 	{
-
-		/* 
-		addComponent(test, "mesh", 
-			new MeshComponent("GlowCube.lrm",
-			EMISSIVE,
-			Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
-		*/
-
-
 		addComponent(projectileEntity, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", EMISSIVE, Material({ L"red.png", L"red.png" })));
+			new MeshComponent("Sphere_2m_Sphere.lrm", EMISSIVE, Material({ L"red.png", L"red.png" })));
 		//new MeshComponent("SquarePlatform.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 
 		projectileEntity->setPosition(origin);
@@ -1018,8 +1007,33 @@ void Scene::createProjectile(Vector3 origin, Vector3 dir, float speed)
 		static_cast<PhysicsComponent*>(projectileEntity->getComponent("physics"))->makeKinematic();
 
 		addComponent(projectileEntity, "projectile",
-			new ProjectileComponent(projectileEntity, projectileEntity, origin, dir, speed));
+			new ProjectileComponent(projectileEntity, projectileEntity, origin, dir, speed, 20.f));
 		
 		static_cast<TriggerComponent*>(projectileEntity->getComponent("projectile"))->initTrigger(projectileEntity, { 0.5f, 0.5f, 0.5f });	
+
+
+		static_cast<ProjectileComponent*>(projectileEntity->getComponent("projectile"))->m_id = m_nrOfProjectiles;
+		m_projectiles[static_cast<ProjectileComponent*>(projectileEntity->getComponent("projectile"))->m_id] = projectileEntity;
+	}
+}
+
+void Scene::checkProjectiles()
+{
+	std::vector<UINT> idsToRemove;
+
+	for (auto projectileEntity : m_projectiles)
+	{
+		ProjectileComponent* comp = static_cast<ProjectileComponent*>(projectileEntity.second->getComponent("projectile"));
+		if (comp->m_timer.timeElapsed() > comp->getLifeTime())
+		{
+			idsToRemove.push_back(projectileEntity.first);
+		}
+	}
+
+	//can not remove mid-loop
+	for (int i = 0; i < idsToRemove.size(); i++)
+	{
+		removeEntity(m_projectiles[idsToRemove[i]]->getIdentifier());
+		m_projectiles.erase(idsToRemove[i]);
 	}
 }

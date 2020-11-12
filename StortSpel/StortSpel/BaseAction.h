@@ -1,7 +1,7 @@
 #pragma once
 #include "3DPCH.h"
 
-enum class BossMovementType {NONE, ShootProjectile, DropPoints };
+enum class BossMovementType {NONE, ShootProjectile, DropPoints, MoveTo };
 
 class BossSubject;
 
@@ -39,7 +39,6 @@ namespace BossStructures
 			m_bossEntity = bossEntity;
 			m_subjectPtr = bossSubject;
 
-			m_timeData.timer.start();
 		}
 
 		ActionTimeData* getTimeData()
@@ -59,7 +58,7 @@ namespace BossStructures
 
 		virtual bool isDone() = 0;
 		virtual void beginAction() = 0;
-		virtual void update() = 0;
+		virtual void update(const float& dt) = 0;
 	};
 
 }

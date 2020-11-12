@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "Engine.h"
 #include "Boss.h"
+#include <map>
 
 enum class ScenesEnum
 {
@@ -28,8 +29,13 @@ private:
 	void createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity);
 	int m_nrOfPointLight = 0;
 	void createPointLight(Vector3 position, Vector3 color, float intensity);
-	int m_nrOfProjectiles = 0;
+	UINT m_nrOfProjectiles = 0;
+	float m_projectileLifeTime = 10.f;
 	void createProjectile(Vector3 origin, Vector3 dir, float speed);
+	void checkProjectiles();
+	
+	//For projectiles
+	std::unordered_map<UINT, Entity*> m_projectiles;
 
 	Player* m_player;
 

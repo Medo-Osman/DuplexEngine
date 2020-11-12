@@ -241,7 +241,6 @@ public:
 			PhysicsData* otherData = static_cast<PhysicsData*>(pairs[i].otherActor->userData);
 			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor() || (data->triggerType == TriggerType::PROJECTILE || otherData->triggerType == TriggerType::PROJECTILE))
 			{
-				//PhysicsData* data = static_cast<PhysicsData*>(pairs[i].triggerActor->userData);
 				for (size_t j = 0; j < m_reactOnTriggerObservers.size() && !shouldBeRemoved; j++)
 				{
 					m_reactOnTriggerObservers[j]->sendPhysicsMessage(*data, shouldBeRemoved);

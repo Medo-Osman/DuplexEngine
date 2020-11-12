@@ -12,14 +12,16 @@ private:
 	Vector3 m_origin;
 	Vector3 m_direction;
 	float m_speed;
+	float m_lifeTime = 0;
 
 
 public:
 	float m_removalDebounce = 0.5f; //seconds before it can be removed when hitting something
 	Timer m_timer;
+	UINT m_id = 0;
 
-	ProjectileComponent(Entity* entity, Transform* transform, Vector3 origin, Vector3 direction, float speed)
-		:m_origin(origin), m_direction(direction), m_speed(speed)
+	ProjectileComponent(Entity* entity, Transform* transform, Vector3 origin, Vector3 direction, float speed, float lifeTime)
+		:m_origin(origin), m_direction(direction), m_speed(speed), m_lifeTime(lifeTime)
 	{
 		m_timer.start();
 		m_timer.restart();
@@ -42,17 +44,20 @@ public:
 			m_physicsComponent->setSlide(true);
 	}
 
+	float getLifeTime()
+	{
+		return m_lifeTime;
+	}
+
 	~ProjectileComponent() {}
 	virtual void update(float dt) override
 	{
 		Vector3 somePos = m_physicsComponent->getActorPosition() + m_direction * m_speed * dt;
 
-		//m_physicsComponent->setVelocity(m_direction*m_speed);
 		m_transform->setPosition(m_physicsComponent->getActorPosition());
 		m_physicsPtr->setPosition(m_actor, m_transform->getTranslation());
 
 		m_physicsComponent ? m_physicsComponent->kinematicMove(somePos) : m_transform->setPosition(somePos);
 
-		//m_timer.addTime(dt);
 	}
 };

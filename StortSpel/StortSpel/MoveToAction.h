@@ -8,26 +8,24 @@ class MoveToAction : public BossStructures::BaseAction
 private:
 	BossStructures::BossActionData m_data;
 	Timer m_timer;
-	float m_shootInterval = 1.f; //Seconds
-	float m_maxDirectionOffset = 4.f;
+	Vector3 m_target;
+	float m_speed = 0;
 
 
 public:
-	MoveToAction(Entity* bossEntity, BossSubject* bossSubject, int howLongShouldActionLast = 10, int coolDownAfterAction = 5)
+	MoveToAction(Entity* bossEntity, BossSubject* bossSubject, Vector3 target, float speed)
 		:BaseAction(bossEntity, bossSubject)
 	{
-		m_movementActionType = BossMovementType::ShootProjectile;
+		m_movementActionType = BossMovementType::MoveTo;
 		m_timer.start();
 
-		m_timeData.maxDuration = howLongShouldActionLast;
-		m_timeData.cooldownAfterAction = coolDownAfterAction;
+		m_target = target;
+		m_speed = speed;
 	}
 
 	void setTarget(Vector3 target)
 	{
-		Vector3 unnormalizedDir = (target - m_data.origin);
-		//unnormalizedDir.Normalize(m_data.direction);
-		m_data.direction = unnormalizedDir;
+		m_target = target;
 	}
 
 	void setSpeed(float speed)
@@ -40,48 +38,26 @@ public:
 		m_data = data;
 	}
 
-
 	// Inherited via BaseAction
 	virtual void beginAction() override
 	{
-		//std::cout << "Began action!" << std::endl;
+		m_timeData.timer.start();
+		AnimatedMeshComponent* animComp = static_cast<AnimatedMeshComponent*>(m_bossEntity->getComponent("mesh"));
+		animComp->playSingleAnimation("Running4.1", 0.1f, false);
+		animComp->setCurrentBlend(0.5f);
+		animComp->setAnimationSpeed(0.5f);
+		//animComp->pla
 	}
-	virtual void update() override
+
+	virtual void update(const float& dt) override
 	{
-		if (m_timer.timeElapsed() > m_shootInterval)
-		{
-			m_data.origin = m_bossEntity->getTranslation() + Vector3(0, m_bossEntity->getScaling().y / 2, 0);
-			m_data.direction = m_data.direction;
-			m_data.speed = 0.5f;
-
-			//Send event to scene triggering the shoot projectile with the parameters in m_data.
-
-			std::default_random_engine generator;
-			std::normal_distribution<float> distribution(0.f, m_maxDirectionOffset * 2); //Only generates unsigned ints
-
-			Vector3 originalDir = m_data.direction;
-
-			//Generate random offsets
-			float offY = distribution(generator);
-			float offZ = distribution(generator);
-			float offX = distribution(generator);
-
-			//Make negative numbers possible
-			offY -= offY / 2;
-			offZ -= offZ / 2;
-			offX -= offX / 2;
-
-			m_data.direction = originalDir + Vector3(offY, offZ, offX);
-			m_subjectPtr->Notify(BossMovementType::ShootProjectile, m_data);
-
-			//Reset clock to count from 0
-			m_timer.restart();
-		}
-
+		Vector3 dir = XMVector3Normalize((m_target - m_bossEntity->getTranslation()));
+		m_bossEntity->setPosition(m_bossEntity->getTranslation() + dir * m_speed * dt);
 	}
+
 	virtual bool isDone() override
 	{
-		return false;
+		return (m_bossEntity->getTranslation() - m_target).LengthSquared() < 0.25f;
 	}
 
 };

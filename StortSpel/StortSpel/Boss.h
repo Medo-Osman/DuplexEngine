@@ -4,14 +4,8 @@
 #include "Engine.h"
 #include "BaseAction.h"
 #include "ShootProjectileAction.h"
+#include "MoveToAction.h"
 
-/*
-Attack queue / movement queue, baseclass action tht all possible actions inherit from 
-
-E.g. spawn a meteor
-
-Drop points, but only up to a max, or maybe mark a move as point drop move
-*/
 
 class Boss : public BossSubject, public PhysicsObserver
 {
@@ -23,15 +17,22 @@ private:
 	BossStructures::BaseAction* m_currentAction = nullptr;
 
 	UINT m_uniqueActionID = 0;
+
+	//Determines if the action queue will loop, if true the action queue will only be executed once
+	//and actions will be deleted once completed.
+	bool m_destroyActionOnComplete = true;
 public:
 	Boss() { };
 	~Boss();
-	void update();
-	void initialize(Entity* entity);
+	void update(const float& dt);
+	void initialize(Entity* entity, bool destroyActionOnComplete = true);
 	UINT addAction(BossStructures::BaseAction* action);
 	void nextAction();
 	BossStructures::BaseAction* getCurrentAction();
 	std::vector<BossStructures::BaseAction*>* getActionQueue();
+
+	void setDestroyActionOnComplete(bool value);
+	void startActionWithID(UINT id);
 	
 
 	// Inherited via BossSubject
