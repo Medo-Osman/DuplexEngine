@@ -30,7 +30,7 @@ public:
 		: Particle(ParticleEffect::SCOREPICKUP, false)
 	{
 		this->m_maxNrOfParticles = 31;
-		this->m_particleSystemLifeTime = 6;
+		this->m_particleSystemLifeTime = 4;
 		this->m_textureName = L"PearlParticle.png";
 		this->setShaders(streamOutVS, streamOutGS, drawVS, drawGS, drawPS);
 	}

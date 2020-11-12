@@ -51,8 +51,8 @@ public:
 	PlayerLineParticle()
 		: Particle(ParticleEffect::PLAYERLINES, true)
 	{
-		this->m_maxNrOfParticles = 6000;
-		this->m_textureName = L"GrayTexture.png";
+		this->m_maxNrOfParticles = 100;
+		this->m_textureName = L"white.png";
 		this->setShaders(streamOutVS, streamOutGS, drawVS, drawGS, drawPS);
 		m_playerVelocityBuffer.initializeBuffer(Engine::get().getDevicePtr(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_playerVelocityData, 1);
 		m_rightOffsetBuffer.initializeBuffer(Engine::get().getDevicePtr(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_rightOffsetData, 1);

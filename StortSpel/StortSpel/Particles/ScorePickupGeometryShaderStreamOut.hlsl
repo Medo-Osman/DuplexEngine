@@ -34,7 +34,7 @@ void main(point particle input[1], inout PointStream<particle> output)
             float3 randomDirectionVectorFromEmitter = randomTexture.SampleLevel(textureSampler, offset, 0).xyz; // Get a new random number for every new particle
             //randomDirectionVectorFromEmitter.y = 1;
             //randomDirectionVectorFromEmitter.z = 0;
-			randomDirectionVectorFromEmitter = normalize(randomDirectionVectorFromEmitter) * 7;
+			randomDirectionVectorFromEmitter = normalize(randomDirectionVectorFromEmitter) * 20;
 
             particle newParticle;
             newParticle.wPos = g_worldEmitPosition.xyz;
@@ -52,7 +52,7 @@ void main(point particle input[1], inout PointStream<particle> output)
     }
     else
     {
-        if (input[0].time <= 4.0f)
+        if (input[0].time <= 3.0f)
         {
 			input[0].oldTime = oldTime;
             output.Append(input[0]);
