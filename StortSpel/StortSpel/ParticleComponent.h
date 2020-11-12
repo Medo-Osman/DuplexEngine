@@ -56,8 +56,7 @@ public:
 				delete m_particle;
 				m_particle = nullptr;
 				m_active = false;
-			}
-			
+			}	
 	}
 	~ParticleComponent()
 	{

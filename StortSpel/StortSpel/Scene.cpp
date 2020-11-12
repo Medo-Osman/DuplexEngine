@@ -47,6 +47,8 @@ void Scene::createParticleEntity(void* particleComponent, Vector3 position)
 	pc->setTransform(particleEntity);
 	particleEntity->addComponent("particle", pc);
 	pc->activate();
+
+	m_tempParticleComponent.emplace_back(pc);
 }
 
 void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
@@ -816,6 +818,15 @@ void Scene::updateScene(const float& dt)
 			m_despawnBarrelTimer.restart();
 		}
 		addedBarrel = false;
+	}
+
+	for (int i = 0; i < m_tempParticleComponent.size(); i++)
+	{
+		if (!m_tempParticleComponent[i]->getParticlePointer())
+		{
+			this->removeEntity(m_tempParticleComponent[i]->getParentEntityIdentifier());
+			m_tempParticleComponent.erase(m_tempParticleComponent.begin() + i);
+		}
 	}
 
 	// AUDIO TEST

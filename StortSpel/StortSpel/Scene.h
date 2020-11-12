@@ -50,6 +50,7 @@ private:
 	std::unordered_map<unsigned int long, MeshComponent*> m_meshComponentMap;
 	std::unordered_map<std::string, LightComponent*> m_lightComponentMap;
 
+	std::vector<ParticleComponent*> m_tempParticleComponent;
 
 	void sendPhysicsMessage(PhysicsData& physicsData, bool& removed);
 
