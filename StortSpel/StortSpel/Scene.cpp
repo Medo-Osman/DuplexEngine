@@ -259,6 +259,36 @@ void Scene::loadLobby()
 
 	createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
 
+	Entity* multiMatTest = addEntity("multiMatTest");
+	if (multiMatTest)
+	{
+		addComponent(multiMatTest, "mesh", new MeshComponent("test_mesh_guy.lrm", 
+			{
+				DEFAULT,
+				DEFAULT,
+				TEMP_TEST,
+				EMISSIVE
+			}
+			,
+			{
+				Material({ L"DarkGrayTexture.png" }),
+				Material({ L"Green.jpg" }),
+				Material({ L"GrayTexture.png" }),
+				Material({ L"ibl_brdf_lut.png", L"ibl_brdf_lut.png" }),
+				Material({ L"T_GridTestTex.bmp" }),
+				Material({ L"T_tempTestDog.jpeg" }),
+				Material({ L"ButtonStart.png" }),
+				Material({ L"Controlls.png" }),
+				Material({ L"DarkGrayTexture.png" }),
+				Material({ L"GrayTexture.png" }),
+				Material({ L"T_tempTestXWing.png" }),
+				Material({ L"GrayTexture.png" })
+			}
+			));
+		multiMatTest->translate({ 0,0,-6 });
+		createNewPhysicsComponent(multiMatTest);
+	}
+
 	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
 }
 
@@ -733,7 +763,7 @@ void Scene::loadMaterialTest()
 
 			PBRMatTextured.setTextured(1);
 
-			addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMatTextured));
+			addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, { PBRMatTextured }));
 
 			float moveDistance = -5.f;
 			entity->translate({ moveDistance * i + 30.f, 2.f, 20.f });

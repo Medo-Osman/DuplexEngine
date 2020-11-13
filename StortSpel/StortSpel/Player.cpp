@@ -54,7 +54,8 @@ Player::Player()
 
 Player::~Player()
 {
-	
+	if (m_playerEntity)
+		delete m_playerEntity;
 }
 
 void Player::setStates(std::vector<State> states)

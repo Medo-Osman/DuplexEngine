@@ -57,7 +57,7 @@ private:
 	int m_nrOfCheckpoints = 0;
 	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData);
 
-	const std::string m_LEVELS_PATH = "../res/";
+	const std::string m_LEVELS_PATH = "../res/levels/";
 
 public:
 	Scene();
