@@ -57,6 +57,14 @@ void Scene::createParticleEntity(void* particleComponent, Vector3 position)
 
 void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
 {
+	Entity* entity = m_entities[physicsData.entityIdentifier];
+	if (physicsData.triggerType == TriggerType::PICKUP)
+	{
+		if (physicsData.associatedTriggerEnum == (int)PickupType::SCORE)
+		{
+			this->createParticleEntity(physicsData.pointer, entity->getTranslation());
+		}
+	}
 	//std::vector<Component*> vec;
 	//m_entities[physicsData.entityIdentifier]->getComponentsOfType(vec, ComponentType::MESH);
 	/*for (size_t i = 0; i < vec.size(); i++)
