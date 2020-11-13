@@ -7,10 +7,11 @@ enum Action
 	JUMP,
 	DASH,
 	ROLL,
-	USE,
+	USEPICKUP,
 	PLAYSOUND,
 	SWAP_SCENES,
-	CLOSEINTROGUI
+	CLOSEINTROGUI,
+	USE,
 };
 
 enum State
