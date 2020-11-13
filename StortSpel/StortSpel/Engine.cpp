@@ -5,6 +5,7 @@
 #include"TriggerComponent.h"
 #include"RotateComponent.h"
 #include"PickupComponent.h"
+#include"Particles\PlayerLineParticle.h"
 
 Engine::Engine()
 {
@@ -66,7 +67,7 @@ bool Engine::addComponentToPlayer(std::string componentIdentifier, Component* co
 
 	if (component->getType() == ComponentType::MESH)
 	{
-		//MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
+		//M eshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
 		//m_currentScene->addMeshComponent(meshComponent);
 		//meshComponent->setRenderId(++m_meshCount);
 		//m_meshComponentMap->insert({m_meshCount, meshComponent});
@@ -101,6 +102,7 @@ void Engine::removeLightComponentFromPlayer(LightComponent* component)
 	//	m_lightCount -= nrOfErased;
 	//}
 	//m_currentScene->removeLightComponentFromMap(component);
+
 }
 
 std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
@@ -136,6 +138,11 @@ Camera* Engine::getCameraPtr()
 {
 	return &m_camera;
 }
+
+float Engine::getGameTime()
+{
+	return ApplicationLayer::getInstance().getGameTime();
+}
 Player* Engine::getPlayerPtr()
 {
 	return m_player;
@@ -163,8 +170,11 @@ void Engine::initialize(Input* input)
 		// before this function call be called.
 		assert(false);
 	}
-	
+
 	m_camera.setProjectionMatrix(80.f,  (float)m_settings.width/(float)m_settings.height, 0.01f, 1000.0f);
+
+	// Audio Handler Listener setup
+	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
 	
 	// Player
 	m_player = new Player();
@@ -178,6 +188,7 @@ void Engine::initialize(Input* input)
 	// - Mesh Componenet
 	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
 	playerEntity->addComponent("mesh", animMeshComp);
+
 
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
@@ -199,6 +210,9 @@ void Engine::initialize(Input* input)
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
 	//GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
+
+	// Audio Handler needs Camera Transform ptr for 3D positional audio
+	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
 }
 
 void Engine::updateLightData()
@@ -255,4 +269,3 @@ void Engine::updateLightData()
 
 	Renderer::get().setPointLightRenderStruct(lightInfo);
 }
-

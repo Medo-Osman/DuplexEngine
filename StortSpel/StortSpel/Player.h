@@ -10,8 +10,11 @@
 #include"Physics.h"
 #include"Pickup.h"
 #include"CheckpointComponent.h"
-
+#include "Traps.h"
+#include "SlowTrapComponent.h"
+#include "PushTrapComponent.h"
 #include "GUIHandler.h"
+#include "BarrelComponent.h"
 
 enum class PlayerState
 {
@@ -81,6 +84,9 @@ private:
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
     Pickup* m_pickupPointer;
+   
+    //
+    TrapType m_activeTrap;
 
     Vector3 m_velocity = Vector3();
     Vector3 m_lastPosition = Vector3();
@@ -96,6 +102,12 @@ private:
     //Checkpoint
     Vector3 m_checkpointPos = Vector3(0, 9, 5);
     int m_heightLimitBeforeRespawn = -25;
+
+    //trap
+    Vector3 m_trapPos = Vector3(0, 9, 20);
+    int m_slowTime = 3;
+    float m_slowTimer = 0;
+    int m_trapId = -1;
 
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
@@ -116,11 +128,14 @@ public:
     Player();
     ~Player();
 
+    bool isRunning();
+
     void updatePlayer(const float& dt);
     
     void setPlayerEntity(Entity* entity);
 
     Vector3 getCheckpointPos();
+    Vector3 getVelocity();
     void setCheckpoint(Vector3 newPosition);
 
     void setCameraTranformPtr(Transform* transform);

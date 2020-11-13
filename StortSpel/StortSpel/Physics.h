@@ -213,6 +213,15 @@ public:
 		this->loadDefaultMaterials();
 	}
 
+	void clearForce(PxRigidDynamic* actor)
+	{
+		actor->clearForce();
+		actor->clearTorque();
+		actor->setLinearVelocity({ 0,0,0 });
+		actor->setAngularVelocity({ 0,0,0 });
+
+	}
+
 	void addShapeForSharing(PxShape* shape, const std::string &name)
 	{
 		if (shape->isExclusive())
@@ -231,21 +240,25 @@ public:
 		{
 			bool shouldBeRemoved = false;
 			// ignore pairs when shapes have been deleted
+
+
 			if (pairs[i].flags & (PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER | PxTriggerPairFlag::eREMOVED_SHAPE_OTHER))
 				continue;
 
 			//Checks
-			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor())
+			PhysicsData* data = static_cast<PhysicsData*>(pairs[i].triggerActor->userData);
+			PhysicsData* otherData = static_cast<PhysicsData*>(pairs[i].otherActor->userData);
+			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor() || (data->triggerType == TriggerType::PROJECTILE || otherData->triggerType == TriggerType::PROJECTILE))
 			{
-				for (size_t j = 0; j < m_reactOnTriggerObservers.size(); j++)
+				for (size_t j = 0; j < m_reactOnTriggerObservers.size() && !shouldBeRemoved; j++)
 				{
-					m_reactOnTriggerObservers[j]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), shouldBeRemoved);
+					m_reactOnTriggerObservers[j]->sendPhysicsMessage(*data, shouldBeRemoved);
 					if (shouldBeRemoved)
 					{
 						bool stopLoop = false;
 						for (size_t k = 0; k < m_reactOnRemoveObservers.size() && !stopLoop; k++)
 						{
-							m_reactOnRemoveObservers[k]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), stopLoop);
+							m_reactOnRemoveObservers[k]->sendPhysicsMessage(*data, stopLoop);
 						}
 					}
 				}
@@ -256,7 +269,9 @@ public:
 	void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) {}
 	void onWake(PxActor** actors, PxU32 count) {}
 	void onSleep(PxActor** actors, PxU32 count) {}
-	void onContact(const PxContactPairHeader & pairHeader, const PxContactPair * pairs, PxU32 nbPairs) {}
+	void onContact(const PxContactPairHeader & pairHeader, const PxContactPair * pairs, PxU32 nbPairs) 
+	{
+	}
 	void onAdvance(const PxRigidBody* const* bodyBuffer, const PxTransform * poseBuffer, const PxU32 count) {}
 
 
@@ -363,6 +378,9 @@ public:
 	void setMassOfActor(PxRigidActor* actor, const float &weight)
 	{
 		static_cast<PxRigidDynamic*>(actor)->setMass(weight);
+		//static_cast<PxRigidDynamic*>(actor)->;
+
+
 	}
 
 	void addPhysicsMaterial(const PhysicsMaterial &physicsMaterial)
@@ -495,6 +513,11 @@ public:
 	{
 		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, false);
 		actor->setMass(newMass);
+	}
+
+	void setVelocity(PxRigidBody* actor, Vector3 velocity)
+	{
+		actor->setLinearVelocity(PxVec3(velocity.x, velocity.y, velocity.z));
 	}
 
 	void kinematicMove(PxRigidDynamic* actor, XMFLOAT3 destination, XMFLOAT4 quatRot)

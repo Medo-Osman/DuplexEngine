@@ -100,12 +100,41 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 			m_swapScene = true;
 		}
 	}
+
+	if (physicsData.triggerType == TriggerType::TRAP)
+	{
+		if ((TrapType)physicsData.associatedTriggerEnum == TrapType::PUSH)
+		{
+			static_cast<PushTrapComponent*>(physicsData.pointer)->push();
+		}
+	}
+
+	if (physicsData.triggerType == TriggerType::TRAP)
+	{
+		if ((TrapType)physicsData.associatedTriggerEnum == TrapType::BARRELTRIGGER)
+		{
+			BarrelTriggerComponent* barrelTriggerPtr = static_cast<BarrelTriggerComponent*>(physicsData.pointer);
+		
+			if (barrelTriggerPtr->m_triggerTimer.timeElapsed() >= 3)
+			{
+				m_currentScene->addBarrelDrop(Vector3(-30, 50, 130));
+				barrelTriggerPtr->m_triggerTimer.restart();
+				m_currentScene->addedBarrel = true;
+			}
+			
+			
+		}
+	}
 }
 
 void SceneManager::swapScenes()
 {
 	m_swapScene = false;
 	Physics::get().Detach(m_currentScene, false, true);
+	
+	//Reset boss
+	if (m_currentScene->m_boss)
+		m_currentScene->m_boss->Detach(m_currentScene);
 
 	// Swap
 	delete m_currentScene;
