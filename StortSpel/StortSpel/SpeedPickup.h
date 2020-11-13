@@ -15,6 +15,7 @@ public:
 	{
 		//m_onPickupSound = L"";
 		m_whileActiveSound = L"SpeedSound.wav";
+		m_activateOnPickup = true;
 	}
 	virtual void update(const float& dt)
 	{
@@ -23,8 +24,13 @@ public:
 	virtual void onPickup(Entity* entityToDoEffectsOn, int duration)
 	{
 		Pickup::onPickup(entityToDoEffectsOn, duration);
-		m_lineParticleComponentPtr = new ParticleComponent(entityToDoEffectsOn, new PlayerLineParticle());
-		entityToDoEffectsOn->addComponent("particle", m_lineParticleComponentPtr);
+	}
+
+	virtual void onUse()
+	{
+		Pickup::onUse();
+		m_lineParticleComponentPtr = new ParticleComponent(m_entityToDoEffectsOn, new PlayerLineParticle());
+		m_entityToDoEffectsOn->addComponent("particle", m_lineParticleComponentPtr);
 		m_lineParticleComponentPtr->activate();
 	}
 	virtual void onDepleted()
