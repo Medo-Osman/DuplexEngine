@@ -524,7 +524,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		XMFLOAT3 min, max;
 		bool draw = true;
 		Entity* parentEntity;
-
+		
 		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
 			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
 		else
@@ -561,35 +561,12 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		if (draw)
 		{
 			m_drawn++;
-			ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum();
-			if (m_currentSetShaderProg != meshShaderEnum)
-			{
-				m_compiledShaders[meshShaderEnum]->setShaders();
-				m_currentSetShaderProg = meshShaderEnum;
-			}
-		
-			Material* meshMatPtr = component.second->getMaterialPtr();
-			if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
-			{
-				meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
-				m_currentSetMaterialId = meshMatPtr->getMaterialId();
-
-				MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
-				currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
-				currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
-				currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
-				currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
-
-				m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
-			}
-			m_dContextPtr->PSSetShaderResources(2, 1, &m_shadowMap->m_depthMapSRV);
-
-
+			
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
 			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
-			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix()* component.second->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
@@ -598,14 +575,41 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
 			{
-				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms() );
-				int a = 6;
+				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 			}
+			
+			int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
 
-			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
+			for (int mat = 0; mat < materialCount; mat++)
+			{
+				ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum(mat);
+				if (m_currentSetShaderProg != meshShaderEnum)
+				{
+					m_compiledShaders[meshShaderEnum]->setShaders();
+					m_currentSetShaderProg = meshShaderEnum;
+				}
+				
+				Material* meshMatPtr = component.second->getMaterialPtr(mat);
+				if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+				{
+					meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
+					m_currentSetMaterialId = meshMatPtr->getMaterialId();
 
+					MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+					currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+					currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+					currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+					currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+
+					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+				}
+				m_dContextPtr->PSSetShaderResources(2, 1, &m_shadowMap->m_depthMapSRV);
+
+				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
+				
+				m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
+			}
 		}
-		
 	}
 }
 
@@ -627,13 +631,12 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
 
-		if (component.second->getShaderProgEnum() != ShaderProgramsEnum::SKEL_ANIM)
+		if (component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
 		{
 			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
 			m_compiledShaders[meshShaderEnum]->setShaders();
 			m_currentSetShaderProg = meshShaderEnum;
 		}
-		
 		else
 		{
 			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH_ANIM;

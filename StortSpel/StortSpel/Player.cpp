@@ -5,6 +5,8 @@
 #include"ParticleComponent.h"
 #include "Traps.h"
 
+Pickup* getCorrectPickupByID(int id);
+
 Player::Player()
 {
 	m_movementVector = XMVectorZero();
@@ -55,6 +57,8 @@ Player::Player()
 
 Player::~Player()
 {
+	if (m_playerEntity)
+		delete m_playerEntity;
 
 }
 
@@ -294,43 +298,48 @@ void Player::updatePlayer(const float& dt)
 
 	if (m_pickupPointer)
 	{
-		switch (m_pickupPointer->getPickupType())
+		if (m_pickupPointer->isActive())
 		{
-		case PickupType::SPEED:
-			m_speedModifierTime += dt;
-			if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
+			switch (m_pickupPointer->getPickupType())
 			{
-				m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
-			}
-			m_pickupPointer->update(dt);
-			if(m_pickupPointer->isDepleted())
-			{
-				if (m_goalSpeedModifier > 0.f)
-				{
-					m_goalSpeedModifier *= -1;;
-					m_speedModifierTime = 0.f;
-				}
-
+			case PickupType::SPEED:
+				m_speedModifierTime += dt;
 				if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
 				{
 					m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
-					m_currentSpeedModifier = max(1.0f, m_currentSpeedModifier);
 				}
-
-				if(m_pickupPointer->shouldDestroy())
+				m_pickupPointer->update(dt);
+				if (m_pickupPointer->isDepleted())
 				{
-					m_pickupPointer->onRemove();
-					m_pickupPointer = nullptr;
-					m_currentSpeedModifier = 1.f;
-				}
-			}
-			break;
-		case PickupType::SCORE:
+					if (m_goalSpeedModifier > 0.f)
+					{
+						m_goalSpeedModifier *= -1;;
+						m_speedModifierTime = 0.f;
+					}
 
-			break;
-		default:
-			break;
+					if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
+					{
+						m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
+						m_currentSpeedModifier = max(1.0f, m_currentSpeedModifier);
+					}
+
+					if (m_pickupPointer->shouldDestroy())
+					{
+						m_pickupPointer->onRemove();
+						delete m_pickupPointer;
+						m_pickupPointer = nullptr;
+						m_currentSpeedModifier = 1.f;
+					}
+				}
+				break;
+			case PickupType::SCORE:
+
+				break;
+			default:
+				break;
+			}
 		}
+		
 	}
 
 	if(m_state != PlayerState::ROLL)
@@ -414,6 +423,29 @@ Entity* Player::getPlayerEntity() const
 	return m_playerEntity;
 }
 
+const bool Player::canUsePickup()
+{
+	return m_pickupPointer && !m_pickupPointer->isActive();
+}
+
+void Player::handlePickupOnUse()
+{
+	switch (m_pickupPointer->getPickupType())
+	{
+	case PickupType::SPEED:
+		//Not used since it is activated on use.
+
+		//m_currentSpeedModifier = 1.f;
+		//m_goalSpeedModifier = m_pickupPointer->getModifierValue();
+		//m_speedModifierTime = 0;
+		break;
+	default:
+		break;
+	}
+	
+	m_pickupPointer->onUse();
+}
+
 void Player::inputUpdate(InputData& inputData)
 {
 	this->setStates(inputData.stateData);
@@ -438,7 +470,9 @@ void Player::inputUpdate(InputData& inputData)
 					dash();
 			}
 			break;
-		case USE:
+		case USEPICKUP:
+			if (canUsePickup())
+				handlePickupOnUse();
 			break;
 		case CLOSEINTROGUI:
 			GUIHandler::get().setVisible(m_instructionGuiIndex, false);
@@ -504,10 +538,10 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				switch ((PickupType)physicsData.associatedTriggerEnum)
 				{
 				case PickupType::SPEED:
+					shouldTriggerEntityBeRemoved = true;
 					m_currentSpeedModifier = 1.f;
 					m_goalSpeedModifier = physicsData.floatData;
 					m_speedModifierTime = 0;
-					shouldTriggerEntityBeRemoved = true;
 					break;
 				case PickupType::SCORE:
 					addPickupByAssosiatedID = false;
@@ -517,8 +551,11 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				}
 				if (addPickupByAssosiatedID)
 				{
-					m_pickupPointer = Pickup::getPickupByID(physicsData.associatedTriggerEnum);
+					m_pickupPointer = getCorrectPickupByID(physicsData.associatedTriggerEnum);
+					m_pickupPointer->setModifierValue(physicsData.floatData);
 					m_pickupPointer->onPickup(m_playerEntity, duration);
+					if (m_pickupPointer->shouldActivateOnPickup())
+						m_pickupPointer->onUse();
 				}
 			}
 
@@ -532,6 +569,24 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 
 		}
 	}
+}
+
+Pickup* getCorrectPickupByID(int id)
+{
+	Pickup* pickupPtr = Pickup::getPickupByID(id);
+	Pickup* createPickup = nullptr;
+	switch (pickupPtr->getPickupType())
+	{
+	case PickupType::SPEED:
+		createPickup = new SpeedPickup(*dynamic_cast<SpeedPickup*>(pickupPtr));
+		break;
+	case PickupType::SCORE: //Score is not saved as a pointer so not implemented.
+		break;
+	default:
+		break;
+	}
+
+	return createPickup;
 }
 
 void Player::update(GUIUpdateType type, GUIElement* guiElement)

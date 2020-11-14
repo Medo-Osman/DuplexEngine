@@ -12,7 +12,7 @@ Material::Material()
 }
 
 Material::Material(std::initializer_list<const WCHAR*> fileNames)
-	:m_materialId(++materialCount), isDefault(false)
+	:m_materialId(++totalMaterialCount), isDefault(false)
 {
 	for (auto fileName : fileNames)
 	{
@@ -91,7 +91,7 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 	if (isDefault)
 	{
 		this->m_textureArray.clear();
-		m_materialId = ++materialCount;
+		m_materialId = ++totalMaterialCount;
 		isDefault = false;
 	}
 	

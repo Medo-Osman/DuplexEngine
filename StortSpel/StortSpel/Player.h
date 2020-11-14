@@ -151,6 +151,8 @@ public:
     int getScore();
     void setScore(int newScore);
     Entity* getPlayerEntity() const;
+    const bool canUsePickup();
+    void handlePickupOnUse();
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
 
