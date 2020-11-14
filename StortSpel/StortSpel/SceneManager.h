@@ -1,6 +1,8 @@
 #pragma once
 #include "Scene.h"
 #include "Boss.h"
+#include <thread>
+#include <future>
 
 
 
@@ -12,6 +14,10 @@ private:
 	bool m_gameStarted;
 	bool m_swapScene;
 	ScenesEnum m_nextSceneEnum;
+
+	//std::shared_future<void> result;
+	//std::vector<std::future<void>> futures;
+	bool nextMapFinishedLoading = false;
 public:
 	SceneManager();
 	~SceneManager();

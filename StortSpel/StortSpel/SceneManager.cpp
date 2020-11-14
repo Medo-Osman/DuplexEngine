@@ -16,11 +16,40 @@ SceneManager::~SceneManager()
 	delete m_nextScene;
 }
 
+void printStuff()
+{
+
+	for(int i = 0; i < 100000000000; i++)
+		std::cout << "thread: " << i++ << std::endl;
+}
+
 void SceneManager::initalize()
 {
+
+	//for (int i = 0; i < 100000000000; i++)
+		//std::cout << "thread: " << i++ << std::endl;
+
 	// Start Scene
 	m_currentScene = new Scene();
 	m_currentScene->loadLobby();
+
+	Timer timer;
+	timer.start();
+	m_nextScene = new Scene();
+	std::thread myThread(Scene::loadScene, m_nextScene); //Create a popupthread
+	myThread.detach(); //Otherwise it will try to terminate once the function exits
+	std::cout << "CONTINUED ON IN MAIN - seconds since starting thread: " << timer.timeElapsed() << std::endl;
+
+	//m_currentScene->loadScene(m_currentScene);
+	//result = std::future<void>(std::async(std::launch::async, printStuff)); //Works
+	//result = std::future<void>(std::async(std::launch::async, Scene::loadScene, m_currentScene)); //Works 2
+	/*result = std::async(std::launch::async, [](Scene* nextScene) {
+		nextScene->loadScene();
+		}, m_nextScene);*/
+
+
+	
+
 	//m_currentScene->loadArena();
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
@@ -37,6 +66,7 @@ void SceneManager::initalize()
 
 void SceneManager::updateScene(const float &dt)
 {
+
 	if (m_swapScene)
 	{
 		m_nextScene = new Scene();
@@ -49,7 +79,11 @@ void SceneManager::updateScene(const float &dt)
 			m_gameStarted = false;
 			break;
 		case ScenesEnum::START:
-			m_nextScene->loadScene("Ogorki");
+			//m_nextScene->loadScene("Ogorki");
+
+			
+
+			
 			break;
 		case ScenesEnum::ARENA:
 			m_nextScene->loadArena();
@@ -66,6 +100,8 @@ void SceneManager::updateScene(const float &dt)
 
 void SceneManager::inputUpdate(InputData& inputData)
 {
+	
+
 	for (size_t i = 0; i < inputData.actionData.size(); i++)
 	{
 		if (inputData.actionData[i] == SWAP_SCENES)
@@ -73,9 +109,24 @@ void SceneManager::inputUpdate(InputData& inputData)
 			if (!m_gameStarted)
 			{
 				m_nextScene = new Scene();
-				m_nextScene->loadScene("test");
+				//result = std::async(std::launch::async, Scene::loadScene, m_currentScene).share();
+				
+				//m_nextScene->loadScene("test");
+				//std::thread thread;
+				/*thread = std::thread([](Scene* nextScene) {
+					nextScene->loadScene("testLevel");
+					}, m_nextScene);*/
+				
+				Timer timer;
+				timer.start();
+				std::thread myThread(Scene::loadScene, m_nextScene); //Create a popupthread
+				myThread.detach(); //Otherwise it will try to terminate once the function exits
+				std::cout << "CONTINUED ON IN MAIN - seconds since starting thread: " << timer.timeElapsed() << std::endl;
+
+
 				swapScenes();
 				m_gameStarted = true;
+				//thread.join();
 			}
 		}
 	}

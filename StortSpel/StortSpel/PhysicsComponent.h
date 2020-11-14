@@ -316,7 +316,10 @@ public:
 
 	XMFLOAT3 getActorPosition()
 	{
-		return XMFLOAT3(m_actor->getGlobalPose().p.x, m_actor->getGlobalPose().p.y, m_actor->getGlobalPose().p.z);
+		if (m_actor)
+			return XMFLOAT3(m_actor->getGlobalPose().p.x, m_actor->getGlobalPose().p.y, m_actor->getGlobalPose().p.z);
+		else
+			return XMFLOAT3(0, 0, 0);
 	}
 
 	XMFLOAT4 getActorQuaternion()

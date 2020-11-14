@@ -137,14 +137,34 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	std::uint32_t* indexArray = new std::uint32_t[indexCount];
 	fileStream.read((char*)&indexArray[0], sizeof(std::uint32_t) * indexCount);
 
-	// Make sure all data was read
-	char overByte;
-	fileStream.read(&overByte, 1);
+	std::uint32_t materialCount2 = 1;
+	std::uint32_t* materialOffsets2 = nullptr;
+
+	char overByte1;
+	fileStream.read(&overByte1, 1);
 	if (!fileStream.eof())
 	{
-		std::string errormsg("loadLRMMesh : Filestream did not reach end of: "); errormsg.append(path);
-		ErrorLogger::get().logError(errormsg.c_str());
-		return nullptr;
+		fileStream.seekg(-1, std::ios_base::cur);
+
+		// Read file material count
+		fileStream.read((char*)&materialCount2, sizeof(std::uint32_t));
+
+		if (materialCount2 > 1)
+		{
+			// Read materialOffsets to array
+			materialOffsets2 = new std::uint32_t[materialCount2];
+			fileStream.read((char*)&materialOffsets2[0], sizeof(std::uint32_t) * materialCount2);
+		}
+
+		// Make sure all data was read
+		char overByte;
+		fileStream.read(&overByte, 1);
+		if (!fileStream.eof())
+		{
+			std::string errormsg("loadLRMMesh : Filestream did not reach end of: "); errormsg.append(path);
+			ErrorLogger::get().logError(errormsg.c_str());
+			return nullptr;
+		}
 	}
 
 	// Close filestream
