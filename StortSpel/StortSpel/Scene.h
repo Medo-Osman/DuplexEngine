@@ -88,8 +88,8 @@ public:
 	Boss* m_boss = nullptr;
 	Scene();
 	~Scene();
-	void loadScene(std::string path);
-	void loadTestLevel();
+	static void loadScene(Scene* sceneObject, std::string path, bool* finished);
+	static void loadTestLevel(Scene* sceneObject, bool* finished);
 	void loadLobby();
 	void loadArena();
 	void loadMaterialTest();

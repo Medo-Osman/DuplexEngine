@@ -397,15 +397,15 @@ void Scene::loadLobby()
 	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
 }
 
-void Scene::loadScene(std::string path)
+void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 {
-	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
+	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 	
 	size_t dot = path.rfind('.', path.length());
 	if (dot == std::string::npos)
 		path.append(".lrl");
 	
-	std::ifstream fileStream(m_LEVELS_PATH + path, std::ifstream::in | std::ifstream::binary);
+	std::ifstream fileStream(sceneObject->m_LEVELS_PATH + path, std::ifstream::in | std::ifstream::binary);
 
 	// Check filestream failure
 	if (!fileStream)
@@ -455,7 +455,7 @@ void Scene::loadScene(std::string path)
 		memcpy(entName, levelData + offset, sizeOfName);
 		offset += sizeOfName;
 
-		Entity* newEntity = addEntity(entName);
+		Entity* newEntity = sceneObject->addEntity(entName);
 
 		//float pos[3];
 		Vector3 pos;
@@ -491,70 +491,81 @@ void Scene::loadScene(std::string path)
 			memcpy(compData, levelData + offset, compDataSize);
 			offset += compDataSize;
 
-			addComponentFromFile(newEntity, compData, compDataSize);
+			sceneObject->addComponentFromFile(newEntity, compData, compDataSize);
 
 
 			delete[] compData;
 		}
 
-		createNewPhysicsComponent(newEntity); // TEMP, collision is going to need some more stuff
+		sceneObject->createNewPhysicsComponent(newEntity); // TEMP, collision is going to need some more stuff
 	}
 
 
 	delete[] levelData;
+	*finished = true;
 }
 
-void Scene::loadTestLevel()
+void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 {
 	Entity* entity;
 
-	loadPickups();
-	loadScore();
+	sceneObject->loadPickups();
+	sceneObject->loadScore();
 
 
-	addCheckpoint(Vector3(0, 9, 5));
-	addCheckpoint(Vector3(14.54, 30, 105));
-	addCheckpoint(Vector3(14.54, 30, 105));
-	addCheckpoint(Vector3(-30, 40, 144));
-	addCheckpoint(Vector3(-11, 40, 218.5));
+	sceneObject->addCheckpoint(Vector3(0, 9, 5));
+	sceneObject->addCheckpoint(Vector3(14.54, 30, 105));
+	sceneObject->addCheckpoint(Vector3(14.54, 30, 105));
+	sceneObject->addCheckpoint(Vector3(-30, 40, 144));
+	sceneObject->addCheckpoint(Vector3(-11, 40, 218.5));
 
-	addSlowTrap(Vector3(0, 13, 30), Vector3(3,3,3));
-	addPushTrap(Vector3(-5, 20, 58), Vector3(5, 20, 58), Vector3(0, 18, 50));
+	sceneObject->addSlowTrap(Vector3(0, 13, 30), Vector3(3,3,3));
+	sceneObject->addPushTrap(Vector3(-5, 20, 58), Vector3(5, 20, 58), Vector3(0, 18, 50));
 	
-	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
+	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
 
-	Entity* barrelDropTrigger = addEntity("dropTrigger");
+	Entity* barrelDropTrigger = sceneObject->addEntity("dropTrigger");
 	if (barrelDropTrigger)
 	{
 		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
-		addComponent(barrelDropTrigger, "mesh",
+		sceneObject->addComponent(barrelDropTrigger, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
 
 		barrelDropTrigger->setPosition(-30, 30, 105);
 
-		addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
+		sceneObject->addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
 		barrelComponentTrigger->initTrigger(barrelDropTrigger, { 1,1,1 });
+	}
+
+	Entity* stressObject = sceneObject->addEntity("stressObject");
+	if (stressObject)
+	{
+		sceneObject->addComponent(stressObject, "mesh",
+			new MeshComponent("highPolyTestSpider_highPolyTestSpider1.lrm", Material({ L"Wellcome.png" })));
+
+		stressObject->setPosition(0, 6, 0);
+
 	}
 
 
 
-	Entity* floor = addEntity("floor"); // Floor:
+	Entity* floor = sceneObject->addEntity("floor"); // Floor:
 	if (floor)
 	{
-		addComponent(floor, "mesh",
+		sceneObject->addComponent(floor, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
 		//new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::OBJECTSPACEGRID , ObjectSpaceGrid));
 
 		floor->setPosition({ 0, 6, 0 });
 		floor->scale({ 20, 2, 20 });
-		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	Entity* test = addEntity("test");
+	Entity* test = sceneObject->addEntity("test");
 	if (test)
 	{
-		addComponent(test, "mesh",
+		sceneObject->addComponent(test, "mesh",
 			new MeshComponent("GlowCube.lrm",
 				EMISSIVE,
 				Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
@@ -562,85 +573,85 @@ void Scene::loadTestLevel()
 		test->setScale({ 5, 5, 5 });
 		test->setPosition({ 0, 10, -10 });
 
-		createNewPhysicsComponent(test, true);
+		sceneObject->createNewPhysicsComponent(test, true);
 		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
 	}
 
 	// Start:
-	createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 8.5, 29.5), Vector3(0, 0, 0), Vector3(10, 3, 1), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 10.5, 39), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 14, 48.5), Vector3(0, 0, 0), Vector3(10, 6, 1), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 17, 58), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(0, 19, 66), Vector3(0, 0, 0), Vector3(10, 4, 4), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(0, 8.5, 29.5), Vector3(0, 0, 0), Vector3(10, 3, 1), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(0, 10.5, 39), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(0, 14, 48.5), Vector3(0, 0, 0), Vector3(10, 6, 1), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(0, 17, 58), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(0, 19, 66), Vector3(0, 0, 0), Vector3(10, 4, 4), "testCube_pCube1.lrm");
 	// Left:
-	createStaticPlatform(Vector3(-10.2, 20.5, 73.2), Vector3(0, -45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-16.54, 20.5, 81), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-16.54, 17, 83), Vector3(0, 0, 0), Vector3(5, 6, 1), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-16.54, 13.5, 102.5), Vector3(0, 0, 0), Vector3(5, 1, 40), "testCube_pCube1.lrm");
-	//createStaticPlatform	(Vector3(-16.54, 21.75, 105),	Vector3(0, 0, 0),		Vector3(10, 10.5, 1),	"testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-16.54, 18, 128), Vector3(0, 0, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
-	createStaticPlatform(Vector3(-14, 23, 135), Vector3(0, 45, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
-	createStaticPlatform(Vector3(-7, 28, 137.5), Vector3(0, 90, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
-	createStaticPlatform(Vector3(6, 28, 137.5), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(8.5, 28, 142.5), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
-	createParisWheel(Vector3(8.5, 28, 159.5), 0, 30, 4);
-	createStaticPlatform(Vector3(8.5, 37.7, 175), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(7.47, 37.7, 180), Vector3(0, -45, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
-	createFlippingPlatform(Vector3(2.2, 42, 185.5), Vector3(0, -225, 0), 3, 3);
-	createStaticPlatform(Vector3(-3.18, 37.7, 190.61), Vector3(0, -45, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-10.2, 20.5, 73.2), Vector3(0, -45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-16.54, 20.5, 81), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-16.54, 17, 83), Vector3(0, 0, 0), Vector3(5, 6, 1), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-16.54, 13.5, 102.5), Vector3(0, 0, 0), Vector3(5, 1, 40), "testCube_pCube1.lrm");
+	//sceneObject->createStaticPlatform	(Vector3(-16.54, 21.75, 105),	Vector3(0, 0, 0),		Vector3(10, 10.5, 1),	"testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-16.54, 18, 128), Vector3(0, 0, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
+	sceneObject->createStaticPlatform(Vector3(-14, 23, 135), Vector3(0, 45, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
+	sceneObject->createStaticPlatform(Vector3(-7, 28, 137.5), Vector3(0, 90, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
+	sceneObject->createStaticPlatform(Vector3(6, 28, 137.5), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(8.5, 28, 142.5), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createParisWheel(Vector3(8.5, 28, 159.5), 0, 30, 4);
+	sceneObject->createStaticPlatform(Vector3(8.5, 37.7, 175), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(7.47, 37.7, 180), Vector3(0, -45, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createFlippingPlatform(Vector3(2.2, 42, 185.5), Vector3(0, -225, 0), 3, 3);
+	sceneObject->createStaticPlatform(Vector3(-3.18, 37.7, 190.61), Vector3(0, -45, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
 	// Right:
-	createStaticPlatform(Vector3(10.2, 20.5, 73.2), Vector3(0, 45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(16.54, 20.5, 86), Vector3(0, 0, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(16.54, 24, 93), Vector3(0, 0, 0), Vector3(5, 6, 1), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(16.54, 27.5, 100), Vector3(0, 0, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(11.54, 27.5, 105), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
-	//createStaticPlatform	(Vector3(2, 30, 105),			Vector3(0, 0, 0),		Vector3(1, 1, 1),		"SquarePlatform.lrm");
-	createStaticPlatform(Vector3(-14, 27.5, 105), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-30, 27.5, 107.5), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-30, 32.6, 126.4), Vector3(-20, 0, 0), Vector3(5, 1, 30), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-30, 37.7, 145.32), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-30, 42, 160), Vector3(0, 0, 0), Vector3(5, 15, 1), "testCube_pCube1.lrm");
-	createFlippingPlatform(Vector3(-36, 37.7, 160), Vector3(0, 0, 0), 1, 2);
-	createFlippingPlatform(Vector3(-24, 37.7, 160), Vector3(0, 180, 0), 2, 1);
-	createStaticPlatform(Vector3(-30, 37.7, 175), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-23.67, 37.7, 185.3), Vector3(0, 45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-23.67, 45, 185.3), Vector3(0, 45, 0), Vector3(10, 10.5, 1), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(10.2, 20.5, 73.2), Vector3(0, 45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(16.54, 20.5, 86), Vector3(0, 0, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(16.54, 24, 93), Vector3(0, 0, 0), Vector3(5, 6, 1), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(16.54, 27.5, 100), Vector3(0, 0, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(11.54, 27.5, 105), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	//sceneObject->createStaticPlatform	(Vector3(2, 30, 105),			Vector3(0, 0, 0),		Vector3(1, 1, 1),		"SquarePlatform.lrm");
+	sceneObject->createStaticPlatform(Vector3(-14, 27.5, 105), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-30, 27.5, 107.5), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-30, 32.6, 126.4), Vector3(-20, 0, 0), Vector3(5, 1, 30), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-30, 37.7, 145.32), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-30, 42, 160), Vector3(0, 0, 0), Vector3(5, 15, 1), "testCube_pCube1.lrm");
+	sceneObject->createFlippingPlatform(Vector3(-36, 37.7, 160), Vector3(0, 0, 0), 1, 2);
+	sceneObject->createFlippingPlatform(Vector3(-24, 37.7, 160), Vector3(0, 180, 0), 2, 1);
+	sceneObject->createStaticPlatform(Vector3(-30, 37.7, 175), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-23.67, 37.7, 185.3), Vector3(0, 45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-23.67, 45, 185.3), Vector3(0, 45, 0), Vector3(10, 10.5, 1), "testCube_pCube1.lrm");
 	// End:
-	createFlippingPlatform(Vector3(-11, 37.7, 200), Vector3(0, 180, 0), 2, 2);
-	createStaticPlatform(Vector3(-11, 37.7, 215), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-11, 37.7, 222.5), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
+	sceneObject->createFlippingPlatform(Vector3(-11, 37.7, 200), Vector3(0, 180, 0), 2, 2);
+	sceneObject->createStaticPlatform(Vector3(-11, 37.7, 215), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-11, 37.7, 222.5), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
 
 
-	createSweepingPlatform(Vector3(-5, 37.7, 228), Vector3(-5, 43.85, 246));
-	createSweepingPlatform(Vector3(-17, 43.85, 246), Vector3(-17, 37.7, 228));
-	createSweepingPlatform(Vector3(-5, 43.85, 251), Vector3(-5, 50, 270));
-	createSweepingPlatform(Vector3(-17, 50, 270), Vector3(-17, 43.85, 251));
+	sceneObject->createSweepingPlatform(Vector3(-5, 37.7, 228), Vector3(-5, 43.85, 246));
+	sceneObject->createSweepingPlatform(Vector3(-17, 43.85, 246), Vector3(-17, 37.7, 228));
+	sceneObject->createSweepingPlatform(Vector3(-5, 43.85, 251), Vector3(-5, 50, 270));
+	sceneObject->createSweepingPlatform(Vector3(-17, 50, 270), Vector3(-17, 43.85, 251));
 
-	createStaticPlatform(Vector3(-11, 50, 275), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-11, 51.68, 282.02), Vector3(-20, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
-	createStaticPlatform(Vector3(-11, 53.4, 289), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-11, 50, 275), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-11, 51.68, 282.02), Vector3(-20, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-11, 53.4, 289), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
 
 
-	Entity* clownMask = addEntity("ClownMask");
+	Entity* clownMask = sceneObject->addEntity("ClownMask");
 	if (clownMask)
 	{
-		addComponent(clownMask, "mesh",
+		sceneObject->addComponent(clownMask, "mesh",
 			new MeshComponent("ClownMask_ClownEye_R1.lrm", Material({ L"DarkGrayTexture.png" })));
 
 		clownMask->setPosition(Vector3(-11.5, 60, 290));
 		clownMask->setRotation(XMConvertToRadians(7), XMConvertToRadians(180), XMConvertToRadians(0));
 	}
-	Entity* goalTrigger = addEntity("trigger");
+	Entity* goalTrigger = sceneObject->addEntity("trigger");
 	if (goalTrigger)
 	{
-		addComponent(goalTrigger, "mesh",
+		sceneObject->addComponent(goalTrigger, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
 		goalTrigger->setPosition(-11.5, 60.563, 292.347);
 		goalTrigger->setScale(13.176, 15.048, 1);
 		goalTrigger->setRotation(XMConvertToRadians(-10.102), XMConvertToRadians(0), XMConvertToRadians(0));
 
-		addComponent(goalTrigger, "trigger",
+		sceneObject->addComponent(goalTrigger, "trigger",
 			new TriggerComponent());
 
 		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
@@ -650,13 +661,13 @@ void Scene::loadTestLevel()
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	Entity* skybox = addEntity("SkyBox");
+	Entity* skybox = sceneObject->addEntity("SkyBox");
 	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		sceneObject->addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
@@ -664,19 +675,21 @@ void Scene::loadTestLevel()
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	// MUSIC
-	Entity* music = addEntity("music");
-	addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.1f));
+	Entity* music = sceneObject->addEntity("music");
+	sceneObject->addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.1f));
 
 	// Lights
 	// - Point Light
-	createSpotLight(Vector3(16.54, 21, 92.7), Vector3(-90, 0, 0), Vector3(0, 1, 0), 3);
-	createSpotLight(Vector3(-30, 35, 159.7), Vector3(-90, 0, 0), Vector3(0, 1, 0), 3);
-	createSpotLight(Vector3(-32, 39, 176), Vector3(0, 45, 0), Vector3(0, 1, 0), 0.1);
+	sceneObject->createSpotLight(Vector3(16.54, 21, 92.7), Vector3(-90, 0, 0), Vector3(0, 1, 0), 3);
+	sceneObject->createSpotLight(Vector3(-30, 35, 159.7), Vector3(-90, 0, 0), Vector3(0, 1, 0), 3);
+	sceneObject->createSpotLight(Vector3(-32, 39, 176), Vector3(0, 45, 0), Vector3(0, 1, 0), 0.1);
 
-	createSpotLight(Vector3(-5, 22, 68.5), Vector3(0, -45, 0), Vector3(0, 0, 1), 0.1);
-	createSpotLight(Vector3(8.5, 60, 159.5), Vector3(90, 0, 0), Vector3(0, 0, 1), 0.2);
+	sceneObject->createSpotLight(Vector3(-5, 22, 68.5), Vector3(0, -45, 0), Vector3(0, 0, 1), 0.1);
+	sceneObject->createSpotLight(Vector3(8.5, 60, 159.5), Vector3(90, 0, 0), Vector3(0, 0, 1), 0.2);
 
-	createSpotLight(Vector3(-11, 50, 275), Vector3(-35, 0, 0), Vector3(1, 0, 0), 0.3);
+	sceneObject->createSpotLight(Vector3(-11, 50, 275), Vector3(-35, 0, 0), Vector3(1, 0, 0), 0.3);
+
+	*finished = true;
 }
 
 void Scene::loadArena()

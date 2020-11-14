@@ -17,7 +17,7 @@ private:
 
 	//std::shared_future<void> result;
 	//std::vector<std::future<void>> futures;
-	bool nextMapFinishedLoading = false;
+	bool* m_nextSceneReady = new bool;
 public:
 	SceneManager();
 	~SceneManager();

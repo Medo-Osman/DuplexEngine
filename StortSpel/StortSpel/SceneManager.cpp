@@ -49,7 +49,7 @@ void SceneManager::updateScene(const float &dt)
 			m_gameStarted = false;
 			break;
 		case ScenesEnum::START:
-			m_nextScene->loadScene("Ogorki");
+			Scene::loadScene(m_nextScene, "Ogorki", m_nextSceneReady);
 			break;
 		case ScenesEnum::ARENA:
 			m_nextScene->loadArena();
@@ -73,7 +73,11 @@ void SceneManager::inputUpdate(InputData& inputData)
 			if (!m_gameStarted)
 			{
 				m_nextScene = new Scene();
-				m_nextScene->loadTestLevel();
+				//Scene::loadTestLevel(m_nextScene);
+
+				std::thread myThread(Scene::loadTestLevel, m_nextScene, m_nextSceneReady);
+				myThread.detach();
+
 				swapScenes();
 				m_gameStarted = true;
 			}
@@ -81,7 +85,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 		else if (inputData.actionData[i] == LOAD_SCENE)
 		{
 			m_nextScene = new Scene();
-			m_nextScene->loadScene("levelMeshTest");
+			Scene::loadScene(m_nextScene, "levelMeshTest", m_nextSceneReady);
 			swapScenes();
 			m_gameStarted = false;
 		}
@@ -129,25 +133,29 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 
 void SceneManager::swapScenes()
 {
-	m_swapScene = false;
-	Physics::get().Detach(m_currentScene, false, true);
+	if (m_nextSceneReady)
+	{
+		*m_nextSceneReady = false;
+		m_swapScene = false;
+		Physics::get().Detach(m_currentScene, false, true);
 	
-	//Reset boss
-	if (m_currentScene->m_boss)
-		m_currentScene->m_boss->Detach(m_currentScene);
+		//Reset boss
+		if (m_currentScene->m_boss)
+			m_currentScene->m_boss->Detach(m_currentScene);
 
-	// Swap
-	delete m_currentScene;
-	m_currentScene = m_nextScene;
-	m_nextScene = nullptr;
+		// Swap
+		delete m_currentScene;
+		m_currentScene = m_nextScene;
+		m_nextScene = nullptr;
 
-	// Update currentScene in engine
-	Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
-	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
-	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
+		// Update currentScene in engine
+		Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
+		Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
+		Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
-	// Set as PhysicsObserver
-	Physics::get().Attach(m_currentScene, false, true);
+		// Set as PhysicsObserver
+		Physics::get().Attach(m_currentScene, false, true);
 
-	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
+		static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
+	}
 }
