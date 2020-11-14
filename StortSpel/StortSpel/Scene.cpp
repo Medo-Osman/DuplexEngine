@@ -267,7 +267,7 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
 
-void Scene::loadLobby()
+void Scene::loadLobby(bool* finished)
 {
 	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
@@ -395,6 +395,7 @@ void Scene::loadLobby()
 	}
 
 	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
+	*finished = true;
 }
 
 void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
@@ -692,7 +693,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	*finished = true;
 }
 
-void Scene::loadArena()
+void Scene::loadArena(bool* finished)
 {
 	Engine* engine = &Engine::get();
 	Entity* entity;
@@ -798,6 +799,8 @@ void Scene::loadArena()
 	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
 	m_nightSlide = 0.01f;
 	m_nightVolume = 0.2f;
+
+	*finished = true;
 }
 
 // Private functions:
@@ -885,7 +888,7 @@ void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 sca
 	}
 }
 
-void Scene::loadMaterialTest()
+void Scene::loadMaterialTest(bool* finished)
 {
 	Entity* entity;
 
@@ -1004,6 +1007,8 @@ void Scene::loadMaterialTest()
 			entity->translate(pointLightPositions[i]);
 		}
 	}
+
+	*finished = true;
 }
 
 void Scene::updateScene(const float& dt)

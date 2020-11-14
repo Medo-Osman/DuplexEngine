@@ -20,7 +20,7 @@ void SceneManager::initalize()
 {
 	// Start Scene
 	m_currentScene = new Scene();
-	m_currentScene->loadLobby();
+	m_currentScene->loadLobby(m_nextSceneReady);
 	//m_currentScene->loadArena();
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
@@ -43,7 +43,7 @@ void SceneManager::updateScene(const float &dt)
 		switch (m_nextSceneEnum)
 		{
 		case ScenesEnum::LOBBY:
-			m_nextScene->loadLobby();
+			m_nextScene->loadLobby(m_nextSceneReady);
 			//Reset game variables that are needed here
 			Engine::get().getPlayerPtr()->setScore(0);
 			m_gameStarted = false;
@@ -52,7 +52,7 @@ void SceneManager::updateScene(const float &dt)
 			Scene::loadScene(m_nextScene, "Ogorki", m_nextSceneReady);
 			break;
 		case ScenesEnum::ARENA:
-			m_nextScene->loadArena();
+			m_nextScene->loadArena(m_nextSceneReady);
 			break;
 		default:
 			break;

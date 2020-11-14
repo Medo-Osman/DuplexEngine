@@ -90,9 +90,9 @@ public:
 	~Scene();
 	static void loadScene(Scene* sceneObject, std::string path, bool* finished);
 	static void loadTestLevel(Scene* sceneObject, bool* finished);
-	void loadLobby();
-	void loadArena();
-	void loadMaterialTest();
+	void loadLobby(bool* finished);
+	void loadArena(bool* finished);
+	void loadMaterialTest(bool* finished);
 	void updateScene(const float &dt);
 	Vector3 getEntryPosition();
 	Entity* getEntity(std::string key);
