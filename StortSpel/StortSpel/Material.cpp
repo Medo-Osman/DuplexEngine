@@ -9,6 +9,7 @@ Material::Material()
 		this->m_textureArray.push_back(errorTexturePtr);
 	
 	this->m_materialConstData.UVScale = 1.0f;
+	this->m_materialConstData.emissiveStrength = 0.f;
 }
 
 Material::Material(std::initializer_list<const WCHAR*> fileNames)
@@ -19,6 +20,7 @@ Material::Material(std::initializer_list<const WCHAR*> fileNames)
 		addTexture(fileName);
 	}
 	this->m_materialConstData.UVScale = 1.0f;
+	this->m_materialConstData.emissiveStrength = 0.f;
 }
 
 Material::Material(const Material& other)
@@ -116,6 +118,11 @@ void Material::setMetallic(float metallic)
 void Material::setTextured(int textured)
 {
 	this->m_materialConstData.textured = textured;
+}
+
+void Material::setEmissiveStrength(int emissiveStrength)
+{
+	this->m_materialConstData.emissiveStrength = emissiveStrength;
 }
 
 unsigned int long Material::getMaterialId()

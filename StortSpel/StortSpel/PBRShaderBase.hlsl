@@ -54,6 +54,7 @@ cbuffer MaterialBuffer : register(b3)
 	float materialRoughness;
 	float materialMetallic;
 	int materialTextured;
+    float materialEmissiveStrength;
 }
 
 struct ps_in
@@ -66,16 +67,23 @@ struct ps_in
 	float4 worldPos : POSITION;
 };
 
+struct ps_out
+{
+    float4 diffuse : SV_Target0;
+    float4 glow : SV_Target1;
+};
+
 TextureCube skyIR : register(t0);
 TextureCube skyPrefilter : register(t1);
 Texture2D brdfLUT : register(t2);
 
-Texture2D albedoTexture : TEXTURE : register(t3);
-Texture2D normalTexture : TEXTURE : register(t4);
-Texture2D roughnessTexture : TEXTURE : register(t5);
-Texture2D metallicTexture : TEXTURE : register(t6);
-Texture2D aoTexture : TEXTURE : register(t7);
-SamplerState sampState : SAMPLER : register(s0);
+Texture2D albedoTexture		: TEXTURE : register(t3);
+Texture2D normalTexture		: TEXTURE : register(t4);
+Texture2D roughnessTexture	: TEXTURE : register(t5);
+Texture2D metallicTexture	: TEXTURE : register(t6);
+Texture2D aoTexture			: TEXTURE : register(t7);
+Texture2D emissiveTexture	: TEXTURE : register(t8);
+SamplerState sampState		: SAMPLER : register(s0);
 
 static const float PI = 3.14159265359;
 
@@ -123,8 +131,12 @@ float3 fresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
 	return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-float4 main(ps_in input) : SV_TARGET
+ps_out main(ps_in input) : SV_TARGET
 {
+    ps_out output;
+    
+    float4 emissive = emissiveTexture.Sample(sampState, input.uv);
+    
 	float3 N = normalize(input.normal);
 	float3 V = normalize(cameraPosition - input.worldPos);
 	
@@ -234,5 +246,13 @@ float4 main(ps_in input) : SV_TARGET
 	// Gamma correction
 	color = pow(color, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
    
-	return float4(color, 1.0);
+    // Emissive color
+    float emissiveScalar = materialEmissiveStrength / 100.f;
+    float3 emStrengthColor = float3(emissiveScalar, emissiveScalar, 1.f);
+    output.glow = float4(emissive.rgb, emissiveScalar);
+	
+    // Diffuse color
+    output.diffuse = float4(color, 1.f) + float4(emissive.rgb + (emStrengthColor * length(emissive.rgb)), 1.f);
+    
+    return output;
 }

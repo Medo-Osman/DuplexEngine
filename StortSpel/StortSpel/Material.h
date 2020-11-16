@@ -10,6 +10,8 @@ struct MATERIAL_CONST_BUFFER // ? Not sure if we should have this like this
 	float roughness;
 	float metallic;
 	int textured;
+	float emissiveStrength;
+	XMFLOAT3 pad;
 };
 
 class Material
@@ -37,6 +39,7 @@ public:
 	void setRoughness(float roughness);
 	void setMetallic(float metallic);
 	void setTextured(int textured);
+	void setEmissiveStrength(int emissiveStrength);
 
 	unsigned int long getMaterialId();
 	MATERIAL_CONST_BUFFER getMaterialParameters();
