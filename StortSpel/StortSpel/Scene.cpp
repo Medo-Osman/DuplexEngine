@@ -1254,7 +1254,13 @@ void Scene::reactOnPlayer(PlayerMessageData& msg)
 			Vector3 trampolineSpawnPos = m_player->getPlayerEntity()->getTranslation();
 			Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
 			trampoline->setPosition(trampolineSpawnPos);
-			addComponent(trampoline, "mesh", new MeshComponent("testCube_pCube1.lrm"));
+			addComponent(trampoline, "mesh1", 
+				new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(trampoline, "mesh2",
+				new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(trampoline, "mesh3",
+				new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
+
 			createNewPhysicsComponent(trampoline, false);
 			TriggerComponent* triggerComponent = new TriggerComponent();
 			triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);

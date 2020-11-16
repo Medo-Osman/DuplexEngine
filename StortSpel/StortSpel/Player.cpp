@@ -470,7 +470,10 @@ void Player::handlePickupOnUse()
 		//m_speedModifierTime = 0;
 		break;
 	case PickupType::HEIGHTBOOST:
+	{
+		//Kalla på animation
 		jump(false);
+	}
 
 	default:
 		break;
