@@ -2,6 +2,7 @@
 #include "Player.h"
 #include"Pickup.h"
 #include"SpeedPickup.h"
+#include"HeightPickup.h"
 #include"ParticleComponent.h"
 #include "Traps.h"
 
@@ -20,6 +21,7 @@ Player::Player()
 	m_controller = nullptr;
 	m_state = PlayerState::IDLE;
 
+
 	Physics::get().Attach(this, true, false);
 	m_currentSpeedModifier = 1.f;
 	m_speedModifierTime = 0;
@@ -27,6 +29,7 @@ Player::Player()
 	{
 		std::vector<Pickup*> vec;
 		vec.emplace_back(new SpeedPickup());
+		vec.emplace_back(new HeightPickup());
 		Pickup::initPickupArray(vec);
 	}
 
@@ -298,6 +301,7 @@ void Player::updatePlayer(const float& dt)
 	{
 		if (m_pickupPointer->isActive())
 		{
+			bool shouldRemovePickup = false;
 			switch (m_pickupPointer->getPickupType())
 			{
 			case PickupType::SPEED:
@@ -323,18 +327,28 @@ void Player::updatePlayer(const float& dt)
 
 					if (m_pickupPointer->shouldDestroy())
 					{
-						m_pickupPointer->onRemove();
-						delete m_pickupPointer;
-						m_pickupPointer = nullptr;
+						shouldRemovePickup = true;
 						m_currentSpeedModifier = 1.f;
 					}
 				}
 				break;
-			case PickupType::SCORE:
+			case PickupType::HEIGHTBOOST:
+				if (m_state != PlayerState::FALLING)
+				{
+					m_pickupPointer->onDepleted();
+					shouldRemovePickup = true;
+				}
 
 				break;
 			default:
 				break;
+			}
+
+			if (shouldRemovePickup)
+			{
+				m_pickupPointer->onRemove();
+				delete m_pickupPointer;
+				m_pickupPointer = nullptr;
 			}
 		}
 		
@@ -355,6 +369,10 @@ void Player::setPlayerEntity(Entity* entity)
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
+
+	//To test heightpickup faster, if you see this you can remove it
+	m_pickupPointer = new HeightPickup();
+	m_pickupPointer->onPickup(m_playerEntity);
 }
 
 Vector3 Player::getCheckpointPos()
@@ -428,6 +446,9 @@ const bool Player::canUsePickup()
 
 void Player::handlePickupOnUse()
 {
+	PlayerMessageData data;
+	data.playerActionType = PlayerActions::ON_POWERUP_USE;
+	data.intEnum = (int)m_pickupPointer->getPickupType();
 	switch (m_pickupPointer->getPickupType())
 	{
 	case PickupType::SPEED:
@@ -437,11 +458,17 @@ void Player::handlePickupOnUse()
 		//m_goalSpeedModifier = m_pickupPointer->getModifierValue();
 		//m_speedModifierTime = 0;
 		break;
+	case PickupType::HEIGHTBOOST:
+		jump(false);
+
 	default:
 		break;
 	}
-	
 	m_pickupPointer->onUse();
+	for (int i = 0; i < m_playerObservers.size(); i++)
+	{
+		m_playerObservers[i]->reactOnPlayer(data);
+	}
 }
 
 void Player::inputUpdate(InputData& inputData)
@@ -484,33 +511,36 @@ void Player::inputUpdate(InputData& inputData)
 
 void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEntityBeRemoved)
 {
-	if (physicsData.triggerType == TriggerType::TRAP)
-	{
-		switch ((TrapType)physicsData.associatedTriggerEnum)
-		{
-		case TrapType::SLOW:
-			m_activeTrap = (TrapType)physicsData.associatedTriggerEnum;
-			m_currentSpeedModifier = 0.5f;
-			m_goalSpeedModifier = physicsData.floatData;
-			m_speedModifierTime = 0;
-			break;
-		}
 
-	}
-
-	if (physicsData.triggerType == TriggerType::BARREL)
-	{
-
-		//spelare - barrel
-		/*	Vector3 direction = ->getTranslation() - m_playerEntity->getTranslation();
-		direction.Normalize();
-		m_playerEntity->translate(direction);*/
-
-		jump();
-	}
 	if (!shouldTriggerEntityBeRemoved)
 	{
+		//Traps
+		if (physicsData.triggerType == TriggerType::TRAP)
+		{
+			switch ((TrapType)physicsData.associatedTriggerEnum)
+			{
+			case TrapType::SLOW:
+				m_activeTrap = (TrapType)physicsData.associatedTriggerEnum;
+				m_currentSpeedModifier = 0.5f;
+				m_goalSpeedModifier = physicsData.floatData;
+				m_speedModifierTime = 0;
+				break;
+			}
 
+		}
+
+		if (physicsData.triggerType == TriggerType::BARREL)
+		{
+
+			//spelare - barrel
+			/*	Vector3 direction = ->getTranslation() - m_playerEntity->getTranslation();
+			direction.Normalize();
+			m_playerEntity->translate(direction);*/
+
+			jump();
+		}
+
+		//Checkpoints
 		if (physicsData.triggerType == TriggerType::CHECKPOINT)
 		{
 			Entity* ptr = static_cast<Entity*>(physicsData.pointer);
@@ -527,19 +557,37 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 			}
 		}
 
+		//Pickup 
 		if (physicsData.triggerType == TriggerType::PICKUP)
 		{
+			/*
+				assosiatedTriggerEnum - PickupType
+				intData - used currently for heightBoost to check if they use trampoline object or if they pickedup the item(intData = fromPickup
+				stringData -free
+				floatData - modifier for speedboost.
+			*/
+			
 			if (m_pickupPointer == nullptr)
 			{
+				bool forceUse = false; 
 				bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
-				int duration = physicsData.intData;
 				switch ((PickupType)physicsData.associatedTriggerEnum)
 				{
 				case PickupType::SPEED:
-					shouldTriggerEntityBeRemoved = true;
+					shouldTriggerEntityBeRemoved = true; //We want to remove speedpickup entity after we've used it.
 					m_currentSpeedModifier = 1.f;
 					m_goalSpeedModifier = physicsData.floatData;
 					m_speedModifierTime = 0;
+					break;
+				case PickupType::HEIGHTBOOST:
+					if((bool)physicsData.intData) //fromPickup -true/false
+						shouldTriggerEntityBeRemoved = true;
+					else
+					{
+						jump(false);
+						forceUse = true;
+					}
+
 					break;
 				case PickupType::SCORE:
 					addPickupByAssosiatedID = false;
@@ -551,12 +599,12 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				{
 					m_pickupPointer = getCorrectPickupByID(physicsData.associatedTriggerEnum);
 					m_pickupPointer->setModifierValue(physicsData.floatData);
-					m_pickupPointer->onPickup(m_playerEntity, duration);
-					if (m_pickupPointer->shouldActivateOnPickup())
+					m_pickupPointer->onPickup(m_playerEntity);
+					if (m_pickupPointer->shouldActivateOnPickup() || forceUse)
 						m_pickupPointer->onUse();
 				}
 			}
-
+			//Score
 			if((PickupType)physicsData.associatedTriggerEnum == PickupType::SCORE)
 			{
 				int amount = (int)physicsData.floatData;
@@ -578,6 +626,8 @@ Pickup* getCorrectPickupByID(int id)
 	case PickupType::SPEED:
 		createPickup = new SpeedPickup(*dynamic_cast<SpeedPickup*>(pickupPtr));
 		break;
+	case PickupType::HEIGHTBOOST:
+		createPickup = new HeightPickup(*dynamic_cast<HeightPickup*>(pickupPtr));
 	case PickupType::SCORE: //Score is not saved as a pointer so not implemented.
 		break;
 	default:
@@ -639,12 +689,13 @@ void Player::serverPlayerAnimationChange(PlayerState currentState, float current
 	}
 }
 
-void Player::jump()
+void Player::jump(bool incrementCounter)
 {
 	m_currentDistance = 0;
 	m_state = PlayerState::JUMPING;
 	m_velocity.y = JUMP_SPEED * m_playerScale;// * dt;
-	m_jumps++;
+	if(incrementCounter)
+		m_jumps++;
 }
 
 bool Player::canRoll() const

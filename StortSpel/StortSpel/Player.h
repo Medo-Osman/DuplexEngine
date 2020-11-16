@@ -16,6 +16,8 @@
 #include "GUIHandler.h"
 #include "BarrelComponent.h"
 
+using namespace DirectX;
+
 enum class PlayerState
 {
     IDLE,
@@ -25,9 +27,36 @@ enum class PlayerState
     ROLL,
 };
 
-using namespace DirectX;
+enum class PlayerActions
+{
+    ON_POWERUP_USE,
+};
 
-class Player : public InputObserver, public PhysicsObserver, public GUIObserver
+
+struct PlayerMessageData
+{
+    PlayerActions playerActionType;
+    int intEnum;
+
+};
+
+class PlayerObserver {
+public:
+    PlayerObserver() {};
+    virtual ~PlayerObserver() {};
+    virtual void reactOnPlayer(PlayerMessageData& msg) = 0;
+};
+
+class PlayerSubject {
+public:
+    virtual ~PlayerSubject() {};
+    virtual void Attach(PlayerObserver* observer) = 0;
+    virtual void Detach(PlayerObserver* observer) = 0;
+};
+
+
+
+class Player : public InputObserver, public PhysicsObserver, public GUIObserver, public PlayerSubject
 {
 private:
     float m_playerScale = 2.0f;
@@ -109,6 +138,11 @@ private:
     float m_slowTimer = 0;
     int m_trapId = -1;
 
+    //Observer
+    std::vector<PlayerObserver*> m_playerObservers;
+
+
+    //Private functions
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
     void playerStateLogic(const float& dt);
@@ -117,7 +151,7 @@ private:
     void roll();
     bool canDash() const;
     void dash();
-    void jump();
+    void jump(bool incrementCounter = true);
     void prepDistVariables();
 
     void rollAnimation();
@@ -127,6 +161,22 @@ private:
 public:
     Player();
     ~Player();
+
+    virtual void Attach(PlayerObserver* observer)
+    {
+        m_playerObservers.emplace_back(observer);
+    }
+    virtual void Detach(PlayerObserver* observer)
+    {
+        int index = -1;
+        for (int i = 0; i < m_playerObservers.size() && !index; i++)
+        {
+            if (m_playerObservers[i] == observer)
+                index = i;
+        }
+        if (index != -1)
+            m_playerObservers.erase(m_playerObservers.begin() + index);
+    }
 
     bool isRunning();
 

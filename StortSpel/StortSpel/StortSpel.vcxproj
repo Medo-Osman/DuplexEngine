@@ -274,6 +274,7 @@
     <ClInclude Include="GUIButton.h" />
     <ClInclude Include="GUIContext.h" />
     <ClInclude Include="GUIImageLabel.h" />
+    <ClInclude Include="HeightPickup.h" />
     <ClInclude Include="MoveToAction.h" />
     <ClInclude Include="Particles\Particle.h" />
     <ClInclude Include="ParticleComponent.h" />

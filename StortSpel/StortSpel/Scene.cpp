@@ -42,6 +42,16 @@ Scene::~Scene()
 		delete m_boss;
 }
 
+void Scene::activateScene()
+{
+	m_player->Attach(this);
+}
+
+void Scene::deactivateScene()
+{
+	m_player->Detach(this);
+}
+
 void Scene::createParticleEntity(void* particleComponent, Vector3 position)
 {
 	ParticleComponent* pc = static_cast<ParticleComponent*>(particleComponent);
@@ -200,7 +210,7 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	pickupPtr = addEntity(name);
 	pickupPtr->setPosition(position);
 	addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, 1.f, 6));
+	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, tier, 1));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger(pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
@@ -1079,6 +1089,30 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 	}
 		
 
+}
+
+void Scene::reactOnPlayer(PlayerMessageData& msg)
+{
+
+	if (msg.playerActionType == PlayerActions::ON_POWERUP_USE) //Player have just used a powerup.
+	{
+		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST) //Use intEnum to find out what powerup was used.
+		{
+			//Create a trampoline entity
+			Vector3 trampolineSpawnPos = m_player->getPlayerEntity()->getTranslation();
+			Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
+			trampoline->setPosition(trampolineSpawnPos);
+			addComponent(trampoline, "mesh", new MeshComponent("testCube_pCube1.lrm"));
+			createNewPhysicsComponent(trampoline, false);
+			TriggerComponent* triggerComponent = new TriggerComponent();
+			triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
+			triggerComponent->setIntData(0);
+			trampoline->addComponent("heightTrigger", triggerComponent);
+			triggerComponent->initTrigger(trampoline, { 0.9, 1, 0.9 }, {0.f, 0.2f, 0.f});
+			
+
+		}
+	}
 }
 
 void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)

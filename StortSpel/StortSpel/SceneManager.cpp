@@ -123,6 +123,7 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 void SceneManager::swapScenes()
 {
 	m_swapScene = false;
+	m_currentScene->deactivateScene();
 	Physics::get().Detach(m_currentScene, false, true);
 	
 	//Reset boss
@@ -139,6 +140,7 @@ void SceneManager::swapScenes()
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
+	m_currentScene->activateScene();
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
 

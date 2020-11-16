@@ -12,7 +12,7 @@ enum class ScenesEnum
 	ARENA,
 };
 
-class Scene : public PhysicsObserver, public BossObserver
+class Scene : public PhysicsObserver, public BossObserver, public PlayerObserver
 {
 private:
 	int m_tempParticleID = 0;
@@ -81,10 +81,14 @@ private:
 
 	int m_nrOfBarrelDrops = 0;
 	int m_nrOftraps = 0;
+	int m_nrOf = 0; //can be used with any entity.
 public:
 	Boss* m_boss = nullptr;
 	Scene();
 	~Scene();
+	void activateScene();
+	void deactivateScene();
+
 	void loadScene(std::string path);
 	void loadLobby();
 	void loadArena();
@@ -115,5 +119,5 @@ public:
 
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
-
+	virtual void reactOnPlayer(PlayerMessageData& msg);
 };
