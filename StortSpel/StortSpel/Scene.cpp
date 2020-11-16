@@ -356,7 +356,7 @@ void Scene::loadLobby()
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		addComponent(skybox, "cube",
-			new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+			new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 				//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 
@@ -656,7 +656,7 @@ void Scene::loadTestLevel()
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
@@ -767,7 +767,7 @@ void Scene::loadArena()
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
