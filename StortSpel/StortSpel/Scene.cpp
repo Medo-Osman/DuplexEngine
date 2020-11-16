@@ -13,6 +13,7 @@ Scene::Scene()
 	m_player = Engine::get().getPlayerPtr();
 	m_entities[PLAYER_ENTITY_NAME] = m_player->getPlayerEntity();
 	m_sceneEntryPosition = { 0, 0, 0 };
+	m_sceneID = Physics::get().getNewSceneID();
 
 
 
@@ -107,7 +108,7 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 	pickupPtr->setPosition(position);
 	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST));
 	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6, particleComponent));
-	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger(pickupPtr, { 1, 1, 1 });
+	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
 
@@ -119,7 +120,7 @@ void Scene::addCheckpoint(const Vector3& position)
 	checkPoint->scale(1.5, 1.5, 1.5);
 
 	addComponent(checkPoint, "checkpoint", new CheckpointComponent(checkPoint));
-	static_cast<TriggerComponent*>(checkPoint->getComponent("checkpoint"))->initTrigger(checkPoint, { 4, 4, 4 });
+	static_cast<TriggerComponent*>(checkPoint->getComponent("checkpoint"))->initTrigger( m_sceneID, checkPoint, { 4, 4, 4 });
 
 	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.1f));
 }
@@ -199,10 +200,15 @@ void Scene::addBarrelDrop(Vector3 Position)
 		createNewPhysicsComponent(rollingBarrel, true, "", PxGeometryType::eSPHERE, "wood", true);
 		static_cast<PhysicsComponent*>(rollingBarrel->getComponent("physics"))->setMass(100.0f);
 		addComponent(rollingBarrel, "barrel", new BarrelComponent());
-		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger(rollingBarrel, { 1,1,1 });
+		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 1,1,1 });
 		m_despawnBarrelTimer.restart();
 		addedBarrel = true;
 	}
+}
+
+int Scene::getSceneID()
+{
+	return this->m_sceneID;
 }
 
 void Scene::addSlowTrap(const Vector3& position, Vector3 scale)
@@ -213,7 +219,7 @@ void Scene::addSlowTrap(const Vector3& position, Vector3 scale)
 	slowTrap->scale(scale);
 
 	addComponent(slowTrap, "trap", new SlowTrapComponent(slowTrap, TrapType::SLOW));
-	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(slowTrap, { scale });
+	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger( m_sceneID, slowTrap, { scale });
 
 	addComponent(slowTrap, "sound", new AudioComponent(L"OnPickup.wav", false));
 
@@ -246,7 +252,7 @@ void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 tr
 		pushWallTrigger->setPosition(0, 18, 50);
 
 		addComponent(pushWallTrigger, "trigger", pushComponentTrigger);
-		pushComponentTrigger->initTrigger(pushWallTrigger, { 1,1,1 });
+		pushComponentTrigger->initTrigger( m_sceneID, pushWallTrigger, { 1,1,1 });
 	}
 }
 
@@ -263,7 +269,7 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	pickupPtr->setPosition(position);
 	addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
 	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, 1.f, 6));
-	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger(pickupPtr, { 1, 1, 1 });
+	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
 
@@ -536,7 +542,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		barrelDropTrigger->setPosition(-30, 30, 105);
 
 		sceneObject->addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
-		barrelComponentTrigger->initTrigger(barrelDropTrigger, { 1,1,1 });
+		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1,1,1 });
 	}
 
 	Entity* stressObject = sceneObject->addEntity("stressObject");
@@ -656,7 +662,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 			new TriggerComponent());
 
 		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
-		tc->initTrigger(goalTrigger, XMFLOAT3(9.0f, 8.0f, 0.5f));
+		tc->initTrigger( sceneObject->m_sceneID, goalTrigger, XMFLOAT3(9.0f, 8.0f, 0.5f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
 		tc->setIntData((int)ScenesEnum::ARENA);
 	}
@@ -770,7 +776,7 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 			new TriggerComponent());
 
 		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
-		tc->initTrigger(goalTrigger, XMFLOAT3(9.0f, 8.0f, 0.5f));
+		tc->initTrigger( sceneObject->m_sceneID, goalTrigger, XMFLOAT3(9.0f, 8.0f, 0.5f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
 		tc->setIntData((int)ScenesEnum::LOBBY);
 	}
@@ -1180,7 +1186,7 @@ void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string 
 
 
 	entity->addComponent("physics", physComp);
-	physComp->initActorAndShape(entity, meshComponent, geometryType, dynamic, materialName, isUnique);
+	physComp->initActorAndShape(m_sceneID, entity, meshComponent, geometryType, dynamic, materialName, isUnique);
 }
 
 void Scene::addLightComponent(LightComponent* component)
@@ -1326,7 +1332,7 @@ void Scene::createProjectile(Vector3 origin, Vector3 dir, float speed)
 		addComponent(projectileEntity, "projectile",
 			new ProjectileComponent(projectileEntity, projectileEntity, origin, dir, speed, 20.f));
 		
-		static_cast<TriggerComponent*>(projectileEntity->getComponent("projectile"))->initTrigger(projectileEntity, { 0.5f, 0.5f, 0.5f });	
+		static_cast<TriggerComponent*>(projectileEntity->getComponent("projectile"))->initTrigger( m_sceneID, projectileEntity, { 0.5f, 0.5f, 0.5f });	
 
 
 		static_cast<ProjectileComponent*>(projectileEntity->getComponent("projectile"))->m_id = m_nrOfProjectiles;

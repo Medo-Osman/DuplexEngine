@@ -184,8 +184,10 @@ void SceneManager::swapScenes()
 
 		// Set as PhysicsObserver
 		Physics::get().Attach(m_currentScene, false, true);
-
-		static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
+		Physics::get().changeScene(m_currentScene->getSceneID());
+		CharacterControllerComponent* ccc = static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"));
+		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), 1.75f, 0.5, "human");
+		ccc->setPosition(m_currentScene->getEntryPosition());
 	}
 
 	//std::cout << "Ready: " << *m_nextSceneReady << std::endl;

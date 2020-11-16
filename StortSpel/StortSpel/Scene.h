@@ -15,6 +15,7 @@ enum class ScenesEnum
 class Scene : public PhysicsObserver, public BossObserver
 {
 private:
+	int m_sceneID = -1;
 	int m_tempParticleID = 0;
 	//std::unordered_map<std::string, Entity*> m_entities;
 	//Entity* m_player;
@@ -106,6 +107,8 @@ public:
 	void addMeshComponent(MeshComponent* component);
 	void addLightComponent(LightComponent* component);
 	void addBarrelDrop(Vector3 Position);
+
+	int getSceneID();
 
 	
 	void removeLightComponent(LightComponent* component);
