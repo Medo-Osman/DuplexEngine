@@ -237,7 +237,7 @@ public:
 			//Checks
 			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor())
 			{
-				for (size_t j = 0; j < m_reactOnTriggerObservers.size(); j++)
+				for (size_t j = 0; j < m_reactOnTriggerObservers.size() && !shouldBeRemoved; j++)
 				{
 					m_reactOnTriggerObservers[j]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), shouldBeRemoved);
 					if (shouldBeRemoved)
