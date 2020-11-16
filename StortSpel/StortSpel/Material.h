@@ -2,7 +2,7 @@
 #include "ResourceHandler.h"
 #include "ShaderProgram.h"
 
-static unsigned int long materialCount;
+static unsigned int long totalMaterialCount;
 
 struct MATERIAL_CONST_BUFFER // ? Not sure if we should have this like this
 {

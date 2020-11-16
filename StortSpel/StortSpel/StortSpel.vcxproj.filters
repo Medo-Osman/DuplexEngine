@@ -61,6 +61,33 @@
     <Filter Include="Source Files\Network">
       <UniqueIdentifier>{04bbabbc-9dad-423b-9d74-30fb71c51bec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Game\Boss">
+      <UniqueIdentifier>{c67d7d09-c5ba-4473-8184-1258674324e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Game\Boss\Moves">
+      <UniqueIdentifier>{121a8da7-4fb3-4c20-8b12-22d9839235f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles">
+      <UniqueIdentifier>{df34a05a-8cc6-4e67-91db-bedc4fbf50ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\RainingDog">
+      <UniqueIdentifier>{318e3fb0-0cbf-49b0-8345-a5e0f16d6197}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\Score">
+      <UniqueIdentifier>{5f471fb5-6b40-4b04-aed7-0dd0cf8ac577}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\RainingDog\Streamout">
+      <UniqueIdentifier>{c6fa122f-a9b8-43f6-8f61-94e4d0e5c2be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\RainingDog\Draw">
+      <UniqueIdentifier>{cb4f9acb-35a2-4e50-afe7-523299c12978}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\PlayerLines">
+      <UniqueIdentifier>{a1c79bd5-2660-43a9-b262-d5a650067a8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Game\Traps">
+      <UniqueIdentifier>{fda73094-e463-4574-9c83-c0425d6076d2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -159,6 +186,9 @@
     <ClCompile Include="ServerPlayer.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
+    <ClCompile Include="Particles\Particle.cpp">
+      <Filter>Source Files\Graphics\Particles</Filter>
+    </ClCompile>
     <ClCompile Include="ShadowMap.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
@@ -167,6 +197,9 @@
     </ClCompile>
     <ClCompile Include="Server.cpp">
       <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Boss.cpp">
+      <Filter>Source Files\Game\Boss</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -362,6 +395,39 @@
     <ClInclude Include="Packet.h">
       <Filter>Source Files\Network</Filter>
     </ClInclude>
+    <ClInclude Include="Particles\Particle.h">
+      <Filter>Source Files\Graphics\Particles</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles\ScorePickupParticle.h">
+      <Filter>Source Files\Graphics\Particles\Score</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles\RainingDogsParticle.h">
+      <Filter>Source Files\Graphics\Particles\RainingDog</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles\PlayerLineParticle.h">
+      <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
+    </ClInclude>
+    <ClInclude Include="BarrelComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="PushTrapComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="SlowTrapComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Traps.h">
+      <Filter>Source Files\Game\Traps</Filter>
+    </ClInclude>
+    <ClInclude Include="BarrelTriggerComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIButton.h">
+      <Filter>Source Files\Graphics\GUI</Filter>
+    </ClInclude>
     <ClInclude Include="ServerPlayer.h">
       <Filter>Source Files\Game</Filter>
     </ClInclude>
@@ -373,6 +439,21 @@
     </ClInclude>
     <ClInclude Include="Server.h">
       <Filter>Source Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Boss.h">
+      <Filter>Source Files\Game\Boss</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="ShootProjectileAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectileComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveToAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -430,6 +511,54 @@
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
     <FxCompile Include="ObjectSpaceGridPS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\ScorePickupGeometryShaderStreamOut.hlsl">
+      <Filter>Source Files\Graphics\Particles\Score</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\StreamOutVertexShader.hlsl">
+      <Filter>Source Files\Graphics\Particles\RainingDog\Streamout</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\RainGeometryShaderStreamOut.hlsl">
+      <Filter>Source Files\Graphics\Particles\RainingDog\Streamout</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\RainGeometryShaderDraw.hlsl">
+      <Filter>Source Files\Graphics\Particles\RainingDog\Draw</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\DrawStreamVertexShader.hlsl">
+      <Filter>Source Files\Graphics\Particles\RainingDog\Draw</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\DrawParticlePixelShader.hlsl">
+      <Filter>Source Files\Graphics\Particles\RainingDog\Draw</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\DrawStreamVelocity.hlsl">
+      <Filter>Source Files\Graphics\Particles\Score</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\DrawLineByVelocityGS.hlsl">
+      <Filter>Source Files\Graphics\Particles\Score</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\PlayerLineStreamOutGS.hlsl">
+      <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\PlayerLineDrawVertexShader.hlsl">
+      <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\PlayerLineDrawGS.hlsl">
+      <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowVertex.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowPixel.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="BasicPixelShader_Shadow.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowVertexAnim.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="EmissivePixelShader.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
   </ItemGroup>
