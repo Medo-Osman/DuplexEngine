@@ -195,7 +195,7 @@ void Scene::addBarrelDrop(Vector3 Position)
 	if (rollingBarrel)
 	{
 		addComponent(rollingBarrel, "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
+			new MeshComponent("Barrel.lrm", Material({ L"DarkGrayTexture.png" })));
 
 		rollingBarrel->setPosition(Position);
 		createNewPhysicsComponent(rollingBarrel, true, "", PxGeometryType::eSPHERE, "wood", true);
