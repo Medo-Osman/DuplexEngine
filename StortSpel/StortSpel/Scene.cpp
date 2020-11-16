@@ -134,6 +134,68 @@ void Scene::addCheckpoint(const Vector3& position)
 	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.1f));
 }
 
+void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData)
+{
+	int offset = 0;
+	ComponentType compType;
+	memcpy(&compType, compData + offset, sizeof(ComponentType));
+	offset += sizeof(ComponentType);
+
+	int compNameSize;
+	memcpy(&compNameSize, compData + offset, sizeof(int));
+	offset += sizeof(int);
+
+	char* compName = new char[compNameSize];
+	memcpy(compName, compData + offset, compNameSize);
+	offset += compNameSize;
+
+	char* paramData = new char[sizeOfData - offset];
+	memcpy(paramData, compData + offset, sizeOfData - offset);
+
+	Component* newComponent = nullptr;
+
+	switch (compType)
+	{
+	case ComponentType::MESH:
+		newComponent = new MeshComponent(paramData);
+		break;
+	case ComponentType::AUDIO:
+		break;
+	case ComponentType::PHYSICS:
+		break;
+	case ComponentType::CHARACTERCONTROLLER:
+		break;
+	case ComponentType::TRIGGER:
+		break;
+	case ComponentType::TEST:
+		break;
+	case ComponentType::INVALID:
+		break;
+	case ComponentType::UNASSIGNED:
+		break;
+	case ComponentType::ROTATEAROUND:
+		break;
+	case ComponentType::ROTATE:
+		break;
+	case ComponentType::LIGHT:
+		break;
+	case ComponentType::SWEEPING:
+		break;
+	case ComponentType::FLIPPING:
+		break;
+	case ComponentType::CHECKPOINT:
+		break;
+	default:
+		newComponent = nullptr;
+		break;
+	}
+
+	assert(newComponent != nullptr);
+
+	//addComponent(entity, compName, newComponent);
+	addComponent(entity, "mesh", newComponent);
+}
+
 void Scene::addBarrelDrop(Vector3 Position)
 {
 	Entity* rollingBarrel = addEntity("barrel"); //+ std::to_string(m_nrOfBarrelDrops++));
@@ -312,10 +374,147 @@ void Scene::loadLobby()
 
 	createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
 
+	Entity* multiMatTest = addEntity("multiMatTest");
+	if (multiMatTest)
+	{
+		addComponent(multiMatTest, "mesh", new MeshComponent("test_mesh_guy.lrm", 
+			{
+				DEFAULT,
+				DEFAULT,
+				TEMP_TEST,
+				EMISSIVE
+			}
+			,
+			{
+				Material({ L"DarkGrayTexture.png" }),
+				Material({ L"Green.jpg" }),
+				Material({ L"GrayTexture.png" }),
+				Material({ L"ibl_brdf_lut.png", L"ibl_brdf_lut.png" }),
+				Material({ L"T_GridTestTex.bmp" }),
+				Material({ L"T_tempTestDog.jpeg" }),
+				Material({ L"ButtonStart.png" }),
+				Material({ L"Controlls.png" }),
+				Material({ L"DarkGrayTexture.png" }),
+				Material({ L"GrayTexture.png" }),
+				Material({ L"T_tempTestXWing.png" }),
+				Material({ L"GrayTexture.png" })
+			}
+			));
+		multiMatTest->translate({ 0,0,-6 });
+		createNewPhysicsComponent(multiMatTest);
+	}
+
 	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
 }
 
 void Scene::loadScene(std::string path)
+{
+	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
+	
+	size_t dot = path.rfind('.', path.length());
+	if (dot == std::string::npos)
+		path.append(".lrl");
+	
+	std::ifstream fileStream(m_LEVELS_PATH + path, std::ifstream::in | std::ifstream::binary);
+
+	// Check filestream failure
+	if (!fileStream)
+	{
+		// Error message
+		std::string errormsg("loadScene failed to open filestream: "); errormsg.append(path);
+		ErrorLogger::get().logError(errormsg.c_str());
+		// Properly clear and close file buffer
+		fileStream.clear();
+		fileStream.close();
+
+		return;
+	}
+
+	// Read the amount of entities.
+	int nrOfEntities;
+	fileStream.read((char*)&nrOfEntities, sizeof(int));
+
+	// Read how big the package is.
+	int sizeOfPackage;
+	fileStream.read((char*)&sizeOfPackage, sizeof(int));
+
+	// Read the package.
+	char* levelData = new char[sizeOfPackage];
+	fileStream.read(levelData, sizeOfPackage);
+
+	char overByte;
+	fileStream.read(&overByte, 1);
+	if (!fileStream.eof())
+	{
+		std::string errormsg("loadScene : Filestream did not reach end of: "); errormsg.append(path);
+		ErrorLogger::get().logError(errormsg.c_str());
+		return;
+	}
+
+	fileStream.close();
+
+	int offset = 0;
+	for (int i = 0; i < nrOfEntities; i++)
+	{
+		int sizeOfName;
+		memcpy(&sizeOfName, levelData + offset, sizeof(int));
+		offset += sizeof(int);
+
+		char* entName = new char[sizeOfName];
+		//std::string entName;
+		memcpy(entName, levelData + offset, sizeOfName);
+		offset += sizeOfName;
+
+		Entity* newEntity = addEntity(entName);
+
+		//float pos[3];
+		Vector3 pos;
+		memcpy(&pos, levelData + offset, sizeof(float) * 3);
+		offset += sizeof(float) * 3;
+
+		newEntity->setPosition(pos);
+
+		Quaternion rotQuat;
+		memcpy(&rotQuat, levelData + offset, sizeof(float) * 4);
+		offset += sizeof(float) * 4;
+
+		newEntity->setRotationQuat(rotQuat);
+
+		Vector3 scale;
+		memcpy(&scale, levelData + offset, sizeof(float) * 3);
+		offset += sizeof(float) * 3;
+
+		newEntity->setScale(scale);
+
+		// An int with the number of components
+		int nrOfComps;
+		memcpy(&nrOfComps, levelData + offset, sizeof(int));
+		offset += sizeof(int);
+
+		for (int u = 0; u < nrOfComps; u++)
+		{
+			int compDataSize;
+			memcpy(&compDataSize, levelData + offset, sizeof(int));
+			offset += sizeof(int);
+
+			char* compData = new char[compDataSize];
+			memcpy(compData, levelData + offset, compDataSize);
+			offset += compDataSize;
+
+			addComponentFromFile(newEntity, compData, compDataSize);
+
+
+			delete[] compData;
+		}
+
+		createNewPhysicsComponent(newEntity); // TEMP, collision is going to need some more stuff
+	}
+
+
+	delete[] levelData;
+}
+
+void Scene::loadTestLevel()
 {
 	Entity* entity;
 
@@ -355,7 +554,7 @@ void Scene::loadScene(std::string path)
 	{
 		addComponent(floor, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
-			//new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::OBJECTSPACEGRID , ObjectSpaceGrid));
+		//new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::OBJECTSPACEGRID , ObjectSpaceGrid));
 
 		floor->setPosition({ 0, 6, 0 });
 		floor->scale({ 20, 2, 20 });
@@ -461,56 +660,10 @@ void Scene::loadScene(std::string path)
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	/*
-	Entity* skelTest = addEntity("skeleton-test");
-	if (skelTest)
-	{
-		AnimatedMeshComponent* a1 = new AnimatedMeshComponent("skelTestStairs_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		a1->translate({ 0.f, 0.f, 0.f });
-		engine->addComponent(skelTest, "skeleton mesh1", a1);
-
-		AnimatedMeshComponent* a2 = new AnimatedMeshComponent("testTania_tania_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		a2->translate({ 8.f, 0.f, 0.f });
-		a2->scaleUniform(0.02f);
-		engine->addComponent(skelTest, "skeleton mesh2", a2);
-
-		AnimatedMeshComponent* a3 = new AnimatedMeshComponent("skelTestStairsAnimation_stairs.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		a3->translate({ 16.f, 0.f, 0.f });
-		addComponent(skelTest, "skeleton animation test1", a3);
-
-		a3->playAnimation("skelTestStairsAnimation", true);
-
-		AnimatedMeshComponent* a4 = new AnimatedMeshComponent("Running4.1_Cube.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		a4->translate({ -8.f, 0.f, 0.f });
-		addComponent(skelTest, "skeleton animation test3", a4);
-
-		a4->playAnimation("Running4.1", true);
-
-		AnimatedMeshComponent* a5 = new AnimatedMeshComponent("skelTestBranchAnimation_skelTestBranch.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		a5->translate({ 35.f, 0.f, 0.f });
-		addComponent(skelTest, "skeleton animation test2", a5);
-
-		a5->playAnimation("skelTestBranchAnimation", true);
-
-		//AnimatedMeshComponent* a6 = new AnimatedMeshComponent("dropkickRigTest2_body_geo.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		//a6->translate({ -13.f, 0.f, 0.f });
-		//addComponent(skelTest, "skeleton animation test4", a6);
-
-		//a6->playAnimation("dropkickRigTest2", true);
-		
-		//a4->playAnimation("skelTestBranchAnimation",true);  // skelTestBaked_pCube1.lrsm skelTestBaked skelTestStairsAnimation_stairs.lrsm skelTestStairsAnimation Running3.1_Cube.lrsm Running3.1 
-															// skelTestBranchAnimation_skelTestBranch.
-															
-skelTestBranchAnimation
-		skelTest->translate({ 0.f, 1.5f, -20.f });
-	}
-	*/
-
 	Entity* skybox = addEntity("SkyBox");
 	skybox->m_canCull = false;
 	if (skybox)
 	{
-
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
@@ -519,7 +672,6 @@ skelTestBranchAnimation
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////
-
 
 	// MUSIC
 	Entity* music = addEntity("music");
@@ -764,7 +916,7 @@ void Scene::loadMaterialTest()
 
 			PBRMatTextured.setTextured(1);
 
-			addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMatTextured));
+			addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, { PBRMatTextured }));
 
 			float moveDistance = -5.f;
 			entity->translate({ moveDistance * i + 30.f, 2.f, 20.f });

@@ -77,8 +77,11 @@ private:
 	void addSlowTrap(const Vector3& position, Vector3 scale);
 	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 	
-	int m_nrOfCheckpoints = 0;
+	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData);
 
+	const std::string m_LEVELS_PATH = "../res/levels/";
+
+	int m_nrOfCheckpoints = 0;
 	int m_nrOfBarrelDrops = 0;
 	int m_nrOftraps = 0;
 	int m_nrOf = 0; //can be used with any entity.
@@ -90,6 +93,7 @@ public:
 	void deactivateScene();
 
 	void loadScene(std::string path);
+	void loadTestLevel();
 	void loadLobby();
 	void loadArena();
 	void loadMaterialTest();
