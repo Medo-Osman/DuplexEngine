@@ -98,6 +98,7 @@ enum class TriggerType
 	EVENT,
 	PICKUP,
 	CHECKPOINT,
+	PROJECTILE,
 	TRAP,
 	BARREL,
 };
@@ -105,4 +106,5 @@ enum class TriggerType
 enum class EventType
 {
 	SWAPSCENE,
+	BOSS_PROJECTILE_HIT,
 };

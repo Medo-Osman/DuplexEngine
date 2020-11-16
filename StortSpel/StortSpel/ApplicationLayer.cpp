@@ -133,6 +133,7 @@ void ApplicationLayer::applicationLoop()
 		{
 
 			this->m_dt = (float)m_timer.timeElapsed();
+			m_gameTime += m_dt;
 			m_timer.restart();
 
 			ImGui_ImplDX11_NewFrame();
@@ -150,6 +151,7 @@ void ApplicationLayer::applicationLoop()
 		}
 	}
 	m_physics->release();
+	m_rendererPtr->release();
 }
 
 

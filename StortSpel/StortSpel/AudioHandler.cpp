@@ -19,6 +19,13 @@ AudioHandler::~AudioHandler()
 	{
 		loopingSound.second.release();
 	}
+	m_loopingSoundInstances.clear();
+
+	for (auto& sound : m_soundInstances)
+	{
+		sound.second.release();
+	}
+	m_soundInstances.clear();
 }
 
 void AudioHandler::initialize(HWND& handle)
@@ -194,12 +201,31 @@ void AudioHandler::deleteSound(int index, bool isLooping)
 {
 	if (isLooping)
 	{
+		if (m_loopingSoundInstances.empty())
+			return;
+
+		if (m_loopingSoundInstances.find(index) == m_loopingSoundInstances.end())
+		{
+			std::string errormsg("sound not in map! Index: "); errormsg.append(std::to_string(index));
+			ErrorLogger::get().logError(errormsg.c_str());
+			return;
+		}
+		
 		m_loopingSoundInstances[index]->Stop();
 		m_loopingSoundInstances[index].release();
 		m_loopingSoundInstances.erase(index);
 	}
 	else
 	{
+		if (m_soundInstances.empty())
+			return;
+		
+		if (m_soundInstances.find(index) == m_soundInstances.end())
+		{
+			std::string errormsg("sound not in map! Index: "); errormsg.append(std::to_string(index));
+			ErrorLogger::get().logError(errormsg.c_str());
+			return;
+		}
 		m_soundInstances[index].release();
 		m_soundInstances.erase(index);
 	}

@@ -128,11 +128,14 @@ public:
     Player();
     ~Player();
 
+    bool isRunning();
+
     void updatePlayer(const float& dt);
     
     void setPlayerEntity(Entity* entity);
 
     Vector3 getCheckpointPos();
+    Vector3 getVelocity();
     void setCheckpoint(Vector3 newPosition);
 
     void setCameraTranformPtr(Transform* transform);
@@ -148,6 +151,8 @@ public:
     int getScore();
     void setScore(int newScore);
     Entity* getPlayerEntity() const;
+    const bool canUsePickup();
+    void handlePickupOnUse();
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
 

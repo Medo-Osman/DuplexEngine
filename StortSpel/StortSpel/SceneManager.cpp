@@ -68,15 +68,22 @@ void SceneManager::inputUpdate(InputData& inputData)
 {
 	for (size_t i = 0; i < inputData.actionData.size(); i++)
 	{
-		if (inputData.actionData[i] == SWAP_SCENES)
+		if (inputData.actionData[i] == TEST_SCENE)
 		{
 			if (!m_gameStarted)
 			{
 				m_nextScene = new Scene();
-				m_nextScene->loadScene("test");
+				m_nextScene->loadTestLevel();
 				swapScenes();
 				m_gameStarted = true;
 			}
+		}
+		else if (inputData.actionData[i] == LOAD_SCENE)
+		{
+			m_nextScene = new Scene();
+			m_nextScene->loadScene("levelMeshTest");
+			swapScenes();
+			m_gameStarted = false;
 		}
 	}
 }
@@ -124,6 +131,10 @@ void SceneManager::swapScenes()
 {
 	m_swapScene = false;
 	Physics::get().Detach(m_currentScene, false, true);
+	
+	//Reset boss
+	if (m_currentScene->m_boss)
+		m_currentScene->m_boss->Detach(m_currentScene);
 
 	// Swap
 	delete m_currentScene;

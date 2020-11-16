@@ -13,6 +13,7 @@
 #include "AudioComponent.h"
 #include "CheckpointComponent.h"
 #include "Camera.h"
+#include "ProjectileComponent.h"
 #include "SlowTrapComponent.h"
 #include "PushTrapComponent.h"
 #include "BarrelComponent.h"
@@ -39,7 +40,7 @@ private:
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
 
-	Vector4 m_skyLightDir = Vector4(0.5, -0.5, 0, 0);//Vector4(-0.8f, 1.0f, -0.7f, 0);//Vector4(-0.5, 0, -0.5, 0);
+	Vector4 m_skyLightDir = Vector4(0.25, -0.5, 0.25, 0);//Vector4(-0.8f, 1.0f, -0.7f, 0);//Vector4(-0.5, 0, -0.5, 0);
 	Vector4 m_skyLightColor = Vector4(1, 1, 1, 1);
 	FLOAT m_skyLightBrightness = 4.f;
 	FLOAT m_ambientLightLevel = 0.3f;
@@ -89,5 +90,9 @@ public:
 
 	Settings getSettings() const;
 	Camera* getCameraPtr();
+	float getGameTime();
 	Player* getPlayerPtr();
+
+	ID3D11DeviceContext* getDeviceContextPtr() { return m_dContextPtr; }
+	ID3D11Device* getDevicePtr() { return m_devicePtr; }
 };

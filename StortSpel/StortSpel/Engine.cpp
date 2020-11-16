@@ -5,6 +5,7 @@
 #include"TriggerComponent.h"
 #include"RotateComponent.h"
 #include"PickupComponent.h"
+#include"Particles\PlayerLineParticle.h"
 
 Engine::Engine()
 {
@@ -137,6 +138,11 @@ Camera* Engine::getCameraPtr()
 {
 	return &m_camera;
 }
+
+float Engine::getGameTime()
+{
+	return ApplicationLayer::getInstance().getGameTime();
+}
 Player* Engine::getPlayerPtr()
 {
 	return m_player;
@@ -180,8 +186,9 @@ void Engine::initialize(Input* input)
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
-	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
 	playerEntity->addComponent("mesh", animMeshComp);
+
 
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
