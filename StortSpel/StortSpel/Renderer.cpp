@@ -419,7 +419,6 @@ void Renderer::calculateBloomWeights()
 
 	for (size_t i = 0; i <= BLUR_RADIUS; ++i)
 	{
-		//float temp = 1.f / (2.f * XM_PI * pow(m_weightSigma, 2.f)) * std::expf(-((float)(i * i) / (2.f * pow(m_weightSigma, 2.f))));
 		float temp = (1.f / m_weightSigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
 		m_blurData.weights[i] = temp;
 		sum += 2 * temp; // Add 2 times to sum because we only compute half of the curve(1 dimension)
@@ -428,27 +427,6 @@ void Renderer::calculateBloomWeights()
 
 	for (int i = 0; i <= BLUR_RADIUS; ++i)
 		m_blurData.weights[i] /= sum;
-
-	// -------------------OLD----------------------
-	//float sigma = this->m_weightSigma;
-	//float twoSigmaSq = 2 * sigma * sigma;
-
-	//// Used to normalize the weights
-	//float sum = 0.f;
-	//for (size_t i = 0; i < BLUR_RADIUS; ++i)
-	//{
-	//	this->m_blurData.weights[i] = (1.f / 2 * sigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
-	//	// Add 2 times to sum because we only compute half of the curve(1 dimension)
-	//	sum += 2 * this->m_blurData.weights[i];
-	//}
-	//// First weight has been added twice, subtract one
-	//sum -= this->m_blurData.weights[0];
-
-	//// We normalize all entries using the sum so that the entire kernel gives us a sum of coefficients = 0
-	//float normalizationFactor = 1.f / sum;
-	//for (size_t i = 0; i < BLUR_RADIUS; ++i)
-	//	this->m_blurData.weights[i] *= normalizationFactor;
-	//0.047901 0.051629 0.055093 0.058206 0.060883 0.063049 0.064644 0.06562 0.065949 0.06562 0.064644 0.063049 0.060883 0.058206 0.055093 0.051629 0.047901
 }
 
 void Renderer::downSamplePass()
@@ -836,7 +814,7 @@ void Renderer::render()
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-	m_swapChainPtr->Present(0, 0);
+	m_swapChainPtr->Present(1, 0);
 }
 
 ID3D11Device* Renderer::getDevice()
