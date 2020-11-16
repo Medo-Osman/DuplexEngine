@@ -292,7 +292,7 @@ void Scene::loadLobby()
 	}
 
 	Material mat({ L"DarkGrayTexture.png", L"GlowTexture.png" });
-	Entity* test = addEntity("test");
+	Entity* test = addEntity("test"); // Emissive Test Material 1
 	if (test)
 	{
 		mat.setEmissiveStrength(100.f);
@@ -300,7 +300,8 @@ void Scene::loadLobby()
 			new MeshComponent("GlowCube.lrm",
 				EMISSIVE,
 				mat
-			));
+			)
+		);
 
 		test->setScale({ 5, 5, 5 });
 		test->setPosition({ 8, 2, 5 });
@@ -323,7 +324,9 @@ void Scene::loadLobby()
 		addComponent(test2, "mesh",
 			new MeshComponent("GlowCube.lrm",
 				EMISSIVE,
-				mat));
+				mat
+			)
+		);
 
 		test2->setScale({ 5, 5, 5 });
 		test2->setPosition({ 0, 2, 5 });
@@ -335,7 +338,7 @@ void Scene::loadLobby()
 			new FlippingComponent(test2, 1, 1));
 	}
 
-	Entity* test3 = addEntity("test3"); // Emissive Test Material 2
+	Entity* test3 = addEntity("test3"); // Emissive Test Material 3
 	if (test3)
 	{
 		mat = Material({ L"DarkGrayTexture.png", L"GlowTexture.png" });
@@ -343,7 +346,9 @@ void Scene::loadLobby()
 		addComponent(test3, "mesh",
 			new MeshComponent("GlowCube.lrm",
 				EMISSIVE,
-				mat));
+				mat
+			)
+		);
 
 		test3->setScale({ 5, 5, 5 });
 		test3->setPosition({ -8, 2, 5 });
@@ -355,15 +360,17 @@ void Scene::loadLobby()
 			new FlippingComponent(test3, 1, 1));
 	}
 
-	Entity* test4 = addEntity("test4"); // Emissive Test Material 2
+	Entity* test4 = addEntity("test4"); // Emissive Test Material 4
 	if (test4)
 	{
-		mat = Material({ L"DarkGrayTexture.png", L"GlowTexture.png" });
-		mat.setEmissiveStrength(5.f);
+		mat = Material({ L"DarkGrayTexture.png", L"ButtonStart.png" });
+		mat.setEmissiveStrength(90.f);
 		addComponent(test4, "mesh",
 			new MeshComponent("GlowCube.lrm",
 				EMISSIVE,
-				mat));
+				mat
+			)
+		);
 
 		test4->setScale({ 5, 5, 5 });
 		test4->setPosition({ -16, 2, 5 });
@@ -421,7 +428,7 @@ void Scene::loadLobby()
 				Material({ L"DarkGrayTexture.png" }),
 				Material({ L"Green.jpg" }),
 				Material({ L"GrayTexture.png" }),
-				Material({ L"ibl_brdf_lut.png", L"ibl_brdf_lut.png" }),
+				Material({ L"ibl_brdf_lut.png", L"ibl_brdf_lut.png" }, MATERIAL_CONST_BUFFER({1.0f, 0.5f, 0.f, 0, 100.f})),
 				Material({ L"T_GridTestTex.bmp" }),
 				Material({ L"T_tempTestDog.jpeg" }),
 				Material({ L"ButtonStart.png" }),

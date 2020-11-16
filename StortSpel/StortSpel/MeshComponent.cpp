@@ -7,13 +7,13 @@ MeshComponent::MeshComponent(const char* filepath, std::initializer_list<ShaderP
 	m_type = ComponentType::MESH;
 	m_resourcePointer = ResourceHandler::get().loadLRMMesh(filepath);
 	m_filePath = filepath;
-	for (auto& mat : materials)
-	{
-		m_materials.push_back(mat);
-	}
 	for (auto& se : shaderEnums)
 	{
 		m_shaderProgEnums.push_back(se);
+	}
+	for (auto& mat : materials)
+	{
+		m_materials.push_back(mat);
 	}
 }
 
@@ -29,7 +29,7 @@ MeshComponent::MeshComponent(const char* filepath, std::initializer_list<Materia
 	:MeshComponent(filepath, ShaderProgramsEnum::DEFAULT, materials)
 {}
 
-MeshComponent::MeshComponent(const char* filepath, Material material)
+MeshComponent::MeshComponent(const char* filepath, Material material = Material())
 	: MeshComponent(filepath, { material })
 {}
 

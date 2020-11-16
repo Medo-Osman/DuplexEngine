@@ -25,7 +25,7 @@ void main(uint3 gruoupId : SV_GroupID, uint3 groupThredId : SV_GroupThreadID, ui
         uint absOfi = (uint)abs(i);
         
         inputColor = inputTex[mad(i, direction2, pixelIndex)];
-        result += (weights[absOfi >> 2][absOfi & 3] * inputColor.a) * float4(inputColor.rgb, 1.f);
+        result += weights[absOfi >> 2][absOfi & 3] * float4(inputColor.rgb, 1.f);
     }
     
     outputTex[pixelIndex] = result;
