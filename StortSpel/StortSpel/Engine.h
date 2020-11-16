@@ -68,6 +68,7 @@ public:
 	~Engine();
 
 	void update(const float &dt);
+	void updatePlayerAndCamera(const float &dt);
 
 	void setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities);
 	void setMeshComponentMapPtr(std::unordered_map<unsigned int long, MeshComponent*>* meshComponents);

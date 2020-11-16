@@ -1,5 +1,7 @@
 #pragma once
 #include "Scene.h"
+#include"iContext.h"
+#include "GUIContext.h"
 
 
 class SceneManager : public InputObserver, public PhysicsObserver, public GUIObserver
@@ -7,14 +9,17 @@ class SceneManager : public InputObserver, public PhysicsObserver, public GUIObs
 private:
 	Scene* m_currentScene;
 	Scene* m_nextScene;
-	
-	bool m_swapScene;
+	Input* inputPtr;
 	ScenesEnum m_nextSceneEnum;
-	int m_singleplayerIndex = 0;
-	int m_joinGameIndex = 0;
-	int m_exitIndex = 0;
-	int m_hostGameIndex = 0;
-	bool m_gameRestarted = true;
+	
+
+	bool m_swapScene;
+
+	std::vector<iContext*>* m_contexts;
+	int m_singleplayerIndex = 4;
+	int m_exitIndex = 5;
+	int m_joinGameIndex = 6;
+	int m_hostGameIndex = 7;
 public:
 	SceneManager();
 	~SceneManager();
@@ -26,6 +31,13 @@ public:
 	void inputUpdate(InputData& inputData);
 
 	void sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity);
+	
+	void disableMovement();
+	void enableMovement();
+
+	void setContextPtr(std::vector<iContext*>* m_contexts);
+	//std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
+	std::vector<iContext*>* getContextPtr();
 
 	void swapScenes();
 

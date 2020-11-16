@@ -31,8 +31,7 @@ Engine::~Engine()
 
 void Engine::update(const float& dt)
 {
-	m_player->updatePlayer(dt);
-	m_camera.update(dt);
+
 
 	//Example for updating light direction
 	/*Vector4 dir = m_skyLightDir;
@@ -42,8 +41,13 @@ void Engine::update(const float& dt)
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
 
+	m_camera.update(dt);
+	m_player->updatePlayer(dt);
 	updateLightData();
 
+}
+void Engine::updatePlayerAndCamera(const float& dt)
+{
 }
 void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities)
 {

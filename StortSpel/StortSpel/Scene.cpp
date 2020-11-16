@@ -39,7 +39,80 @@ Scene::~Scene()
 
 void Scene::loadMainMenu()
 {
+	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
+	Entity* music = addEntity("lobbyMusic");
+	if (music)
+	{
+		addComponent(music, "Music", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
+	}
+
+	Entity* floor = addEntity("Floor");
+	if (floor)
+	{
+		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"DarkGrayTexture.png" })));
+		floor->scale({ 30, 1, 30 });
+		floor->translate({ 0,-2,0 });
+		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+
+
+
+	Entity* test = addEntity("test");
+	if (test)
+	{
+		addComponent(test, "mesh",
+			new MeshComponent("GlowCube.lrm",
+				EMISSIVE,
+				Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
+
+		test->setScale({ 5, 5, 5 });
+		test->setPosition({ 9, 2, 10 });
+
+		createNewPhysicsComponent(test, true);
+		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
+
+		addComponent(test, "flipp",
+			new FlippingComponent(test, 1, 1));
+	}
+
+
+
+
+	Entity* sign = addEntity("sign");
+	if (sign)
+	{
+		addComponent(sign, "mesh",
+			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
+		sign->setScale(Vector3(10, 5, 0.2));
+
+		createNewPhysicsComponent(sign, true, "", PxGeometryType::eBOX, "default", true);
+		static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
+
+		addComponent(sign, "sweep",
+			new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
+	}
+
+
+
+	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
+	if (skybox)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		addComponent(skybox, "cube",
+			new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+
+		//Disable shadow casting
+		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	}
+
+	createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
+
+	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
 	
 }
 
@@ -119,7 +192,7 @@ void Scene::addBarrelDrop(Vector3 Position)
 	}
 }
 
-void Scene::addSlowTrap(const Vector3& position, Vector3 scale)
+void Scene::addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox)
 {
 	Entity* slowTrap = addEntity("trap"+std::to_string(m_nrOftraps++));
 	addComponent(slowTrap,"mesh", new MeshComponent("testCube_pCube1.lrm"));
@@ -127,7 +200,7 @@ void Scene::addSlowTrap(const Vector3& position, Vector3 scale)
 	slowTrap->scale(scale);
 
 	addComponent(slowTrap, "trap", new SlowTrapComponent(slowTrap, TrapType::SLOW));
-	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(slowTrap, { scale });
+	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(slowTrap, {hitBox});
 
 	addComponent(slowTrap, "sound", new AudioComponent(L"OnPickup.wav", false));
 
@@ -183,8 +256,9 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 
 void Scene::loadLobby()
 {
+	
 	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
-
+	
 	Entity* music = addEntity("lobbyMusic");
 	if (music)
 	{
@@ -288,7 +362,7 @@ void Scene::loadScene(std::string path)
 	addCheckpoint(Vector3(-30, 40, 144));
 	addCheckpoint(Vector3(-11, 40, 218.5));
 
-	addSlowTrap(Vector3(0, 13, 30), Vector3(3,3,3));
+	addSlowTrap(Vector3(0, 13, 30), Vector3(3,3,3), Vector3(1.5, 1.5, 1.5));
 	addPushTrap(Vector3(-5, 20, 58), Vector3(5, 20, 58), Vector3(0, 18, 50));
 	
 	m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);

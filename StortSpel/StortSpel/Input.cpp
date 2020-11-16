@@ -58,7 +58,7 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 
 		if (key == VK_TAB)
 		{
-			m_contexts[0]->setMute(!m_contexts[0]->getMute());
+			//m_contexts[0]->setMute(!m_contexts[0]->getMute());
 			m_cursorEnabled = !m_cursorEnabled;
 			ShowCursor(CURSOR_SHOWING);
 		}
@@ -209,7 +209,7 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 
 void Input::readBuffers()
 {
-	bool inputDataChanged = false;
+	
 	m_currentInputData.actionData.clear();
 	m_currentInputData.rangeData.clear();
 
@@ -250,15 +250,18 @@ void Input::readBuffers()
 			inputDataChanged = this->fillInputDataUsingKey(charConverted, true, true) || inputDataChanged;
 		}
 	}
-
 	//Notify
 	if (inputDataChanged)
 	{
-		for (std::vector<int>::size_type i = 0; i < m_inputObservers.size(); i++) 
+		for (std::vector<int>::size_type i = 0; i < m_inputObservers.size(); i++)
 		{
 			m_inputObservers[i]->inputUpdate(m_currentInputData);
 		}
 	}
+}
+
+void Input::updateMovementStates()
+{
 
 }
 
@@ -280,6 +283,8 @@ void Input::removeContext(iContext* context)
 	}
 }
 
+
+
 MouseEvent Input::getMouseEvent()
 {
 	return m_Mouse.readEvent();
@@ -295,7 +300,10 @@ Mouse* Input::getMouse()
 	return &m_Mouse;
 }
 
-
+std::vector<iContext*>* Input::getIContextPtr()
+{
+	return &m_contexts;
+}
 
 void Input::Attach(InputObserver* observer)
 {
