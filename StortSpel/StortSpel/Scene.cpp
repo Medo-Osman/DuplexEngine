@@ -195,16 +195,16 @@ void Scene::loadLobby()
 		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	Material mat({ L"DarkGrayTexture.png", L"GlowTexture.png" }); // Emissive Test Material
+	Material mat({ L"DarkGrayTexture.png", L"GlowTexture.png" });
 	Entity* test = addEntity("test");
 	if (test)
 	{
 		mat.setEmissiveStrength(100.f);
 		addComponent(test, "mesh",
 			new MeshComponent("GlowCube.lrm",
-			EMISSIVE,
-			mat
-		));
+				EMISSIVE,
+				mat
+			));
 
 		test->setScale({ 5, 5, 5 });
 		test->setPosition({ 8, 2, 5 });
@@ -222,6 +222,7 @@ void Scene::loadLobby()
 	Entity* test2 = addEntity("test2"); // Emissive Test Material 2
 	if (test2)
 	{
+		mat = Material({ L"DarkGrayTexture.png", L"GlowTexture.png" });
 		mat.setEmissiveStrength(50.f);
 		addComponent(test2, "mesh",
 			new MeshComponent("GlowCube.lrm",
@@ -241,6 +242,7 @@ void Scene::loadLobby()
 	Entity* test3 = addEntity("test3"); // Emissive Test Material 2
 	if (test3)
 	{
+		mat = Material({ L"DarkGrayTexture.png", L"GlowTexture.png" });
 		mat.setEmissiveStrength(20.f);
 		addComponent(test3, "mesh",
 			new MeshComponent("GlowCube.lrm",
@@ -260,6 +262,7 @@ void Scene::loadLobby()
 	Entity* test4 = addEntity("test4"); // Emissive Test Material 2
 	if (test4)
 	{
+		mat = Material({ L"DarkGrayTexture.png", L"GlowTexture.png" });
 		mat.setEmissiveStrength(5.f);
 		addComponent(test4, "mesh",
 			new MeshComponent("GlowCube.lrm",

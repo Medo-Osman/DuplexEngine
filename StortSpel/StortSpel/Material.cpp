@@ -102,26 +102,61 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 
 void Material::setUVScale(float scale)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++materialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.UVScale = scale;
 }
 
 void Material::setRoughness(float roughness)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++materialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.roughness = roughness;
 }
 
 void Material::setMetallic(float metallic)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++materialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.metallic = metallic;
 }
 
 void Material::setTextured(int textured)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++materialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.textured = textured;
 }
 
 void Material::setEmissiveStrength(int emissiveStrength)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++materialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.emissiveStrength = emissiveStrength;
 }
 

@@ -610,7 +610,8 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 			Material* meshMatPtr = component.second->getMaterialPtr();
 
-			//if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+			if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+			{
 				meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
 				m_currentSetMaterialId = meshMatPtr->getMaterialId();
 
@@ -622,7 +623,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 				currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
 
 				m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
-			//}
+			}
 			m_dContextPtr->PSSetShaderResources(2, 1, &m_shadowMap->m_depthMapSRV);
 
 
