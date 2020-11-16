@@ -267,35 +267,35 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
 
-void Scene::loadLobby(bool* finished)
+void Scene::loadLobby(Scene* sceneObject, bool* finished)
 {
-	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
+	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
 	
 
-	Entity* music = addEntity("lobbyMusic");
+	Entity* music = sceneObject->addEntity("lobbyMusic");
 	if (music)
 	{
-		addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
+		sceneObject->addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
 	}
 
-	Entity* floor = addEntity("Floor");
+	Entity* floor = sceneObject->addEntity("Floor");
 	if (floor)
 	{
-		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm",
+		sceneObject->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm",
 			Material({ L"DarkGrayTexture.png" })));
 		floor->scale({ 30, 1, 30 });
 		floor->translate({ 0,-2,0 });
-		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
 
 
 
-	Entity* test = addEntity("test");
+	Entity* test = sceneObject->addEntity("test");
 	if (test)
 	{
-		addComponent(test, "mesh",
+		sceneObject->addComponent(test, "mesh",
 			new MeshComponent("GlowCube.lrm",
 			EMISSIVE,
 			Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
@@ -303,71 +303,71 @@ void Scene::loadLobby(bool* finished)
 		test->setScale({ 5, 5, 5 });
 		test->setPosition({ 9, 2, 10 });
 
-		createNewPhysicsComponent(test, true);
+		sceneObject->createNewPhysicsComponent(test, true);
 		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
 
-		addComponent(test, "flipp",
+		sceneObject->addComponent(test, "flipp",
 			new FlippingComponent(test, 1, 1));
 
 		// 3D Audio Test
 		test->addComponent("3Dsound", new AudioComponent(L"fireplace.wav", true, 3.f, 0.f, true, test));
 	}
 
-	Entity* test2 = addEntity("test2");
+	Entity* test2 = sceneObject->addEntity("test2");
 	if (test2)
 	{
-		addComponent(test2, "mesh",
+		sceneObject->addComponent(test2, "mesh",
 			new MeshComponent("GlowCube.lrm",
 				Material({ L"DarkGrayTexture.png" })));
 
 		test2->setScale({ 5, 5, 5 });
 		test2->setPosition({ -9, 2, 10 });
 
-		createNewPhysicsComponent(test2, true);
+		sceneObject->createNewPhysicsComponent(test2, true);
 		static_cast<PhysicsComponent*>(test2->getComponent("physics"))->makeKinematic();
 
-		addComponent(test2, "flipp",
+		sceneObject->addComponent(test2, "flipp",
 			new FlippingComponent(test2, 1, 1));
 	}
 
 
 
 
-	Entity* sign = addEntity("sign");
+	Entity* sign = sceneObject->addEntity("sign");
 	if(sign)
 	{
-		addComponent(sign, "mesh",
+		sceneObject->addComponent(sign, "mesh",
 			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
 		sign->setScale(Vector3(10, 5, 0.2));
 
-		createNewPhysicsComponent(sign, true,"",PxGeometryType::eBOX,"default", true);
+		sceneObject->createNewPhysicsComponent(sign, true,"",PxGeometryType::eBOX,"default", true);
 		static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
 
-		addComponent(sign, "sweep",
+		sceneObject->addComponent(sign, "sweep",
 			new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
 	}
 
 
-	Entity* skybox = addEntity("SkyBox");
+	Entity* skybox = sceneObject->addEntity("SkyBox");
 
 	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		addComponent(skybox, "cube",
+		sceneObject->addComponent(skybox, "cube",
 			new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 				//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 
 	}
 
-	createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
+	sceneObject->createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
 
-	Entity* multiMatTest = addEntity("multiMatTest");
+	Entity* multiMatTest = sceneObject->addEntity("multiMatTest");
 	if (multiMatTest)
 	{
-		addComponent(multiMatTest, "mesh", new MeshComponent("test_mesh_guy.lrm", 
+		sceneObject->addComponent(multiMatTest, "mesh", new MeshComponent("test_mesh_guy.lrm",
 			{
 				DEFAULT,
 				DEFAULT,
@@ -391,10 +391,10 @@ void Scene::loadLobby(bool* finished)
 			}
 			));
 		multiMatTest->translate({ 0,0,-6 });
-		createNewPhysicsComponent(multiMatTest);
+		sceneObject->createNewPhysicsComponent(multiMatTest);
 	}
 
-	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
+	sceneObject->createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
 	*finished = true;
 }
 
@@ -693,80 +693,80 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	*finished = true;
 }
 
-void Scene::loadArena(bool* finished)
+void Scene::loadArena(Scene* sceneObject, bool* finished)
 {
 	Engine* engine = &Engine::get();
 	Entity* entity;
 
-	m_sceneEntryPosition = Vector3(0, 0, 0);
+	sceneObject->m_sceneEntryPosition = Vector3(0, 0, 0);
 
-	Entity* bossEnt = addEntity("boss");
+	Entity* bossEnt = sceneObject -> addEntity("boss");
 	if (bossEnt)
 	{
 		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
 		bossEnt->addComponent("mesh", animMeshComp);
-		addMeshComponent(animMeshComp);
+		sceneObject->addMeshComponent(animMeshComp);
 		bossEnt->scale({ 4, 4, 4 });
 		bossEnt->translate({ 10,8,0 });
 
-		m_boss = new Boss();
-		m_boss->Attach(this);
-		m_boss->initialize(bossEnt, false);
-		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(-30, 9, 0), 13.f));
-		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
-		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(-30, 9, -30), 13.f));
-		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
-		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(30, 9, -30), 13.f));
-		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
-		m_boss->addAction(new MoveToAction(bossEnt, m_boss, Vector3(0, 9, 0), 13.f));
-		m_boss->addAction(new ShootProjectileAction(bossEnt, m_boss, 3, 0));
+		sceneObject->m_boss = new Boss();
+		sceneObject->m_boss->Attach(sceneObject);
+		sceneObject->m_boss->initialize(bossEnt, false);
+		sceneObject->m_boss->addAction(new MoveToAction(bossEnt, sceneObject->m_boss, Vector3(-30, 9, 0), 13.f));
+		sceneObject->m_boss->addAction(new ShootProjectileAction(bossEnt, sceneObject->m_boss, 3, 0));
+		sceneObject->m_boss->addAction(new MoveToAction(bossEnt, sceneObject->m_boss, Vector3(-30, 9, -30), 13.f));
+		sceneObject->m_boss->addAction(new ShootProjectileAction(bossEnt, sceneObject->m_boss, 3, 0));
+		sceneObject->m_boss->addAction(new MoveToAction(bossEnt, sceneObject->m_boss, Vector3(30, 9, -30), 13.f));
+		sceneObject->m_boss->addAction(new ShootProjectileAction(bossEnt, sceneObject->m_boss, 3, 0));
+		sceneObject->m_boss->addAction(new MoveToAction(bossEnt, sceneObject->m_boss, Vector3(0, 9, 0), 13.f));
+		sceneObject->m_boss->addAction(new ShootProjectileAction(bossEnt, sceneObject->m_boss, 3, 0));
 
-		Physics::get().Attach(m_boss, true, false);
+		Physics::get().Attach(sceneObject->m_boss, true, false);
 	}
 
 	Material gridTest = Material({ L"BlackGridBlueLines.png" });
-	entity = addEntity("floor");
+	entity = sceneObject->addEntity("floor");
 	if (entity)
 	{
-		addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
+		sceneObject->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", gridTest));
 		entity->scale({ 157, 2, 157 });
 		entity->setPosition({ 0,-2,0 });
-		createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
+		sceneObject->createNewPhysicsComponent(entity, false, "", PxGeometryType::eBOX, "earth", false);
 	}
-	createStaticPlatform(Vector3(0, 24, 78), Vector3(0, 0, 0), Vector3(157, 50, 1), "testCube_pCube1.lrm", L"DarkGrayTexture.png");
-	createStaticPlatform(Vector3(0, 24, -78), Vector3(0, 0, 0), Vector3(157, 50, 1), "testCube_pCube1.lrm", L"DarkGrayTexture.png");
-	createStaticPlatform(Vector3(78, 24, 0), Vector3(0, 0, 0), Vector3(1, 50, 157), "testCube_pCube1.lrm", L"DarkGrayTexture.png");
-	createStaticPlatform(Vector3(-78, 24, 0), Vector3(0, 0, 0), Vector3(1, 50, 157), "testCube_pCube1.lrm", L"DarkGrayTexture.png");
+	sceneObject->createStaticPlatform(Vector3(0, 24, 78), Vector3(0, 0, 0), Vector3(157, 50, 1), "testCube_pCube1.lrm", L"DarkGrayTexture.png");
+	sceneObject->createStaticPlatform(Vector3(0, 24, -78), Vector3(0, 0, 0), Vector3(157, 50, 1), "testCube_pCube1.lrm", L"DarkGrayTexture.png");
+	sceneObject->createStaticPlatform(Vector3(78, 24, 0), Vector3(0, 0, 0), Vector3(1, 50, 157), "testCube_pCube1.lrm", L"DarkGrayTexture.png");
+	sceneObject->createStaticPlatform(Vector3(-78, 24, 0), Vector3(0, 0, 0), Vector3(1, 50, 157), "testCube_pCube1.lrm", L"DarkGrayTexture.png");
 
-	entity = addEntity("bossSign");
+	entity = sceneObject->addEntity("bossSign");
 	if (entity)
 	{
-		addComponent(entity, "mesh", new MeshComponent("BossSign_pCube20.lrm", Material({ L"BossSign.png" })));
+		sceneObject->addComponent(entity, "mesh", new MeshComponent("BossSign_pCube20.lrm", Material({ L"BossSign.png" })));
 		entity->setPosition({ 0, -8.3, 8 });
 	}
 
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	Entity* clownMask = addEntity("ClownMask");
+	Entity* clownMask = sceneObject->addEntity("ClownMask");
 	if (clownMask)
 	{
-		addComponent(clownMask, "mesh",
+		sceneObject->addComponent(clownMask, "mesh",
 			new MeshComponent("ClownMask_ClownEye_R1.lrm", Material({ L"DarkGrayTexture.png" })));
 
 		clownMask->setPosition(Vector3(0, 10, 73));
 		clownMask->setRotation(XMConvertToRadians(7), XMConvertToRadians(180), XMConvertToRadians(0));
 	}
-	Entity* goalTrigger = addEntity("trigger");
+	Entity* goalTrigger = sceneObject->addEntity("trigger");
 	if (goalTrigger)
 	{
-		addComponent(goalTrigger, "mesh",
+		sceneObject->addComponent(goalTrigger, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
 		goalTrigger->setPosition(0, 10.563, 75.347);
 		goalTrigger->setScale(13.176, 15.048, 1);
 		goalTrigger->setRotation(XMConvertToRadians(-10.102), XMConvertToRadians(0), XMConvertToRadians(0));
 
-		addComponent(goalTrigger, "trigger",
+		sceneObject->addComponent(goalTrigger, "trigger",
 			new TriggerComponent());
 
 		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
@@ -775,18 +775,18 @@ void Scene::loadArena(bool* finished)
 		tc->setIntData((int)ScenesEnum::LOBBY);
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	Entity* skybox = addEntity("SkyBox");
+	Entity* skybox = sceneObject->addEntity("SkyBox");
 	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		sceneObject->addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Light
-	createPointLight({ 0.f, 10.f, 0.f }, { 1.f, 0.f, 0.f }, 5.f);
+	sceneObject->createPointLight({ 0.f, 10.f, 0.f }, { 1.f, 0.f, 0.f }, 5.f);
 
 	// Audio test
 	/*Entity* audioTestDelete = addEntity("deleteTestAudio");
@@ -795,10 +795,10 @@ void Scene::loadArena(bool* finished)
 	m_entities.erase("deleteTestAudio");*/
 
 	// Night Ambient Sound
-	Entity* audioTest = addEntity("audioTest");
-	addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
-	m_nightSlide = 0.01f;
-	m_nightVolume = 0.2f;
+	Entity* audioTest = sceneObject->addEntity("audioTest");
+	sceneObject->addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
+	sceneObject->m_nightSlide = 0.01f;
+	sceneObject->m_nightVolume = 0.2f;
 
 	*finished = true;
 }
@@ -1008,7 +1008,7 @@ void Scene::loadMaterialTest(bool* finished)
 		}
 	}
 
-	*finished = true;
+
 }
 
 void Scene::updateScene(const float& dt)
@@ -1229,6 +1229,10 @@ std::unordered_map<std::string, LightComponent*>* Scene::getLightMap()
 std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMap()
 {
 	return &m_meshComponentMap;
+}
+
+void Scene::initDeferredPhysics()
+{
 }
 
 void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionData data)

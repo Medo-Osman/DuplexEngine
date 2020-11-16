@@ -19,8 +19,10 @@ SceneManager::~SceneManager()
 void SceneManager::initalize()
 {
 	// Start Scene
+	*m_nextSceneReady = false;
 	m_currentScene = new Scene();
-	m_currentScene->loadLobby(m_nextSceneReady);
+	Scene::loadLobby(m_currentScene, m_nextSceneReady);
+	*m_nextSceneReady = false; //Just because init
 	//m_currentScene->loadArena();
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
@@ -39,28 +41,38 @@ void SceneManager::updateScene(const float &dt)
 {
 	if (m_swapScene)
 	{
+		std::cout << "new scene" << std::endl;
 		m_nextScene = new Scene();
+		std::thread myThread;
 		switch (m_nextSceneEnum)
 		{
 		case ScenesEnum::LOBBY:
-			m_nextScene->loadLobby(m_nextSceneReady);
+			Scene::loadLobby(m_nextScene, m_nextSceneReady);
 			//Reset game variables that are needed here
 			Engine::get().getPlayerPtr()->setScore(0);
 			m_gameStarted = false;
+			loadNextSceneWhenReady = true;
 			break;
 		case ScenesEnum::START:
 			Scene::loadScene(m_nextScene, "Ogorki", m_nextSceneReady);
+			loadNextSceneWhenReady = true;
 			break;
 		case ScenesEnum::ARENA:
-			m_nextScene->loadArena(m_nextSceneReady);
+			myThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+			myThread.detach();
+
+			//swapScenes();
+			m_gameStarted = true;
+			loadNextSceneWhenReady = true;
 			break;
 		default:
 			break;
 		}
 
-		swapScenes();
+		//swapScenes();
 	}
 
+		swapScenes();
 	m_currentScene->updateScene(dt);
 }
 
@@ -78,16 +90,32 @@ void SceneManager::inputUpdate(InputData& inputData)
 				std::thread myThread(Scene::loadTestLevel, m_nextScene, m_nextSceneReady);
 				myThread.detach();
 
-				swapScenes();
+				//swapScenes();
 				m_gameStarted = true;
+				loadNextSceneWhenReady = true;
 			}
 		}
 		else if (inputData.actionData[i] == LOAD_SCENE)
 		{
 			m_nextScene = new Scene();
-			Scene::loadScene(m_nextScene, "levelMeshTest", m_nextSceneReady);
-			swapScenes();
+			//Scene::loadScene(m_nextScene, "levelMeshTest", m_nextSceneReady);
+			//m_nextScene->loadArena(m_nextSceneReady);
+			std::thread myThread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
+			myThread.detach();
+
 			m_gameStarted = false;
+			loadNextSceneWhenReady = true;
+		}
+		else if (inputData.actionData[i] == LOAD_TEST_SCENE)
+		{
+			m_nextScene = new Scene();
+			//Scene::loadScene(m_nextScene, "levelMeshTest", m_nextSceneReady);
+			//m_nextScene->loadArena(m_nextSceneReady);
+			std::thread myThread(Scene::loadTestLevel, m_nextScene, m_nextSceneReady);
+			myThread.detach();
+
+			m_gameStarted = false;
+			loadNextSceneWhenReady = true;
 		}
 	}
 }
@@ -133,10 +161,11 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 
 void SceneManager::swapScenes()
 {
-	if (m_nextSceneReady)
+	m_swapScene = false;
+	if (*m_nextSceneReady == true && loadNextSceneWhenReady)
 	{
 		*m_nextSceneReady = false;
-		m_swapScene = false;
+		loadNextSceneWhenReady = false;
 		Physics::get().Detach(m_currentScene, false, true);
 	
 		//Reset boss
@@ -158,4 +187,6 @@ void SceneManager::swapScenes()
 
 		static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
 	}
+
+	//std::cout << "Ready: " << *m_nextSceneReady << std::endl;
 }

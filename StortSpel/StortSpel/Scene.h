@@ -60,7 +60,6 @@ private:
 	std::unordered_map<std::string, Entity*> m_entities;
 	std::unordered_map<unsigned int long, MeshComponent*> m_meshComponentMap;
 	std::unordered_map<std::string, LightComponent*> m_lightComponentMap;
-
 	std::vector<ParticleComponent*> m_tempParticleComponent;
 
 	void sendPhysicsMessage(PhysicsData& physicsData, bool& removed);
@@ -84,14 +83,16 @@ private:
 	int m_nrOfCheckpoints = 0;
 	int m_nrOfBarrelDrops = 0;
 	int m_nrOftraps = 0;
+
+	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
 public:
 	Boss* m_boss = nullptr;
 	Scene();
 	~Scene();
 	static void loadScene(Scene* sceneObject, std::string path, bool* finished);
 	static void loadTestLevel(Scene* sceneObject, bool* finished);
-	void loadLobby(bool* finished);
-	void loadArena(bool* finished);
+	static void loadLobby(Scene* sceneObject, bool* finished);
+	static void loadArena(Scene* sceneObject, bool* finished);
 	void loadMaterialTest(bool* finished);
 	void updateScene(const float &dt);
 	Vector3 getEntryPosition();
@@ -116,6 +117,7 @@ public:
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 
+	void initDeferredPhysics();
 
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
