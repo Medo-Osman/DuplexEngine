@@ -24,32 +24,32 @@ void SceneManager::initalize()
 	//start button
 	btnStyle.position = Vector2(140, 200);
 	btnStyle.scale = Vector2(0.5, 0.5);
-	m_singleplayerIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
+	m_singleplayerIndex = GUIHandler::get().addGUIButton(L"singleplayerBtn.png", btnStyle);
 
 	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_singleplayerIndex))->Attach(this);
 
 
-	////Exit button
-	//btnStyle.position = Vector2(1600, 100);
-	//btnStyle.scale = Vector2(1, 1);
-	//m_exitIndex = GUIHandler::get().addGUIButton(L"exitBtn.png", btnStyle);
+	//Exit button
+	btnStyle.position = Vector2(1600, 100);
+	btnStyle.scale = Vector2(1, 1);
+	m_exitIndex = GUIHandler::get().addGUIButton(L"exitBtn.png", btnStyle);
 
 
-	//dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_exitIndex))->Attach(this);
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_exitIndex))->Attach(this);
 
-	////join button
-	//btnStyle.position = Vector2(140, 550);
-	//btnStyle.scale = Vector2(1, 1);
-	//m_joinGameIndex = GUIHandler::get().addGUIButton(L"joinBtn.png", btnStyle);
+	//join button
+	btnStyle.position = Vector2(140, 550);
+	btnStyle.scale = Vector2(1, 1);
+	m_joinGameIndex = GUIHandler::get().addGUIButton(L"joinBtn.png", btnStyle);
 
-	//dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_joinGameIndex))->Attach(this);
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_joinGameIndex))->Attach(this);
 
-	////Host Button
-	//btnStyle.position = Vector2(140, 700);
-	//btnStyle.scale = Vector2(1, 1);
-	//m_hostGameIndex = GUIHandler::get().addGUIButton(L"hostBtn.png", btnStyle);
-	//
-	//dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_hostGameIndex))->Attach(this);
+	//Host Button
+	btnStyle.position = Vector2(140, 700);
+	btnStyle.scale = Vector2(1, 1);
+	m_hostGameIndex = GUIHandler::get().addGUIButton(L"hostBtn.png", btnStyle);
+	
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_hostGameIndex))->Attach(this);
 
 	
 	// Start Scene
