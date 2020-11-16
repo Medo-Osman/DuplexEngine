@@ -32,7 +32,7 @@ public:
 	{
 		Pickup::onUse();
 		m_lineParticleComponentPtr = new ParticleComponent(m_entityToDoEffectsOn, new PlayerLineParticle());
-		m_entityToDoEffectsOn->addComponent("particle", m_lineParticleComponentPtr);
+		m_entityToDoEffectsOn->addComponent("speedParticle", m_lineParticleComponentPtr);
 		m_lineParticleComponentPtr->activate();
 	}
 	virtual void onDepleted()

@@ -31,7 +31,7 @@ public:
 	{
 		Pickup::onUse();
 		m_particleEffect = new ParticleComponent(m_entityToDoEffectsOn, new PlayerLineParticle());
-		m_entityToDoEffectsOn->addComponent("particle", m_particleEffect);
+		m_entityToDoEffectsOn->addComponent("heightParticle", m_particleEffect);
 		m_particleEffect->activate();
 	}
 	virtual void onDepleted()

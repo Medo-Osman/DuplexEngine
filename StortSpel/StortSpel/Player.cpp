@@ -279,6 +279,60 @@ void Player::playerStateLogic(const float& dt)
 	}
 }
 
+bool Player::pickupUpdate(Pickup* pickupPtr, const float& dt)
+{
+	bool shouldRemovePickup = false;
+
+	if (pickupPtr)
+	{
+		if (pickupPtr->isActive())
+		{
+			switch (pickupPtr->getPickupType())
+			{
+			case PickupType::SPEED:
+				m_speedModifierTime += dt;
+				if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
+				{
+					m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
+				}
+				pickupPtr->update(dt);
+				if (pickupPtr->isDepleted())
+				{
+					if (m_goalSpeedModifier > 0.f)
+					{
+						m_goalSpeedModifier *= -1;;
+						m_speedModifierTime = 0.f;
+					}
+
+					if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
+					{
+						m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
+						m_currentSpeedModifier = max(1.0f, m_currentSpeedModifier);
+					}
+
+					if (pickupPtr->shouldDestroy())
+					{
+						shouldRemovePickup = true;
+						m_currentSpeedModifier = 1.f;
+					}
+				}
+				break;
+			case PickupType::HEIGHTBOOST:
+				if (m_state != PlayerState::FALLING)
+				{
+					pickupPtr->onDepleted();
+					shouldRemovePickup = true;
+				}
+
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	return shouldRemovePickup;
+}
+
 void Player::updatePlayer(const float& dt)
 {
 	switch (m_activeTrap)
@@ -298,62 +352,17 @@ void Player::updatePlayer(const float& dt)
 		break;
 	}
 
-
-	if (m_pickupPointer)
+	if (pickupUpdate(m_pickupPointer, dt))
 	{
-		if (m_pickupPointer->isActive())
-		{
-			bool shouldRemovePickup = false;
-			switch (m_pickupPointer->getPickupType())
-			{
-			case PickupType::SPEED:
-				m_speedModifierTime += dt;
-				if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
-				{
-					m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
-				}
-				m_pickupPointer->update(dt);
-				if (m_pickupPointer->isDepleted())
-				{
-					if (m_goalSpeedModifier > 0.f)
-					{
-						m_goalSpeedModifier *= -1;;
-						m_speedModifierTime = 0.f;
-					}
-
-					if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
-					{
-						m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
-						m_currentSpeedModifier = max(1.0f, m_currentSpeedModifier);
-					}
-
-					if (m_pickupPointer->shouldDestroy())
-					{
-						shouldRemovePickup = true;
-						m_currentSpeedModifier = 1.f;
-					}
-				}
-				break;
-			case PickupType::HEIGHTBOOST:
-				if (m_state != PlayerState::FALLING)
-				{
-					m_pickupPointer->onDepleted();
-					shouldRemovePickup = true;
-				}
-
-				break;
-			default:
-				break;
-			}
-
-			if (shouldRemovePickup)
-			{
-				m_pickupPointer->onRemove();
-				delete m_pickupPointer;
-				m_pickupPointer = nullptr;
-			}
-		}
-		
+		m_pickupPointer->onRemove();
+		delete m_pickupPointer;
+		m_pickupPointer = nullptr;
+	}
+	if(pickupUpdate(m_environmentPickup, dt))
+	{
+		m_environmentPickup->onRemove();
+		delete m_environmentPickup;
+		m_environmentPickup = nullptr;
 	}
 
 	if(m_state != PlayerState::ROLL)
@@ -569,9 +578,9 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				floatData - modifier for speedboost.
 			*/
 			
-			if (m_pickupPointer == nullptr)
+			if (m_pickupPointer == nullptr || ((bool)!physicsData.intData && (PickupType)physicsData.associatedTriggerEnum == PickupType::HEIGHTBOOST ))
 			{
-				bool forceUse = false; 
+				bool environmenPickup = false;
 				bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
 				switch ((PickupType)physicsData.associatedTriggerEnum)
 				{
@@ -587,7 +596,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 					else
 					{
 						jump(false);
-						forceUse = true;
+						environmenPickup = true;
 					}
 
 					break;
@@ -599,15 +608,30 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				}
 				if (addPickupByAssosiatedID)
 				{
-					m_pickupPointer = getCorrectPickupByID(physicsData.associatedTriggerEnum);
-					m_pickupPointer->setModifierValue(physicsData.floatData);
-					m_pickupPointer->onPickup(m_playerEntity);
-					if (m_pickupPointer->shouldActivateOnPickup() || forceUse)
-						m_pickupPointer->onUse();
+					Pickup* pickupPtr = getCorrectPickupByID(physicsData.associatedTriggerEnum);
+					pickupPtr->setModifierValue(physicsData.floatData);
+					pickupPtr->onPickup(m_playerEntity);
+					if (pickupPtr->shouldActivateOnPickup() || environmenPickup)
+						pickupPtr->onUse();
+
+					if (environmenPickup)
+					{
+						if (m_environmentPickup) //If we already have an environmentpickup (SInce they can be force added, we need to, if it exist, remove the "old" enironmentPickup.
+						{
+							m_environmentPickup->onRemove();
+							delete m_environmentPickup;
+							m_environmentPickup = nullptr;
+						}
+						m_environmentPickup = pickupPtr;
+					}
+					else
+					{
+						m_pickupPointer = pickupPtr;
+					}
 				}
 			}
 			//Score
-			if((PickupType)physicsData.associatedTriggerEnum == PickupType::SCORE)
+				if((PickupType)physicsData.associatedTriggerEnum == PickupType::SCORE)
 			{
 				int amount = (int)physicsData.floatData;
 				this->increaseScoreBy(amount);

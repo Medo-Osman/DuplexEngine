@@ -476,6 +476,7 @@ public:
 		ccd.scaleCoeff = 0.8f;
 
 		capsuleController = m_controllManager->createController(ccd);
+		dynamic_cast<PxRigidBody*>(capsuleController->getActor())->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, true);
 
 		return capsuleController;
 	}
@@ -511,7 +512,7 @@ public:
 
 	void makeKinematicActorDynamic(PxRigidBody* actor, float newMass)
 	{
-		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, false);
+		actor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, false);
 		actor->setMass(newMass);
 	}
 

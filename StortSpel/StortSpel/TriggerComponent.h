@@ -38,10 +38,10 @@ public:
 			m_physicsPtr->removeActor(m_actor);
 	}
 
-	void initTrigger(Transform* transform, XMFLOAT3 boxExtends, Vector3 offset = {0, 0, 0 })
+	void initTrigger(Transform* transform, XMFLOAT3 halfBoxExtends, Vector3 offset = {0, 0, 0 })
 	{
 		m_physicsData.entityIdentifier = m_parentEntityIdentifier;
-		m_geometryHolder = PxBoxGeometry(boxExtends.x, boxExtends.y, boxExtends.z);
+		m_geometryHolder = PxBoxGeometry(halfBoxExtends.x, halfBoxExtends.y, halfBoxExtends.z);
 		m_transform = transform;
 		m_offset = offset;
 		m_actor = m_physicsPtr->createRigidActor(transform->getTranslation(), transform->getRotation(), true, &m_physicsData);

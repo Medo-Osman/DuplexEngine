@@ -113,6 +113,7 @@ private:
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
     Pickup* m_pickupPointer;
+    Pickup* m_environmentPickup;
    
     //
     TrapType m_activeTrap;
@@ -146,6 +147,8 @@ private:
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
     void playerStateLogic(const float& dt);
+
+    bool pickupUpdate(Pickup* pickupPtr, const float& dt);
 
     bool canRoll() const;
     void roll();
