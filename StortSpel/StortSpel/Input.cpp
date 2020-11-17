@@ -41,6 +41,19 @@ Input::Input()
 	m_currentInputData.mousePtr = &m_Mouse;
 }
 
+Input::~Input()
+{
+	for (size_t i = 0; i < m_inputObservers.size(); i++)
+	{
+		//delete m_inputObservers[i];
+	}
+
+	for (size_t i = 0; i < m_contexts.size(); i++)
+	{
+		delete m_contexts[i];
+	}
+}
+
 LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lParam)
 {
 	switch (uMsg)
@@ -161,7 +174,7 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 	}
 	case WM_INPUT:
 	{
-		UINT size;
+		UINT size = 0;
 		GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, NULL, &size, sizeof(RAWINPUTHEADER));
 		if (size > 0)
 		{
@@ -307,7 +320,7 @@ void Input::Attach(InputObserver* observer)
 void Input::Detach(InputObserver* observer)
 {
 	bool detatched = false;
-	for (std::vector<int>::size_type i = 0; i < m_inputObservers.size() || !detatched; i++) {
+	for (size_t i = 0; i < m_inputObservers.size() || !detatched; i++) {
 		if (m_inputObservers[i] == observer)
 			m_inputObservers.erase(m_inputObservers.begin() + i);
 	}

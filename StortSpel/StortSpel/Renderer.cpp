@@ -185,21 +185,21 @@ HRESULT Renderer::initialize(const HWND& window)
 	
 
 	 //ImGui initialization
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	//IMGUI_CHECKVERSION();
+	//ImGui::CreateContext();
+	//ImGuiIO& io = ImGui::GetIO(); (void)io;
 	//ImGui::SetCurrentContext(imguictx);
 
-	ImGui::StyleColorsDark();
+	/*ImGui::StyleColorsDark();
 
 	ImGui_ImplWin32_Init(window);
-	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
+	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());*/
 
 	Particle::setupStaticDataForParticle(m_devicePtr.Get());
 
 	//Shadows - don't forget to update resolution constant in shader(s) as well
-	m_shadowMap = new ShadowMap((UINT)4096, (UINT)4096, m_devicePtr.Get(), Engine::get().getSkyLightDir());
-	m_shadowMap->createRasterState();
+	m_shadowMap.initialize((UINT)4096, (UINT)4096, m_devicePtr.Get(), Engine::get().getSkyLightDir());
+	m_shadowMap.createRasterState();
 
 	return hr;
 }
@@ -599,7 +599,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
-				m_dContextPtr->PSSetShaderResources(2, 1, &m_shadowMap->m_depthMapSRV);
+				m_dContextPtr->PSSetShaderResources(2, 1, &m_shadowMap.m_depthMapSRV);
 
 				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
 				
@@ -615,13 +615,13 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	m_dContextPtr->PSSetShaderResources(2, 1, emptySRV);
 
 	//Shadow
-	m_shadowMap->bindResourcesAndSetNullRTV(m_dContextPtr.Get());
-	m_shadowMap->computeShadowMatrix(Engine::get().getCameraPtr()->getPosition());
+	m_shadowMap.bindResourcesAndSetNullRTV(m_dContextPtr.Get());
+	m_shadowMap.computeShadowMatrix(Engine::get().getCameraPtr()->getPosition());
 
 	shadowBuffer shadowBufferStruct;
-	shadowBufferStruct.lightProjMatrix = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);
-	shadowBufferStruct.lightViewMatrix = XMMatrixTranspose(m_shadowMap->m_lightViewMatrix);
-	shadowBufferStruct.shadowMatrix = XMMatrixTranspose(m_shadowMap->m_shadowTransform);
+	shadowBufferStruct.lightProjMatrix = XMMatrixTranspose(m_shadowMap.m_lightProjMatrix);
+	shadowBufferStruct.lightViewMatrix = XMMatrixTranspose(m_shadowMap.m_lightViewMatrix);
+	shadowBufferStruct.shadowMatrix = XMMatrixTranspose(m_shadowMap.m_shadowTransform);
 	m_shadowConstantBuffer.updateBuffer(m_dContextPtr.Get(), &shadowBufferStruct);
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
@@ -652,8 +652,8 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
-			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);//XMMatrixTranspose(m_camera->getProjectionMatrix());
-			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_shadowMap->m_lightViewMatrix);//XMMatrixTranspose(m_camera->getViewMatrix());
+			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_shadowMap.m_lightProjMatrix);//XMMatrixTranspose(m_camera->getProjectionMatrix());
+			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_shadowMap.m_lightViewMatrix);//XMMatrixTranspose(m_camera->getViewMatrix());
 			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
@@ -691,10 +691,10 @@ void Renderer::rasterizerSetup()
 
 void Renderer::update(const float& dt)
 {
-	if (ImGui::Button("Toggle FrustumCulling"))
+	/*if (ImGui::Button("Toggle FrustumCulling"))
 	{
 		m_frustumCullingOn = !m_frustumCullingOn;
-	}
+	}*/
 }
 
 void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
@@ -759,7 +759,7 @@ void Renderer::render()
 	//Run the shadow pass before everything else
 	m_dContextPtr->VSSetConstantBuffers(3, 1, m_shadowConstantBuffer.GetAddressOf());
 	
-	m_shadowMap->setLightDir(Engine::get().getSkyLightDir());
+	m_shadowMap.setLightDir(Engine::get().getSkyLightDir());
 	renderShadowPass(&frust, &wvp, &V, &P);
 	
 	
@@ -798,9 +798,9 @@ void Renderer::render()
 	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
 	this->m_dContextPtr->PSSetSamplers(1, 1, this->m_psSamplerState.GetAddressOf());
 
-	ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+	/*ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 	ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
-	ImGui::End();
+	ImGui::End();*/
 	// [ Bloom Filter ]
 
 	downSamplePass();
@@ -811,8 +811,8 @@ void Renderer::render()
 	GUIHandler::get().render();
 
 	// Render ImGui
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	/*ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());*/
 
 	m_swapChainPtr->Present(1, 0);
 }

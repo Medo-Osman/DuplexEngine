@@ -106,7 +106,7 @@ private:
 
 
 	//Shadowmap
-	ShadowMap* m_shadowMap = nullptr;
+	ShadowMap m_shadowMap;
 
 	//Functions
 	HRESULT createDeviceAndSwapChain();

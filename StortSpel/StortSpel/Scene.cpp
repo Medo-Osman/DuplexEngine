@@ -39,7 +39,10 @@ Scene::~Scene()
 
 	//Clean boss
 	if (m_boss)
+	{
+		m_boss->Detach(this);
 		delete m_boss;
+	}
 }
 
 void Scene::createParticleEntity(void* particleComponent, Vector3 position)
@@ -275,11 +278,11 @@ void Scene::loadLobby()
 
 	
 
-	Entity* music = addEntity("lobbyMusic");
+	/*Entity* music = addEntity("lobbyMusic");
 	if (music)
 	{
 		addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
-	}
+	}*/
 
 	Entity* floor = addEntity("Floor");
 	if (floor)
@@ -382,68 +385,68 @@ void Scene::loadLobby()
 			new FlippingComponent(test4, 1, 1));
 	}
 
-	Entity* sign = addEntity("sign");
-	if(sign)
-	{
-		addComponent(sign, "mesh",
-			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
-		sign->setScale(Vector3(10, 5, 0.2));
+	//Entity* sign = addEntity("sign");
+	//if(sign)
+	//{
+	//	addComponent(sign, "mesh",
+	//		new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
+	//	sign->setScale(Vector3(10, 5, 0.2));
 
-		createNewPhysicsComponent(sign, true,"",PxGeometryType::eBOX,"default", true);
-		static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
+	//	createNewPhysicsComponent(sign, true,"",PxGeometryType::eBOX,"default", true);
+	//	static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
 
-		addComponent(sign, "sweep",
-			new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
-	}
+	//	addComponent(sign, "sweep",
+	//		new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
+	//}
 
 
-	Entity* skybox = addEntity("SkyBox");
+	//Entity* skybox = addEntity("SkyBox");
 
-	skybox->m_canCull = false;
-	if (skybox)
-	{
-		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		addComponent(skybox, "cube",
-			new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-				//Disable shadow casting
-		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	//skybox->m_canCull = false;
+	//if (skybox)
+	//{
+	//	Material skyboxMat;
+	//	skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+	//	addComponent(skybox, "cube",
+	//		new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+	//			//Disable shadow casting
+	//	dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 
-	}
+	//}
 
-	createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
+	//createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
 
-	Entity* multiMatTest = addEntity("multiMatTest");
-	if (multiMatTest)
-	{
-		addComponent(multiMatTest, "mesh", new MeshComponent("test_mesh_guy.lrm", 
-			{
-				DEFAULT,
-				DEFAULT,
-				TEMP_TEST,
-				EMISSIVE
-			}
-			,
-			{
-				Material({ L"DarkGrayTexture.png" }),
-				Material({ L"Green.jpg" }),
-				Material({ L"GrayTexture.png" }),
-				Material({ L"ibl_brdf_lut.png", L"ibl_brdf_lut.png" }, MATERIAL_CONST_BUFFER({1.0f, 0.5f, 0.f, 0, 100.f})),
-				Material({ L"T_GridTestTex.bmp" }),
-				Material({ L"T_tempTestDog.jpeg" }),
-				Material({ L"ButtonStart.png" }),
-				Material({ L"Controlls.png" }),
-				Material({ L"DarkGrayTexture.png" }),
-				Material({ L"GrayTexture.png" }),
-				Material({ L"T_tempTestXWing.png" }),
-				Material({ L"GrayTexture.png" })
-			}
-			));
-		multiMatTest->translate({ 0,0,-6 });
-		createNewPhysicsComponent(multiMatTest);
-	}
+	//Entity* multiMatTest = addEntity("multiMatTest");
+	//if (multiMatTest)
+	//{
+	//	addComponent(multiMatTest, "mesh", new MeshComponent("test_mesh_guy.lrm", 
+	//		{
+	//			DEFAULT,
+	//			DEFAULT,
+	//			TEMP_TEST,
+	//			EMISSIVE
+	//		}
+	//		,
+	//		{
+	//			Material({ L"DarkGrayTexture.png" }),
+	//			Material({ L"Green.jpg" }),
+	//			Material({ L"GrayTexture.png" }),
+	//			Material({ L"ibl_brdf_lut.png", L"ibl_brdf_lut.png" }, MATERIAL_CONST_BUFFER({1.0f, 0.5f, 0.f, 0, 100.f})),
+	//			Material({ L"T_GridTestTex.bmp" }),
+	//			Material({ L"T_tempTestDog.jpeg" }),
+	//			Material({ L"ButtonStart.png" }),
+	//			Material({ L"Controlls.png" }),
+	//			Material({ L"DarkGrayTexture.png" }),
+	//			Material({ L"GrayTexture.png" }),
+	//			Material({ L"T_tempTestXWing.png" }),
+	//			Material({ L"GrayTexture.png" })
+	//		}
+	//		));
+	//	multiMatTest->translate({ 0,0,-6 });
+	//	createNewPhysicsComponent(multiMatTest);
+	//}
 
-	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
+	//createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
 }
 
 void Scene::loadScene(std::string path)

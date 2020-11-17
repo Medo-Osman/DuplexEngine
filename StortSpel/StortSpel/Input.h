@@ -78,6 +78,7 @@ private:
 
 public:
 	Input();
+	~Input();
 	LRESULT handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lParam);
 	void readBuffers();
 	void addContext(iContext* context);

@@ -23,8 +23,9 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_sampleState = NULL;
 
 public:
-	ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 lightDir);
+	ShadowMap();
 	~ShadowMap();
+	void initialize(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 lightDir);
 	void bindResourcesAndSetNullRTV(ID3D11DeviceContext* context);
 	void computeShadowMatrix(Vector3 playerPos);
 	void createRasterState();

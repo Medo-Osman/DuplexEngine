@@ -45,14 +45,14 @@
 #include"PxPhysicsAPI.h"
 
 // ImGui includes
-#include "../3rd-Party/ImGui/imconfig.h"
-#include "../3rd-Party/ImGui/imgui.h"
-#include "../3rd-Party/ImGui/imgui_impl_dx11.h"
-#include "../3rd-Party/ImGui/imgui_impl_win32.h"
-#include "../3rd-Party/ImGui/imgui_internal.h"
-#include "../3rd-Party/ImGui/imstb_rectpack.h"
-#include "../3rd-Party/ImGui/imstb_textedit.h"
-#include "../3rd-Party/ImGui/imstb_truetype.h"
+//#include "../3rd-Party/ImGui/imconfig.h"
+//#include "../3rd-Party/ImGui/imgui.h"
+//#include "../3rd-Party/ImGui/imgui_impl_dx11.h"
+//#include "../3rd-Party/ImGui/imgui_impl_win32.h"
+//#include "../3rd-Party/ImGui/imgui_internal.h"
+//#include "../3rd-Party/ImGui/imstb_rectpack.h"
+//#include "../3rd-Party/ImGui/imstb_textedit.h"
+//#include "../3rd-Party/ImGui/imstb_truetype.h"
 
 // Singletons
 //#include "ResourceHandler.h"

@@ -67,6 +67,7 @@ public:
 	AnimatedMeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum, Material material);
 	AnimatedMeshComponent(const char* filepath, Material material);
 	AnimatedMeshComponent(const char* filepath, std::initializer_list<Material> materials);
+	~AnimatedMeshComponent();
 
 	skeletonAnimationCBuffer* getAllAnimationTransforms();
 

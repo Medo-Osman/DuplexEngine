@@ -136,14 +136,14 @@ void ApplicationLayer::applicationLoop()
 			m_gameTime += m_dt;
 			m_timer.restart();
 
-			ImGui_ImplDX11_NewFrame();
+			/*ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();
-			ImGui::NewFrame();
+			ImGui::NewFrame();*/
 
 			m_input.readBuffers();
 			m_physics->update(m_dt);
 			m_enginePtr->update(m_dt);
-			PerformanceTester::get().runPerformanceTestsGui(m_dt);
+			//PerformanceTester::get().runPerformanceTestsGui(m_dt);
 			m_scenemanager.updateScene(m_dt);
 			AudioHandler::get().update(m_dt);
 			m_rendererPtr->update(m_dt);
@@ -155,11 +155,11 @@ void ApplicationLayer::applicationLoop()
 }
 
 
-extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+//extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
-		return true;
+	/*if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
+		return true;*/
 
 	ApplicationLayer* g_ApplicationLayer = &ApplicationLayer::getInstance();
 	g_ApplicationLayer->m_input.handleMessages(hwnd, uMsg, wParam, lParam);

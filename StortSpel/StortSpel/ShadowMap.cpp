@@ -2,7 +2,18 @@
 #include "ShadowMap.h"
 
 
-ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 lightDir)
+ShadowMap::ShadowMap()
+{
+	m_devicePtr = nullptr;
+}
+
+ShadowMap::~ShadowMap()
+{
+	m_depthMapDSV->Release();
+	m_depthMapSRV->Release();
+}
+
+void ShadowMap::initialize(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 lightDir)
 {
 	m_devicePtr = devicePtr;
 
@@ -35,7 +46,7 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 	dsvDesc.Texture2D.MipSlice = 0;
 	succ = m_devicePtr->CreateDepthStencilView(depthMap, &dsvDesc, &m_depthMapDSV);
 	assert(SUCCEEDED(succ));
-	
+
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
@@ -61,16 +72,6 @@ ShadowMap::ShadowMap(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 l
 	assert(SUCCEEDED(succ));
 
 	m_direction = lightDir;
-
-}
-
-ShadowMap::~ShadowMap()
-{
-	SAFE_RELEASE(m_rasterizerStatePtr);
-	SAFE_RELEASE(m_sampleState);
-	SAFE_RELEASE(m_depthMapDSV);
-	SAFE_RELEASE(m_depthMapSRV);
-
 }
 
 void ShadowMap::bindResourcesAndSetNullRTV(ID3D11DeviceContext* context)

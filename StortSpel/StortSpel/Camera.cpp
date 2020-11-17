@@ -13,6 +13,8 @@ Camera::Camera()
 	m_newIncrements = false;
 	ApplicationLayer::getInstance().m_input.Attach(this);
 }
+Camera::~Camera() {}
+
 void Camera::setProjectionMatrix(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
 {
 	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH((fov / 360.f) * DirectX::XM_2PI,

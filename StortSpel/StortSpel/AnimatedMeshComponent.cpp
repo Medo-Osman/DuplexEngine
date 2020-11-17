@@ -45,6 +45,11 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initiali
 	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::DEFAULT, materials)
 {}
 
+AnimatedMeshComponent::~AnimatedMeshComponent()
+{
+	m_joints;
+}
+
 //std::string AnimatedMeshComponent::getAnimationName()
 //{
 //	return m_animationName;
@@ -530,6 +535,7 @@ void AnimatedMeshComponent::calculateFrameForState(animState* state, ANIMATION_F
 		{
 			if (currentBlend == state->blendPoints.at(i))
 			{
+				SAFE_DELETE(*animStateFrame);
 				*animStateFrame = thisAnimFrame;
 			}
 			else

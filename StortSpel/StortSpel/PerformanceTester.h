@@ -98,7 +98,7 @@ public:
 		float vram = checkVram();
 		float ram = checkRam();
 		
-		ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
+		/*ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
 		ImGui::SetNextWindowSize(ImVec2(250.f, 60.f));
 
 		double time = m_internalTimer.timeElapsed();
@@ -112,7 +112,12 @@ public:
 		ImGui::Text("RAM: %d Mb", (int)ram);
 		ImGui::Text("VRAM: %d Mb", (int)vram);
 		ImGui::Text("%.0f FPS ", m_frameRate);
-		ImGui::End();
+		ImGui::End();*/
+	}
+
+	float getRam()
+	{
+		return checkRam();
 	}
 };
 

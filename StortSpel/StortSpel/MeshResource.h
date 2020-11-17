@@ -18,7 +18,7 @@ private:
 	
 public:
 	int vertCount = 0;
-	~MeshResource()
+	virtual ~MeshResource()
 	{
 		SAFE_DELETE(m_vertexArray);
 		//m_vertexBuffer.release();
