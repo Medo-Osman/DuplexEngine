@@ -47,6 +47,7 @@ private:
 	const std::wstring m_SOUNDS_PATH = L"../res/audio/";
 	const std::wstring m_ERROR_SOUND_NAME = L"ErrorSound.wav";
 
+
 public:
 	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath, bool isCubeMap = false);
 	ID3D11ShaderResourceView* loadErrorTexture();
@@ -54,7 +55,6 @@ public:
 	MeshResource* loadLRSMMesh(const char* path);
 	AnimationResource* loadAnimation(std::string path);
 	SoundEffect* loadSound(std::wstring soundPath, AudioEngine* audioEngine);
-
 
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 	void Destroy();
