@@ -21,7 +21,6 @@
 #include <filesystem>
 #include <algorithm>
 
-
 struct Settings
 {
 	int width = 1920;
@@ -34,11 +33,11 @@ class Engine
 {
 private:
 	Engine();
-	
+
 	static const int m_startWidth = 1920;
 	static const int m_startHeight = 1080;
 
-	
+
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
 
@@ -53,7 +52,7 @@ private:
 	std::unordered_map<std::string, LightComponent*>* m_lightComponentMap;
 
 	Player* m_player = nullptr;
-	Camera m_camera; 
+	Camera m_camera;
 	Settings m_settings;
 
 	Input* m_input = nullptr;
@@ -63,10 +62,11 @@ private:
 	const std::wstring m_TEXTURES_PATH = L"../res/textures/";
 	void readMaterials();
 
+
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
 	void updateLightData();
 
-	
+
 public:
 	static Engine& get();
 
@@ -76,6 +76,7 @@ public:
 	~Engine();
 
 	void update(const float &dt);
+	void updatePlayerAndCamera(const float &dt);
 
 	void setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities);
 	void setMeshComponentMapPtr(std::unordered_map<unsigned int long, MeshComponent*>* meshComponents);
@@ -83,9 +84,6 @@ public:
 
 	bool addComponentToPlayer(std::string componentIdentifier, Component* component);
 	void removeLightComponentFromPlayer(LightComponent* component);
-
-	void setBarrelVector(std::vector<Entity*>* entitiesVector);
-	std::vector<Entity*>* getBarrelVector();
 
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();

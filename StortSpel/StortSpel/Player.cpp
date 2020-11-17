@@ -29,7 +29,7 @@ Player::Player()
 		vec.emplace_back(new SpeedPickup());
 		Pickup::initPickupArray(vec);
 	}
-
+	
 	//GUI
 	m_score = 0;
 	GUITextStyle style;
@@ -47,7 +47,7 @@ Player::Player()
 
 	//Test Button stuff
 	GUIButtonStyle btnStyle;
-	btnStyle.position = Vector2(140, 200);
+	btnStyle.position = Vector2(240, 200);
 	btnStyle.scale = Vector2(0.5, 0.5);
 	closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
 
