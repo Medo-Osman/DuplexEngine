@@ -13,6 +13,8 @@ private:
 	LRM_VERTEX* m_vertexArray = nullptr;
 
 	XMFLOAT3 m_min, m_max;
+
+	std::vector<std::uint32_t> m_materialOffsets;
 	
 public:
 	int vertCount = 0;
@@ -61,5 +63,45 @@ public:
 	LRM_VERTEX* getVertexArray()
 	{
 		return m_vertexArray;
+	}
+
+	void setMaterialOffsetsVector(std::uint32_t* materialOffsets, int materialCount)
+	{
+		for (int i = 0; i < materialCount; i++)
+		{
+			m_materialOffsets.push_back(materialOffsets[i]);
+		}
+	}
+
+	int getMaterialCount()
+	{
+		if (m_materialOffsets.empty())
+			return 1;
+		else
+			return m_materialOffsets.size();
+	}
+	
+	std::pair<std::uint32_t, std::uint32_t> getMaterialOffsetAndSize(int materialIndex)
+	{
+		if (m_materialOffsets.empty())
+		{
+			return { 0, m_indexBuffer.getSize() };
+		}
+		
+		int offset;
+		int size;
+
+		if (materialIndex == 0)
+		{
+			offset = 0;
+			size = m_materialOffsets.at(materialIndex);
+		}
+		else
+		{
+			offset = m_materialOffsets.at(materialIndex - 1);
+			size = m_materialOffsets.at(materialIndex) - offset;
+		}
+		
+		return { offset, size };
 	}
 };

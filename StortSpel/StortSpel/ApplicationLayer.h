@@ -25,6 +25,7 @@ private:
 
 	Timer m_timer;
 	float m_dt;
+	float m_gameTime = 0;
 
 	int width, height;
 
@@ -48,5 +49,9 @@ public:
 	const HWND& getWindow() { return m_window; }
 	Input m_input;
 	Physics* m_physics;
+	const float& getGameTime()
+	{
+		return m_gameTime;
+	}
 
 };

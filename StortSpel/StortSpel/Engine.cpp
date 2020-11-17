@@ -5,6 +5,7 @@
 #include"TriggerComponent.h"
 #include"RotateComponent.h"
 #include"PickupComponent.h"
+#include"Particles\PlayerLineParticle.h"
 
 Engine::Engine()
 {
@@ -141,6 +142,11 @@ Camera* Engine::getCameraPtr()
 {
 	return &m_camera;
 }
+
+float Engine::getGameTime()
+{
+	return ApplicationLayer::getInstance().getGameTime();
+}
 Player* Engine::getPlayerPtr()
 {
 	return m_player;
@@ -171,6 +177,9 @@ void Engine::initialize(Input* input)
 
 	m_camera.setProjectionMatrix(80.f,  (float)m_settings.width/(float)m_settings.height, 0.01f, 1000.0f);
 
+	// Audio Handler Listener setup
+	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
+	
 	// Player
 	m_player = new Player();
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
@@ -181,8 +190,9 @@ void Engine::initialize(Input* input)
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
-	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
 	playerEntity->addComponent("mesh", animMeshComp);
+
 
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
@@ -204,6 +214,9 @@ void Engine::initialize(Input* input)
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
 	//GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
+
+	// Audio Handler needs Camera Transform ptr for 3D positional audio
+	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
 }
 
 void Engine::updateLightData()

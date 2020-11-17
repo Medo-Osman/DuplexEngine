@@ -111,7 +111,6 @@ void ShaderProgram::compileShaders(VertexLayoutType inputLayoutType)
 	{
 		hr = D3DCompileFromFile(m_shaderFiles[ShaderType::Pixel], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", flags, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
 
-		assert(SUCCEEDED(hr));
 		if (FAILED(hr))
 			errorBlobCheck(errorBlob);
 

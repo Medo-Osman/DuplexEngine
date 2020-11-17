@@ -23,7 +23,7 @@ Transform::~Transform() {}
 XMMATRIX Transform::calculateWorldMatrix()
 {
 	bool dirty = (m_translationDirty || m_scaleDirty || m_rotationDirty);
-
+	
 	// Update translation matrix if dirty
 	if (m_translationDirty)
 	{
@@ -182,7 +182,6 @@ void Transform::rotateQuat(const Quaternion& quaternion)
 void Transform::rotate(const Vector3& axis, float angle)
 {
 	m_rotation = XMQuaternionMultiply(m_rotation, XMQuaternionRotationAxis(axis, angle));
-
 	m_rotationDirty = true;
 }
 
@@ -239,8 +238,8 @@ void Transform::setRotation(float x, float y, float z, float angle)
 	if (m_rotation != q)
 	{
 		m_rotation = q;
+		m_rotationDirty = true;
 	}
-	m_rotationDirty = true;
 }
 
 void Transform::setRotation(const Vector3& pitchYawRollVector)

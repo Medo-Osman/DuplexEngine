@@ -1,8 +1,8 @@
 #include "3DPCH.h"
 #include "AnimatedMeshComponent.h"
 
-AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum, Material material)
-	:MeshComponent(shaderEnum, material), m_inBindPose(true), m_transitionTime(0.f)
+AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials)
+	:MeshComponent(shaderEnums, materials), m_inBindPose(true), m_transitionTime(0.f)
 {
 	SkeletalMeshResource* resPtr = (SkeletalMeshResource*)ResourceHandler::get().loadLRSMMesh(filepath);
 	
@@ -29,8 +29,20 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, ShaderProgram
 	//applyPoseToJoints(XMMatrixIdentity());
 }
 
+AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum, std::initializer_list<Material> materials)
+	:AnimatedMeshComponent(filepath, { shaderEnum }, materials)
+{}
+
+AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum, Material material)
+	: AnimatedMeshComponent(filepath, { shaderEnum }, { material })
+{}
+
 AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, Material material)
 	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::DEFAULT, material)
+{}
+
+AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initializer_list<Material> materials)
+	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::DEFAULT, materials)
 {}
 
 //std::string AnimatedMeshComponent::getAnimationName()
