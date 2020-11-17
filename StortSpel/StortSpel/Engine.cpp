@@ -124,7 +124,7 @@ void Engine::readMaterials()
 
 		for (int j = 0; j < 4; j++)
 		{
-			std::string name = materials[textureNames[i]].at(j);
+			std::string name = materials[textureNames[i]].at(j) + ".png";
 			mat.addTexture(std::wstring(name.begin(), name.end()).c_str());
 		}
 		m_MaterialCache[textureNames[i]] = mat;
