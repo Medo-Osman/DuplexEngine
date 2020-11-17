@@ -17,10 +17,10 @@ private:
 	bool m_swapScene;
 
 	std::vector<iContext*>* m_contexts;
-	int m_singleplayerIndex = 4;
-	int m_exitIndex = 5;
-	int m_joinGameIndex = 6;
-	int m_hostGameIndex = 7;
+	int m_singleplayerIndex = 0;
+	int m_exitIndex = 0;
+	int m_joinGameIndex = 0;
+	int m_hostGameIndex = 0;
 public:
 	SceneManager();
 	~SceneManager();
