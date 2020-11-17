@@ -19,6 +19,8 @@ Scene::Scene()
 
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
+
+
 }
 
 Scene::~Scene()
@@ -54,6 +56,85 @@ void Scene::createParticleEntity(void* particleComponent, Vector3 position)
 	pc->activate();
 
 	m_tempParticleComponent.emplace_back(pc);
+}
+
+void Scene::loadMainMenu()
+{
+	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
+
+	Entity* music = addEntity("lobbyMusic");
+	if (music)
+	{
+		addComponent(music, "Music", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
+	}
+
+	Entity* floor = addEntity("Floor");
+	if (floor)
+	{
+		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"DarkGrayTexture.png" })));
+		floor->scale({ 30, 1, 30 });
+		floor->translate({ 0,-2,0 });
+		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+
+
+
+	Entity* test = addEntity("test");
+	if (test)
+	{
+		addComponent(test, "mesh",
+			new MeshComponent("GlowCube.lrm",
+				EMISSIVE,
+				Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
+
+		test->setScale({ 5, 5, 5 });
+		test->setPosition({ 9, 2, 10 });
+
+		createNewPhysicsComponent(test, true);
+		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
+
+		addComponent(test, "flipp",
+			new FlippingComponent(test, 1, 1));
+	}
+
+
+
+
+	Entity* sign = addEntity("sign");
+	if (sign)
+	{
+		addComponent(sign, "mesh",
+			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
+		sign->setScale(Vector3(10, 5, 0.2));
+
+		createNewPhysicsComponent(sign, true, "", PxGeometryType::eBOX, "default", true);
+		static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
+
+		addComponent(sign, "sweep",
+			new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
+	}
+
+
+
+	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
+	if (skybox)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		addComponent(skybox, "cube",
+			new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+
+		//Disable shadow casting
+		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	}
+
+	createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
+
+	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
+
 }
 
 void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
@@ -191,7 +272,7 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData)
 
 void Scene::addBarrelDrop(Vector3 Position)
 {
-	Entity* rollingBarrel = addEntity("barrel"); //+ std::to_string(m_nrOfBarrelDrops++));
+	Entity* rollingBarrel = addEntity("barrel");
 
 	if (rollingBarrel)
 	{
@@ -213,7 +294,7 @@ int Scene::getSceneID()
 	return this->m_sceneID;
 }
 
-void Scene::addSlowTrap(const Vector3& position, Vector3 scale)
+void Scene::addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox)
 {
 	Entity* slowTrap = addEntity("trap"+std::to_string(m_nrOftraps++));
 	addComponent(slowTrap,"mesh", new MeshComponent("testCube_pCube1.lrm"));
@@ -221,7 +302,7 @@ void Scene::addSlowTrap(const Vector3& position, Vector3 scale)
 	slowTrap->scale(scale);
 
 	addComponent(slowTrap, "trap", new SlowTrapComponent(slowTrap, TrapType::SLOW));
-	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger( m_sceneID, slowTrap, { scale });
+	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(slowTrap, {hitBox});
 
 	addComponent(slowTrap, "sound", new AudioComponent(L"OnPickup.wav", false));
 
@@ -279,7 +360,7 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 {
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
-	
+	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
 	Entity* music = sceneObject->addEntity("lobbyMusic");
 	if (music)
@@ -456,11 +537,11 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 {
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
-	
+
 	size_t dot = path.rfind('.', path.length());
 	if (dot == std::string::npos)
 		path.append(".lrl");
-	
+
 	std::ifstream fileStream(sceneObject->m_LEVELS_PATH + path, std::ifstream::in | std::ifstream::binary);
 
 	// Check filestream failure
@@ -575,9 +656,9 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	sceneObject->addCheckpoint(Vector3(-30, 40, 144));
 	sceneObject->addCheckpoint(Vector3(-11, 40, 218.5));
 
-	sceneObject->addSlowTrap(Vector3(0, 13, 30), Vector3(3,3,3));
+	sceneObject->addSlowTrap(Vector3(0, 13, 30), Vector3(3,3,3), Vector3(1,1,1));
 	sceneObject->addPushTrap(Vector3(-5, 20, 58), Vector3(5, 20, 58), Vector3(0, 18, 50));
-	
+
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
 
@@ -727,7 +808,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
-	
+
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	// MUSIC
@@ -1076,7 +1157,7 @@ void Scene::updateScene(const float& dt)
 
 		if (ptr)
 			ptr->setTarget(static_cast<CharacterControllerComponent*>(m_player->getPlayerEntity()->getComponent("CCC"))->getFootPosition() + Vector3(0, 1, 0));
-	
+
 		//Check projectiles and their lifetime so they do not continue on forever in case they missed.
 		checkProjectiles();
 
@@ -1091,13 +1172,10 @@ void Scene::updateScene(const float& dt)
 
 	if (addedBarrel)
 	{
+		static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->clearForce();
+		static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->setPosition({ -30, 50, 130 });
+		m_despawnBarrelTimer.restart();
 
-		if (m_despawnBarrelTimer.timeElapsed() >= 3)
-		{
-			static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->clearForce();
-			static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->setPosition({ -30, 50, 130 });
-			m_despawnBarrelTimer.restart();
-		}
 		addedBarrel = false;
 	}
 
@@ -1301,12 +1379,12 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 		Entity* projectile = static_cast<Entity*>(data.pointer0);
 		//addScore(data.origin+Vector3(0,2,0));
 		deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
-		
+
 		ProjectileComponent* component = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
 		m_projectiles.erase(component->m_id);
 		removeEntity(projectile->getIdentifier());
 	}
-		
+
 
 }
 
@@ -1380,8 +1458,8 @@ void Scene::createProjectile(Vector3 origin, Vector3 dir, float speed)
 
 		addComponent(projectileEntity, "projectile",
 			new ProjectileComponent(projectileEntity, projectileEntity, origin, dir, speed, 20.f));
-		
-		static_cast<TriggerComponent*>(projectileEntity->getComponent("projectile"))->initTrigger( m_sceneID, projectileEntity, { 0.5f, 0.5f, 0.5f });	
+
+		static_cast<TriggerComponent*>(projectileEntity->getComponent("projectile"))->initTrigger( m_sceneID, projectileEntity, { 0.5f, 0.5f, 0.5f });
 
 
 		static_cast<ProjectileComponent*>(projectileEntity->getComponent("projectile"))->m_id = m_nrOfProjectiles;

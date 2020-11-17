@@ -1,6 +1,7 @@
 #pragma once
 #include "Player.h"
 #include "Engine.h"
+#include "GUIHandler.h"
 #include "Boss.h"
 #include <map>
 #include"ParticleComponent.h"
@@ -10,6 +11,8 @@ enum class ScenesEnum
 	LOBBY,
 	START,
 	ARENA,
+	MAINMENU,
+	ENDSCENE,
 };
 
 class Scene : public PhysicsObserver, public BossObserver
@@ -36,18 +39,18 @@ private:
 	float m_projectileLifeTime = 10.f;
 	void createProjectile(Vector3 origin, Vector3 dir, float speed);
 	void checkProjectiles();
-	
+
 	//For projectiles
 	std::unordered_map<UINT, Entity*> m_projectiles;
 
 	std::vector<Vector3> deferredPointInstantiationList;
 
-	
+
 
 	Player* m_player;
 
 	Material ObjectSpaceGrid;	// Temp global grid material
-	
+
 	Vector3 m_sceneEntryPosition;
 
 	float m_nightVolume;
@@ -72,11 +75,10 @@ private:
 	int m_nrOfScore = 0;
 	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
 	void addCheckpoint(const Vector3& position);
+	void addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox);
+	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 	void createParticleEntity(void* particleComponent, Vector3 position);
 
-	void addSlowTrap(const Vector3& position, Vector3 scale);
-	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
-	
 	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData);
 
 	const std::string m_LEVELS_PATH = "../res/levels/";
@@ -84,12 +86,14 @@ private:
 	int m_nrOfCheckpoints = 0;
 	int m_nrOfBarrelDrops = 0;
 	int m_nrOftraps = 0;
-
 	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
+
 public:
 	Boss* m_boss = nullptr;
 	Scene();
 	~Scene();
+	bool disMovment = false;
+	static void loadMainMenu(Scene* sceneObject, bool* finished);
 	static void loadScene(Scene* sceneObject, std::string path, bool* finished);
 	static void loadTestLevel(Scene* sceneObject, bool* finished);
 	static void loadLobby(Scene* sceneObject, bool* finished);
@@ -102,6 +106,7 @@ public:
 	void removeEntity(std::string identifier);
 
 	bool addedBarrel = false;
+	bool gameStarted = false;
 
 	bool addComponent(Entity* entity, std::string componentIdentifier, Component* component);
 	void addMeshComponent(MeshComponent* component);
@@ -110,11 +115,11 @@ public:
 
 	int getSceneID();
 
-	
+
 	void removeLightComponent(LightComponent* component);
 	void removeLightComponentFromMap(LightComponent* component);
 	void createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false);
-	
+
 
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	std::unordered_map<std::string, LightComponent*>* getLightMap();

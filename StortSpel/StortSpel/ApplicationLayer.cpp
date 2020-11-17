@@ -50,17 +50,17 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		// Thread mode has been chosen before, this HRESULT error should be ignored
 	}
 	AudioHandler::get().initialize(m_window);
-	
+
 	//PhysX
 	m_physics = &Physics::get();
 	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
-	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input);
+	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input, &m_window);
 
 	Engine::get().initialize(&m_input);
 	m_enginePtr = &Engine::get();
-
-
+	m_scenemanager.setContextPtr(m_input.getIContextPtr());
 	m_scenemanager.initalize();
+
 	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 
 	srand(static_cast <unsigned> (time(0)));
@@ -121,7 +121,7 @@ void ApplicationLayer::RedirectIOToConsole()
 void ApplicationLayer::applicationLoop()
 {
 	MSG msg = { };
-	while (WM_QUIT != msg.message)
+	while (WM_QUIT != msg.message && !m_scenemanager.endGame)
 	{
 
 		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) // Message loop
@@ -139,11 +139,11 @@ void ApplicationLayer::applicationLoop()
 			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
-
 			m_input.readBuffers();
 			m_physics->update(m_dt);
+
 			m_enginePtr->update(m_dt);
-			PerformanceTester::get().runPerformanceTestsGui(m_dt);
+			//PerformanceTester::get().runPerformanceTestsGui(m_dt);
 			m_scenemanager.updateScene(m_dt);
 			AudioHandler::get().update(m_dt);
 			m_rendererPtr->update(m_dt);

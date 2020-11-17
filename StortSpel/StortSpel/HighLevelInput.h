@@ -9,6 +9,8 @@ enum Action
 	ROLL,
 	USEPICKUP,
 	PLAYSOUND,
+	SWAP_SCENES,
+	PAUSE,
 	TEST_SCENE,
 	LOAD_SCENE,
 	LOAD_TEST_SCENE,
@@ -29,4 +31,3 @@ enum Range
 	RAW,
 	REL,
 };
-
