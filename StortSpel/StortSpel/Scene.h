@@ -94,7 +94,7 @@ public:
 	static void loadTestLevel(Scene* sceneObject, bool* finished);
 	static void loadLobby(Scene* sceneObject, bool* finished);
 	static void loadArena(Scene* sceneObject, bool* finished);
-	void loadMaterialTest(bool* finished);
+	static void loadMaterialTest(Scene* sceneObject, bool* finished);
 	void updateScene(const float &dt);
 	Vector3 getEntryPosition();
 	Entity* getEntity(std::string key);

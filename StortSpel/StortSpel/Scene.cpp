@@ -401,7 +401,7 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 	}
 
 	sceneObject->createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
-	*finished = true;
+	*finished = true; //Inform the main thread that the loading is complete.
 }
 
 void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
@@ -509,7 +509,7 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 
 
 	delete[] levelData;
-	*finished = true;
+	*finished = true; //Inform the main thread that the loading is complete.
 }
 
 void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
@@ -696,7 +696,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->createSpotLight(Vector3(-11, 50, 275), Vector3(-35, 0, 0), Vector3(1, 0, 0), 0.3);
 
-	*finished = true;
+	*finished = true; //Inform the main thread that the loading is complete.
 }
 
 void Scene::loadArena(Scene* sceneObject, bool* finished)
@@ -806,7 +806,7 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 	sceneObject->m_nightSlide = 0.01f;
 	sceneObject->m_nightVolume = 0.2f;
 
-	*finished = true;
+	*finished = true; //Inform the main thread that the loading is complete.
 }
 
 // Private functions:
@@ -894,7 +894,7 @@ void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 sca
 	}
 }
 
-void Scene::loadMaterialTest(bool* finished)
+void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 {
 	Entity* entity;
 
@@ -911,10 +911,10 @@ void Scene::loadMaterialTest(bool* finished)
 	for (size_t i = 0; i < 7; i++)
 	{
 		std::string currentSphereName = ("PBRSphereMaterial" + std::to_string(i));
-		m_entities[currentSphereName] = addEntity(currentSphereName);
-		if (m_entities[currentSphereName])
+		sceneObject->m_entities[currentSphereName] = sceneObject->addEntity(currentSphereName);
+		if (sceneObject->m_entities[currentSphereName])
 		{
-			entity = m_entities[currentSphereName];
+			entity = sceneObject->m_entities[currentSphereName];
 			Material PBRMatTextured;
 			PBRMatTextured.addTexture(L"skybox1IR.dds", true);
 			PBRMatTextured.addTexture(L"skybox1.dds", true);
@@ -928,7 +928,7 @@ void Scene::loadMaterialTest(bool* finished)
 
 			PBRMatTextured.setTextured(1);
 
-			addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, { PBRMatTextured }));
+			sceneObject->addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, { PBRMatTextured }));
 
 			float moveDistance = -5.f;
 			entity->translate({ moveDistance * i + 30.f, 2.f, 20.f });
@@ -942,10 +942,10 @@ void Scene::loadMaterialTest(bool* finished)
 	for (size_t i = 0; i < 25; i++)
 	{
 		std::string currentSphereName = ("PBRSphere" + std::to_string(i));
-		m_entities[currentSphereName] = addEntity(currentSphereName);
-		if (m_entities[currentSphereName])
+		sceneObject->m_entities[currentSphereName] = sceneObject->addEntity(currentSphereName);
+		if (sceneObject->m_entities[currentSphereName])
 		{
-			entity = m_entities[currentSphereName];
+			entity = sceneObject->m_entities[currentSphereName];
 			Material PBRMatUntextured;
 			PBRMatUntextured.addTexture(L"skybox1IR.dds", true);
 			PBRMatUntextured.addTexture(L"skybox1.dds", true);
@@ -962,7 +962,7 @@ void Scene::loadMaterialTest(bool* finished)
 			PBRMatUntextured.setRoughness(xCounter * 0.18 + 0.1);
 			PBRMatUntextured.setTextured(0);
 
-			addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMatUntextured));
+			sceneObject->addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMatUntextured));
 
 			float moveDistance = 5.f;
 			entity->translate({ moveDistance * xCounter, moveDistance * yCounter - 3.f, 0.f });
@@ -970,13 +970,13 @@ void Scene::loadMaterialTest(bool* finished)
 		}
 	}
 
-	Entity* skybox = addEntity("SkyBox");
+	Entity* skybox = sceneObject->addEntity("SkyBox");
 	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"skybox1.dds", true);
-		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		sceneObject->addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
 	}
 
@@ -1001,20 +1001,20 @@ void Scene::loadMaterialTest(bool* finished)
 	for (size_t i = 0; i < 4; i++)
 	{
 		std::string currentPointLightName = ("PointLight" + std::to_string(i));
-		m_entities[currentPointLightName] = addEntity(currentPointLightName);
-		if (m_entities[currentPointLightName])
+		sceneObject->m_entities[currentPointLightName] = sceneObject->addEntity(currentPointLightName);
+		if (sceneObject->m_entities[currentPointLightName])
 		{
-			entity = m_entities[currentPointLightName];
+			entity = sceneObject->m_entities[currentPointLightName];
 			std::string currentPointLightComponentName = ("PointLightTestPointLight" + std::to_string(i));
-			addComponent(m_entities[currentPointLightName], currentPointLightComponentName, new LightComponent());
-			dynamic_cast<LightComponent*>(m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setColor(XMFLOAT3(1, 1, 1));
-			dynamic_cast<LightComponent*>(m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setIntensity(pointLightIntensities[i]);
+			sceneObject->addComponent(sceneObject->m_entities[currentPointLightName], currentPointLightComponentName, new LightComponent());
+			dynamic_cast<LightComponent*>(sceneObject->m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setColor(XMFLOAT3(1, 1, 1));
+			dynamic_cast<LightComponent*>(sceneObject->m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setIntensity(pointLightIntensities[i]);
 			//engine->addComponent(entity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"T_CircusTent_D.png" })));
 			entity->translate(pointLightPositions[i]);
 		}
 	}
 
-
+	*finished = true;
 }
 
 void Scene::updateScene(const float& dt)

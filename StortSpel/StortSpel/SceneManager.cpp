@@ -21,9 +21,9 @@ void SceneManager::initalize()
 	// Start Scene
 	*m_nextSceneReady = false;
 	m_currentScene = new Scene();
-	Scene::loadLobby(m_currentScene, m_nextSceneReady);
-	*m_nextSceneReady = false; //Just because init
-	//m_currentScene->loadArena();
+	Scene::loadLobby(m_currentScene, m_nextSceneReady); //Single thread first load-in.
+	*m_nextSceneReady = false; //Because init is required
+
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
 	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
@@ -43,33 +43,34 @@ void SceneManager::updateScene(const float &dt)
 	{
 		std::cout << "new scene" << std::endl;
 		m_nextScene = new Scene();
-		std::thread myThread;
+		std::thread sceneLoaderThread;
 		switch (m_nextSceneEnum)
 		{
 		case ScenesEnum::LOBBY:
-			Scene::loadLobby(m_nextScene, m_nextSceneReady);
+			sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+
 			//Reset game variables that are needed here
 			Engine::get().getPlayerPtr()->setScore(0);
 			m_gameStarted = false;
-			loadNextSceneWhenReady = true;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			break;
 		case ScenesEnum::START:
-			Scene::loadScene(m_nextScene, "Ogorki", m_nextSceneReady);
-			loadNextSceneWhenReady = true;
+			sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Ogorki", m_nextSceneReady);
+			sceneLoaderThread.detach();
+
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			break;
 		case ScenesEnum::ARENA:
-			myThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
-			myThread.detach();
+			sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
 
-			//swapScenes();
 			m_gameStarted = true;
-			loadNextSceneWhenReady = true;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			break;
 		default:
 			break;
 		}
-
-		//swapScenes();
 	}
 
 		swapScenes();
@@ -85,37 +86,31 @@ void SceneManager::inputUpdate(InputData& inputData)
 			if (!m_gameStarted)
 			{
 				m_nextScene = new Scene();
-				//Scene::loadTestLevel(m_nextScene);
 
-				std::thread myThread(Scene::loadTestLevel, m_nextScene, m_nextSceneReady);
-				myThread.detach();
+				std::thread sceneLoaderThread(Scene::loadTestLevel, m_nextScene, m_nextSceneReady);
+				sceneLoaderThread.detach();
 
-				//swapScenes();
 				m_gameStarted = true;
-				loadNextSceneWhenReady = true;
+				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			}
 		}
 		else if (inputData.actionData[i] == LOAD_SCENE)
 		{
 			m_nextScene = new Scene();
-			//Scene::loadScene(m_nextScene, "levelMeshTest", m_nextSceneReady);
-			//m_nextScene->loadArena(m_nextSceneReady);
-			std::thread myThread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
-			myThread.detach();
+			std::thread sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
 
 			m_gameStarted = false;
-			loadNextSceneWhenReady = true;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 		}
 		else if (inputData.actionData[i] == LOAD_TEST_SCENE)
 		{
 			m_nextScene = new Scene();
-			//Scene::loadScene(m_nextScene, "levelMeshTest", m_nextSceneReady);
-			//m_nextScene->loadArena(m_nextSceneReady);
-			std::thread myThread(Scene::loadTestLevel, m_nextScene, m_nextSceneReady);
-			myThread.detach();
+			std::thread sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
 
-			m_gameStarted = false;
-			loadNextSceneWhenReady = true;
+			m_gameStarted = true;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 		}
 	}
 }
@@ -162,10 +157,10 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 void SceneManager::swapScenes()
 {
 	m_swapScene = false;
-	if (*m_nextSceneReady == true && loadNextSceneWhenReady)
+	if (*m_nextSceneReady == true && m_loadNextSceneWhenReady)
 	{
 		*m_nextSceneReady = false;
-		loadNextSceneWhenReady = false;
+		m_loadNextSceneWhenReady = false;
 		Physics::get().Detach(m_currentScene, false, true);
 	
 		//Reset boss

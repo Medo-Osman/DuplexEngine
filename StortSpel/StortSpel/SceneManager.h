@@ -14,11 +14,9 @@ private:
 	bool m_gameStarted;
 	bool m_swapScene;
 	bool* m_nextSceneReady = new bool;
-	bool loadNextSceneWhenReady = false;
+	bool m_loadNextSceneWhenReady = false;
 	ScenesEnum m_nextSceneEnum;
 
-	//std::shared_future<void> result;
-	//std::vector<std::future<void>> futures;
 public:
 	SceneManager();
 	~SceneManager();
