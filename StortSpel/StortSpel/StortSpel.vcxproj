@@ -264,6 +264,7 @@
     <ClInclude Include="Boss.h" />
     <ClInclude Include="BarrelComponent.h" />
     <ClInclude Include="BarrelTriggerComponent.h" />
+    <ClInclude Include="BossSegment.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CharacterControllerComponent.h" />

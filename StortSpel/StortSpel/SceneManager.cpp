@@ -155,7 +155,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 		else if (inputData.actionData[i] == LOAD_TEST_SCENE)
 		{
 			m_nextScene = new Scene();
-			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 
 			m_gameStarted = true;
