@@ -318,7 +318,7 @@ bool Player::pickupUpdate(Pickup* pickupPtr, const float& dt)
 				}
 				break;
 			case PickupType::HEIGHTBOOST:
-				if (m_state != PlayerState::FALLING)
+				if (m_state == PlayerState::FALLING )
 				{
 					pickupPtr->onDepleted();
 					shouldRemovePickup = true;
@@ -372,6 +372,7 @@ void Player::updatePlayer(const float& dt)
 
 	ImGui::Begin("Player Information", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 	ImGui::Text("Player Position: (%d %d, %d)", (int)this->getPlayerEntity()->getTranslation().x, (int)this->getPlayerEntity()->getTranslation().y, (int)this->getPlayerEntity()->getTranslation().z);
+	ImGui::Text("PlayerState: %d", this->m_state);
 	ImGui::End();
 }
 
@@ -594,8 +595,10 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 					m_speedModifierTime = 0;
 					break;
 				case PickupType::HEIGHTBOOST:
-					if((bool)physicsData.intData) //fromPickup -true/false
+					if ((bool)physicsData.intData) //fromPickup -true/false
+					{
 						shouldTriggerEntityBeRemoved = true;
+					}	
 					else
 					{
 						jump(false);
@@ -613,23 +616,27 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				{
 					Pickup* pickupPtr = getCorrectPickupByID(physicsData.associatedTriggerEnum);
 					pickupPtr->setModifierValue(physicsData.floatData);
-					pickupPtr->onPickup(m_playerEntity);
-					if (pickupPtr->shouldActivateOnPickup() || environmenPickup)
-						pickupPtr->onUse();
+
 
 					if (environmenPickup)
 					{
+
 						if (m_environmentPickup) //If we already have an environmentpickup (SInce they can be force added, we need to, if it exist, remove the "old" enironmentPickup.
 						{
 							m_environmentPickup->onRemove();
 							delete m_environmentPickup;
 							m_environmentPickup = nullptr;
 						}
+						pickupPtr->onPickup(m_playerEntity);
+						pickupPtr->onUse();
 						m_environmentPickup = pickupPtr;
 					}
 					else
 					{
 						m_pickupPointer = pickupPtr;
+						pickupPtr->onPickup(m_playerEntity);
+						if (pickupPtr->shouldActivateOnPickup())
+							pickupPtr->onUse();
 					}
 				}
 			}
