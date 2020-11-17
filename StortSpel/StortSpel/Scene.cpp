@@ -344,12 +344,12 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 			new FlippingComponent(test2, 1, 1));
 	}
 
-	Entity* test3 = addEntity("test3"); // Emissive Test Material 3
+	Entity* test3 = sceneObject->addEntity("test3"); // Emissive Test Material 3
 	if (test3)
 	{
 		mat = Material({ L"DarkGrayTexture.png", L"GlowTexture.png" });
 		mat.setEmissiveStrength(20.f);
-		addComponent(test3, "mesh",
+		sceneObject->addComponent(test3, "mesh",
 			new MeshComponent("GlowCube.lrm",
 				EMISSIVE,
 				mat
@@ -359,19 +359,19 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 		test3->setScale({ 5, 5, 5 });
 		test3->setPosition({ -8, 2, 5 });
 
-		createNewPhysicsComponent(test3, true);
+		sceneObject->createNewPhysicsComponent(test3, true);
 		static_cast<PhysicsComponent*>(test3->getComponent("physics"))->makeKinematic();
 
-		addComponent(test3, "flipp",
+		sceneObject->addComponent(test3, "flipp",
 			new FlippingComponent(test3, 1, 1));
 	}
 
-	Entity* test4 = addEntity("test4"); // Emissive Test Material 4
+	Entity* test4 = sceneObject->addEntity("test4"); // Emissive Test Material 4
 	if (test4)
 	{
 		mat = Material({ L"DarkGrayTexture.png", L"ButtonStart.png" });
 		mat.setEmissiveStrength(90.f);
-		addComponent(test4, "mesh",
+		sceneObject->addComponent(test4, "mesh",
 			new MeshComponent("GlowCube.lrm",
 				EMISSIVE,
 				mat
@@ -381,10 +381,10 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 		test4->setScale({ 5, 5, 5 });
 		test4->setPosition({ -16, 2, 5 });
 
-		createNewPhysicsComponent(test4, true);
+		sceneObject->createNewPhysicsComponent(test4, true);
 		static_cast<PhysicsComponent*>(test4->getComponent("physics"))->makeKinematic();
 
-		addComponent(test4, "flipp",
+		sceneObject->addComponent(test4, "flipp",
 			new FlippingComponent(test4, 1, 1));
 	}
 

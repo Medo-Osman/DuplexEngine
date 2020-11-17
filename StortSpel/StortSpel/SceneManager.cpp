@@ -41,7 +41,6 @@ void SceneManager::updateScene(const float &dt)
 {
 	if (m_swapScene)
 	{
-		std::cout << "new scene" << std::endl;
 		m_nextScene = new Scene();
 		std::thread sceneLoaderThread;
 		switch (m_nextSceneEnum)
@@ -73,7 +72,7 @@ void SceneManager::updateScene(const float &dt)
 		}
 	}
 
-		swapScenes();
+	swapScenes();
 	m_currentScene->updateScene(dt);
 }
 
@@ -106,7 +105,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 		else if (inputData.actionData[i] == LOAD_TEST_SCENE)
 		{
 			m_nextScene = new Scene();
-			std::thread sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
 			sceneLoaderThread.detach();
 
 			m_gameStarted = true;
@@ -184,6 +183,4 @@ void SceneManager::swapScenes()
 		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), 1.75f, 0.5, "human");
 		ccc->setPosition(m_currentScene->getEntryPosition());
 	}
-
-	//std::cout << "Ready: " << *m_nextSceneReady << std::endl;
 }
