@@ -216,7 +216,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.Windowed = true; //Windowed or fullscreen
 	sChainDesc.BufferDesc.Height = m_settings.height; //Size of buffer in pixels, height
 	sChainDesc.BufferDesc.Width = m_settings.width; //Size of window in pixels, width
-	sChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //DXGI Format, 8 bits for Red, green, etc
+	sChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; //DXGI Format, 8 bits for Red, green, etc
 	sChainDesc.BufferDesc.RefreshRate.Numerator = 60; //IF vSync is enabled and fullscreen, this specifies the max refreshRate
 	sChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	sChainDesc.SampleDesc.Quality = 0;
@@ -411,25 +411,22 @@ void Renderer::calculateBloomWeights()
 {
 	this->m_blurData.direction = 0;
 	this->m_blurData.radius = BLUR_RADIUS;
-	// Blur Pass Calculate Weights
-	float sigma = this->m_weightSigma;
-	float twoSigmaSq = 2 * sigma * sigma;
 
-	// Used to normalize the weights
+	// Blur Pass Calculate Weights
 	float sum = 0.f;
-	for (size_t i = 0; i < BLUR_RADIUS; ++i)
+	float newSum = 0.f;
+	float twoSigmaSq = 2 * m_weightSigma * m_weightSigma; // pow(m_weightSigma, 2.f)
+
+	for (size_t i = 0; i <= BLUR_RADIUS; ++i)
 	{
-		this->m_blurData.weights[i] = (1.f / 2 * sigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
-		// Add 2 times to sum because we only compute half of the curve(1 dimension)
-		sum += 2 * this->m_blurData.weights[i];
+		float temp = (1.f / m_weightSigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
+		m_blurData.weights[i] = temp;
+		sum += 2 * temp; // Add 2 times to sum because we only compute half of the curve(1 dimension)
 	}
-	// First weight has been added twice, subtract one
 	sum -= this->m_blurData.weights[0];
 
-	// We normalize all entries using the sum so that the entire kernel gives us a sum of coefficients = 0
-	float normalizationFactor = 1.f / sum;
-	for (size_t i = 0; i < BLUR_RADIUS; ++i)
-		this->m_blurData.weights[i] *= normalizationFactor;
+	for (int i = 0; i <= BLUR_RADIUS; ++i)
+		m_blurData.weights[i] /= sum;
 }
 
 void Renderer::downSamplePass()
@@ -442,13 +439,11 @@ void Renderer::downSamplePass()
 	m_dContextPtr->PSSetShader(NULL, NULL, 0);
 
 	m_dContextPtr->CSSetShader(m_CSDownSample.Get(), 0, 0);
-	m_dContextPtr->CSSetShaderResources(0, 1, m_geometryShaderResourceView.GetAddressOf());
-	m_dContextPtr->CSSetShaderResources(1, 1, m_glowMapShaderResourceView.GetAddressOf());
+	m_dContextPtr->CSSetShaderResources(0, 1, m_glowMapShaderResourceView.GetAddressOf());
 	m_dContextPtr->CSSetUnorderedAccessViews(0, 1, m_downSampledUnorderedAccessView.GetAddressOf(), 0);
 	m_dContextPtr->Dispatch(m_settings.width / 16, m_settings.height / 16, 1);
 
 	m_dContextPtr->CSSetShaderResources(0, 1, &nullSrv);
-	m_dContextPtr->CSSetShaderResources(1, 1, &nullSrv);
 	m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &nullUav, 0);
 }
 
@@ -595,11 +590,12 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 					meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
 					m_currentSetMaterialId = meshMatPtr->getMaterialId();
 
-					MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
-					currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
-					currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
-					currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
-					currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+				MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+				currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+				currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+				currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+				currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+				currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
 
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
@@ -685,7 +681,7 @@ void Renderer::rasterizerSetup()
 	ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 
 	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
-	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
 
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");

@@ -101,12 +101,14 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 	if (name == "")
 		name = "score_" + std::to_string(m_nrOfScore++);
 
+	Material mat;
+	mat.setEmissiveStrength(100.f);
 	Entity* pickupPtr = addEntity(name);
 
 	ParticleComponent* particleComponent = new ParticleComponent(pickupPtr, new ScorePickupParticle());
 
 	pickupPtr->setPosition(position);
-	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST));
+	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST, mat));
 	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6, particleComponent));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
@@ -194,7 +196,7 @@ void Scene::addBarrelDrop(Vector3 Position)
 	if (rollingBarrel)
 	{
 		addComponent(rollingBarrel, "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
+			new MeshComponent("Barrel.lrm", Material({ L"DarkGrayTexture.png" })));
 
 		rollingBarrel->setPosition(Position);
 		createNewPhysicsComponent(rollingBarrel, true, "", PxGeometryType::eSPHERE, "wood", true);
@@ -295,19 +297,20 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-
-
-
-	Entity* test = sceneObject->addEntity("test");
+	Material mat({ L"DarkGrayTexture.png", L"GlowTexture.png" });
+	Entity* test = sceneObject->addEntity("test"); // Emissive Test Material 1
 	if (test)
 	{
+		mat.setEmissiveStrength(100.f);
 		sceneObject->addComponent(test, "mesh",
 			new MeshComponent("GlowCube.lrm",
-			EMISSIVE,
-			Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
+				EMISSIVE,
+				mat
+			)
+		);
 
 		test->setScale({ 5, 5, 5 });
-		test->setPosition({ 9, 2, 10 });
+		test->setPosition({ 8, 2, 5 });
 
 		sceneObject->createNewPhysicsComponent(test, true);
 		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
@@ -319,15 +322,20 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 		test->addComponent("3Dsound", new AudioComponent(L"fireplace.wav", true, 3.f, 0.f, true, test));
 	}
 
-	Entity* test2 = sceneObject->addEntity("test2");
+	Entity* test2 = sceneObject->addEntity("test2"); // Emissive Test Material 2
 	if (test2)
 	{
+		mat = Material({ L"DarkGrayTexture.png", L"GlowTexture.png" });
+		mat.setEmissiveStrength(50.f);
 		sceneObject->addComponent(test2, "mesh",
 			new MeshComponent("GlowCube.lrm",
-				Material({ L"DarkGrayTexture.png" })));
+				EMISSIVE,
+				mat
+			)
+		);
 
 		test2->setScale({ 5, 5, 5 });
-		test2->setPosition({ -9, 2, 10 });
+		test2->setPosition({ 0, 2, 5 });
 
 		sceneObject->createNewPhysicsComponent(test2, true);
 		static_cast<PhysicsComponent*>(test2->getComponent("physics"))->makeKinematic();
@@ -336,8 +344,49 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 			new FlippingComponent(test2, 1, 1));
 	}
 
+	Entity* test3 = addEntity("test3"); // Emissive Test Material 3
+	if (test3)
+	{
+		mat = Material({ L"DarkGrayTexture.png", L"GlowTexture.png" });
+		mat.setEmissiveStrength(20.f);
+		addComponent(test3, "mesh",
+			new MeshComponent("GlowCube.lrm",
+				EMISSIVE,
+				mat
+			)
+		);
 
+		test3->setScale({ 5, 5, 5 });
+		test3->setPosition({ -8, 2, 5 });
 
+		createNewPhysicsComponent(test3, true);
+		static_cast<PhysicsComponent*>(test3->getComponent("physics"))->makeKinematic();
+
+		addComponent(test3, "flipp",
+			new FlippingComponent(test3, 1, 1));
+	}
+
+	Entity* test4 = addEntity("test4"); // Emissive Test Material 4
+	if (test4)
+	{
+		mat = Material({ L"DarkGrayTexture.png", L"ButtonStart.png" });
+		mat.setEmissiveStrength(90.f);
+		addComponent(test4, "mesh",
+			new MeshComponent("GlowCube.lrm",
+				EMISSIVE,
+				mat
+			)
+		);
+
+		test4->setScale({ 5, 5, 5 });
+		test4->setPosition({ -16, 2, 5 });
+
+		createNewPhysicsComponent(test4, true);
+		static_cast<PhysicsComponent*>(test4->getComponent("physics"))->makeKinematic();
+
+		addComponent(test4, "flipp",
+			new FlippingComponent(test4, 1, 1));
+	}
 
 	Entity* sign = sceneObject->addEntity("sign");
 	if(sign)
@@ -362,7 +411,7 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		sceneObject->addComponent(skybox, "cube",
-			new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+			new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 				//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 
@@ -385,7 +434,7 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 				Material({ L"DarkGrayTexture.png" }),
 				Material({ L"Green.jpg" }),
 				Material({ L"GrayTexture.png" }),
-				Material({ L"ibl_brdf_lut.png", L"ibl_brdf_lut.png" }),
+				Material({ L"ibl_brdf_lut.png", L"ibl_brdf_lut.png" }, MATERIAL_CONST_BUFFER({1.0f, 0.5f, 0.f, 0, 100.f})),
 				Material({ L"T_GridTestTex.bmp" }),
 				Material({ L"T_tempTestDog.jpeg" }),
 				Material({ L"ButtonStart.png" }),
@@ -674,7 +723,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		sceneObject->addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
@@ -787,7 +836,7 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		sceneObject->addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

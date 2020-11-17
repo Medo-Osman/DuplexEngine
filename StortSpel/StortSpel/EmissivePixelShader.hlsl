@@ -48,6 +48,15 @@ cbuffer perModel : register(b2)
     float4x4 wvpMatrix;
 };
 
+cbuffer MaterialBuffer : register(b3)
+{
+    float materialUVScale;
+    float materialRoughness;
+    float materialMetallic;
+    int materialTextured;
+    float materialEmissiveStrength;
+}
+
 struct ps_in
 {
     float4 pos : SV_POSITION;
@@ -126,13 +135,17 @@ lightComputeResult computeLightFactor(ps_in input)
 ps_out main(ps_in input) : SV_TARGET
 {
     ps_out output;
-    
-    float4 emissive = emissiveTexture.Sample(sampState, input.uv);
     lightComputeResult lightResult = computeLightFactor(input);
     
-    output.diffuse = float4(lightResult.lightColor, 1) + emissive;
-    output.glow = emissive;
+    // Emissive color
+    float4 emissive = emissiveTexture.Sample(sampState, input.uv);
+    float emissiveScalar = materialEmissiveStrength / 100.f;
+    float3 emStrengthColor = float3(emissiveScalar, emissiveScalar, emissiveScalar);
+    output.glow = float4(emissive.rgb * emissiveScalar, 1.f);
+    
+    // Diffuse color
+    float3 diffuse = lightResult.lightColor * (1.f - length(emissive.rgb));
+    output.diffuse = float4(diffuse, 1.f) + float4(emissive.rgb + (emStrengthColor * length(emissive.rgb)), 1.f);
     
     return output;
-
 }

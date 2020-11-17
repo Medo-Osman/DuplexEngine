@@ -7,18 +7,16 @@ Material::Material()
 	ID3D11ShaderResourceView* errorTexturePtr = ResourceHandler::get().loadErrorTexture();
 	for (int i = 0; i < 5; i++)
 		this->m_textureArray.push_back(errorTexturePtr);
-	
-	this->m_materialConstData.UVScale = 1.0f;
 }
 
-Material::Material(std::initializer_list<const WCHAR*> fileNames)
+Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData)
 	:m_materialId(++totalMaterialCount), isDefault(false)
 {
 	for (auto fileName : fileNames)
 	{
 		addTexture(fileName);
 	}
-	this->m_materialConstData.UVScale = 1.0f;
+	m_materialConstData = materialConstData;
 }
 
 Material::Material(const Material& other)
@@ -100,22 +98,62 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 
 void Material::setUVScale(float scale)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.UVScale = scale;
 }
 
 void Material::setRoughness(float roughness)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.roughness = roughness;
 }
 
 void Material::setMetallic(float metallic)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.metallic = metallic;
 }
 
 void Material::setTextured(int textured)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.textured = textured;
+}
+
+void Material::setEmissiveStrength(int emissiveStrength)
+{
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		isDefault = false;
+	}
+
+	this->m_materialConstData.emissiveStrength = emissiveStrength;
 }
 
 unsigned int long Material::getMaterialId()
