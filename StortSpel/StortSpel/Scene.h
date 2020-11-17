@@ -15,6 +15,7 @@ enum class ScenesEnum
 class Scene : public PhysicsObserver, public BossObserver
 {
 private:
+	int m_sceneID = -1;
 	int m_tempParticleID = 0;
 	//std::unordered_map<std::string, Entity*> m_entities;
 	//Entity* m_player;
@@ -60,7 +61,6 @@ private:
 	std::unordered_map<std::string, Entity*> m_entities;
 	std::unordered_map<unsigned int long, MeshComponent*> m_meshComponentMap;
 	std::unordered_map<std::string, LightComponent*> m_lightComponentMap;
-
 	std::vector<ParticleComponent*> m_tempParticleComponent;
 
 	void sendPhysicsMessage(PhysicsData& physicsData, bool& removed);
@@ -84,15 +84,17 @@ private:
 	int m_nrOfCheckpoints = 0;
 	int m_nrOfBarrelDrops = 0;
 	int m_nrOftraps = 0;
+
+	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
 public:
 	Boss* m_boss = nullptr;
 	Scene();
 	~Scene();
-	void loadScene(std::string path);
-	void loadTestLevel();
-	void loadLobby();
-	void loadArena();
-	void loadMaterialTest();
+	static void loadScene(Scene* sceneObject, std::string path, bool* finished);
+	static void loadTestLevel(Scene* sceneObject, bool* finished);
+	static void loadLobby(Scene* sceneObject, bool* finished);
+	static void loadArena(Scene* sceneObject, bool* finished);
+	static void loadMaterialTest(Scene* sceneObject, bool* finished);
 	void updateScene(const float &dt);
 	Vector3 getEntryPosition();
 	Entity* getEntity(std::string key);
@@ -106,6 +108,8 @@ public:
 	void addLightComponent(LightComponent* component);
 	void addBarrelDrop(Vector3 Position);
 
+	int getSceneID();
+
 	
 	void removeLightComponent(LightComponent* component);
 	void removeLightComponentFromMap(LightComponent* component);
@@ -116,6 +120,7 @@ public:
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 
+	void initDeferredPhysics();
 
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;

@@ -43,23 +43,19 @@ void Material::setMaterial(bool shaderNeedsResource[5], bool shaderNeedsCBuffer[
 {
 	/*if (shaderNeedsCBuffer[ShaderType::Vertex])
 		dContextPtr->VSSetConstantBuffers(2, 1, this->constBuffer.GetAddressOf());
-	
+
 	if (shaderNeedsCBuffer[ShaderType::Hull])
 		dContextPtr->HSSetConstantBuffers(2, 1, this->constBuffer.GetAddressOf());
-
 	if (shaderNeedsCBuffer[ShaderType::Domain])
 		dContextPtr->DSSetConstantBuffers(2, 1, this->constBuffer.GetAddressOf());
-
 	if (shaderNeedsCBuffer[ShaderType::Geometry])
 		dContextPtr->GSSetConstantBuffers(2, 1, this->constBuffer.GetAddressOf());
-
 	if (shaderNeedsCBuffer[ShaderType::Pixel])
 		dContextPtr->PSSetConstantBuffers(2, 1, this->constBuffer.GetAddressOf());
-		
+
 		To be more like the per model const buffer, there should be one constant buffer in renderer that gets sent in here as opposed
 		to the material having its own const buffer.
 		But I should ask if there should even be a per material const buffer in the first place.
-
 		(The way that the srvs get sent into set shader res is diffrent, could be trouble.)
 	*/
 
@@ -92,7 +88,7 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 		m_materialId = ++totalMaterialCount;
 		isDefault = false;
 	}
-	
+
 	this->m_textureArray.push_back(ResourceHandler::get().loadTexture(fileName, isCubeMap));
 }
 

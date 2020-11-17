@@ -1,6 +1,8 @@
 #pragma once
 #include "Scene.h"
 #include "Boss.h"
+#include <thread>
+#include <future>
 
 
 
@@ -11,7 +13,10 @@ private:
 	Scene* m_nextScene;
 	bool m_gameStarted;
 	bool m_swapScene;
+	bool* m_nextSceneReady = new bool;
+	bool m_loadNextSceneWhenReady = false;
 	ScenesEnum m_nextSceneEnum;
+
 public:
 	SceneManager();
 	~SceneManager();

@@ -27,7 +27,7 @@ Engine::~Engine()
 	//for (std::pair<std::string, Entity*> entity : m_entities)
 	//	delete entity.second;
 
-	m_entities->clear();
+	//m_entities->clear();
 }
 
 void Engine::update(const float& dt)
