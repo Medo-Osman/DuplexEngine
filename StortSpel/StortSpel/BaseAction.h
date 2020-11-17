@@ -1,6 +1,5 @@
 #pragma once
 #include "3DPCH.h"
-#include <functional>
 
 enum class BossMovementType {NONE, ShootProjectile, DropPoints, MoveTo };
 
@@ -61,62 +60,6 @@ namespace BossStructures
 		virtual void beginAction() = 0;
 		virtual void update(const float& dt) = 0;
 	};
-
-	//Should allow you to do PlatformArray[index][otherIndex], cannot do a dynamic 2D-array natively.
-	struct EntityArray //Holds entities
-	{
-		std::vector<Entity*> items;
-		EntityArray(int count)
-		{
-			for (int i = 0; i < count; i++)
-			{
-				//Init to null
-				items.push_back(nullptr);
-			}
-		}
-
-		~EntityArray()
-		{
-			for (int i = 0; i < items.size(); i++)
-			{
-				if (items[i] != nullptr) //Might not exist if something went wrong.
-				{
-					delete items[i];
-				}
-			}
-		}
-
-		Entity*& operator[](int index) 
-		{
-			return items[index];
-		}
-	};
-	struct PlatformArray //Holds entity arrays
-	{
-		std::vector<EntityArray*> columns;
-		PlatformArray(int count)
-		{
-			for (int i = 0; i < count; i++)
-			{
-				columns.push_back(new EntityArray(count));
-			}
-		}
-
-		~PlatformArray()
-		{
-			for (int i = 0; i < columns.size(); i++)
-			{
-				delete columns.at(i); //We know they exist already.
-			}
-		}
-
-
-		EntityArray& operator[](int index)
-		{
-			return *columns.at(index);
-		}
-	};
-
 
 }
 
