@@ -260,11 +260,6 @@ void Input::readBuffers()
 	}
 }
 
-void Input::updateMovementStates()
-{
-
-}
-
 void Input::addContext(iContext* context)
 {
 	m_contexts.emplace_back(context);
@@ -282,8 +277,6 @@ void Input::removeContext(iContext* context)
 		}
 	}
 }
-
-
 
 MouseEvent Input::getMouseEvent()
 {

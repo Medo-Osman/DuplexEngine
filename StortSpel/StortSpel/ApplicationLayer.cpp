@@ -49,7 +49,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	//PhysX
 	m_physics = &Physics::get();
 	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
-	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input);
+	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input, &m_window);
 
 	Engine::get().initialize(&m_input);
 	m_enginePtr = &Engine::get();
@@ -116,7 +116,7 @@ void ApplicationLayer::RedirectIOToConsole()
 void ApplicationLayer::applicationLoop()
 {
 	MSG msg = { };
-	while (WM_QUIT != msg.message)
+	while (WM_QUIT != msg.message && !m_scenemanager.endGame)
 	{
 
 		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) // Message loop
@@ -126,7 +126,7 @@ void ApplicationLayer::applicationLoop()
 		}
 		else // Render/Logic Loop
 		{
-
+			
 			this->m_dt = (float)m_timer.timeElapsed();
 			m_timer.restart();
 
@@ -137,7 +137,7 @@ void ApplicationLayer::applicationLoop()
 			m_physics->update(m_dt);
 
 			m_enginePtr->update(m_dt);
-			PerformanceTester::get().runPerformanceTestsGui(m_dt);
+			//PerformanceTester::get().runPerformanceTestsGui(m_dt);
 			m_scenemanager.updateScene(m_dt);
 			AudioHandler::get().update(m_dt);
 			m_rendererPtr->update(m_dt);
@@ -145,6 +145,7 @@ void ApplicationLayer::applicationLoop()
 		}
 	}
 	m_physics->release();
+	
 }
 
 

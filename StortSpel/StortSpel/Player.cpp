@@ -44,7 +44,7 @@ Player::Player()
 
 	//Test Button stuff
 	GUIButtonStyle btnStyle;
-	btnStyle.position = Vector2(140, 200);
+	btnStyle.position = Vector2(240, 200);
 	btnStyle.scale = Vector2(0.5, 0.5);
 	closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
 
@@ -432,6 +432,7 @@ void Player::inputUpdate(InputData& inputData)
 			break;
 		case CLOSEINTROGUI:
 			GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+			GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
 			break;
 		default:
 			break;

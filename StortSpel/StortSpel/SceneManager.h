@@ -25,6 +25,7 @@ public:
 	~SceneManager();
 	
 	bool m_gameStarted = false;
+	bool endGame = false;
 	void initalize();
 	void updateScene(const float &dt);
 

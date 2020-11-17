@@ -17,13 +17,13 @@ SceneManager::~SceneManager()
 
 void SceneManager::initalize()
 {
-
+	
 
 	//define gui button
 	GUIButtonStyle btnStyle;
 	//start button
-	btnStyle.position = Vector2(140, 200);
-	btnStyle.scale = Vector2(0.5, 0.5);
+	btnStyle.position = Vector2(140, 300);
+	btnStyle.scale = Vector2(1, 1);
 	m_singleplayerIndex = GUIHandler::get().addGUIButton(L"singleplayerBtn.png", btnStyle);
 
 	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_singleplayerIndex))->Attach(this);
@@ -75,11 +75,6 @@ void SceneManager::initalize()
 
 void SceneManager::updateScene(const float &dt)
 {
-	std::cout << m_currentScene->disMovment << std::endl;
-	/*if (m_currentScene->disMovment)
-	{
-		disableMovement();
-	}*/
 	if (m_swapScene)
 	{
 		
@@ -87,6 +82,7 @@ void SceneManager::updateScene(const float &dt)
 		switch (m_nextSceneEnum)
 		{
 		case ScenesEnum::LOBBY:
+			disableMovement();
 			m_nextScene->loadLobby();
 			//Reset game variables that are needed here
 			GUIHandler::get().setVisible(m_singleplayerIndex, true);
@@ -94,8 +90,6 @@ void SceneManager::updateScene(const float &dt)
 			GUIHandler::get().setVisible(m_joinGameIndex, true);
 			GUIHandler::get().setVisible(m_exitIndex, true);
 			Engine::get().getPlayerPtr()->setScore(0);
-			disableMovement();
-
 			break;
 		case ScenesEnum::START:
 			m_nextScene->loadScene("Ogorki");
@@ -106,6 +100,7 @@ void SceneManager::updateScene(const float &dt)
 			m_nextScene->loadArena();
 			break;
 		case ScenesEnum::MAINMENU:
+			disableMovement();
 			m_nextScene->loadMainMenu();
 			break;
 		case ScenesEnum::ENDSCENE:
@@ -257,19 +252,8 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		}
 	}
 
-	//if (type == GUIUpdateType::HOVER_ENTER)
-	//{
-	//	GUIButton* button = dynamic_cast<GUIButton*>(guiElement);
-	//	button->setTexture(L"exitbtn.png");
-	//}
-	//
 
-	//if (type == GUIUpdateType::HOVER_EXIT)
-	//{
-	//	GUIButton* button = dynamic_cast<GUIButton*>(guiElement);
-	//	button->setTexture(L"exitbtnhover.png");
-	//}
-
+	//Checks which button is being clicked
 	if (type == GUIUpdateType::CLICKED)
 	{
 		
@@ -293,7 +277,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		}
 		if (guiElement->m_index == m_exitIndex)
 		{
-			
+			endGame = true;
 			//do stuff
 		}
 		

@@ -83,12 +83,11 @@ public:
 	void addContext(iContext* context);
 	void removeContext(iContext* context);
 
-	void updateMovementStates();
-
 	MouseEvent getMouseEvent();
 	Keyboard* getKeyboard();
 	Mouse* getMouse();
 	std::vector<iContext*>* getIContextPtr();
+
 
 	void Attach(InputObserver* observer);
 	void Detach(InputObserver* observer);
