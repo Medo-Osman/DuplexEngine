@@ -594,7 +594,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1,1,1 });
 	}
 
-	Entity* stressObject = sceneObject->addEntity("stressObject");
+	/*Entity* stressObject = sceneObject->addEntity("stressObject");
 	if (stressObject)
 	{
 		sceneObject->addComponent(stressObject, "mesh",
@@ -602,7 +602,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 		stressObject->setPosition(0, 6, 0);
 
-	}
+	}*/
 
 
 
