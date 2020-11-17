@@ -170,7 +170,6 @@ public:
 			m_givenFirstScene = true;
 		}
 
-		m_scenes.emplace_back(createNewScene());
 		return id;
 	}
 
@@ -178,8 +177,28 @@ public:
 	{
 		if (id < m_scenes.size() && id > -1)
 		{
-			m_scenePtr = m_scenes.at(id);
+			int pos = -1;
+			
+			for (int i = 0; i < m_scenes.size(); i++)
+			{
+				if (m_scenes[i] == m_scenePtr)
+				{
+					pos = i;
+				}
+			}
+
+			for (int i = 0; i < m_actorsToRemoveAfterSimulation.size(); i++)
+			{
+				m_actorsToRemoveAfterSimulation.at(i)->release();
+				m_actorsToRemoveAfterSimulation.at(i) = nullptr;
+			}
+			m_actorsToRemoveAfterSimulation.clear();
+
 			m_controllManager->release();
+			m_scenes[pos]->release();
+			m_scenes[pos] = nullptr;
+
+			m_scenePtr = m_scenes.at(id);
 			m_controllManager = PxCreateControllerManager(*m_scenePtr);
 		}
 	}
