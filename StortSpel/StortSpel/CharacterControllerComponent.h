@@ -93,7 +93,7 @@ public:
 			return;
 		PxExtendedVec3 pos = m_controller->getFootPosition();
 
-		m_transform->setPosition(XMFLOAT3(pos.x, pos.y, pos.z ));
+		m_transform->setPosition(XMFLOAT3((float)pos.x, (float)pos.y, (float)pos.z ));
 		//m_transform->setPosition(XMFLOAT3(position.x, position.y, position.z ));
 	}
 	

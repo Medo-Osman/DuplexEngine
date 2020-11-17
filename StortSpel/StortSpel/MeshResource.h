@@ -78,7 +78,7 @@ public:
 		if (m_materialOffsets.empty())
 			return 1;
 		else
-			return m_materialOffsets.size();
+			return (int)m_materialOffsets.size();
 	}
 	
 	std::pair<std::uint32_t, std::uint32_t> getMaterialOffsetAndSize(int materialIndex)

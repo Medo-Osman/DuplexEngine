@@ -319,7 +319,7 @@ void ShaderProgram::inputLayoutSetup(VertexLayoutType inputLayoutType, Microsoft
 	
 	HRESULT hr = m_devicePtr->CreateInputLayout(
 		input_element_desc,
-		layoutArraySize,
+		(UINT)layoutArraySize,
 		VSBlob->GetBufferPointer(),
 		VSBlob->GetBufferSize(),
 		m_inputLayout.GetAddressOf()

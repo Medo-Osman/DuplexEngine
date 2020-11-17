@@ -144,7 +144,7 @@ void Material::setTextured(int textured)
 	this->m_materialConstData.textured = textured;
 }
 
-void Material::setEmissiveStrength(int emissiveStrength)
+void Material::setEmissiveStrength(float emissiveStrength)
 {
 	if (isDefault)
 	{

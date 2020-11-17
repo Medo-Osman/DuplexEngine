@@ -44,7 +44,7 @@ void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext,
 
 int GUIHandler::addGUIButton(std::wstring buttonTextureString, GUIButtonStyle style)
 {
-	int index = m_elements.size();
+	int index = (int)m_elements.size();
 	GUIButton* image = new GUIButton(buttonTextureString, style);
 	image->m_index = index;
 	image->setTexture(buttonTextureString);
@@ -70,7 +70,7 @@ int GUIHandler::addGUIText(std::string textString, std::wstring fontName, GUITex
 	}
 
 	// Text Element
-	int index = m_elements.size();
+	int index = (int)m_elements.size();
 	GUIText* text = new GUIText();
 	text->m_index = index;
 	text->setText(textString, m_fonts[fontName], style);
@@ -89,7 +89,7 @@ void GUIHandler::changeGUIText(int index, std::string newTextString)
 int GUIHandler::addGUIImage(std::wstring textureString, GUIImageStyle style)
 {
 	// Gui Element
-	int index = m_elements.size();
+	int index = (int)m_elements.size();
 	GUIImageLabel* image = new GUIImageLabel(textureString, style);
 	image->m_index = index;
 	image->setTexture(textureString);

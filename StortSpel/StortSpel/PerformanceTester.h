@@ -32,7 +32,7 @@ private:
 			//pmc returns page memory used in bytes, split by 1000 to get kb, 1000 again to get mb.
 			return float(pmc.PagefileUsage / 1000.0 / 1000.0); //Mb
 		}
-
+		return -1.f;
 	}
 
 	float checkVram()

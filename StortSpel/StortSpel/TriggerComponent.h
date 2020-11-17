@@ -53,7 +53,7 @@ public:
 		m_physicsData.pointer = pointer;
 		m_physicsData.stringData = stringData;
 		m_physicsData.floatData = floatData;
-		m_physicsData.intData = floatData;
+		m_physicsData.intData = intData;
 	}
 
 	void setEventPointer(void* ptr)

@@ -42,7 +42,7 @@ cbuffer shadowMap : register(b3)
 };
 
 
-vs_out main(vs_in input, in uint vID : SV_VertexID)
+vs_out main(vs_in input)
 {
     vs_out output;
     float4 localPosition;

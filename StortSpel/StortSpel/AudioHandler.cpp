@@ -75,7 +75,7 @@ int AudioHandler::addSoundInstance(const WCHAR* name, bool isLooping, float volu
 {
 	SoundEffect* soundEffect = ResourceHandler::get().loadSound(name, m_audioEngine.get());
 	SOUND_EFFECT_INSTANCE_FLAGS soundflags = SoundEffectInstance_Default;
-	int index = m_idNum++;
+	int index = (int)m_idNum++;
 
 	if (isPositional)
 	{
@@ -212,7 +212,7 @@ void AudioHandler::deleteSound(int index, bool isLooping)
 		}
 		
 		m_loopingSoundInstances[index]->Stop();
-		m_loopingSoundInstances[index].release();
+		delete m_loopingSoundInstances[index].release();
 		m_loopingSoundInstances.erase(index);
 	}
 	else
@@ -226,7 +226,7 @@ void AudioHandler::deleteSound(int index, bool isLooping)
 			ErrorLogger::get().logError(errormsg.c_str());
 			return;
 		}
-		m_soundInstances[index].release();
+		delete m_soundInstances[index].release();
 		m_soundInstances.erase(index);
 	}
 }

@@ -159,7 +159,7 @@ public:
 			m_audioComponents.back()->playSound();
 		}
 	}
-	virtual void onPickup(Entity* entityToDoEffectsOn, int duration)
+	virtual void onPickup(Entity* entityToDoEffectsOn, float duration)
 	{
 		m_timer = 0.f;
 		m_duration = duration;

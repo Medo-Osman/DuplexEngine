@@ -7,8 +7,8 @@ ApplicationLayer::ApplicationLayer()
 {
 	m_rendererPtr = nullptr;
 	m_window = 0;
-	this->width = 1920;
-	this->height = 1080;
+	m_width = 1920;
+	m_height = 1080;
 	m_dt = 0.f;
 	m_consoleFile = nullptr;
 }
@@ -83,9 +83,9 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 
 	RECT windowRect;
 	windowRect.left = 20;
-	windowRect.right = windowRect.left + this->width;
+	windowRect.right = windowRect.left + m_width;
 	windowRect.top = 20;
-	windowRect.bottom = windowRect.top + this->height;
+	windowRect.bottom = windowRect.top + m_height;
 	AdjustWindowRect(&windowRect, NULL, false);
 
 	// Create the window.
@@ -96,8 +96,8 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 		WS_OVERLAPPEDWINDOW,        // Window style
 		windowRect.left,			// Position, X
 		windowRect.top,				// Position, Y
-		(float)this->width,			// Width
-		(float)this->height,		// Height
+		m_width,					// Width
+		m_height,					// Height
 		NULL,						// Parent window
 		NULL,						// Menu
 		hInstance,					// Instance handle

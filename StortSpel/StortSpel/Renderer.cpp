@@ -404,6 +404,7 @@ HRESULT Renderer::initializeBloomFilter()
 
 	hr = m_devicePtr->CreateComputeShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, m_CSBlurr.GetAddressOf());
 	assert(SUCCEEDED(hr));
+	return hr;
 }
 
 void Renderer::calculateBloomWeights()
@@ -503,7 +504,7 @@ void Renderer::initRenderQuad()
 	fullScreenQuad.push_back({ XMFLOAT3(1.f, 1.f, 0.f), XMFLOAT2(1.f, 0.f) });
 	fullScreenQuad.push_back({ XMFLOAT3(1.f, -1.f, 0.f), XMFLOAT2(1.f, 1.f) });
 
-	m_renderQuadBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_VERTEX_BUFFER, fullScreenQuad.data(), fullScreenQuad.size());
+	m_renderQuadBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_VERTEX_BUFFER, fullScreenQuad.data(), (int)fullScreenQuad.size());
 }
 
 void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)

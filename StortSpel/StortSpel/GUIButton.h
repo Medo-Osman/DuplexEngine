@@ -81,8 +81,8 @@ public:
 	virtual void inputUpdate(InputData& inputData) override
 	{
 		//Mouse pos
-		float x = inputData.mousePtr->getPosX();
-		float y = inputData.mousePtr->getPosY();
+		float x = (float)inputData.mousePtr->getPosX();
+		float y = (float)inputData.mousePtr->getPosY();
 
 		//Check if mouse is hovering over button
 		if (x > m_style.position.x && x < (m_style.position.x + (m_textureWidth * m_style.scale.x))

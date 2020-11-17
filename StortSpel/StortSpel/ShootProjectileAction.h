@@ -13,7 +13,7 @@ private:
 
 	bool m_targetSet = false;
 public:
-	ShootProjectileAction(Entity* bossEntity, BossSubject* bossSubject, int howLongShouldActionLast = 10, int coolDownAfterAction = 5)
+	ShootProjectileAction(Entity* bossEntity, BossSubject* bossSubject, float howLongShouldActionLast = 10, float coolDownAfterAction = 5)
 		:BaseAction(bossEntity, bossSubject)
 	{
 		m_movementActionType = BossMovementType::ShootProjectile;
