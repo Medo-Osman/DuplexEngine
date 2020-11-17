@@ -24,97 +24,18 @@ void Boss::initialize(Entity* entity, bool destroyActionOnComplete)
 {
 	m_bossEntity = entity;
 	m_destroyActionOnComplete = destroyActionOnComplete;
-}
 
-UINT Boss::addAction(BossStructures::BaseAction* action)
-{
-	//Put at the back of the queue, FIFO applies. Back is actually front in this case as we always take 
-	//from the back.
-	m_actionQueue.insert(m_actionQueue.begin(), action);
-	action->m_actionID = m_uniqueActionID++;
-
-	if (m_currentAction == nullptr)
-		nextAction();//m_currentAction = action;
-
-	return action->m_actionID;
-}
- 
-void Boss::nextAction()
-{
-	if (m_actionQueue.size() > 0)
+	for (int x = 0; x < 10; x++)
 	{
-		if (m_destroyActionOnComplete)
+		for (int y = 0; y < 10; y++)
 		{
-			if (m_currentAction)
-				delete m_currentAction;
-
-			m_currentAction = m_actionQueue.back();
-			m_actionQueue.pop_back();
-			m_currentAction->beginAction();
-		}
-		else
-		{
-			//m_actionQueue.push_back(m_actionQueue.back());
-			if (m_currentAction)
-				m_actionQueue.insert(m_actionQueue.begin(), m_currentAction);
-
-			m_currentAction = m_actionQueue.back();
-			m_actionQueue.pop_back();
-			m_currentAction->beginAction();
+			platformArray[x][y] = new Entity("f");
 		}
 	}
-	else
-	{
-		m_currentAction = nullptr;
-		ErrorLogger::get().logError(L"Boss error - No other action to switch to!");
-	}
+
+	std::cout << "test" << std::endl;
 }
 
-BossStructures::BaseAction* Boss::getCurrentAction()
-{
-	return m_currentAction;
-}
-
-std::vector<BossStructures::BaseAction*>* Boss::getActionQueue()
-{
-	return &m_actionQueue;
-}
-
-void Boss::setDestroyActionOnComplete(bool value)
-{
-	m_destroyActionOnComplete = value;
-}
-
-void Boss::startActionWithID(UINT id)
-{
-	//Linear search unfortunately - dumb but practical
-	for (int i = 0; i < m_actionQueue.size(); i++)
-	{
-		if (m_actionQueue.at(i)->m_actionID == id)
-		{
-			m_currentAction = m_actionQueue.at(i);
-			m_currentAction->beginAction();
-		}
-	}
-}
-
-void Boss::Attach(BossObserver* observer)
-{
-	m_observers[BossObserver::nr++] = observer;
-}
-
-void Boss::Detach(BossObserver* observer)
-{
-	m_observers.erase(observer->index);
-}
-
-void Boss::Notify(BossMovementType type, BossStructures::BossActionData data)
-{
-	for (auto observer : m_observers)
-	{
-		observer.second->bossEventUpdate(type, data);
-	}
-}
 
 void Boss::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity)
 {
