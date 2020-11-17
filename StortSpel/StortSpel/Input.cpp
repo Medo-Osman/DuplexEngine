@@ -43,15 +43,11 @@ Input::Input()
 
 Input::~Input()
 {
-	for (size_t i = 0; i < m_inputObservers.size(); i++)
-	{
-		//delete m_inputObservers[i];
-	}
-
 	for (size_t i = 0; i < m_contexts.size(); i++)
 	{
 		delete m_contexts[i];
 	}
+	m_contexts.clear();
 }
 
 LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lParam)

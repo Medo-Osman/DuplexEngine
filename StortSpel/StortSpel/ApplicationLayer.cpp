@@ -10,11 +10,14 @@ ApplicationLayer::ApplicationLayer()
 	this->width = 1920;
 	this->height = 1080;
 	m_dt = 0.f;
-
+	m_consoleFile = nullptr;
 }
 
 ApplicationLayer::~ApplicationLayer()
 {
+	//_fclose_nolock(m_consoleFile);
+	/*if (m_consoleFile && m_consoleFile->_Placeholder)
+		fclose(m_consoleFile);*/
 	std::cout << "Memory upon shutdown: " << std::endl;
 }
 
@@ -102,20 +105,20 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 	);
 	assert(_d3d11Window);
 
-	RedirectIOToConsole(); // Disabled For PlayTest
+	//RedirectIOToConsole(); // Disabled For PlayTest
 }
 
 void ApplicationLayer::RedirectIOToConsole()
 {
 	AllocConsole();
-	HANDLE stdHandle;
-	int hConsole;
-	FILE* fp;
-	stdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-	hConsole = _open_osfhandle((long)stdHandle, _O_TEXT);
-	fp = _fdopen(hConsole, "w");
+	HANDLE stdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	int hConsole = _open_osfhandle((long)stdHandle, _O_TEXT);
+	m_consoleFile = _fdopen(hConsole, "w");
 
-	freopen_s(&fp, "CONOUT$", "w", stdout);
+	if (freopen_s(&m_consoleFile, "CONOUT$", "w", stdout) == -1)
+	{
+		assert(false);
+	}
 }
 
 void ApplicationLayer::applicationLoop()

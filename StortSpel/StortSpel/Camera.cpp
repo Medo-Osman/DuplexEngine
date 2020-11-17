@@ -11,9 +11,14 @@ Camera::Camera()
 	m_projectionMatrix = XMMatrixIdentity();
 	m_viewMatrix = XMMatrixIdentity();
 	m_newIncrements = false;
-	ApplicationLayer::getInstance().m_input.Attach(this);
 }
 Camera::~Camera() {}
+
+void Camera::initialize(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
+{
+	ApplicationLayer::getInstance().m_input.Attach(this);
+	setProjectionMatrix(fov, aspectRatio, nearZ, farZ);
+}
 
 void Camera::setProjectionMatrix(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
 {

@@ -27,7 +27,8 @@ Renderer::~Renderer()
 	//m_dContextPtr.Reset();
 	//m_swapChainPtr.Reset();
 
-
+	//m_geometryPassRTVs[0]->Release();
+	//m_geometryPassRTVs[1]->Release();
 
 	skyboxDSSPtr->Release();
 	for (std::pair<ShaderProgramsEnum, ShaderProgram*> element : m_compiledShaders)
@@ -35,11 +36,9 @@ Renderer::~Renderer()
 		delete element.second;
 	}
 
-
 	//HRESULT hr = this->m_debugPtr->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 	//assert(SUCCEEDED(hr));
-	Microsoft::WRL::ComPtr< ID3D11Debug > m_deviceDebug;
-	m_debugPtr.Reset();
+	//m_debugPtr.Reset();
 }
 
 HRESULT Renderer::initialize(const HWND& window)

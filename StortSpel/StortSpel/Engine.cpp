@@ -163,7 +163,6 @@ void Engine::initialize(Input* input)
 {
 	m_input = input;
 
-
 	if (!DeviceAndContextPtrsAreSet)
 	{
 		// Renderer::initialize needs to be called and it needs to call setDeviceAndContextPtrs()
@@ -171,7 +170,7 @@ void Engine::initialize(Input* input)
 		assert(false);
 	}
 
-	m_camera.setProjectionMatrix(80.f,  (float)m_settings.width/(float)m_settings.height, 0.01f, 1000.0f);
+	m_camera.initialize(80.f, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 
 	// Audio Handler Listener setup
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());

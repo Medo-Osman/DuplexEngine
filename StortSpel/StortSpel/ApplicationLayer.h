@@ -26,6 +26,7 @@ private:
 	Timer m_timer;
 	float m_dt;
 	float m_gameTime = 0;
+	FILE* m_consoleFile;
 
 	int width, height;
 

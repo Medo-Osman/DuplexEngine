@@ -24,6 +24,9 @@ GUIHandler::~GUIHandler()
 
 	m_fonts.clear();
 
+	for (int i = 0; i < m_elements.size(); i++)
+		delete m_elements[i];
+
 	delete m_spriteBatch;
 }
 

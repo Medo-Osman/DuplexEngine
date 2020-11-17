@@ -17,13 +17,13 @@ AudioHandler::~AudioHandler()
 	}
 	for (auto& loopingSound : m_loopingSoundInstances)
 	{
-		loopingSound.second.release();
+		delete loopingSound.second.release();
 	}
 	m_loopingSoundInstances.clear();
 
 	for (auto& sound : m_soundInstances)
 	{
-		sound.second.release();
+		delete sound.second.release();
 	}
 	m_soundInstances.clear();
 }

@@ -4,7 +4,7 @@
 AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials)
 	:MeshComponent(shaderEnums, materials), m_inBindPose(true), m_transitionTime(0.f)
 {
-	SkeletalMeshResource* resPtr = (SkeletalMeshResource*)ResourceHandler::get().loadLRSMMesh(filepath);
+	SkeletalMeshResource* resPtr = dynamic_cast<SkeletalMeshResource*>(ResourceHandler::get().loadLRSMMesh(filepath));
 	
 	setMeshResourcePtr(resPtr);
 

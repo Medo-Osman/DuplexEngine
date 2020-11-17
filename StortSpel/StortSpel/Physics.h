@@ -128,7 +128,8 @@ public:
 
 	~Physics()
 	{
-
+		for (auto& sharedGeometry : m_sharedGeometry)
+			delete sharedGeometry.second;
 	}
 
 	void release()
