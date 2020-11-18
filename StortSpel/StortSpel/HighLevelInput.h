@@ -7,11 +7,15 @@ enum Action
 	JUMP,
 	DASH,
 	ROLL,
-	USE,
+	USEPICKUP,
 	PLAYSOUND,
 	SWAP_SCENES,
+	PAUSE,
+	TEST_SCENE,
+	LOAD_SCENE,
+	LOAD_TEST_SCENE,
 	CLOSEINTROGUI,
-	PAUSE
+	USE
 };
 
 enum State
@@ -27,4 +31,3 @@ enum Range
 	RAW,
 	REL,
 };
-

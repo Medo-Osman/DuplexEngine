@@ -13,6 +13,7 @@
 #include "AudioComponent.h"
 #include "CheckpointComponent.h"
 #include "Camera.h"
+#include "ProjectileComponent.h"
 #include "SlowTrapComponent.h"
 #include "PushTrapComponent.h"
 #include "BarrelComponent.h"
@@ -30,15 +31,15 @@ class Engine
 {
 private:
 	Engine();
-	
+
 	static const int m_startWidth = 1920;
 	static const int m_startHeight = 1080;
 
-	
+
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
 
-	Vector4 m_skyLightDir = Vector4(0.5, -0.5, 0, 0);//Vector4(-0.8f, 1.0f, -0.7f, 0);//Vector4(-0.5, 0, -0.5, 0);
+	Vector4 m_skyLightDir = Vector4(0.25, -0.5, 0.25, 0);//Vector4(-0.8f, 1.0f, -0.7f, 0);//Vector4(-0.5, 0, -0.5, 0);
 	Vector4 m_skyLightColor = Vector4(1, 1, 1, 1);
 	FLOAT m_skyLightBrightness = 4.f;
 	FLOAT m_ambientLightLevel = 0.3f;
@@ -49,16 +50,16 @@ private:
 	std::unordered_map<std::string, LightComponent*>* m_lightComponentMap;
 
 	Player* m_player = nullptr;
-	Camera m_camera; 
+	Camera m_camera;
 	Settings m_settings;
 
 	Input* m_input = nullptr;
-	
+
 
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
 	void updateLightData();
 
-	
+
 public:
 	static Engine& get();
 
@@ -77,7 +78,6 @@ public:
 	bool addComponentToPlayer(std::string componentIdentifier, Component* component);
 	void removeLightComponentFromPlayer(LightComponent* component);
 
-	
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
 	std::unordered_map<std::string, Entity*>* getEntityMap();
@@ -87,5 +87,9 @@ public:
 
 	Settings getSettings() const;
 	Camera* getCameraPtr();
+	float getGameTime();
 	Player* getPlayerPtr();
+
+	ID3D11DeviceContext* getDeviceContextPtr() { return m_dContextPtr; }
+	ID3D11Device* getDevicePtr() { return m_devicePtr; }
 };

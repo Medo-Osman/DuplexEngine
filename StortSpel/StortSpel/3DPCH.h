@@ -31,7 +31,7 @@
 #include <dxgi1_2.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
-#include "SimpleMath.h"
+#include <SimpleMath.h>
 #include <DirectXCollision.h>
 #include <Effects.h>
 #include <DirectXColors.h>
@@ -98,6 +98,7 @@ enum class TriggerType
 	EVENT,
 	PICKUP,
 	CHECKPOINT,
+	PROJECTILE,
 	TRAP,
 	BARREL,
 };
@@ -105,4 +106,5 @@ enum class TriggerType
 enum class EventType
 {
 	SWAPSCENE,
+	BOSS_PROJECTILE_HIT,
 };

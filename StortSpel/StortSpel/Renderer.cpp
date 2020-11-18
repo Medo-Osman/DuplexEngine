@@ -1,6 +1,7 @@
 #include"3DPCH.h"
 //#include "MeshComponent.h"
 #include"Renderer.h"
+#include"ParticleComponent.h"
 
 Renderer::Renderer()
 {
@@ -17,34 +18,7 @@ void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
 
 void Renderer::release()
 {
-	
-	m_swapChainPtr->Release();
-	m_debugPtr->Release();
-	m_swapChainBufferPtr->Release();
-	m_depthStencilBufferPtr->Release();
-	m_depthStencilViewPtr->Release();
-	m_depthStencilStatePtr->Release();
-
-	m_geometryShaderResourceView->Release();
-	m_geometryUnorderedAccessView->Release();
-
-	m_downSampledShaderResourceView->Release();
-	m_downSampledUnorderedAccessView->Release();
-
-	//m_vertexShaderConstantBuffer.release();
-	m_rasterizerStatePtr->Release();
-
-	m_finalRenderTargetViewPtr->Release();
-	m_geometryRenderTargetViewPtr->Release();
-	/*for (int i = 0; i < 8; i++)
-	{
-		if (m_rTargetViewsArray != nullptr)
-		{
-			SAFE_RELEASE(m_rTargetViewsArray[i]);
-		}
-	}
-
-	delete[] m_rTargetViewsArray;*/
+	Particle::cleanStaticDataForParticles();
 }
 
 Renderer::~Renderer()
@@ -221,6 +195,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
 
+	Particle::setupStaticDataForParticle(m_devicePtr.Get());
+
 	//Shadows - don't forget to update resolution constant in shader(s) as well
 	m_shadowMap = new ShadowMap((UINT)4096, (UINT)4096, m_devicePtr.Get(), Engine::get().getSkyLightDir());
 	m_shadowMap->createRasterState();
@@ -240,7 +216,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.Windowed = true; //Windowed or fullscreen
 	sChainDesc.BufferDesc.Height = m_settings.height; //Size of buffer in pixels, height
 	sChainDesc.BufferDesc.Width = m_settings.width; //Size of window in pixels, width
-	sChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //DXGI Format, 8 bits for Red, green, etc
+	sChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; //DXGI Format, 8 bits for Red, green, etc
 	sChainDesc.BufferDesc.RefreshRate.Numerator = 60; //IF vSync is enabled and fullscreen, this specifies the max refreshRate
 	sChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	sChainDesc.SampleDesc.Quality = 0;
@@ -435,25 +411,22 @@ void Renderer::calculateBloomWeights()
 {
 	this->m_blurData.direction = 0;
 	this->m_blurData.radius = BLUR_RADIUS;
-	// Blur Pass Calculate Weights
-	float sigma = this->m_weightSigma;
-	float twoSigmaSq = 2 * sigma * sigma;
 
-	// Used to normalize the weights
+	// Blur Pass Calculate Weights
 	float sum = 0.f;
-	for (size_t i = 0; i < BLUR_RADIUS; ++i)
+	float newSum = 0.f;
+	float twoSigmaSq = 2 * m_weightSigma * m_weightSigma; // pow(m_weightSigma, 2.f)
+
+	for (size_t i = 0; i <= BLUR_RADIUS; ++i)
 	{
-		this->m_blurData.weights[i] = (1.f / 2 * sigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
-		// Add 2 times to sum because we only compute half of the curve(1 dimension)
-		sum += 2 * this->m_blurData.weights[i];
+		float temp = (1.f / m_weightSigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
+		m_blurData.weights[i] = temp;
+		sum += 2 * temp; // Add 2 times to sum because we only compute half of the curve(1 dimension)
 	}
-	// First weight has been added twice, subtract one
 	sum -= this->m_blurData.weights[0];
 
-	// We normalize all entries using the sum so that the entire kernel gives us a sum of coefficients = 0
-	float normalizationFactor = 1.f / sum;
-	for (size_t i = 0; i < BLUR_RADIUS; ++i)
-		this->m_blurData.weights[i] *= normalizationFactor;
+	for (int i = 0; i <= BLUR_RADIUS; ++i)
+		m_blurData.weights[i] /= sum;
 }
 
 void Renderer::downSamplePass()
@@ -466,13 +439,11 @@ void Renderer::downSamplePass()
 	m_dContextPtr->PSSetShader(NULL, NULL, 0);
 
 	m_dContextPtr->CSSetShader(m_CSDownSample.Get(), 0, 0);
-	m_dContextPtr->CSSetShaderResources(0, 1, m_geometryShaderResourceView.GetAddressOf());
-	m_dContextPtr->CSSetShaderResources(1, 1, m_glowMapShaderResourceView.GetAddressOf());
+	m_dContextPtr->CSSetShaderResources(0, 1, m_glowMapShaderResourceView.GetAddressOf());
 	m_dContextPtr->CSSetUnorderedAccessViews(0, 1, m_downSampledUnorderedAccessView.GetAddressOf(), 0);
 	m_dContextPtr->Dispatch(m_settings.width / 16, m_settings.height / 16, 1);
 
 	m_dContextPtr->CSSetShaderResources(0, 1, &nullSrv);
-	m_dContextPtr->CSSetShaderResources(1, 1, &nullSrv);
 	m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &nullUav, 0);
 }
 
@@ -538,6 +509,7 @@ void Renderer::initRenderQuad()
 
 void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
 {
+
 	m_drawn = 0;
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
@@ -547,7 +519,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		XMFLOAT3 min, max;
 		bool draw = true;
 		Entity* parentEntity;
-
+		
 		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
 			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
 		else
@@ -584,35 +556,12 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		if (draw)
 		{
 			m_drawn++;
-			ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum();
-			if (m_currentSetShaderProg != meshShaderEnum)
-			{
-				m_compiledShaders[meshShaderEnum]->setShaders();
-				m_currentSetShaderProg = meshShaderEnum;
-			}
-		
-			Material* meshMatPtr = component.second->getMaterialPtr();
-			if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
-			{
-				meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
-				m_currentSetMaterialId = meshMatPtr->getMaterialId();
-
-				MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
-				currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
-				currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
-				currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
-				currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
-
-				m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
-			}
-			m_dContextPtr->PSSetShaderResources(2, 1, &m_shadowMap->m_depthMapSRV);
-
-
+			
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
 			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
-			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix()* component.second->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
@@ -621,14 +570,42 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
 			{
-				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms() );
-				int a = 6;
+				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 			}
+			
+			int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
 
-			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
+			for (int mat = 0; mat < materialCount; mat++)
+			{
+				ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum(mat);
+				if (m_currentSetShaderProg != meshShaderEnum)
+				{
+					m_compiledShaders[meshShaderEnum]->setShaders();
+					m_currentSetShaderProg = meshShaderEnum;
+				}
+				
+				Material* meshMatPtr = component.second->getMaterialPtr(mat);
+				if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+				{
+					meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
+					m_currentSetMaterialId = meshMatPtr->getMaterialId();
 
+				MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+				currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+				currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+				currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+				currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+				currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
+
+					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+				}
+				m_dContextPtr->PSSetShaderResources(2, 1, &m_shadowMap->m_depthMapSRV);
+
+				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
+				
+				m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
+			}
 		}
-		
 	}
 }
 
@@ -650,13 +627,12 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
 
-		if (component.second->getShaderProgEnum() != ShaderProgramsEnum::SKEL_ANIM)
+		if (component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
 		{
 			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
 			m_compiledShaders[meshShaderEnum]->setShaders();
 			m_currentSetShaderProg = meshShaderEnum;
 		}
-		
 		else
 		{
 			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH_ANIM;
@@ -682,6 +658,14 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
+			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
+
+			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
+			{
+				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+			}
+
+
 			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 		}
 			
@@ -697,7 +681,7 @@ void Renderer::rasterizerSetup()
 	ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 
 	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
-	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
 
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
@@ -711,6 +695,15 @@ void Renderer::update(const float& dt)
 	{
 		m_frustumCullingOn = !m_frustumCullingOn;
 	}
+}
+
+void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
+{
+	this->m_dContextPtr->VSSetShader(vsPtr, nullptr, 0);
+	this->m_dContextPtr->HSSetShader(hsPtr, nullptr, 0);
+	this->m_dContextPtr->DSSetShader(dsPtr, nullptr, 0);
+	this->m_dContextPtr->GSSetShader(gsPtr, nullptr, 0);
+	this->m_dContextPtr->PSSetShader(psPtr, nullptr, 0);
 }
 
 void Renderer::render()
@@ -739,6 +732,10 @@ void Renderer::render()
 	//m_rTargetViewsArray[0] = m_finalRenderTargetViewPtr.Get();
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
+	
+	
+
+	//End of particles
 	// Skybox constant buffer:
 	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
 	skyboxMVP constantBufferSkyboxStruct;
@@ -781,6 +778,25 @@ void Renderer::render()
 	ID3D11ShaderResourceView* srv[1] = { 0 };
 	m_dContextPtr->PSSetShaderResources(0, 1, srv);
 
+
+	//Particles
+	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
+	//Draw all particles here
+	//this->particle.draw(this->m_dContextPtr.Get());
+
+	for (auto& entity : *Engine::get().getEntityMap())
+	{
+		std::vector<Component*> vec;
+		entity.second->getComponentsOfType(vec, ComponentType::PARTICLE);
+
+		for (int i = 0; i < vec.size(); i++)
+		{
+			static_cast<ParticleComponent*>(vec[i])->draw(m_dContextPtr.Get());
+		}
+	}
+	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
+	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
+	this->m_dContextPtr->PSSetSamplers(1, 1, this->m_psSamplerState.GetAddressOf());
 
 	ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 	ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);

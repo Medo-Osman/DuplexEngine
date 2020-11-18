@@ -17,7 +17,7 @@ SceneManager::~SceneManager()
 
 void SceneManager::initalize()
 {
-	
+
 
 	//define gui button
 	GUIButtonStyle btnStyle;
@@ -48,15 +48,16 @@ void SceneManager::initalize()
 	btnStyle.position = Vector2(140, 700);
 	btnStyle.scale = Vector2(1, 1);
 	m_hostGameIndex = GUIHandler::get().addGUIButton(L"hostBtn.png", btnStyle);
-	
+
 	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_hostGameIndex))->Attach(this);
 
-	
+
 	// Start Scene
 	m_currentScene = new Scene();
-	m_currentScene->loadMainMenu();
+
+	Scene::loadMainMenu(m_currentScene, m_nextSceneReady);
 	disableMovement();
-	
+	*m_nextSceneReady = false;
 	//m_currentScene->loadArena();
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
@@ -64,7 +65,7 @@ void SceneManager::initalize()
 
 	// Next Scene
 	m_nextScene = nullptr;
-	
+
 	// Update currentScene in engine
 	Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
@@ -77,27 +78,37 @@ void SceneManager::updateScene(const float &dt)
 {
 	if (m_swapScene)
 	{
-		
+
 		m_nextScene = new Scene();
+		std::thread sceneLoaderThread;
 		switch (m_nextSceneEnum)
 		{
 		case ScenesEnum::LOBBY:
+			sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
 			disableMovement();
-			m_nextScene->loadLobby();
 			//Reset game variables that are needed here
 			GUIHandler::get().setVisible(m_singleplayerIndex, true);
 			GUIHandler::get().setVisible(m_hostGameIndex, true);
 			GUIHandler::get().setVisible(m_joinGameIndex, true);
 			GUIHandler::get().setVisible(m_exitIndex, true);
 			Engine::get().getPlayerPtr()->setScore(0);
+			m_gameStarted = false;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			break;
 		case ScenesEnum::START:
-			m_nextScene->loadScene("Ogorki");
+			sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Ogorki", m_nextSceneReady);
+			sceneLoaderThread.detach();
 			m_gameStarted = true;
 			enableMovement();
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			break;
 		case ScenesEnum::ARENA:
-			m_nextScene->loadArena();
+			sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+
+			m_gameStarted = true;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			break;
 		case ScenesEnum::MAINMENU:
 			disableMovement();
@@ -109,10 +120,9 @@ void SceneManager::updateScene(const float &dt)
 		default:
 			break;
 		}
-
-		swapScenes();
 	}
 
+	swapScenes();
 	m_currentScene->updateScene(dt);
 }
 
@@ -120,19 +130,40 @@ void SceneManager::inputUpdate(InputData& inputData)
 {
 	for (size_t i = 0; i < inputData.actionData.size(); i++)
 	{
-		if (inputData.actionData[i] == SWAP_SCENES)
+		if (inputData.actionData[i] == TEST_SCENE)
 		{
 			if (!m_gameStarted)
 			{
 				m_nextScene = new Scene();
-				m_nextScene->loadScene("test");
-				swapScenes();
+
+				std::thread sceneLoaderThread(Scene::loadTestLevel, m_nextScene, m_nextSceneReady);
+				sceneLoaderThread.detach();
+
 				m_gameStarted = true;
+				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			}
+		}
+		else if (inputData.actionData[i] == LOAD_SCENE)
+		{
+			m_nextScene = new Scene();
+			std::thread sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+
+			m_gameStarted = false;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+		}
+		else if (inputData.actionData[i] == LOAD_TEST_SCENE)
+		{
+			m_nextScene = new Scene();
+			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			sceneLoaderThread.detach();
+
+			m_gameStarted = true;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 		}
 	}
 }
-//Can't swap scenes when using onTrigger function due to it being triggered in physx simulations, ie it could result in a crash and is not best practice. 
+//Can't swap scenes when using onTrigger function due to it being triggered in physx simulations, ie it could result in a crash and is not best practice.
 void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity)
 {
 	if (physicsData.triggerType == TriggerType::EVENT)
@@ -157,7 +188,7 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 		if ((TrapType)physicsData.associatedTriggerEnum == TrapType::BARRELTRIGGER)
 		{
 			BarrelTriggerComponent* barrelTriggerPtr = static_cast<BarrelTriggerComponent*>(physicsData.pointer);
-		
+
 			if (barrelTriggerPtr->m_triggerTimer.timeElapsed() >= 3)
 			{
 				m_currentScene->addBarrelDrop(Vector3(-30, 50, 130));
@@ -191,22 +222,33 @@ std::vector<iContext*>* SceneManager::getContextPtr()
 void SceneManager::swapScenes()
 {
 	m_swapScene = false;
-	Physics::get().Detach(m_currentScene, false, true);
+	if (*m_nextSceneReady == true && m_loadNextSceneWhenReady)
+	{
+		*m_nextSceneReady = false;
+		m_loadNextSceneWhenReady = false;
+		Physics::get().Detach(m_currentScene, false, true);
 
-	// Swap
-	delete m_currentScene;
-	m_currentScene = m_nextScene;
-	m_nextScene = nullptr;
+		//Reset boss
+		if (m_currentScene->m_boss)
+			m_currentScene->m_boss->Detach(m_currentScene);
+		//hej detta �r big changes
+		// Swap
+		delete m_currentScene;
+		m_currentScene = m_nextScene;
+		m_nextScene = nullptr;
 
-	// Update currentScene in engine
-	Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
-	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
-	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
+		// Update currentScene in engine
+		Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
+		Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
+		Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
-	// Set as PhysicsObserver
-	Physics::get().Attach(m_currentScene, false, true);
-
-	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
+		// Set as PhysicsObserver
+		Physics::get().Attach(m_currentScene, false, true);
+		Physics::get().changeScene(m_currentScene->getSceneID());
+		CharacterControllerComponent* ccc = static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"));
+		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), 1.75f, 0.5, "human");
+		ccc->setPosition(m_currentScene->getEntryPosition());
+	}
 }
 
 void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
@@ -256,7 +298,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 	//Checks which button is being clicked
 	if (type == GUIUpdateType::CLICKED)
 	{
-		
+
 		if (guiElement->m_index == m_singleplayerIndex)
 		{
 			m_gameStarted = true;
@@ -280,10 +322,10 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			endGame = true;
 			//do stuff
 		}
-		
-	
+
+
 		//m_gameStarted = true;
 		//m_gameRestarted = false;
-	
+
 	}
 }

@@ -136,16 +136,40 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	// Read indices to array
 	std::uint32_t* indexArray = new std::uint32_t[indexCount];
 	fileStream.read((char*)&indexArray[0], sizeof(std::uint32_t) * indexCount);
+	
+	std::uint32_t materialCount = 1;
+	std::uint32_t* materialOffsets = nullptr;
 
-	// Make sure all data was read
-	char overByte;
-	fileStream.read(&overByte, 1);
+	char overByte1;
+	fileStream.read(&overByte1, 1);
 	if (!fileStream.eof())
 	{
-		std::string errormsg("loadLRMMesh : Filestream did not reach end of: "); errormsg.append(path);
-		ErrorLogger::get().logError(errormsg.c_str());
-		return nullptr;
+		fileStream.seekg(-1, std::ios_base::cur);
+
+		// Read file material count
+		fileStream.read((char*)&materialCount, sizeof(std::uint32_t));
+
+		if (materialCount > 1)
+		{
+			// Read materialOffsets to array
+			materialOffsets = new std::uint32_t[materialCount];
+			fileStream.read((char*)&materialOffsets[0], sizeof(std::uint32_t) * materialCount);
+		}
+
+		// Make sure all data was read
+		char overByte;
+		fileStream.read(&overByte, 1);
+		if (!fileStream.eof())
+		{
+			std::string errormsg("loadLRMMesh : Filestream did not reach end of: "); errormsg.append(path);
+			ErrorLogger::get().logError(errormsg.c_str());
+			return nullptr;
+		}
 	}
+	//else
+	//	fileStream.seekg(-1, std::ios_base::cur);
+
+	
 
 	// Close filestream
 	fileStream.close();
@@ -156,6 +180,8 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	//Init it with the data
 	m_meshCache[path]->getVertexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, vertexArray, vertexCount, false, sizeof(float) * nrOfFloatsInVertex);
 	m_meshCache[path]->getIndexBuffer().initializeBuffer(m_devicePtr, false, D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER, indexArray, indexCount);
+	if (materialCount > 1)
+		m_meshCache[path]->setMaterialOffsetsVector(materialOffsets, materialCount);
 
 	LRM_VERTEX* vertexArray2 = (LRM_VERTEX*)vertexArray;
 	XMFLOAT3 min = { 99999, 99999, 99999 }, max = { -99999, -99999, -99999 };
@@ -183,6 +209,8 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 
 	delete[] vertexArray;
 	delete[] indexArray;
+	if(materialOffsets != nullptr)
+		delete[] materialOffsets;
 
 	//Return the pointer of the new entry
 	return m_meshCache[path];
@@ -193,7 +221,7 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 	isResourceHandlerReady();
 
 	// checks if the mesh is in the cache 
-	if (m_meshCache.find(path) != m_meshCache.end())
+	if (m_meshCache.find(std::string(path)) != m_meshCache.end())
 	{
 		// returns the buffers
 		return m_meshCache[path];
@@ -251,14 +279,34 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 	LRSM_JOINT* jointArray = new LRSM_JOINT[jointCount];
 	fileStream.read((char*)&jointArray[0], sizeof(LRSM_JOINT) * jointCount);
 
-	// Make sure all data was read
-	char overByte;
-	fileStream.read(&overByte, 1);
+	std::uint32_t materialCount = 1;
+	std::uint32_t* materialOffsets = nullptr;
+
+	char overByte1;
+	fileStream.read(&overByte1, 1);
 	if (!fileStream.eof())
 	{
-		std::string errormsg("loadLRSMMesh : Filestream did not reach end of: "); errormsg.append(path);
-		ErrorLogger::get().logError(errormsg.c_str());
-		return nullptr;
+		fileStream.seekg(-1, std::ios_base::cur);
+
+		// Read file material count
+		fileStream.read((char*)&materialCount, sizeof(std::uint32_t));
+
+		if (materialCount > 1)
+		{
+			// Read materialOffsets to array
+			materialOffsets = new std::uint32_t[materialCount];
+			fileStream.read((char*)&materialOffsets[0], sizeof(std::uint32_t) * materialCount);
+		}
+
+		// Make sure all data was read
+		char overByte;
+		fileStream.read(&overByte, 1);
+		if (!fileStream.eof())
+		{
+			std::string errormsg("loadLRMMesh : Filestream did not reach end of: "); errormsg.append(path);
+			ErrorLogger::get().logError(errormsg.c_str());
+			return nullptr;
+		}
 	}
 
 	// Close filestream
@@ -272,12 +320,16 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 	thisSkelRes->setJointCount(jointCount);
 	thisSkelRes->setRootIndex(rootJointIdx);
 	thisSkelRes->setJoints(jointArray);
+	if (materialCount > 1)
+		thisSkelRes->setMaterialOffsetsVector(materialOffsets, materialCount);
 
 	//Create a new entry in the meshcache
 	m_meshCache[path] = thisSkelRes;
 
 	delete[] vertexArray;
 	delete[] indexArray;
+	if (materialOffsets != nullptr)
+		delete[] materialOffsets;
 
 	//Return the pointer of the new entry
 	return m_meshCache[path];
