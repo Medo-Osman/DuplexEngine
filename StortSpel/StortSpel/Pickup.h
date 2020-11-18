@@ -7,6 +7,7 @@ enum class PickupType //Add new pickuptypes -before- score and count. Also add t
 {
 	SPEED,
 	HEIGHTBOOST,
+	CANNON,
 	SCORE,
 	COUNT,
 };

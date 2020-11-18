@@ -434,6 +434,9 @@
     <ClInclude Include="HeightPickup.h">
       <Filter>Source Files\Game\Pickup</Filter>
     </ClInclude>
+    <ClInclude Include="CannonPickup.h">
+      <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">

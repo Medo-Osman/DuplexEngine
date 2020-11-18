@@ -1248,13 +1248,13 @@ void Scene::reactOnPlayer(PlayerMessageData& msg)
 
 	if (msg.playerActionType == PlayerActions::ON_POWERUP_USE) //Player have just used a powerup.
 	{
-		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST) //Use intEnum to find out what powerup was used.
+		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
 		{
 			//Create a trampoline entity
 			Vector3 trampolineSpawnPos = m_player->getPlayerEntity()->getTranslation();
 			Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
 			trampoline->setPosition(trampolineSpawnPos);
-			addComponent(trampoline, "mesh1", 
+			addComponent(trampoline, "mesh1",
 				new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
 			addComponent(trampoline, "mesh2",
 				new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
@@ -1266,11 +1266,24 @@ void Scene::reactOnPlayer(PlayerMessageData& msg)
 			triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
 			triggerComponent->setIntData(0);
 			trampoline->addComponent("heightTrigger", triggerComponent);
-			triggerComponent->initTrigger(trampoline, { 0.4f, 0.1, 0.4f }, {0.f, 1.f, 0.f});
-			
+			triggerComponent->initTrigger(trampoline, { 0.4f, 0.1, 0.4f }, { 0.f, 1.f, 0.f });
+		}
 
+		if ((PickupType)msg.intEnum == PickupType::CANNON)
+		{
+			Vector3 playerPos = m_player->getPlayerEntity()->getTranslation();
+			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
+			cannon->setPosition(playerPos);
+			addComponent(cannon, "mesh1", new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+
+			static_cast<Player*>(msg.playerPtr)->setCannonEntity(cannon);
 		}
 	}
+	else if (msg.playerActionType == PlayerActions::ON_FIRE_CANNON)
+	{
+		removeEntity(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getIdentifier());
+	}
+
 }
 
 void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)

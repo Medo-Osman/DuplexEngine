@@ -25,16 +25,20 @@ enum class PlayerState
     FALLING,
     DASH,
     ROLL,
+    CANNON,
+    FLYINGBALL,
 };
 
 enum class PlayerActions
 {
     ON_POWERUP_USE,
+    ON_FIRE_CANNON,
 };
 
 
 struct PlayerMessageData
 {
+    void* playerPtr;
     PlayerActions playerActionType;
     int intEnum;
 
@@ -115,6 +119,13 @@ private:
     Pickup* m_pickupPointer;
     Pickup* m_environmentPickup;
    
+    //CAnnon
+    Entity* m_cannonEntity;
+    bool m_shouldFire = false;
+    Vector3 m_direction;
+    bool m_xDirectionNegative;
+    bool m_zDirectionNegative;
+
     //
     TrapType m_activeTrap;
 
@@ -172,7 +183,7 @@ public:
     virtual void Detach(PlayerObserver* observer)
     {
         int index = -1;
-        for (int i = 0; i < m_playerObservers.size() && !index; i++)
+        for (int i = 0; i < m_playerObservers.size() && index == -1; i++)
         {
             if (m_playerObservers[i] == observer)
                 index = i;
@@ -180,6 +191,10 @@ public:
         if (index != -1)
             m_playerObservers.erase(m_playerObservers.begin() + index);
     }
+
+    void setCannonEntity(Entity* entity);
+    Entity* getCannonEntity() { return m_cannonEntity; }
+    int m_cannonCrosshairID;
 
     bool isRunning();
 

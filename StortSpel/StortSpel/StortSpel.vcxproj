@@ -266,6 +266,7 @@
     <ClInclude Include="BarrelTriggerComponent.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CannonPickup.h" />
     <ClInclude Include="CharacterControllerComponent.h" />
     <ClInclude Include="CheckpointComponent.h" />
     <ClInclude Include="CompileShaderUtility.h" />

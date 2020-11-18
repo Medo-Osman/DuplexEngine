@@ -3,6 +3,7 @@
 #include"Pickup.h"
 #include"SpeedPickup.h"
 #include"HeightPickup.h"
+#include"CannonPickup.h"
 #include"ParticleComponent.h"
 #include "Traps.h"
 
@@ -30,6 +31,7 @@ Player::Player()
 		std::vector<Pickup*> vec;
 		vec.emplace_back(new SpeedPickup());
 		vec.emplace_back(new HeightPickup());
+		vec.emplace_back(new CannonPickup());
 		Pickup::initPickupArray(vec);
 	}
 
@@ -56,6 +58,12 @@ Player::Player()
 
 	//Attach to the click listener for the button
 	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
+
+	GUIImageStyle guiInfo;
+	guiInfo.origin = Vector2(256, 256);
+	guiInfo.position = Vector2(Engine::get().getSettings().width / 2, Engine::get().getSettings().height / 2);
+	m_cannonCrosshairID = GUIHandler::get().addGUIImage(L"crosshair.png", guiInfo);
+	GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 }
 
 Player::~Player()
@@ -63,6 +71,11 @@ Player::~Player()
 	if (m_playerEntity)
 		delete m_playerEntity;
 
+}
+
+void Player::setCannonEntity(Entity* entity)
+{
+	m_cannonEntity = entity;
 }
 
 bool Player::isRunning()
@@ -149,7 +162,6 @@ float lerp(const float& a, const float &b, const float &t)
 void Player::playerStateLogic(const float& dt)
 {
 	m_velocity = Vector3(XMVector3Normalize(Vector3(XMVectorGetX(m_movementVector), 0, XMVectorGetZ(m_movementVector))) * PLAYER_SPEED * dt * this->m_currentSpeedModifier) + Vector3(0, m_velocity.y, 0);
-
 	switch (m_state)
 	{
 	case PlayerState::ROLL:
@@ -234,11 +246,90 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::FALLING;
 		}
 		break;
+	case PlayerState::CANNON:
+		m_controller->setPosition(m_cannonEntity->getTranslation());
+		
+
+		GUIHandler::get().setVisible(m_cannonCrosshairID, true);
+
+		if (m_shouldFire)
+		{
+			m_state = PlayerState::FLYINGBALL;
+			m_lastState = PlayerState::CANNON;
+			m_direction = m_cameraTransform->getForwardVector();
+			m_velocity = m_direction;
+			m_direction.y = 0;
+			if (m_velocity.x <= 0.0f)
+			{
+				m_xDirectionNegative = true;
+			}
+			if (m_velocity.z <= 0.0f)
+			{
+				m_zDirectionNegative = true;
+			}
+		}
+		break;
+	case PlayerState::FLYINGBALL:
+		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
+
+		if (m_xDirectionNegative)
+		{
+			if (m_direction.x < 0)
+				m_direction.x += 0.1f * dt;
+			else
+				m_direction.x = 0;
+		}
+		else
+		{
+			if (m_direction.x > 0)
+				m_direction.x -= 0.1f * dt;
+			else
+				m_direction.x = 0;
+		}
+
+		if (m_zDirectionNegative)
+		{
+			if (m_direction.z < 0)
+				m_direction.z += 0.1f * dt;
+			else
+				m_direction.z = 0;
+		}
+		else
+		{
+			if (m_direction.z > 0)
+				m_direction.z -= 0.1f * dt;
+			else
+				m_direction.z = 0;
+		}
+
+
+		m_velocity.x = m_direction.x;
+		m_velocity.z = m_direction.z;
+		if (m_direction.Length() <= 0.001f || m_controller->checkGround(m_controller->getFootPosition(), DirectX::XMVector3Normalize(m_velocity), 0.3f))
+		{
+			PlayerMessageData data;
+			data.playerActionType = PlayerActions::ON_FIRE_CANNON;
+			data.playerPtr = this;
+
+			for (int i = 0; i < m_playerObservers.size(); i++)
+			{
+				m_playerObservers.at(i)->reactOnPlayer(data);
+			}
+
+			m_state = PlayerState::JUMPING;
+			m_lastState = PlayerState::FLYINGBALL;
+			m_zDirectionNegative = false;
+			m_xDirectionNegative = false;
+			m_pickupPointer->onDepleted();
+			m_pickupPointer->onRemove();
+			SAFE_DELETE(m_pickupPointer);
+		}
+		break;
 	default:
 		break;
 	}
 
-	if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING || m_state == PlayerState::ROLL)
+	if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING || m_state == PlayerState::ROLL || m_state == PlayerState::FLYINGBALL)
 	{
 		if (m_playerEntity->getTranslation().y != m_lastPosition.y)
 			m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
@@ -323,8 +414,9 @@ bool Player::pickupUpdate(Pickup* pickupPtr, const float& dt)
 					pickupPtr->onDepleted();
 					shouldRemovePickup = true;
 				}
-
 				break;
+			case PickupType::CANNON:
+				//Cannon Update
 			default:
 				break;
 			}
@@ -335,6 +427,7 @@ bool Player::pickupUpdate(Pickup* pickupPtr, const float& dt)
 
 void Player::updatePlayer(const float& dt)
 {
+	//TRAP UPDATE
 	switch (m_activeTrap)
 	{
 	case TrapType::EMPTY:
@@ -352,6 +445,7 @@ void Player::updatePlayer(const float& dt)
 		break;
 	}
 
+	//PickupUpdate
 	if (pickupUpdate(m_pickupPointer, dt))
 	{
 		m_pickupPointer->onRemove();
@@ -365,9 +459,11 @@ void Player::updatePlayer(const float& dt)
 		m_environmentPickup = nullptr;
 	}
 
+	//RotationUpdate
 	if(m_state != PlayerState::ROLL)
 		handleRotation(dt);
 
+	//PlayerState logic Update
 	playerStateLogic(dt);
 
 	ImGui::Begin("Player Information", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
@@ -383,7 +479,7 @@ void Player::setPlayerEntity(Entity* entity)
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
 
 	//To test heightpickup faster, if you see this you can remove it
-	m_pickupPointer = new HeightPickup();
+	m_pickupPointer = new CannonPickup();
 	m_pickupPointer->onPickup(m_playerEntity);
 }
 
@@ -461,6 +557,7 @@ void Player::handlePickupOnUse()
 	PlayerMessageData data;
 	data.playerActionType = PlayerActions::ON_POWERUP_USE;
 	data.intEnum = (int)m_pickupPointer->getPickupType();
+	data.playerPtr = this;
 	switch (m_pickupPointer->getPickupType())
 	{
 	case PickupType::SPEED:
@@ -471,11 +568,12 @@ void Player::handlePickupOnUse()
 		//m_speedModifierTime = 0;
 		break;
 	case PickupType::HEIGHTBOOST:
-	{
 		//Kalla på animation
 		jump(false);
-	}
-
+		break;
+	case PickupType::CANNON:
+		m_state = PlayerState::CANNON;
+		//Cannon on use
 	default:
 		break;
 	}
@@ -488,6 +586,20 @@ void Player::handlePickupOnUse()
 
 void Player::inputUpdate(InputData& inputData)
 {
+
+	if (m_state == PlayerState::CANNON)
+	{
+		for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
+		{
+			if (inputData.actionData.at(i) == Action::USE)
+			{
+				m_shouldFire = true;
+			}
+
+		}
+	}
+
+
 	this->setStates(inputData.stateData);
 
 	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
@@ -606,6 +718,8 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 					}
 
 					break;
+				case PickupType::CANNON:
+					shouldTriggerEntityBeRemoved = true;
 				case PickupType::SCORE:
 					addPickupByAssosiatedID = false;
 					break;
@@ -621,7 +735,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 					if (environmenPickup)
 					{
 
-						if (m_environmentPickup) //If we already have an environmentpickup (SInce they can be force added, we need to, if it exist, remove the "old" enironmentPickup.
+						if (m_environmentPickup) //If we already have an environmentpickup (SInce they can be force added, we need to, if it exist, remove the "old" enironmentPickup before creating/getting a new.
 						{
 							m_environmentPickup->onRemove();
 							delete m_environmentPickup;
