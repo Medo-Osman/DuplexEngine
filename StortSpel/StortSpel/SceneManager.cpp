@@ -17,6 +17,8 @@ SceneManager::~SceneManager()
 
 void SceneManager::initalize()
 {
+
+
 	//define gui button
 	GUIButtonStyle btnStyle;
 	//start button
@@ -50,13 +52,11 @@ void SceneManager::initalize()
 
 
 	// Start Scene
-	*m_nextSceneReady = false;
 	m_currentScene = new Scene();
-	//Scene::loadLobby(m_currentScene, m_nextSceneReady); //Single thread first load-in.
-	Scene::loadMainMenu(m_currentScene, m_nextSceneReady);
-	*m_nextSceneReady = false; //Because init is required
-	disableMovement();
 
+	Scene::loadMainMenu(m_currentScene, m_nextSceneReady);
+	disableMovement();
+	*m_nextSceneReady = false;
 	//m_currentScene->loadArena();
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
@@ -75,7 +75,7 @@ void SceneManager::initalize()
 
 void SceneManager::updateScene(const float &dt)
 {
-	if (m_swapScene)
+	if (m_swapScene && !m_loadNextSceneWhenReady)
 	{
 
 		m_nextScene = new Scene();
@@ -83,6 +83,7 @@ void SceneManager::updateScene(const float &dt)
 		switch (m_nextSceneEnum)
 		{
 		case ScenesEnum::LOBBY:
+			
 			sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 			disableMovement();
@@ -96,17 +97,16 @@ void SceneManager::updateScene(const float &dt)
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			break;
 		case ScenesEnum::START:
-			sceneLoaderThread = std::thread(Scene::loadTestLevel, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread = std::thread(Scene::loadTestLevel, m_nextScene,m_nextSceneReady);
 			sceneLoaderThread.detach();
+		
 			m_gameStarted = true;
 			enableMovement();
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
-
 			break;
 		case ScenesEnum::ARENA:
 			sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
-
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			break;
@@ -231,7 +231,7 @@ void SceneManager::swapScenes()
 		//Reset boss
 		if (m_currentScene->m_boss)
 			m_currentScene->m_boss->Detach(m_currentScene);
-
+		//hej detta �r big changes
 		// Swap
 		delete m_currentScene;
 		m_currentScene = m_nextScene;
@@ -319,6 +319,10 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			endGame = true;
 		}
+
+
+		//m_gameStarted = true;
+		//m_gameRestarted = false;
 
 	}
 }

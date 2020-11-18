@@ -12,17 +12,22 @@ class SceneManager : public InputObserver, public PhysicsObserver, public GUIObs
 private:
 	Scene* m_currentScene;
 	Scene* m_nextScene;
-	bool m_swapScene;
-	bool* m_nextSceneReady = new bool;
-	bool m_loadNextSceneWhenReady = false;
-	ScenesEnum m_nextSceneEnum;
 	Input* inputPtr;
+	ScenesEnum m_nextSceneEnum;
+
+
+	bool m_swapScene;
 
 	std::vector<iContext*>* m_contexts;
+
 	int m_singleplayerIndex = 0;
 	int m_exitIndex = 0;
 	int m_joinGameIndex = 0;
 	int m_hostGameIndex = 0;
+
+	bool* m_nextSceneReady = new bool;
+	bool m_loadNextSceneWhenReady = false;
+
 public:
 	SceneManager();
 	~SceneManager();

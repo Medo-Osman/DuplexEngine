@@ -86,8 +86,7 @@ private:
 	int m_nrOfCheckpoints = 0;
 	int m_nrOfBarrelDrops = 0;
 	int m_nrOftraps = 0;
-	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
-
+	int startGameIndex = 0;
 public:
 	Boss* m_boss = nullptr;
 	Scene();
@@ -124,9 +123,6 @@ public:
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
-
-	void initDeferredPhysics();
-
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
 

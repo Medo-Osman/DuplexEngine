@@ -15,7 +15,7 @@ enum Action
 	LOAD_SCENE,
 	LOAD_TEST_SCENE,
 	CLOSEINTROGUI,
-	USE,
+	USE
 };
 
 enum State

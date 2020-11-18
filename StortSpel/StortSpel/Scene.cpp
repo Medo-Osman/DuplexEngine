@@ -134,7 +134,7 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 	sceneObject->createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
 
 	sceneObject->createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
-
+	*finished = true;
 }
 
 void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
@@ -302,7 +302,7 @@ void Scene::addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox)
 	slowTrap->scale(scale);
 
 	addComponent(slowTrap, "trap", new SlowTrapComponent(slowTrap, TrapType::SLOW));
-	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(m_sceneID, slowTrap, {hitBox});
+	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(m_sceneID,slowTrap, {hitBox});
 
 	addComponent(slowTrap, "sound", new AudioComponent(L"OnPickup.wav", false));
 
@@ -359,6 +359,8 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 void Scene::loadLobby(Scene* sceneObject, bool* finished)
 {
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
+
+
 
 	Entity* music = sceneObject->addEntity("lobbyMusic");
 	if (music)
@@ -654,7 +656,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	sceneObject->addCheckpoint(Vector3(-30, 40, 144));
 	sceneObject->addCheckpoint(Vector3(-11, 40, 218.5));
 
-	sceneObject->addSlowTrap(Vector3(0, 13, 30), Vector3(3,3,3), Vector3(1,1,1));
+	sceneObject->addSlowTrap(Vector3(0, 13, 30), Vector3(3,3,3), Vector3(1.5, 1.5, 1.5));
 	sceneObject->addPushTrap(Vector3(-5, 20, 58), Vector3(5, 20, 58), Vector3(0, 18, 50));
 
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
@@ -1362,9 +1364,6 @@ std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMa
 	return &m_meshComponentMap;
 }
 
-void Scene::initDeferredPhysics()
-{
-}
 
 void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionData data)
 {
