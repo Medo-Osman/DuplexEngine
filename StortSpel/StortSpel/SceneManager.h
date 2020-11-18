@@ -25,7 +25,6 @@ private:
 	int m_joinGameIndex = 0;
 	int m_hostGameIndex = 0;
 
-	bool m_gameStarted;
 	bool* m_nextSceneReady = new bool;
 	bool m_loadNextSceneWhenReady = false;
 

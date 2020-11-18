@@ -97,7 +97,7 @@ void SceneManager::updateScene(const float &dt)
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			break;
 		case ScenesEnum::START:
-			sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Ogorki", m_nextSceneReady);
+			sceneLoaderThread = std::thread(Scene::loadTestLevel, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 			m_gameStarted = true;
 			enableMovement();
@@ -112,7 +112,9 @@ void SceneManager::updateScene(const float &dt)
 			break;
 		case ScenesEnum::MAINMENU:
 			disableMovement();
-			m_nextScene->loadMainMenu();
+			sceneLoaderThread = std::thread(Scene::loadMainMenu, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			break;
 		case ScenesEnum::ENDSCENE:
 			//

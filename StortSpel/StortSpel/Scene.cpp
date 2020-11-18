@@ -58,33 +58,33 @@ void Scene::createParticleEntity(void* particleComponent, Vector3 position)
 	m_tempParticleComponent.emplace_back(pc);
 }
 
-void Scene::loadMainMenu()
+void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 {
-	m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
+	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
-	Entity* music = addEntity("lobbyMusic");
+	Entity* music = sceneObject->addEntity("lobbyMusic");
 	if (music)
 	{
-		addComponent(music, "Music", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
+		sceneObject->addComponent(music, "Music", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
 	}
 
-	Entity* floor = addEntity("Floor");
+	Entity* floor = sceneObject->addEntity("Floor");
 	if (floor)
 	{
-		addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm",
+		sceneObject->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm",
 			Material({ L"DarkGrayTexture.png" })));
 		floor->scale({ 30, 1, 30 });
 		floor->translate({ 0,-2,0 });
-		createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
 
 
 
-	Entity* test = addEntity("test");
+	Entity* test = sceneObject->addEntity("test");
 	if (test)
 	{
-		addComponent(test, "mesh",
+		sceneObject->addComponent(test, "mesh",
 			new MeshComponent("GlowCube.lrm",
 				EMISSIVE,
 				Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
@@ -92,49 +92,49 @@ void Scene::loadMainMenu()
 		test->setScale({ 5, 5, 5 });
 		test->setPosition({ 9, 2, 10 });
 
-		createNewPhysicsComponent(test, true);
+		sceneObject->createNewPhysicsComponent(test, true);
 		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
 
-		addComponent(test, "flipp",
+		sceneObject->addComponent(test, "flipp",
 			new FlippingComponent(test, 1, 1));
 	}
 
 
 
 
-	Entity* sign = addEntity("sign");
+	Entity* sign = sceneObject->addEntity("sign");
 	if (sign)
 	{
-		addComponent(sign, "mesh",
+		sceneObject->addComponent(sign, "mesh",
 			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
 		sign->setScale(Vector3(10, 5, 0.2));
 
-		createNewPhysicsComponent(sign, true, "", PxGeometryType::eBOX, "default", true);
+		sceneObject->createNewPhysicsComponent(sign, true, "", PxGeometryType::eBOX, "default", true);
 		static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
 
-		addComponent(sign, "sweep",
+		sceneObject->addComponent(sign, "sweep",
 			new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
 	}
 
 
 
-	Entity* skybox = addEntity("SkyBox");
+	Entity* skybox = sceneObject->addEntity("SkyBox");
 	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		addComponent(skybox, "cube",
+		sceneObject->addComponent(skybox, "cube",
 			new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
 
-	createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
+	sceneObject->createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
 
-	createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
-
+	sceneObject->createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
+	*finished = true;
 }
 
 void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
@@ -303,7 +303,7 @@ void Scene::addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox)
 	slowTrap->scale(scale);
 
 	addComponent(slowTrap, "trap", new SlowTrapComponent(slowTrap, TrapType::SLOW));
-	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(slowTrap, {hitBox});
+	static_cast<TriggerComponent*>(slowTrap->getComponent("trap"))->initTrigger(m_sceneID,slowTrap, {hitBox});
 
 	addComponent(slowTrap, "sound", new AudioComponent(L"OnPickup.wav", false));
 
