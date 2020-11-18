@@ -165,7 +165,7 @@ void SceneManager::swapScenes()
 		//Reset boss
 		if (m_currentScene->m_boss)
 			m_currentScene->m_boss->Detach(m_currentScene);
-
+		//hej detta är big changes
 		// Swap
 		delete m_currentScene;
 		m_currentScene = m_nextScene;
