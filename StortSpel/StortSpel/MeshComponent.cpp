@@ -60,6 +60,16 @@ Material* MeshComponent::getMaterialPtr(int index)
 	return &m_materials.at(index);
 }
 
+bool MeshComponent::isVisible()
+{
+	return m_visible;
+}
+
+void MeshComponent::setVisible(bool val)
+{
+	m_visible = val;
+}
+
 MeshComponent::MeshComponent(std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials)
 {
 	m_type = ComponentType::MESH;

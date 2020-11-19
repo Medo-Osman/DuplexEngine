@@ -5,11 +5,17 @@ int BossObserver::nr = 0;
 Boss::~Boss()
 {
 	Physics::get().Detach(this, true, false);
+
+	for (int i = 0; i < m_bossSegments.size(); i++)
+	{
+		delete m_bossSegments.at(i);
+	}
+
+	m_bossSegments.clear();
 }
 
 void Boss::update(const float& dt)
 {
-	std::cout << bossSegments.size() << std::endl;
 	if (m_currentAction && !m_currentAction->isDone())
 	{
 
@@ -19,13 +25,13 @@ void Boss::update(const float& dt)
 	else if (m_actionQueue.size() > 0)
 		nextAction();
 
-	for (int i = 0; i < bossSegments.size(); i++)
+	for (int i = 0; i < m_bossSegments.size(); i++)
 	{
-		bossSegments.at(i)->update(dt);
-		PhysicsComponent* comp = static_cast<PhysicsComponent*>(bossSegments.at(i)->m_bossEntity->getComponent("physics"));
-		comp->setPosition(m_bossEntity->getTranslation() + bossSegments.at(i)->m_entityOffset);
+		m_bossSegments.at(i)->update(dt);
+		PhysicsComponent* comp = static_cast<PhysicsComponent*>(m_bossSegments.at(i)->m_bossEntity->getComponent("physics"));
+		comp->setPosition(m_bossEntity->getTranslation() + m_bossSegments.at(i)->m_entityOffset);
 
-		bossSegments.at(i)->m_bossEntity->setPosition(m_bossEntity->getTranslation() + bossSegments.at(i)->m_entityOffset);
+		m_bossSegments.at(i)->m_bossEntity->setPosition(m_bossEntity->getTranslation() + (m_bossSegments.at(i)->m_bossEntity->getTranslation() - m_bossEntity->getTranslation()));
 	}
 
 
@@ -39,7 +45,18 @@ void Boss::initialize(Entity* entity, bool destroyActionOnComplete)
 
 void Boss::addSegment(BossSegment* segment)
 {
-	bossSegments.push_back(segment);
+	m_bossSegments.push_back(segment);
+}
+
+BossStructures::IntVec Boss::getNewPlatformTarget()
+{
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::default_random_engine generator(seed);
+	std::uniform_int_distribution<int> distribution(0, platformArray.columns.size() - 1);
+	int numberX = (int)distribution(generator);
+	int numberY = (int)distribution(generator);
+
+	return BossStructures::IntVec{ numberX, numberY };
 }
 
 

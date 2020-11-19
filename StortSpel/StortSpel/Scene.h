@@ -35,16 +35,38 @@ private:
 	void createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity);
 	int m_nrOfPointLight = 0;
 	void createPointLight(Vector3 position, Vector3 color, float intensity);
+	
+	//---------------------------------------------------------------Boss sstuff
 	UINT m_nrOfProjectiles = 0;
 	float m_projectileLifeTime = 10.f;
 	void createProjectile(Vector3 origin, Vector3 dir, float speed);
 	void checkProjectiles();
 
+	UINT m_nrOfLasers = 0;
+	void createLaser(BossStructures::BossActionData data);
+	void checkLasers(float dt);
+
+	UINT m_nrOfDisplacedPlatforms = 0;
+	void checkPlatforms(float dt);
+	void displacePlatform(Entity* entity);
+	void physicallyMovePlatform(Entity* entity);
+	bool findPlatformAlready(Entity* entity);
+
+	
+
 	//For projectiles
 	std::unordered_map<UINT, Entity*> m_projectiles;
 
-	std::vector<Vector3> deferredPointInstantiationList;
+	//For lasers
+	std::unordered_map<UINT, BossStructures::BossLaser*> m_lasers;
 
+	//Displaced platforms from the grid
+	std::unordered_map<UINT, BossStructures::PlatformDisplace*> m_displacedPlatforms;
+	std::unordered_map<UINT, BossStructures::PlatformDisplace*> m_platformsShrinking;
+	std::unordered_map<UINT, BossStructures::PlatformDisplace*> m_platformsGrowing;
+
+	std::vector<Vector3> deferredPointInstantiationList;
+	//---------------------------------------------------------------End of boss stuff
 
 
 	Player* m_player;

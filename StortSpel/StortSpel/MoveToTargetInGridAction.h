@@ -5,7 +5,7 @@
 #include "Entity.h"
 #include "AnimatedMeshComponent.h"
 #include <random>
-#include "MoveInGridAction.h"
+#include "MoveOneInGridAction.h"
 
 class MoveToTargetInGridAction : public BossStructures::BaseAction
 {
@@ -62,15 +62,15 @@ public:
 
 		for (int x = 0; x < abs(deltaX); x++)
 		{
-			int multiplier = (deltaX > 1) ? 1 : -1;
+			int multiplier = (deltaX > 0) ? 1 : -1;
 
-			m_actionQueue->push_back(new MoveInGridAction(m_bossEntity, m_bossSubject, m_platformArray, Vector2(1*multiplier, 0), m_speed, m_currentPlatformIndex));
+			m_actionQueue->push_back(new MoveOneInDirGridAction(m_bossEntity, m_bossSubject, m_platformArray, Vector2(1*multiplier, 0), m_speed, m_currentPlatformIndex));
 		}
 		for (int y = 0; y < abs(deltaY); y++)
 		{
-			int multiplier = (deltaY > 1) ? 1 : -1;
+			int multiplier = (deltaY > 0) ? 1 : -1;
 
-			m_actionQueue->push_back(new MoveInGridAction(m_bossEntity, m_bossSubject, m_platformArray, Vector2(0, 1*multiplier), m_speed, m_currentPlatformIndex));
+			m_actionQueue->push_back(new MoveOneInDirGridAction(m_bossEntity, m_bossSubject, m_platformArray, Vector2(0, 1*multiplier), m_speed, m_currentPlatformIndex));
 		}
 	}
 

@@ -66,9 +66,13 @@ public:
 				if (m_currentAction)
 					m_actionQueue.insert(m_actionQueue.begin(), m_currentAction);
 
-				m_currentAction = m_actionQueue.back();
-				m_actionQueue.pop_back();
-				m_currentAction->beginAction();
+				if (m_actionQueue.size() > 0)
+				{
+					m_currentAction = m_actionQueue.back();
+					m_actionQueue.pop_back();
+					m_currentAction->beginAction();
+
+				}
 			}
 		}
 		else

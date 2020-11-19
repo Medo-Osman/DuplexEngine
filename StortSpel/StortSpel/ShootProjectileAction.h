@@ -8,7 +8,6 @@ private:
 	BossStructures::BossActionData m_data;
 	Timer m_timer;
 	float m_shootInterval = 0.5f; //Seconds
-	float m_maxDirectionOffset = 4.f;
 	Vector3 m_target;
 
 	bool m_targetSet = false;
@@ -24,7 +23,7 @@ public:
 
 	void setTarget(Vector3 target)
 	{
-		m_data.origin = m_bossEntity->getTranslation() + Vector3(0, m_bossEntity->getScaling().y / 2, 0);
+		m_data.origin = static_cast<PhysicsComponent*>(m_bossEntity->getComponent("physics"))->getActorPosition();//m_bossEntity->getTranslation() + Vector3(0, m_bossEntity->getScaling().y / 2, 0);
 		m_target = target;
 		Vector3 unnormalizedDir = (target - m_data.origin);
 		m_data.direction = XMVector3Normalize(unnormalizedDir);
@@ -53,8 +52,6 @@ public:
 		m_timer.restart();
 		m_timeData.timer.restart();
 
-		AnimatedMeshComponent* animComp = static_cast<AnimatedMeshComponent*>(m_bossEntity->getComponent("mesh"));
-		animComp->playSingleAnimation("platformer_guy_idle", 0.1f, false);
 	}
 
 	virtual void update(const float& dt) override

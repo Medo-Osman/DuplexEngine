@@ -2,7 +2,7 @@
 #include "3DPCH.h"
 #include <functional>
 
-enum class BossMovementType { NONE, ShootProjectile, DropPoints, MoveTo };
+enum class BossMovementType { NONE, ShootProjectile, DropPoints, MoveTo, MoveOneInGrid, MoveToTargetInGrid, ShootLaser, MovePlatform, Wait, ClearColumn, ClearRow };
 
 class BossSubject;
 
@@ -12,8 +12,39 @@ namespace BossStructures
 	{
 		Vector3 direction;
 		Vector3 origin;
+		Vector3 rotation;
 		float speed = 0;
 		void* pointer0 = nullptr;
+	};
+
+	struct BossLaser
+	{
+		UINT id = 0;
+		Entity* entity = nullptr;
+		Timer timer;
+		float lifeTime = 1.f; //Seconds
+
+		BossLaser()
+		{
+			timer.start();
+		}
+	};
+
+	struct PlatformDisplace
+	{
+		UINT id = 0;
+		Entity* entity = nullptr;
+		Timer timer;
+		float stayDisplacedFor = 10.f; //Seconds
+		bool doneTweening = false;
+		Vector3 targetSize = Vector3(0.001f, 0.001f, 0.001f);
+		Vector3 originalSize;
+
+		Vector3 offsetBy; //How much was it offset by
+		PlatformDisplace()
+		{
+			timer.start();
+		}
 	};
 
 	struct ActionTimeData
@@ -21,6 +52,11 @@ namespace BossStructures
 		Timer timer;
 		float maxDuration = 5; //For how many seconds the action should be performed for
 		float cooldownAfterAction = 0.2; //For many seconds long it should wait before
+	};
+
+	struct IntVec
+	{
+		int x, y = 0;
 	};
 
 

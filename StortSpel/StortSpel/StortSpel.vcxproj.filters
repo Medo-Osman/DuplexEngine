@@ -434,10 +434,16 @@
     <ClInclude Include="BossSegment.h">
       <Filter>Source Files\Game\Boss</Filter>
     </ClInclude>
-    <ClInclude Include="MoveInGridAction.h">
+    <ClInclude Include="MoveToTargetInGridAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
     </ClInclude>
-    <ClInclude Include="MoveToTargetInGridAction.h">
+    <ClInclude Include="MoveOneInGridAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="ShootLaserXZAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="WaitAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
     </ClInclude>
   </ItemGroup>
