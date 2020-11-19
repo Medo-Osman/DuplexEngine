@@ -62,7 +62,7 @@ void Engine::readMaterials()
 		{
 			rawFileName = fileName.substr(0, fileName.size() - 4);
 			textureName = rawFileName.substr(2);						// Remove start "T_"
-			textureName = textureName.substr(0, textureName.find("_")); // Remove ending "_D"
+			textureName = textureName.substr(0, textureName.find_last_of("_")); // Remove ending "_D"
 			bool isTextrue = false;
 
 			// ---------------------------------------------------------------------------- Add diffuse to mat
