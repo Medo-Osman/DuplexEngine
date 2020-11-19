@@ -14,7 +14,7 @@ private:
 	// Device
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_dContext;
-
+	HWND* m_window;
 	// Render States
 	std::unique_ptr< CommonStates > m_states;
 
@@ -36,7 +36,7 @@ public:
 	static GUIHandler& get();
 	~GUIHandler();
 
-	void initialize(ID3D11Device* device, ID3D11DeviceContext* dContext, Input* input);
+	void initialize(ID3D11Device* device, ID3D11DeviceContext* dContext, Input* input, HWND* window);
 
 	int addGUIButton(std::wstring buttonTextureString, GUIButtonStyle style = GUIButtonStyle());
 	void changeGUIButton(int index, std::wstring path);
