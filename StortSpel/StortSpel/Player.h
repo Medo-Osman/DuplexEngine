@@ -157,6 +157,7 @@ private:
     //Private functions
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
+    Vector3 calculatePath(Vector3 position, Vector3 velocity, float gravityY);
     void playerStateLogic(const float& dt);
 
     bool pickupUpdate(Pickup* pickupPtr, const float& dt);

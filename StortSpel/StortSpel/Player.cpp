@@ -158,6 +158,39 @@ float lerp(const float& a, const float &b, const float &t)
 {
 	return a + (t * (b - a));
 }
+bool doOnce = false;
+Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY)
+{
+	bool foundEnd = false;
+	bool print = !doOnce;
+	float t = 0.01;
+	Vector3 pos = position;
+	Vector3 vel = velocity;
+	m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
+	while (!foundEnd && t < 200)
+	{
+		Vector3 curVel = vel;
+		Vector3 curPos = pos;
+		curVel.y -= -GRAVITY * m_gravityScale * t;
+		curPos = curVel * t + pos;
+		if (print)
+		{
+			std::cout << (int)curPos.x << " " << (int)curPos.y << " " << (int)curPos.z << std::endl;
+			doOnce = true;
+		}
+
+		t += 0.5f;
+		if (Physics::get().hitSomething(curPos, 1.5f))
+		{
+			foundEnd = true;
+			pos = curPos;
+		}
+	}
+
+	ImGui::Text("Found Position:(%d, %d, %d)", (int)pos.x, (int)pos.y, (int)pos.z);
+
+	return pos;
+}
 
 void Player::playerStateLogic(const float& dt)
 {
@@ -252,60 +285,28 @@ void Player::playerStateLogic(const float& dt)
 
 		GUIHandler::get().setVisible(m_cannonCrosshairID, true);
 
+
 		if (m_shouldFire)
 		{
 			m_state = PlayerState::FLYINGBALL;
 			m_lastState = PlayerState::CANNON;
 			m_direction = m_cameraTransform->getForwardVector();
 			m_velocity = m_direction;
-			m_direction.y = 0;
-			if (m_velocity.x <= 0.0f)
-			{
-				m_xDirectionNegative = true;
-			}
-			if (m_velocity.z <= 0.0f)
-			{
-				m_zDirectionNegative = true;
-			}
+			Vector3 finalPos = calculatePath(m_cannonEntity->getTranslation(), m_velocity, GRAVITY);
+		}
+		else
+		{
+			Vector3 finalPos;
+			finalPos = calculatePath(m_cannonEntity->getTranslation(), m_cameraTransform->getForwardVector(), GRAVITY);
 		}
 		break;
 	case PlayerState::FLYINGBALL:
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 
-		if (m_xDirectionNegative)
-		{
-			if (m_direction.x < 0)
-				m_direction.x += 0.1f * dt;
-			else
-				m_direction.x = 0;
-		}
-		else
-		{
-			if (m_direction.x > 0)
-				m_direction.x -= 0.1f * dt;
-			else
-				m_direction.x = 0;
-		}
-
-		if (m_zDirectionNegative)
-		{
-			if (m_direction.z < 0)
-				m_direction.z += 0.1f * dt;
-			else
-				m_direction.z = 0;
-		}
-		else
-		{
-			if (m_direction.z > 0)
-				m_direction.z -= 0.1f * dt;
-			else
-				m_direction.z = 0;
-		}
-
 
 		m_velocity.x = m_direction.x;
 		m_velocity.z = m_direction.z;
-		if (m_direction.Length() <= 0.001f || m_controller->checkGround(m_controller->getFootPosition(), DirectX::XMVector3Normalize(m_velocity), 0.3f))
+		if (m_controller->checkGround(m_controller->getFootPosition(), DirectX::XMVector3Normalize(m_velocity), 0.3f))
 		{
 			PlayerMessageData data;
 			data.playerActionType = PlayerActions::ON_FIRE_CANNON;
@@ -638,7 +639,7 @@ void Player::inputUpdate(InputData& inputData)
 
 void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEntityBeRemoved)
 {
-
+	
 	if (!shouldTriggerEntityBeRemoved)
 	{
 		//Traps
@@ -716,6 +717,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 						jump(false);
 						environmenPickup = true;
 					}
+
 
 					break;
 				case PickupType::CANNON:
