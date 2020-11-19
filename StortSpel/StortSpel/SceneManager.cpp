@@ -13,6 +13,7 @@ SceneManager::~SceneManager()
 {
 	delete m_currentScene;
 	delete m_nextScene;
+	delete m_nextSceneReady;
 }
 
 void SceneManager::initalize()

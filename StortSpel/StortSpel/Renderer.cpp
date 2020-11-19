@@ -534,6 +534,7 @@ void Renderer::blurPass()
 	m_dContextPtr->PSSetShaderResources(1, 1, m_downSampledShaderResourceView.GetAddressOf());
 	m_dContextPtr->Draw(vertexCount, 0);
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
 
 }
 
@@ -735,10 +736,10 @@ void Renderer::rasterizerSetup()
 
 void Renderer::update(const float& dt)
 {
-	/*if (ImGui::Button("Toggle FrustumCulling"))
+	if (ImGui::Button("Toggle FrustumCulling"))
 	{
 		m_frustumCullingOn = !m_frustumCullingOn;
-	}*/
+	}
 }
 
 void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
