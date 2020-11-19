@@ -11,15 +11,14 @@ Scene::Scene()
 {
 	// Player
 	m_player = Engine::get().getPlayerPtr();
+
 	m_entities[PLAYER_ENTITY_NAME] = m_player->getPlayerEntity();
+
 	m_sceneEntryPosition = { 0, 0, 0 };
 	m_sceneID = Physics::get().getNewSceneID();
 
-
-
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
-
 
 }
 
@@ -98,9 +97,6 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(test, "flipp",
 			new FlippingComponent(test, 1, 1));
 	}
-
-
-
 
 	Entity* sign = sceneObject->addEntity("sign");
 	if (sign)
@@ -659,6 +655,24 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
+	Entity* testEndSceneTrigger = sceneObject->addEntity("trigger");
+	if (testEndSceneTrigger)
+	{
+		sceneObject->addComponent(testEndSceneTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
+		testEndSceneTrigger->setPosition(9,7,0);
+		testEndSceneTrigger->setScale(13.176, 15.048, 1);
+		testEndSceneTrigger->setRotation(XMConvertToRadians(-10.102), XMConvertToRadians(0), XMConvertToRadians(0));
+
+		sceneObject->addComponent(testEndSceneTrigger, "trigger",
+			new TriggerComponent());
+
+		TriggerComponent* tc = static_cast<TriggerComponent*>(testEndSceneTrigger->getComponent("trigger"));
+		tc->initTrigger(sceneObject->m_sceneID, testEndSceneTrigger, XMFLOAT3(9.0f, 8.0f, 0.5f));
+		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
+		tc->setIntData((int)ScenesEnum::ENDSCENE);
+	}
+
 
 	Entity* barrelDropTrigger = sceneObject->addEntity("dropTrigger");
 	if (barrelDropTrigger)
@@ -825,6 +839,98 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	sceneObject->createSpotLight(Vector3(-11, 50, 275), Vector3(-35, 0, 0), Vector3(1, 0, 0), 0.3);
 
 	*finished = true; //Inform the main thread that the loading is complete.
+}
+
+void Scene::loadEndScene(Scene* sceneObject, bool* finished)
+{
+	Entity* floor = sceneObject->addEntity("Floor");
+	if (floor)
+	{
+		sceneObject->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"DarkGrayTexture.png" })));
+		floor->scale({ 30, 1, 30 });
+		floor->translate({ 0,-2,0 });
+		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	//fourth player spawn at location Vector3(10,1,0)
+	Entity* pedestalPlaceFour = sceneObject->addEntity("pedastal1");
+	if (pedestalPlaceFour)
+	{
+		sceneObject->addComponent(pedestalPlaceFour, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"BlackTexture.png" })));
+		pedestalPlaceFour->scale({ 2.5, 1, 2.5 });
+		pedestalPlaceFour->translate({ 10, -1,0 });
+		sceneObject->createNewPhysicsComponent(pedestalPlaceFour, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	//third player spawn at location Vector3(2,1,0)
+	Entity* pedestalPlaceThree = sceneObject->addEntity("pedastal2");
+	if (pedestalPlaceThree)
+	{
+		sceneObject->addComponent(pedestalPlaceThree, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"BlackTexture.png" })));
+		pedestalPlaceThree->scale({ 2.5, 2, 2.5 });
+		pedestalPlaceThree->translate({ 2.5,-0.5,0 });
+		sceneObject->createNewPhysicsComponent(pedestalPlaceThree, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	//second player spawn at location Vector3(7,1,0)
+	Entity* pedestalPlaceTwo = sceneObject->addEntity("pedastal3");
+	if (pedestalPlaceTwo)
+	{
+		sceneObject->addComponent(pedestalPlaceTwo, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"BlackTexture.png" })));
+		pedestalPlaceTwo->scale({ 2.5, 3, 2.5 });
+		pedestalPlaceTwo->translate({ 7.5,0,0 });
+		sceneObject->createNewPhysicsComponent(pedestalPlaceTwo, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	//first player spawn at location Vector3(5,1,0)
+	Entity* pedestalPlaceOne = sceneObject->addEntity("pedastal4");
+	if (pedestalPlaceOne)
+	{
+		sceneObject->addComponent(pedestalPlaceOne, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"BlackTexture.png" })));
+		pedestalPlaceOne->scale({ 2.5, 4, 2.5 });
+		pedestalPlaceOne->translate({5,0,0 });
+		sceneObject->createNewPhysicsComponent(pedestalPlaceOne, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+	
+	Entity* PlayerOne = sceneObject->addEntity("Playerdummy1");
+	if (PlayerOne)
+	{
+		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+		PlayerOne->addComponent("mesh", animMeshComp);
+		sceneObject->addMeshComponent(animMeshComp);
+		PlayerOne->scale({2, 2, 2.});
+		PlayerOne->translate({ 5,2,0 });
+	}
+	Entity* PlayerTwo = sceneObject->addEntity("Playerdummy2");
+	if (PlayerTwo)
+	{
+		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+		PlayerTwo->addComponent("mesh", animMeshComp);
+		sceneObject->addMeshComponent(animMeshComp);
+		PlayerTwo->scale({ 2, 2, 2 });
+		PlayerTwo->translate({ 7,1.5,0 });
+	}
+	Entity* PlayerThree = sceneObject->addEntity("Playerdummy3");
+	if (PlayerThree)
+	{
+		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+		PlayerThree->addComponent("mesh", animMeshComp);
+		sceneObject->addMeshComponent(animMeshComp);
+		PlayerThree->scale({ 2, 2, 2 });
+		PlayerThree->translate({ 1.5.5,0 });
+
+	}
+
+
+	*finished = true;
 }
 
 void Scene::loadArena(Scene* sceneObject, bool* finished)

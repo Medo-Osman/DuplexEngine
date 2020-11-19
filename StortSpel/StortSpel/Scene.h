@@ -93,9 +93,11 @@ public:
 	Scene();
 	~Scene();
 	bool disMovment = false;
+
 	static void loadMainMenu(Scene* sceneObject, bool* finished);
 	static void loadScene(Scene* sceneObject, std::string path, bool* finished);
 	static void loadTestLevel(Scene* sceneObject, bool* finished);
+	static void loadEndScene(Scene* sceneObject, bool* finished);
 	static void loadLobby(Scene* sceneObject, bool* finished);
 	static void loadArena(Scene* sceneObject, bool* finished);
 	static void loadMaterialTest(Scene* sceneObject, bool* finished);

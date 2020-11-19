@@ -47,9 +47,7 @@ void Engine::update(const float& dt)
 	updateLightData();
 
 }
-void Engine::updatePlayerAndCamera(const float& dt)
-{
-}
+
 void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities)
 {
 	m_entities = entities;
@@ -152,9 +150,6 @@ Player* Engine::getPlayerPtr()
 	return m_player;
 }
 
-
-
-
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
 	m_devicePtr = devicePtr;
@@ -182,27 +177,26 @@ void Engine::initialize(Input* input)
 	
 	// Player
 	m_player = new Player();
+
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
 
 	// - Entity
 	Entity* playerEntity = new Entity(PLAYER_ENTITY_NAME);
 	playerEntity->setPosition({ 0, 0, 0 });
+
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
 	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
 	playerEntity->addComponent("mesh", animMeshComp);
 
-
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
 	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
 
-
 	m_player->setAnimMeshPtr(animMeshComp);
 
 	//a4->setAnimationSpeed(0.05f);
-
 	// - Physics Componenet
 	playerEntity->addComponent("CCC", new CharacterControllerComponent());
 	CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(playerEntity->getComponent("CCC"));

@@ -112,10 +112,17 @@ void SceneManager::updateScene(const float &dt)
 			break;
 		case ScenesEnum::MAINMENU:
 			disableMovement();
-			m_nextScene->loadMainMenu(m_nextScene, m_nextSceneReady);
+			sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			m_gameStarted = false;
 			break;
 		case ScenesEnum::ENDSCENE:
-			//
+			sceneLoaderThread = std::thread(Scene::loadEndScene, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			//disableMovement();
+
 			break;
 		default:
 			break;
