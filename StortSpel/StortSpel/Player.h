@@ -123,8 +123,8 @@ private:
     Entity* m_cannonEntity;
     bool m_shouldFire = false;
     Vector3 m_direction;
-    bool m_xDirectionNegative;
-    bool m_zDirectionNegative;
+    Entity* m_3dMarker;
+    Vector3 m_cameraOffset;
 
     //
     TrapType m_activeTrap;
@@ -194,6 +194,7 @@ public:
     }
 
     void setCannonEntity(Entity* entity);
+    Entity* get3DMarkerEntity();
     Entity* getCannonEntity() { return m_cannonEntity; }
     int m_cannonCrosshairID;
 
@@ -220,6 +221,7 @@ public:
     int getScore();
     void setScore(int newScore);
     Entity* getPlayerEntity() const;
+    Vector3 getCameraOffset();
     const bool canUsePickup();
     void handlePickupOnUse();
     void inputUpdate(InputData& inputData);

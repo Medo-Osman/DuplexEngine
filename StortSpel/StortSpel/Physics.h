@@ -446,12 +446,12 @@ public:
 		return m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
 	}
 
-	bool hitSomething(Vector3 position, float radius)
+	bool hitSomething(Vector3 position, float radius, float halfHeight)
 	{
 		PxQueryFilterData fd;
 		fd.flags |= PxQueryFlag::eANY_HIT;
 		PxOverlapBuffer hit;            // [out] Overlap results
-		PxSphereGeometry overlapShape(radius);  // [in] shape to test for overlaps
+		PxCapsuleGeometry overlapShape(radius, halfHeight) ;  // [in] shape to test for overlaps
 		PxTransform shapePose = PxTransform(PxVec3(position.x, position.y, position.z));    // [in] initial shape pose (at distance=0)
 
 

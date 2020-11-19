@@ -64,6 +64,10 @@ Player::Player()
 	guiInfo.position = Vector2(Engine::get().getSettings().width / 2, Engine::get().getSettings().height / 2);
 	m_cannonCrosshairID = GUIHandler::get().addGUIImage(L"crosshair.png", guiInfo);
 	GUIHandler::get().setVisible(m_cannonCrosshairID, false);
+
+
+
+
 }
 
 Player::~Player()
@@ -71,11 +75,29 @@ Player::~Player()
 	if (m_playerEntity)
 		delete m_playerEntity;
 
+	if (m_3dMarker)
+		delete m_3dMarker;
+
 }
 
 void Player::setCannonEntity(Entity* entity)
 {
 	m_cannonEntity = entity;
+
+	if (!m_3dMarker)
+	{
+		m_3dMarker = new Entity("3DMarker");
+		Engine::get().getEntityMap()->emplace("3DMarker", m_3dMarker);
+		MeshComponent* mesh = new MeshComponent("testCube_pCube1.lrm");
+		mesh->setCastsShadow(false);
+		m_3dMarker->addComponent("6 nov (mesh)", mesh);
+		Engine::get().getMeshComponentMap()->emplace(1632, mesh);
+	}
+}
+
+Entity* Player::get3DMarkerEntity()
+{
+	return m_3dMarker;
 }
 
 bool Player::isRunning()
@@ -166,12 +188,13 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 	float t = 0.01;
 	Vector3 pos = position;
 	Vector3 vel = velocity;
-	m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
 	while (!foundEnd && t < 200)
 	{
 		Vector3 curVel = vel;
 		Vector3 curPos = pos;
-		curVel.y -= -GRAVITY * m_gravityScale * t;
+		curVel.y -= GRAVITY * m_gravityScale * t;
+		if (curVel.y <= -MAX_FALL_SPEED)
+			curVel.y = -MAX_FALL_SPEED;
 		curPos = curVel * t + pos;
 		if (print)
 		{
@@ -180,11 +203,15 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 		}
 
 		t += 0.5f;
-		if (Physics::get().hitSomething(curPos, 1.5f))
+		bool hit = Physics::get().hitSomething(curPos, m_controller->getOriginalRadius(), m_controller->getOriginalHalfHeight());
+		if (hit)
 		{
 			foundEnd = true;
 			pos = curPos;
+			m_3dMarker->setPosition(pos);
 		}
+		else
+			m_3dMarker->setPosition(m_playerEntity->getTranslation());
 	}
 
 	ImGui::Text("Found Position:(%d, %d, %d)", (int)pos.x, (int)pos.y, (int)pos.z);
@@ -281,7 +308,7 @@ void Player::playerStateLogic(const float& dt)
 		break;
 	case PlayerState::CANNON:
 		m_controller->setPosition(m_cannonEntity->getTranslation());
-		
+		m_velocity.y = 0;
 
 		GUIHandler::get().setVisible(m_cannonCrosshairID, true);
 
@@ -292,12 +319,14 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::CANNON;
 			m_direction = m_cameraTransform->getForwardVector();
 			m_velocity = m_direction;
-			Vector3 finalPos = calculatePath(m_cannonEntity->getTranslation(), m_velocity, GRAVITY);
+			m_cameraOffset = Vector3(0.f, 0.f, 0.f);
 		}
-		else
+		else //Draw marker
 		{
 			Vector3 finalPos;
-			finalPos = calculatePath(m_cannonEntity->getTranslation(), m_cameraTransform->getForwardVector(), GRAVITY);
+			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector(), GRAVITY);
+			
+			return;
 		}
 		break;
 	case PlayerState::FLYINGBALL:
@@ -319,8 +348,6 @@ void Player::playerStateLogic(const float& dt)
 
 			m_state = PlayerState::JUMPING;
 			m_lastState = PlayerState::FLYINGBALL;
-			m_zDirectionNegative = false;
-			m_xDirectionNegative = false;
 			m_pickupPointer->onDepleted();
 			m_pickupPointer->onRemove();
 			SAFE_DELETE(m_pickupPointer);
@@ -482,6 +509,9 @@ void Player::setPlayerEntity(Entity* entity)
 	//To test heightpickup faster, if you see this you can remove it
 	m_pickupPointer = new CannonPickup();
 	m_pickupPointer->onPickup(m_playerEntity);
+
+
+
 }
 
 Vector3 Player::getCheckpointPos()
@@ -548,6 +578,11 @@ Entity* Player::getPlayerEntity() const
 	return m_playerEntity;
 }
 
+Vector3 Player::getCameraOffset()
+{
+	return m_cameraOffset;
+}
+
 const bool Player::canUsePickup()
 {
 	return m_pickupPointer && !m_pickupPointer->isActive();
@@ -574,6 +609,7 @@ void Player::handlePickupOnUse()
 		break;
 	case PickupType::CANNON:
 		m_state = PlayerState::CANNON;
+		m_cameraOffset = Vector3(1.f, 2.5f, 0.f);
 		//Cannon on use
 	default:
 		break;

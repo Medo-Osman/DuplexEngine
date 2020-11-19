@@ -527,6 +527,8 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		
 		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
 			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+		else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
+			parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
 		else
 			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
