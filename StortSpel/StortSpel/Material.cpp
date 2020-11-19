@@ -2,7 +2,7 @@
 #include "Material.h"
 
 Material::Material()
-	:m_materialId(0), isDefault(true)
+	:m_materialId(0), m_isDefault(true)
 {
 	ID3D11ShaderResourceView* errorTexturePtr = ResourceHandler::get().loadErrorTexture();
 	for (int i = 0; i < 5; i++)
@@ -12,7 +12,7 @@ Material::Material()
 }
 
 Material::Material(std::initializer_list<const WCHAR*> fileNames)
-	:m_materialId(++totalMaterialCount), isDefault(false)
+	:m_materialId(++totalMaterialCount), m_isDefault(false)
 {
 	for (auto fileName : fileNames)
 	{
@@ -31,7 +31,7 @@ Material::Material(const Material& other)
 
 	this->m_materialConstData = other.m_materialConstData;
 
-	this->isDefault = other.isDefault;
+	this->m_isDefault = other.m_isDefault;
 }
 
 Material::~Material() {}
@@ -88,11 +88,11 @@ void Material::setMaterial(bool shaderNeedsResource[5], bool shaderNeedsCBuffer[
 
 void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 {
-	if (isDefault)
+	if (m_isDefault)
 	{
 		this->m_textureArray.clear();
 		m_materialId = ++totalMaterialCount;
-		isDefault = false;
+		m_isDefault = false;
 	}
 	
 	this->m_textureArray.push_back(ResourceHandler::get().loadTexture(fileName, isCubeMap));

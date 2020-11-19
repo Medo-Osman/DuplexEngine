@@ -118,6 +118,7 @@
       <PrecompiledHeaderFile>3DPCH.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\3rd-Party\PhysX\include;Kernel32.lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -164,6 +165,7 @@
       <PrecompiledHeaderFile>3DPCH.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\3rd-Party\PhysX\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -270,6 +272,7 @@
     <ClInclude Include="CheckpointComponent.h" />
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
+    <ClInclude Include="DataHelper.h" />
     <ClInclude Include="FlippingComponent.h" />
     <ClInclude Include="GUIButton.h" />
     <ClInclude Include="GUIContext.h" />

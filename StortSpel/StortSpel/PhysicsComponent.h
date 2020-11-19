@@ -111,8 +111,8 @@ public:
 		m_transform = entity;
 		XMFLOAT3 scale = entity->getScaling() * meshComponent->getScaling();
 		std::string name = meshComponent->getFilePath() + std::to_string(geometryType);
-		PxGeometry* geometry;
-		m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), m_transform->getRotation(), dynamic, this);
+		PxGeometry* geometry; 
+		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshComponent->getTranslation()), Quaternion(XMQuaternionMultiply(entity->getRotation(), meshComponent->getRotation())), dynamic, this);
 		bool addGeom = true;
 
 		if (this->canAddGeometry())
@@ -309,9 +309,12 @@ public:
 	// Update
 	void update(float dt) override 
 	{
-		m_transform->setPosition(this->getActorPosition());
-		if(m_controllRotation)
-			m_transform->setRotationQuat(this->getActorQuaternion());
+		if (m_dynamic)
+		{
+			m_transform->setPosition(this->getActorPosition());
+			if (m_controllRotation)
+				m_transform->setRotationQuat(this->getActorQuaternion());
+		}	
 	}
 
 	XMFLOAT3 getActorPosition()

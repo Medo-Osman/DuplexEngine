@@ -32,9 +32,9 @@ public:
 		{
 			m_angle = 360.f;
 		}
-		XMMATRIX rotMatrix = XMMatrixRotationRollPitchYawFromVector(m_rotateVector * m_angle);
+		//XMMATRIX rotMatrix = XMMatrixRotationRollPitchYawFromVector(m_rotateVector * m_angle);
 
-		m_transform->setRotation(rotMatrix);
-
+		//m_transform->setRotation(rotMatrix);
+		m_transform->setRotation(m_rotateVector, m_angle);
 	}
 };

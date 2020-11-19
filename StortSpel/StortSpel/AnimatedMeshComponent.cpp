@@ -1,11 +1,16 @@
 #include "3DPCH.h"
 #include "AnimatedMeshComponent.h"
 
-AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials)
-	:MeshComponent(shaderEnums, materials), m_inBindPose(true), m_transitionTime(0.f)
+void AnimatedMeshComponent::init(const char* filepath)
 {
+	m_inBindPose = true;
+	m_transitionTime = 0.f;
+	m_type = ComponentType::ANIM_MESH;
+
+	//m_filePath = filepath;
+
 	SkeletalMeshResource* resPtr = (SkeletalMeshResource*)ResourceHandler::get().loadLRSMMesh(filepath);
-	
+
 	setMeshResourcePtr(resPtr);
 
 	//take the joints from the meshresource and build the joints
@@ -19,7 +24,7 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initiali
 
 	m_rootIdx = resPtr->getRootIndex();
 	m_joints.at(m_rootIdx) = createJointAndChildren(m_rootIdx, resPtr->getJoints(), XMMatrixIdentity());
-	
+
 	for (int i = 0; i < m_jointCount; i++)
 	{
 		m_cBufferStruct.boneMatrixPallet[i] = XMMatrixIdentity();
@@ -27,6 +32,12 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initiali
 
 	// when the temp rotation values go this might not need to be here
 	//applyPoseToJoints(XMMatrixIdentity());
+}
+
+AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials)
+	:MeshComponent(shaderEnums, materials)
+{
+	init(filepath);
 }
 
 AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum, std::initializer_list<Material> materials)
@@ -38,12 +49,20 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, ShaderProgram
 {}
 
 AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, Material material)
-	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::DEFAULT, material)
+	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::SKEL_ANIM, material)
 {}
 
 AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initializer_list<Material> materials)
-	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::DEFAULT, materials)
+	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::SKEL_ANIM, materials)
 {}
+
+AnimatedMeshComponent::AnimatedMeshComponent(char* paramData)
+	:MeshComponent()
+{
+	int offset = 0;
+	MeshComponent::init({ ShaderProgramsEnum::SKEL_ANIM }, { Material() });
+	init(readStringFromChar(paramData, offset).c_str());
+}
 
 //std::string AnimatedMeshComponent::getAnimationName()
 //{
@@ -613,6 +632,9 @@ void AnimatedMeshComponent::update(float dt)
 
 void AnimatedMeshComponent::setAnimationSpeed(const float newAnimationSpeed)
 {
+	if (m_inBindPose)
+		return;
+	
 	if (m_transitionTime > 0.f) 
 	{
 		for (auto& animStruct : m_animationQueue.front()->structs)
@@ -631,6 +653,9 @@ void AnimatedMeshComponent::setAnimationSpeed(const float newAnimationSpeed)
 
 void AnimatedMeshComponent::setAnimationSpeed(const unsigned int structIndex, const float newAnimationSpeed)
 {
+	if (m_inBindPose)
+		return;
+	
 	if (m_transitionTime > 0.f)
 	{
 		m_animationQueue.front()->structs.at(structIndex).animationSpeed = newAnimationSpeed;

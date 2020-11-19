@@ -245,7 +245,9 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 		fileStream.clear();
 		fileStream.close();
 
-		return loadLRMMesh(m_ERROR_MODEL_NAME.c_str()); // recursively load the error model instead, this'll be weird because it needs another input layout, but whatever
+		assert(false);
+
+		//return loadLRMMesh(m_ERROR_MODEL_NAME.c_str()); // recursively load the error model instead, this'll be weird because it needs another input layout, but whatever
 	}
 
 	// .lrm has 14 floats per vertex
@@ -420,7 +422,6 @@ AnimationResource* ResourceHandler::loadAnimation(std::string path)
 			
 			offset += sizeof(JOINT_TRANSFORM);
 		}
-
 	}
 
 	m_animationCache[path] = animation;

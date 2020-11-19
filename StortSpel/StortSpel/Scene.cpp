@@ -124,68 +124,6 @@ void Scene::addCheckpoint(const Vector3& position)
 	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.1f));
 }
 
-void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData)
-{
-	int offset = 0;
-	ComponentType compType;
-	memcpy(&compType, compData + offset, sizeof(ComponentType));
-	offset += sizeof(ComponentType);
-
-	int compNameSize;
-	memcpy(&compNameSize, compData + offset, sizeof(int));
-	offset += sizeof(int);
-
-	char* compName = new char[compNameSize];
-	memcpy(compName, compData + offset, compNameSize);
-	offset += compNameSize;
-
-	char* paramData = new char[sizeOfData - offset];
-	memcpy(paramData, compData + offset, sizeOfData - offset);
-
-	Component* newComponent = nullptr;
-
-	switch (compType)
-	{
-	case ComponentType::MESH:
-		newComponent = new MeshComponent(paramData);
-		break;
-	case ComponentType::AUDIO:
-		break;
-	case ComponentType::PHYSICS:
-		break;
-	case ComponentType::CHARACTERCONTROLLER:
-		break;
-	case ComponentType::TRIGGER:
-		break;
-	case ComponentType::TEST:
-		break;
-	case ComponentType::INVALID:
-		break;
-	case ComponentType::UNASSIGNED:
-		break;
-	case ComponentType::ROTATEAROUND:
-		break;
-	case ComponentType::ROTATE:
-		break;
-	case ComponentType::LIGHT:
-		break;
-	case ComponentType::SWEEPING:
-		break;
-	case ComponentType::FLIPPING:
-		break;
-	case ComponentType::CHECKPOINT:
-		break;
-	default:
-		newComponent = nullptr;
-		break;
-	}
-
-	assert(newComponent != nullptr);
-
-	//addComponent(entity, compName, newComponent);
-	addComponent(entity, "mesh", newComponent);
-}
-
 void Scene::addBarrelDrop(Vector3 Position)
 {
 	Entity* rollingBarrel = addEntity("barrel"); //+ std::to_string(m_nrOfBarrelDrops++));
@@ -446,62 +384,155 @@ void Scene::loadScene(std::string path)
 	int offset = 0;
 	for (int i = 0; i < nrOfEntities; i++)
 	{
-		int sizeOfName;
-		memcpy(&sizeOfName, levelData + offset, sizeof(int));
-		offset += sizeof(int);
-
-		char* entName = new char[sizeOfName];
-		//std::string entName;
-		memcpy(entName, levelData + offset, sizeOfName);
-		offset += sizeOfName;
+		// Read name
+		std::string entName = readStringFromChar(levelData, offset);
 
 		Entity* newEntity = addEntity(entName);
 
-		//float pos[3];
-		Vector3 pos;
-		memcpy(&pos, levelData + offset, sizeof(float) * 3);
-		offset += sizeof(float) * 3;
+		// Read transform values
+		Vector3 pos = readDataFromChar<Vector3>(levelData, offset);
+		Quaternion rotQuat = readDataFromChar<Quaternion>(levelData, offset);
+		Vector3 scale = readDataFromChar<Vector3>(levelData, offset);
 
 		newEntity->setPosition(pos);
-
-		Quaternion rotQuat;
-		memcpy(&rotQuat, levelData + offset, sizeof(float) * 4);
-		offset += sizeof(float) * 4;
-
 		newEntity->setRotationQuat(rotQuat);
-
-		Vector3 scale;
-		memcpy(&scale, levelData + offset, sizeof(float) * 3);
-		offset += sizeof(float) * 3;
-
 		newEntity->setScale(scale);
 
-		// An int with the number of components
-		int nrOfComps;
-		memcpy(&nrOfComps, levelData + offset, sizeof(int));
-		offset += sizeof(int);
+		bool isDynamic;
+		PxGeometryType::Enum geoType;
+		std::string physMatName;
+		bool needsKinematics = false;
+		bool needsDynamicPhys = false;
+		bool hasPhysics = readDataFromChar<bool>(levelData, offset);
+		if (hasPhysics)
+		{
+			isDynamic = readDataFromChar<bool>(levelData, offset);
+			geoType = readDataFromChar<PxGeometryType::Enum>(levelData, offset);
+			physMatName = readStringFromChar(levelData, offset);
+			if (physMatName == "")
+				physMatName = "default";
+		}
 
+		// An int with the number of components
+		int nrOfComps = readDataFromChar<int>(levelData, offset);
+
+		// Loop through all the comps, get their data and call addComponentFromFile
 		for (int u = 0; u < nrOfComps; u++)
 		{
-			int compDataSize;
-			memcpy(&compDataSize, levelData + offset, sizeof(int));
-			offset += sizeof(int);
+			int compDataSize = readDataFromChar<int>(levelData, offset);
 
 			char* compData = new char[compDataSize];
 			memcpy(compData, levelData + offset, compDataSize);
 			offset += compDataSize;
 
-			addComponentFromFile(newEntity, compData, compDataSize);
-
+			addComponentFromFile(newEntity, compData, compDataSize, needsDynamicPhys, needsKinematics);
 
 			delete[] compData;
 		}
 
-		createNewPhysicsComponent(newEntity); // TEMP, collision is going to need some more stuff
+		if (needsDynamicPhys)
+			isDynamic = true;
+
+		// TEMP:
+		if (hasPhysics && (newEntity->hasComponentsOfType(ComponentType::MESH) /*|| newEntity->hasComponentsOfType(ComponentType::ANIM_MESH)*/))
+		{
+			createNewPhysicsComponent(newEntity, isDynamic, "", geoType, physMatName);
+			if(needsKinematics)
+				static_cast<PhysicsComponent*>(newEntity->getComponent("physics"))->makeKinematic();
+		}
+			
 	}
 
-
 	delete[] levelData;
+}
+
+void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData, bool& needsDynamicPhys, bool& needsKinematicPhys)
+{
+	int offset = 0;
+
+	ComponentType compType = readDataFromChar<ComponentType>(compData, offset);
+
+	/*ComponentType compType;
+	memcpy(&compType, compData + offset, sizeof(ComponentType));
+	offset += sizeof(ComponentType);*/
+
+	/*int compNameSize;
+	memcpy(&compNameSize, compData + offset, sizeof(int));
+	offset += sizeof(int);
+
+	char* compName = new char[compNameSize];
+	memcpy(compName, compData + offset, compNameSize);
+	offset += compNameSize;*/
+
+	std::string compName = readStringFromChar(compData, offset);
+
+	char* paramData = new char[sizeOfData - offset];
+	memcpy(paramData, compData + offset, sizeOfData - offset);
+
+	Component* newComponent = nullptr;
+
+	switch (compType)
+	{
+	case ComponentType::MESH:
+		newComponent = new MeshComponent(paramData);
+		break;
+	case ComponentType::ANIM_MESH:
+		newComponent = new AnimatedMeshComponent(paramData);
+		break;
+	case ComponentType::AUDIO:
+		newComponent = new AudioComponent(paramData, entity);
+		break;
+	case ComponentType::PHYSICS:
+		newComponent = new InvalidComponent();
+		break;
+	case ComponentType::CHARACTERCONTROLLER:
+		newComponent = new InvalidComponent();
+		break;
+	case ComponentType::TRIGGER:
+		newComponent = new InvalidComponent();
+		break;
+	case ComponentType::TEST:
+		newComponent = new InvalidComponent();
+		break;
+	case ComponentType::INVALID:
+		newComponent = new InvalidComponent();
+		break;
+	case ComponentType::UNASSIGNED:
+		newComponent = new InvalidComponent();
+		break;
+	case ComponentType::ROTATEAROUND:
+		newComponent = new InvalidComponent();
+		break;
+	case ComponentType::ROTATE:													//TODO: some components need to make physics kinematic.
+		newComponent = new RotateComponent(entity, Vector3(1.0f, 0.0f, 0.f));
+		needsDynamicPhys = true;
+		needsKinematicPhys = true;
+		break;
+	case ComponentType::LIGHT:
+		newComponent = new InvalidComponent();
+		break;
+	case ComponentType::SWEEPING:
+		newComponent = new InvalidComponent();
+		needsDynamicPhys = true;
+		needsKinematicPhys = true;
+		break;
+	case ComponentType::FLIPPING:
+		newComponent = new InvalidComponent();
+		needsDynamicPhys = true;
+		needsKinematicPhys = true;
+		break;
+	case ComponentType::CHECKPOINT:
+		newComponent = new InvalidComponent();
+		break;
+	default:
+		//newComponent = nullptr;
+		newComponent = new InvalidComponent();
+		break;
+	}
+	//assert(newComponent != nullptr);
+
+	addComponent(entity, compName, newComponent);
+	//addComponent(entity, "mesh", newComponent);
 }
 
 void Scene::loadTestLevel()
@@ -954,7 +985,7 @@ void Scene::loadMaterialTest()
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"skybox1.dds", true);
-		addComponent(skybox, "cube", new MeshComponent("Skybox_Mesh_pCube1.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
 	}
 
@@ -1095,7 +1126,7 @@ bool Scene::addComponent(Entity* entity, std::string componentIdentifier, Compon
 {
 	entity->addComponent(componentIdentifier, component);
 
-	if (component->getType() == ComponentType::MESH)
+	if (component->getType() == ComponentType::MESH || component->getType() == ComponentType::ANIM_MESH)
 	{
 		MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
 		addMeshComponent(meshComponent);

@@ -77,7 +77,7 @@ private:
 	void addSlowTrap(const Vector3& position, Vector3 scale);
 	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 	
-	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData);
+	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData, bool& needsDynamicPhys, bool& needsKinematicPhys);
 
 	const std::string m_LEVELS_PATH = "../res/levels/";
 
