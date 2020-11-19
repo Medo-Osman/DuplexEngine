@@ -23,8 +23,7 @@ private:
 	XMMATRIX m_rotationMatrix;
 	PhysicsComponent* m_physicsComponent;
 
-public:
-	RotateAroundComponent(Transform* origin, XMMATRIX originRotationAxis, Transform* transform, float radius, float rotationSpeed = 20.f, float startAngle = 0.f, bool lockRotationToParent = false)
+	void init(Transform* origin, XMMATRIX originRotationAxis, Transform* transform, float radius, float rotationSpeed, float startAngle, bool lockRotationToParent)
 	{
 		m_type = ComponentType::ROTATEAROUND;
 		this->m_originTransform = origin;
@@ -36,6 +35,27 @@ public:
 		this->m_radius = radius;
 		this->m_rotationSpeed = rotationSpeed;
 		this->m_lockRotationToParent = lockRotationToParent;
+	}
+
+public:
+	RotateAroundComponent(Transform* origin, XMMATRIX originRotationAxis, Transform* transform, float radius, float rotationSpeed = 20.f, float startAngle = 0.f, bool lockRotationToParent = false)
+	{
+		init(origin, originRotationAxis, transform, radius, rotationSpeed, startAngle, lockRotationToParent);
+	}
+
+	RotateAroundComponent(char* paramData, Transform* origin, Transform* transform)
+	{
+		// Read data from package
+		int offset = 0;
+		std::string tempString = readStringFromChar(paramData, offset);
+
+		XMMATRIX originRotationAxis = readDataFromChar<XMMATRIX>(paramData, offset);
+		float radius = readDataFromChar<float>(paramData, offset);
+		float rotationSpeed = readDataFromChar<float>(paramData, offset);
+		float startAngle = readDataFromChar<float>(paramData, offset);
+		bool lockRotationToParent = readDataFromChar<bool>(paramData, offset);
+
+		init(origin, originRotationAxis, transform, radius, rotationSpeed, startAngle, lockRotationToParent);
 	}
 
 	void setComponentMapPointer(std::unordered_map<std::string, Component*>* componentMap)

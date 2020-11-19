@@ -23,15 +23,13 @@ private:
 	PhysicsComponent* m_physicsComponent;
 	Quaternion slerpedRotation;
 	
-
 	float ParametricBlend(float t)
 	{
 		float sqt = t * t;
 		return sqt / (2.0f * (sqt - t) + 1.0f);
 	}
 
-public:
-	FlippingComponent(Transform* transform, float upTime, float downTime, float flipSpeed = 0.5f)
+	void init(Transform* transform, float upTime, float downTime, float flipSpeed)
 	{
 		m_type = ComponentType::FLIPPING;
 		this->m_transform = transform;
@@ -39,7 +37,25 @@ public:
 		this->m_downTime = downTime;
 		this->m_flipSpeed = flipSpeed;
 		m_physicsComponent = nullptr;
+	}
 
+public:
+	FlippingComponent(Transform* transform, float upTime, float downTime, float flipSpeed = 0.5f)
+	{
+		init(transform, upTime, downTime, flipSpeed);
+	}
+
+	FlippingComponent(char* paramData, Transform* transform)
+	{
+		// Read data from package
+		int offset = 0;
+		std::string tempString = readStringFromChar(paramData, offset);
+
+		float upTime = readDataFromChar<float>(paramData, offset);
+		float downTime = readDataFromChar<float>(paramData, offset);
+		float flipSpeed = readDataFromChar<float>(paramData, offset);
+
+		init(transform, upTime, downTime, flipSpeed);
 	}
 
 	void setComponentMapPointer(std::unordered_map<std::string, Component*>* componentMap)
