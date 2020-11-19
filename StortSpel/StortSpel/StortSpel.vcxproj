@@ -264,6 +264,7 @@
     <ClInclude Include="Boss.h" />
     <ClInclude Include="BarrelComponent.h" />
     <ClInclude Include="BarrelTriggerComponent.h" />
+    <ClInclude Include="BossSegment.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CharacterControllerComponent.h" />
@@ -275,6 +276,8 @@
     <ClInclude Include="GUIContext.h" />
     <ClInclude Include="GUIImageLabel.h" />
     <ClInclude Include="MoveToAction.h" />
+    <ClInclude Include="MoveInGridAction.h" />
+    <ClInclude Include="MoveToTargetInGridAction.h" />
     <ClInclude Include="Particles\Particle.h" />
     <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="Particles\PlayerLineParticle.h" />

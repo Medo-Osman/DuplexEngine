@@ -431,6 +431,15 @@
     <ClInclude Include="MoveToAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
     </ClInclude>
+    <ClInclude Include="BossSegment.h">
+      <Filter>Source Files\Game\Boss</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveInGridAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveToTargetInGridAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">

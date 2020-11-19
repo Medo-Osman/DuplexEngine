@@ -49,7 +49,7 @@ public:
 		m_timer.start();
 		m_timeData.timer.start();
 
-		//Have to do this isDone() is time controlled, otherwise it will skip the action if looping is enabled.
+		//Have to do this, isDone() is time controlled, otherwise it will skip the action if looping is enabled.
 		m_timer.restart();
 		m_timeData.timer.restart();
 
@@ -59,7 +59,8 @@ public:
 
 	virtual void update(const float& dt) override
 	{
-		if (m_timer.timeElapsed() > m_shootInterval && m_targetSet)
+		//std::cout << m_timer.timeElapsed() << std::endl;
+		if (m_timer.timeElapsed() >= m_shootInterval && m_targetSet)
 		{
 			//m_bossEntity->lookAt(m_target);
 			m_data.speed = 10.f;

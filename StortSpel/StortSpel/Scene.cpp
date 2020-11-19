@@ -837,6 +837,7 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 
 	sceneObject->m_sceneEntryPosition = Vector3(0, 0, 0);
 
+
 	Entity* bossEnt = sceneObject -> addEntity("boss");
 	if (bossEnt)
 	{
@@ -860,6 +861,7 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 		sceneObject->m_boss->addAction(new ShootProjectileAction(bossEnt, sceneObject->m_boss, 3, 0));
 
 		Physics::get().Attach(sceneObject->m_boss, true, false);
+
 	}
 
 	Material gridTest = Material({ L"BlackGridBlueLines.png" });
@@ -1148,11 +1150,104 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 	*finished = true;
 }
 
+void Scene::loadBossTest(Scene* sceneObject, bool* finished)
+{
+	sceneObject->createStaticPlatform(Vector3(0, 15, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	sceneObject->m_sceneEntryPosition = Vector3(0, 17, 20);
+
+	Entity* bossEnt = sceneObject->addEntity("boss");
+	if (bossEnt)
+	{
+		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+		bossEnt->addComponent("mesh", animMeshComp);
+		sceneObject->addMeshComponent(animMeshComp);
+		bossEnt->scale({ 4, 4, 4 });
+		bossEnt->translate({ 0,2,0 });
+
+		sceneObject->m_boss = new Boss();
+		sceneObject->m_boss->Attach(sceneObject);
+		sceneObject->m_boss->initialize(bossEnt, true);
+
+		//// Init grid structure
+		BossStructures::PlatformArray* platformArray = &sceneObject->m_boss->platformArray;
+		float spacingBetweenPlatforms = 1.f;
+		int total = 0;
+		float scaling = 10.f;
+		for (int x = 0; x < platformArray->columns.size(); x++)
+		{
+			for (int y = 0; y < platformArray->columns.size(); y++)
+			{
+				Entity* platform = sceneObject->addEntity("bossPlatform-" + std::to_string(total++));
+				Vector3 offset = sceneObject->m_sceneEntryPosition;
+				if (platform)
+				{
+					platform->setPosition(Vector3(((float)x+1) * scaling + (x+1)*0.05f, 2, (float)(y+1) * scaling + (y+1)*0.05f));
+					platform->scale(scaling, 0.5f, scaling);
+
+					sceneObject->addComponent(platform, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+					sceneObject->createNewPhysicsComponent(platform);
+
+					(*platformArray)[x][y] = platform;
+				}
+
+			}
+		}
+		////
+
+		sceneObject->m_boss->addAction(new MoveToTargetInGridAction(bossEnt, sceneObject->m_boss, platformArray, Vector2(2,5), 10.f, &sceneObject->m_boss->currentPlatformIndex, sceneObject->m_boss->getActionQueue()));
+		sceneObject->m_boss->addAction(new MoveToTargetInGridAction(bossEnt, sceneObject->m_boss, platformArray, Vector2(6,0), 10.f, &sceneObject->m_boss->currentPlatformIndex, sceneObject->m_boss->getActionQueue()));
+		sceneObject->m_boss->addAction(new MoveToTargetInGridAction(bossEnt, sceneObject->m_boss, platformArray, Vector2(2,5), 10.f, &sceneObject->m_boss->currentPlatformIndex, sceneObject->m_boss->getActionQueue()));
+		sceneObject->m_boss->addAction(new MoveToTargetInGridAction(bossEnt, sceneObject->m_boss, platformArray, Vector2(2,5), 10.f, &sceneObject->m_boss->currentPlatformIndex, sceneObject->m_boss->getActionQueue()));
+
+		sceneObject->addCheckpoint(sceneObject->m_sceneEntryPosition + Vector3(0, 0, 0));
+
+		Physics::get().Attach(sceneObject->m_boss, true, false);
+
+		//Segments
+		Entity* segmentEntity = sceneObject->addEntity("projectileSegment");
+		sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+		segmentEntity->setScale({ 3,3,3 });
+
+		BossSegment* projectileSegment = new BossSegment();
+		projectileSegment->initializeSegment(segmentEntity, false);
+		projectileSegment->m_entityOffset = Vector3(0, 3, 0);
+		sceneObject->m_boss->addSegment(projectileSegment);
+		sceneObject->createNewPhysicsComponent(segmentEntity, false, "mesh");
+		projectileSegment->Attach(sceneObject);
+
+		ShootProjectileAction* action = new ShootProjectileAction(bossEnt, sceneObject->m_boss, 4, 0);
+		action->setTarget(sceneObject->m_sceneEntryPosition);
+		projectileSegment->addAction(action);
+		//sceneObject->m_boss->addAction();
+	}
+
+	Entity* skybox = sceneObject->addEntity("SkyBox");
+	skybox->m_canCull = false;
+	if (skybox)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		//Disable shadow casting
+		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	}
+
+	*finished = true;
+}
+
 void Scene::updateScene(const float& dt)
 {
 	if (m_boss)
 	{
 		m_boss->update(dt);
+		Vector3 targetPos = static_cast<CharacterControllerComponent*>(m_player->getPlayerEntity()->getComponent("CCC"))->getFootPosition() + Vector3(0, 1, 0);
+		if (m_boss->bossSegments.size() > 0)
+		{
+			static_cast<ShootProjectileAction*>(m_boss->bossSegments.at(0)->getCurrentAction())->setTarget(targetPos);
+			//m_boss->bossSegments.at(0);
+		}
+		
 
 		ShootProjectileAction* ptr = dynamic_cast<ShootProjectileAction*>(m_boss->getCurrentAction());
 
