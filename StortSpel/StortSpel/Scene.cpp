@@ -110,13 +110,13 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 	{
 		sceneObject->addComponent(sign, "mesh",
 			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
-		sign->setScale(Vector3(10, 5, 0.2));
+		sign->setScale(Vector3(10.f, 5.f, 0.2f));
 
 		sceneObject->createNewPhysicsComponent(sign, true, "", PxGeometryType::eBOX, "default", true);
 		static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
 
 		sceneObject->addComponent(sign, "sweep",
-			new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
+			new SweepingComponent(sign, Vector3(0.f, 5.f, 10.f), Vector3(0.f, 5.5f, 10.f), 5.f));
 	}
 
 
@@ -134,9 +134,9 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
 
-	sceneObject->createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
+	sceneObject->createParisWheel(Vector3(30.f, 7.f, 0.f), 90.f, 30.f, 4);
 
-	sceneObject->createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
+	sceneObject->createSpotLight(Vector3(0.f, 21.f, -20.f), Vector3(10.f, 0.f, 0.f), Vector3(0.5f, 0.1f, 0.3f), 3.f);
 	*finished = true;
 }
 
@@ -475,13 +475,13 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 	{
 		sceneObject->addComponent(sign, "mesh",
 			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
-		sign->setScale(Vector3(10, 5, 0.2));
+		sign->setScale(Vector3(10.f, 5.f, 0.2f));
 
 		sceneObject->createNewPhysicsComponent(sign, true,"",PxGeometryType::eBOX,"default", true);
 		static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
 
 		sceneObject->addComponent(sign, "sweep",
-			new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
+			new SweepingComponent(sign, Vector3(0.f, 5.f, 10.f), Vector3(0.f, 5.5f, 10.f), 5.f));
 	}
 
 
@@ -531,7 +531,7 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 		sceneObject->createNewPhysicsComponent(multiMatTest);
 	}
 
-	sceneObject->createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
+	sceneObject->createSpotLight(Vector3(0.f, 21.f, -20.f), Vector3(10.f, 0.f, 0.f), Vector3(0.5f, 0.1f, 0.3f), 3.f);
 	*finished = true; //Inform the main thread that the loading is complete.
 }
 
@@ -645,20 +645,17 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 
 void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 {
-	Entity* entity;
-
 	sceneObject->loadPickups();
 	sceneObject->loadScore();
 
+	sceneObject->addCheckpoint(Vector3(0.f, 9.f, 5.f));
+	sceneObject->addCheckpoint(Vector3(14.54f, 30.f, 105.f));
+	sceneObject->addCheckpoint(Vector3(14.54f, 30.f, 105.f));
+	sceneObject->addCheckpoint(Vector3(-30.f, 40.f, 144.f));
+	sceneObject->addCheckpoint(Vector3(-11.f, 40.f, 218.5f));
 
-	sceneObject->addCheckpoint(Vector3(0, 9, 5));
-	sceneObject->addCheckpoint(Vector3(14.54, 30, 105));
-	sceneObject->addCheckpoint(Vector3(14.54, 30, 105));
-	sceneObject->addCheckpoint(Vector3(-30, 40, 144));
-	sceneObject->addCheckpoint(Vector3(-11, 40, 218.5));
-
-	sceneObject->addSlowTrap(Vector3(0, 13, 30), Vector3(3,3,3), Vector3(1.5, 1.5, 1.5));
-	sceneObject->addPushTrap(Vector3(-5, 20, 58), Vector3(5, 20, 58), Vector3(0, 18, 50));
+	sceneObject->addSlowTrap(Vector3(0.f, 13.f, 30.f), Vector3(3.f,3.f,3.f), Vector3(1.5f, 1.5f, 1.5f));
+	sceneObject->addPushTrap(Vector3(-5.f, 20.f, 58.f), Vector3(5.f, 20.f, 58.f), Vector3(0.f, 18.f, 50.f));
 
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
@@ -670,10 +667,10 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(barrelDropTrigger, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
 
-		barrelDropTrigger->setPosition(-30, 30, 105);
+		barrelDropTrigger->setPosition(-30.f, 30.f, 105.f);
 
 		sceneObject->addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
-		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1,1,1 });
+		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
 	}
 
 	/*Entity* stressObject = sceneObject->addEntity("stressObject");
@@ -880,7 +877,7 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 	if (entity)
 	{
 		sceneObject->addComponent(entity, "mesh", new MeshComponent("BossSign_pCube20.lrm", Material({ L"BossSign.png" })));
-		entity->setPosition({ 0, -8.3, 8 });
+		entity->setPosition({ 0.f, -8.3f, 8.f });
 	}
 
 

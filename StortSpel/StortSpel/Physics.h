@@ -160,7 +160,7 @@ public:
 
 	int getNewSceneID()
 	{
-		int id = m_scenes.size();
+		int id = (int)m_scenes.size();
 
 		if (m_givenFirstScene)
 		{
