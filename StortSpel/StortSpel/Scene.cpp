@@ -81,9 +81,6 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-
-
-
 	Entity* test = sceneObject->addEntity("test");
 	if (test)
 	{
@@ -695,6 +692,17 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		floor->setPosition({ 0, 6, 0 });
 		floor->scale({ 20, 2, 20 });
 		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	Entity* itemBox = sceneObject->addEntity("itemBox");
+	if (itemBox)
+	{
+		sceneObject->addComponent(itemBox, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", RAINBOW, Material()));
+		itemBox->translate({ 2, 14, 2 });
+		itemBox->scale({ 3, 3, 3 });
+
+		sceneObject->addComponent(itemBox, "rotate", new RotateComponent(itemBox, { 0.f, 1.f, 0.f }));
+
 	}
 
 	Entity* test = sceneObject->addEntity("test");
