@@ -47,11 +47,6 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		ShowWindow(m_window, showCmd);
 	}
 	// Audio
-	hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-	if (FAILED(hr))
-	{
-		// Thread mode has been chosen before, this HRESULT error should be ignored
-	}
 	AudioHandler::get().initialize(m_window);
 	
 	//PhysX
@@ -59,10 +54,11 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
 	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input);
 
+	// Engine
 	Engine::get().initialize(&m_input);
 	m_enginePtr = &Engine::get();
 
-
+	// Scene Manager
 	m_scenemanager.initalize();
 	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 
@@ -139,14 +135,14 @@ void ApplicationLayer::applicationLoop()
 			m_gameTime += m_dt;
 			m_timer.restart();
 
-			/*ImGui_ImplDX11_NewFrame();
+			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();
-			ImGui::NewFrame();*/
+			ImGui::NewFrame();
 
 			m_input.readBuffers();
 			m_physics->update(m_dt);
 			m_enginePtr->update(m_dt);
-			//PerformanceTester::get().runPerformanceTestsGui(m_dt);
+			PerformanceTester::get().runPerformanceTestsGui(m_dt);
 			m_scenemanager.updateScene(m_dt);
 			AudioHandler::get().update(m_dt);
 			m_rendererPtr->update(m_dt);
@@ -154,15 +150,18 @@ void ApplicationLayer::applicationLoop()
 		}
 	}
 	m_physics->release();
-	m_rendererPtr->release();
+	m_enginePtr->release();
+	AudioHandler::get().release();
+	ResourceHandler::get().Destroy();
+	m_rendererPtr->release(); // Should be last
 }
 
 
-//extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	/*if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
-		return true;*/
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
+		return true;
 
 	ApplicationLayer* g_ApplicationLayer = &ApplicationLayer::getInstance();
 	g_ApplicationLayer->m_input.handleMessages(hwnd, uMsg, wParam, lParam);

@@ -30,6 +30,10 @@ Engine::~Engine()
 	//m_entities->clear();
 }
 
+void Engine::release()
+{
+}
+
 void Engine::update(const float& dt)
 {
 	m_player->updatePlayer(dt);

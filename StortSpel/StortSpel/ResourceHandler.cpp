@@ -3,7 +3,6 @@
 
 ResourceHandler::~ResourceHandler()
 {
-	Destroy();
 }
 
 void ResourceHandler::isResourceHandlerReady()

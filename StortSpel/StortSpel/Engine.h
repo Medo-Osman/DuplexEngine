@@ -69,6 +69,7 @@ public:
 
 	~Engine();
 
+	void release();
 	void update(const float &dt);
 
 	void setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities);

@@ -9,8 +9,6 @@ ShadowMap::ShadowMap()
 
 ShadowMap::~ShadowMap()
 {
-	m_depthMapDSV->Release();
-	m_depthMapSRV->Release();
 }
 
 void ShadowMap::initialize(UINT width, UINT height, ID3D11Device* devicePtr, Vector4 lightDir)
@@ -72,6 +70,7 @@ void ShadowMap::initialize(UINT width, UINT height, ID3D11Device* devicePtr, Vec
 	assert(SUCCEEDED(succ));
 
 	m_direction = lightDir;
+	depthMap->Release();
 }
 
 void ShadowMap::bindResourcesAndSetNullRTV(ID3D11DeviceContext* context)
@@ -81,10 +80,10 @@ void ShadowMap::bindResourcesAndSetNullRTV(ID3D11DeviceContext* context)
 	context->RSSetState(m_rasterizerStatePtr.Get());
 
 	ID3D11RenderTargetView* renderTargets[1] = { 0 };
-	context->OMSetRenderTargets(1, renderTargets, m_depthMapDSV);
+	context->OMSetRenderTargets(1, renderTargets, m_depthMapDSV.Get());
 	context->PSSetSamplers(1, 1, m_sampleState.GetAddressOf());
 
-	context->ClearDepthStencilView(m_depthMapDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	context->ClearDepthStencilView(m_depthMapDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 }
 

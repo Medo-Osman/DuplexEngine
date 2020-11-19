@@ -10,6 +10,10 @@ AudioHandler::AudioHandler()
 
 AudioHandler::~AudioHandler()
 {
+}
+
+void AudioHandler::release()
+{
 	if (m_audioEngine)
 	{
 		m_audioEngine->Suspend();

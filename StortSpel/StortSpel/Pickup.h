@@ -89,11 +89,11 @@ public:
 
 	~Pickup()
 	{
-		for (size_t i = 0; i < PICKUP_VECTOR.size(); i++)
+		/*for (size_t i = 0; i < PICKUP_VECTOR.size(); i++)
 		{
 			SAFE_DELETE(PICKUP_VECTOR[i]);
 		}
-		PICKUP_VECTOR.clear();
+		PICKUP_VECTOR.clear();*/
 	}
 
 	const bool& isActive() const

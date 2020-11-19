@@ -28,14 +28,6 @@ ShaderProgram::ShaderProgram(std::initializer_list <LPCWSTR> shaderFiles, D3D_PR
 
 ShaderProgram::~ShaderProgram()
 {
-	m_VS = nullptr;
-	m_HS = nullptr;
-	m_DS = nullptr;
-	m_GS = nullptr;
-	m_PS = nullptr;
-
-	m_inputLayout = nullptr;
-
 	for (int i = 0; i < m_renderTargets.size(); i++)
 	{
 		m_renderTargets.at(i) = nullptr;
