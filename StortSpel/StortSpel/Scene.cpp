@@ -1199,7 +1199,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		Physics::get().Attach(sceneObject->m_boss, true, false);
 
 		//Segments
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 6; i++)
 		{
 			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
 			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("Boss_Bot.lrm", Material({ L"DarkGrayTexture.png" })));
@@ -1212,8 +1212,8 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 			sceneObject->createNewPhysicsComponent(segmentEntity, false, "mesh");
 			projectileSegment->Attach(sceneObject);
 
-			//ShootLaserAction* action2 = new ShootLaserAction(segmentEntity, projectileSegment, 5);
-			//projectileSegment->addAction(action2);
+			ShootLaserAction* action2 = new ShootLaserAction(segmentEntity, projectileSegment, 5);
+			projectileSegment->addAction(action2);
 		}
 		MeshComponent* headComponent = new MeshComponent("Boss_Top.lrm", Material({ L"DarkGrayTexture.png" }));
 		headComponent->setPosition(0, (3 * sceneObject->m_boss->m_bossSegments.size()), 0);
