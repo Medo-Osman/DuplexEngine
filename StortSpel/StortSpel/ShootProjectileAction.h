@@ -23,7 +23,17 @@ public:
 
 	void setTarget(Vector3 target)
 	{
-		m_data.origin = static_cast<PhysicsComponent*>(m_bossEntity->getComponent("physics"))->getActorPosition();//m_bossEntity->getTranslation() + Vector3(0, m_bossEntity->getScaling().y / 2, 0);
+		//m_data.origin = static_cast<PhysicsComponent*>(m_bossEntity->getComponent("physics"))->getActorPosition();//m_bossEntity->getTranslation() + Vector3(0, m_bossEntity->getScaling().y / 2, 0);
+
+		Component* componentPtr = m_bossEntity->getComponent("physics");
+		if (componentPtr)
+		{
+			PhysicsComponent* physPtr = static_cast<PhysicsComponent*>(componentPtr);
+			m_data.origin = physPtr->getActorPosition();
+		}
+		else
+			m_data.origin = m_bossEntity->getTranslation();
+
 		m_target = target;
 		Vector3 unnormalizedDir = (target - m_data.origin);
 		m_data.direction = XMVector3Normalize(unnormalizedDir);

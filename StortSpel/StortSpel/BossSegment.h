@@ -47,6 +47,7 @@ public:
 
 	void nextAction()
 	{
+		std::cout << "next action size: " << m_actionQueue.size() << " destroy: " << m_destroyActionOnComplete << std::endl;
 		if (m_actionQueue.size() > 0 || !m_destroyActionOnComplete)
 		{
 			if (m_destroyActionOnComplete)

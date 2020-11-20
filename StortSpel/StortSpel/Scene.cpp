@@ -1170,6 +1170,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		float spacingBetweenPlatforms = 1.f;
 		int total = 0;
 		float scaling = 10.f;
+		Vector3 platformPos = Vector3(15, 0, 15);
 		for (int x = 0; x < platformArray->columns.size(); x++)
 		{
 			for (int y = 0; y < platformArray->columns.size(); y++)
@@ -1178,7 +1179,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 				Vector3 offset = sceneObject->m_sceneEntryPosition;
 				if (platform)
 				{
-					platform->setPosition(Vector3(((float)x+1) * scaling + (x+1)*0.05f, 2, (float)(y+1) * scaling + (y+1)*0.05f));
+					platform->setPosition(Vector3(((float)x) * scaling + (x)*0.05f, 2, (float)(y) * scaling + (y)*0.05f) + platformPos);
 					platform->scale(scaling, 0.5f, scaling);
 					platform->addComponent("grow", new GrowingComponent(platform, platform->getScaling(), 8.f)); 
 					static_cast<GrowingComponent*>(platform->getComponent("grow"))->setDone(true);
@@ -1198,7 +1199,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		Physics::get().Attach(sceneObject->m_boss, true, false);
 
 		//Segments
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 2; i++)
 		{
 			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
 			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("Boss_Bot.lrm", Material({ L"DarkGrayTexture.png" })));
@@ -1211,12 +1212,12 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 			sceneObject->createNewPhysicsComponent(segmentEntity, false, "mesh");
 			projectileSegment->Attach(sceneObject);
 
+			//ShootLaserAction* action2 = new ShootLaserAction(segmentEntity, projectileSegment, 5);
+			//projectileSegment->addAction(action2);
 		}
 		MeshComponent* headComponent = new MeshComponent("Boss_Top.lrm", Material({ L"DarkGrayTexture.png" }));
 		headComponent->setPosition(0, (3 * sceneObject->m_boss->m_bossSegments.size()), 0);
 		sceneObject->addComponent(bossEnt, "meshHead", headComponent);
-		
-
 	}
 
 	Entity* skybox = sceneObject->addEntity("SkyBox");
@@ -1239,10 +1240,6 @@ void Scene::updateScene(const float& dt)
 	{
 		m_boss->update(dt);
 		Vector3 targetPos = static_cast<CharacterControllerComponent*>(m_player->getPlayerEntity()->getComponent("CCC"))->getFootPosition() + Vector3(0, 1, 0);
-		if (m_boss->m_bossSegments.size() > 0)
-		{
-			//static_cast<ShootProjectileAction*>(m_boss->bossSegments.at(0)->getCurrentAction())->setTarget(targetPos);
-		}
 		
 		//If boss it not moving, pick a new target at random.
 		if (m_boss->getActionQueue()->size() == 0)
@@ -1503,13 +1500,20 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 	if (type == BossMovementType::DropPoints)
 	{
-		//Entity* projectile = static_cast<Entity*>(data.pointer0);
-		addScore(data.origin+Vector3(0,5,0));
-		//deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
+			Entity* projectile = static_cast<Entity*>(data.pointer0);
+			Component* component = projectile->getComponent("projectile");
 
-		/*ProjectileComponent* component = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
-		m_projectiles.erase(component->m_id);
-		removeEntity(projectile->getIdentifier());*/
+			if (component != nullptr)
+			{
+				ProjectileComponent* projComponent = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
+				m_projectiles.erase(projComponent->m_id);
+				removeEntity(projectile->getIdentifier());
+				deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
+			}
+			else	
+				addScore(data.origin+Vector3(0,5,0));
+
+		
 	}
 
 

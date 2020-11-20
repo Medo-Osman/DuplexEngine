@@ -37,16 +37,26 @@ public:
 		m_timer.restart();
 		m_timeData.timer.restart();
 
+		m_hasFired = false;
+
 	}
 
 	virtual void update(const float& dt) override
 	{
 		if (!m_hasFired)
 		{
-			//Fire in x, y, z
+			//Fire in x, z
 			for (int i = 0; i < 360; i += 90)
 			{
-				m_data.origin = m_bossEntity->getTranslation();
+				Component* componentPtr = m_bossEntity->getComponent("physics");
+				if (componentPtr)
+				{
+					PhysicsComponent* physPtr = static_cast<PhysicsComponent*>(componentPtr);
+					m_data.origin = physPtr->getActorPosition();
+				}
+				else
+					m_data.origin = m_bossEntity->getTranslation();
+				
 				m_data.rotation = Vector3(0, XMConvertToRadians(i), 0);
 
 				//Send event to scene triggering the shoot projectile with the parameters in m_data.
@@ -55,6 +65,7 @@ public:
 			m_timeData.timer.restart();
 			m_hasFired = true;
 
+			std::cout << "pew" << std::endl;
 			m_subjectPtr->Notify(BossMovementType::ClearColumn, m_data); //Data is not neccessary here.
 			m_subjectPtr->Notify(BossMovementType::ClearRow, m_data);
 		}
