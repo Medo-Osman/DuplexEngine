@@ -93,6 +93,7 @@ public:
 	void loadLobby();
 	void loadArena();
 	void loadMaterialTest();
+	void onSceneLoaded();
 	void updateScene(const float &dt);
 	Vector3 getEntryPosition();
 	Entity* getEntity(std::string key);

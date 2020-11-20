@@ -62,5 +62,5 @@ protected:
 	MeshComponent() {};
 
 	void init(std::initializer_list<ShaderProgramsEnum> shaderEnums = { ShaderProgramsEnum::DEFAULT }, std::initializer_list<Material> materials = { Material() });
-	void init(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums = { ShaderProgramsEnum::DEFAULT }, std::initializer_list<Material> materials = { Material() });
+	void init(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums = { }, std::initializer_list<Material> materials = { });
 };

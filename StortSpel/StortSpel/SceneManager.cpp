@@ -21,6 +21,7 @@ void SceneManager::initalize()
 	// Start Scene
 	m_currentScene = new Scene();
 	m_currentScene->loadLobby();
+	m_currentScene->onSceneLoaded();
 	//m_currentScene->loadArena();
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
@@ -81,7 +82,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 		else if (inputData.actionData[i] == LOAD_SCENE)
 		{
 			m_nextScene = new Scene();
-			m_nextScene->loadScene("levelMeshTest");
+			m_nextScene->loadScene("tutTest");
 			swapScenes();
 			m_gameStarted = false;
 		}
@@ -150,4 +151,6 @@ void SceneManager::swapScenes()
 	Physics::get().Attach(m_currentScene, false, true);
 
 	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
+
+	m_currentScene->onSceneLoaded();
 }

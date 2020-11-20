@@ -21,6 +21,10 @@ Material::Material(std::initializer_list<const WCHAR*> fileNames)
 	this->m_materialConstData.UVScale = 1.0f;
 }
 
+Material::Material(std::string materialName)
+	:Material(m_MaterialCache[materialName])
+{}
+
 Material::Material(const Material& other)
 {
 	//Medlemsvis kopiering
@@ -126,4 +130,149 @@ unsigned int long Material::getMaterialId()
 MATERIAL_CONST_BUFFER Material::getMaterialParameters()
 {
 	return this->m_materialConstData;
+}
+
+void Material::readMaterials()
+{
+	std::unordered_map<std::string, std::unordered_map<std::string, std::string>> materials;
+	std::vector<std::string> textureNames;
+	std::string letters[4] = { "D", "E", "N", "ORM" };
+
+	for (const auto& file : std::filesystem::directory_iterator(m_TEXTURES_PATH))
+	{
+		std::string filePath = file.path().generic_string();
+		std::string fileName = filePath.substr(filePath.find_last_of("/") + 1);
+		std::string rawFileName = "";
+		std::string textureName = "";
+		if (fileName.rfind("T_", 0) == 0)
+		{
+			rawFileName = fileName.substr(0, fileName.size() - 4);
+			textureName = rawFileName.substr(2);						// Remove start "T_"
+			textureName = textureName.substr(0, textureName.find_last_of("_")); // Remove ending "_D"
+			if (textureName.find_last_of("_") != std::string::npos)
+				textureName = textureName.substr(0, textureName.find_last_of("_")); // Remove shaderprog letter "_E"
+			bool isTextrue = false;
+
+			for (int l = 0; l < 4; l++)
+			{
+				if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_" + letters[l])
+				{
+					materials[textureName][letters[l]] = (rawFileName);
+					isTextrue = true;
+				}
+			}
+			if (std::find(textureNames.begin(), textureNames.end(), textureName) == textureNames.end() && isTextrue == true) // If unique textureName
+			{
+				textureNames.push_back(textureName);
+			}
+		}
+	}
+
+	for (int i = 0; i < materials.size(); i++)
+	{
+		Material mat;
+		
+		for (int l = 0; l < 4; l++)
+		{
+			if (materials[textureNames[i]].find(letters[l]) == materials[textureNames[i]].end())
+			{
+				materials[textureNames[i]][letters[l]] = "T_Missing_" + letters[l];
+			}
+		}
+
+		for (int l = 0; l < 4; l++)
+		{
+			std::string name = materials[textureNames[i]][letters[l]] + ".png";
+			mat.addTexture(std::wstring(name.begin(), name.end()).c_str());
+		}
+		m_MaterialCache[textureNames[i]] = mat;
+	}
+	
+	/*
+	std::unordered_map<std::string, std::vector<std::string>> materials;
+	std::vector<std::string> textureNames;
+
+	for (const auto& file : std::filesystem::directory_iterator(m_TEXTURES_PATH))
+	{
+		std::string filePath = file.path().generic_string();
+		std::string fileName = filePath.substr(filePath.find_last_of("/") + 1);
+		std::string rawFileName = "";
+		std::string textureName = "";
+		if (fileName.rfind("T_", 0) == 0)
+		{
+			rawFileName = fileName.substr(0, fileName.size() - 4);
+			textureName = rawFileName.substr(2);						// Remove start "T_"
+			textureName = textureName.substr(0, textureName.find_last_of("_")); // Remove ending "_D"
+			if (textureName.find_last_of("_") != std::string::npos)
+				textureName = textureName.substr(0, textureName.find_last_of("_")); // Remove shaderprog letter "_E"
+			bool isTextrue = false;
+
+			// ---------------------------------------------------------------------------- Add diffuse to mat
+			if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_D")
+			{
+				materials[textureName].push_back(rawFileName);
+				isTextrue = true;
+			}
+			// ---------------------------------------------------------------------------- Add emissive to mat
+			if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_E")
+			{
+				materials[textureName].push_back(rawFileName);
+				isTextrue = true;
+			}
+			// ---------------------------------------------------------------------------- Add normal to mat
+			if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_N")
+			{
+				materials[textureName].push_back(rawFileName);
+				isTextrue = true;
+			}
+			// ---------------------------------------------------------------------------- Add ORM to mat
+			if (rawFileName.substr(rawFileName.size() - 4, std::string::npos) == "_ORM")
+			{
+				materials[textureName].push_back(rawFileName);
+				isTextrue = true;
+			}
+			// ---------------------------------------------------------------------------- 
+			if (std::find(textureNames.begin(), textureNames.end(), textureName) == textureNames.end() && isTextrue == true) // If unique textureName
+			{
+				textureNames.push_back(textureName);
+			}
+		}
+	}
+
+	for (int i = 0; i < materials.size(); i++)
+	{
+		Material mat;
+
+		for (int j = 0; j < 4 - materials[textureNames[i]].size(); j++)
+		{
+			materials[textureNames[i]].push_back("?");
+		}
+
+		if (materials[textureNames[i]].at(0) != "T_" + textureNames[i] + "_D")
+		{
+			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 0, "T_Missing_D");
+		}
+		if (materials[textureNames[i]].at(1) != "T_" + textureNames[i] + "_E")
+		{
+			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 1, "T_Missing_E");
+		}
+		if (materials[textureNames[i]].at(2) != "T_" + textureNames[i] + "_N")
+		{
+			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 2, "T_Missing_N");
+		}
+		if (materials[textureNames[i]].at(3) != "T_" + textureNames[i] + "_ORM")
+		{
+			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 3, "T_Missing_ORM");
+		}
+
+		for (int j = 0; j < 4; j++)
+		{
+			std::string name = materials[textureNames[i]].at(j) + ".png";
+			mat.addTexture(std::wstring(name.begin(), name.end()).c_str());
+		}
+		m_MaterialCache[textureNames[i]] = mat;
+	}
+	*/
+
+	int asehaseh = 0;
 }

@@ -23,6 +23,12 @@ public:
 		m_components.clear();
 	}
 
+	void onSceneLoad()
+	{
+		for (auto& component : m_components)
+			component.second->onSceneLoad();
+	}
+
 	void update(const float &dt)
 	{
 		for (auto& component : m_components)

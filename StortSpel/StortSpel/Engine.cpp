@@ -214,6 +214,7 @@ void Engine::initialize(Input* input)
 
 	// Audio Handler needs Camera Transform ptr for 3D positional audio
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
+	Material::readMaterials();
 }
 
 void Engine::updateLightData()

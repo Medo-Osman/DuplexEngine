@@ -19,7 +19,6 @@
 #include "BarrelComponent.h"
 #include "BarrelTriggerComponent.h"
 
-
 struct Settings
 {
 	int width = 1920;
@@ -55,6 +54,8 @@ private:
 	Settings m_settings;
 
 	Input* m_input = nullptr;
+	
+	// Materials
 	
 
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called

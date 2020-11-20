@@ -28,8 +28,41 @@ MeshComponent::MeshComponent(char* paramData)
 	// Read data from package
 	int offset = 0;
 	
+	std::string fileName = readStringFromChar(paramData, offset);
+
+	// Read material
+	int matCount = readDataFromChar<int>(paramData, offset);
+	for (int i = 0; i < matCount; i++)
+	{
+		std::string matName = readStringFromChar(paramData, offset);
+
+		size_t indexAt_ = matName.find_last_of("_");
+
+		if (indexAt_ != std::string::npos)
+		{
+			//std::string suffix = matName.substr(indexAt_ + 1, matName.length());
+			char suffix = matName.back();
+			
+			matName = matName.substr(0, indexAt_);
+			
+			ShaderProgramsEnum sp = charToShaderEnum(suffix);
+
+			m_shaderProgEnums.push_back(sp);
+		}
+		else
+			m_shaderProgEnums.push_back(ShaderProgramsEnum::DEFAULT);
+		
+		m_materials.push_back(Material(matName));
+	}
+
+	if (matCount == 0)
+	{
+		m_materials.push_back(Material());
+		m_shaderProgEnums.push_back(ShaderProgramsEnum::DEFAULT);
+	}
+
 	// Initialize
-	init(readStringFromChar(paramData, offset).c_str(), { ShaderProgramsEnum::DEFAULT }, { Material() });
+	init(fileName.c_str());
 	
 	// Read and posibly set offset transform
 	bool hasTransformOffset = readDataFromChar<bool>(paramData, offset);
@@ -44,15 +77,6 @@ MeshComponent::MeshComponent(char* paramData)
 		this->setRotationQuat(rotQuat);
 		this->setScale(scale);
 	}
-
-	/*
-	m_filePath = readStringFromChar(paramData, offset);
-	m_type = ComponentType::MESH;
-	m_resourcePointer = ResourceHandler::get().loadLRMMesh(m_filePath.c_str());
-	m_filePath = paramData;
-	m_materials.push_back(Material());
-	m_shaderProgEnums.push_back(ShaderProgramsEnum::DEFAULT);
-	*/
 }
 
 ShaderProgramsEnum MeshComponent::getShaderProgEnum(int index)

@@ -452,18 +452,6 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 
 	ComponentType compType = readDataFromChar<ComponentType>(compData, offset);
 
-	/*ComponentType compType;
-	memcpy(&compType, compData + offset, sizeof(ComponentType));
-	offset += sizeof(ComponentType);*/
-
-	/*int compNameSize;
-	memcpy(&compNameSize, compData + offset, sizeof(int));
-	offset += sizeof(int);
-
-	char* compName = new char[compNameSize];
-	memcpy(compName, compData + offset, compNameSize);
-	offset += compNameSize;*/
-
 	std::string compName = readStringFromChar(compData, offset);
 
 	char* paramData = new char[sizeOfData - offset];
@@ -503,8 +491,8 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 	case ComponentType::ROTATEAROUND:
 		newComponent = new InvalidComponent();
 		break;
-	case ComponentType::ROTATE:													//TODO: some components need to make physics kinematic.
-		newComponent = new RotateComponent(entity, Vector3(1.0f, 0.0f, 0.f));
+	case ComponentType::ROTATE:
+		newComponent = new RotateComponent(entity, Vector3(1.0f, 0.0f, 0.f), 0.4f);
 		needsDynamicPhys = true;
 		needsKinematicPhys = true;
 		break;
@@ -1024,6 +1012,12 @@ void Scene::loadMaterialTest()
 	}
 }
 
+void Scene::onSceneLoaded()
+{
+	for (auto& entity : m_entities)
+		entity.second->onSceneLoad();
+}
+
 void Scene::updateScene(const float& dt)
 {
 	if (m_boss)
@@ -1292,11 +1286,11 @@ void Scene::createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, f
 	Entity* sLight = addEntity("spotLight-" + std::to_string(m_nrOfSpotLight));
 	if (sLight)
 	{
-		addComponent(sLight, "spot-" + std::to_string(m_nrOfSpotLight), new SpotLightComponent());
+		addComponent(sLight, "spot-" + std::to_string(m_nrOfSpotLight), new SpotLightComponent(Vector3(), color, intensity));
 		sLight->setPosition(position);
 		sLight->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
-		dynamic_cast<LightComponent*>(sLight->getComponent("spot-" + std::to_string(m_nrOfSpotLight)))->setColor(XMFLOAT3(color));
-		dynamic_cast<LightComponent*>(sLight->getComponent("spot-" + std::to_string(m_nrOfSpotLight)))->setIntensity(intensity);
+		//dynamic_cast<LightComponent*>(sLight->getComponent("spot-" + std::to_string(m_nrOfSpotLight)))->setColor(XMFLOAT3(color));
+		//dynamic_cast<LightComponent*>(sLight->getComponent("spot-" + std::to_string(m_nrOfSpotLight)))->setIntensity(intensity);
 	}
 }
 
@@ -1307,9 +1301,9 @@ void Scene::createPointLight(Vector3 position, Vector3 color, float intensity)
 	Entity* pLight = addEntity("pointLight-" + std::to_string(m_nrOfPointLight));
 	if (pLight)
 	{
-		LightComponent* pointLight = new LightComponent();
-		pointLight->setColor(XMFLOAT3(color));
-		pointLight->setIntensity(intensity);
+		LightComponent* pointLight = new LightComponent(Vector3(), color, intensity);
+		//pointLight->setColor(XMFLOAT3(color));
+		//pointLight->setIntensity(intensity);
 		addComponent(pLight, "point-" + std::to_string(m_nrOfPointLight), pointLight);
 		pLight->setPosition(position);
 	}

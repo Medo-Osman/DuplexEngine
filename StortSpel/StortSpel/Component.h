@@ -72,6 +72,8 @@ public:
 		m_identifier = identifier;
 	}
 
+	virtual void onSceneLoad() {}
+
 	// Update
 	virtual void update(float dt) = 0;
 };
