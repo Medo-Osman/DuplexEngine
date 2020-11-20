@@ -272,6 +272,7 @@
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
     <ClInclude Include="FlippingComponent.h" />
+    <ClInclude Include="GrowingComponent.h" />
     <ClInclude Include="GUIButton.h" />
     <ClInclude Include="GUIContext.h" />
     <ClInclude Include="GUIImageLabel.h" />
@@ -308,6 +309,7 @@
     <ClInclude Include="ShadowMap.h" />
     <ClInclude Include="ShootLaserXZAction.h" />
     <ClInclude Include="ShootProjectileAction.h" />
+    <ClInclude Include="ShrinkingComponent.h" />
     <ClInclude Include="SpeedPickup.h" />
     <ClInclude Include="SweepingComponent.h" />
     <ClInclude Include="PhysicsComponent.h" />

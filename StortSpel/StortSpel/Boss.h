@@ -11,6 +11,9 @@
 #include "ShootLaserXZAction.h"
 #include "WaitAction.h"
 
+#include "ShrinkingComponent.h"
+#include "GrowingComponent.h"
+
 
 class Boss : public PhysicsObserver, public BossSegment
 {

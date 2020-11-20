@@ -1158,10 +1158,6 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	Entity* bossEnt = sceneObject->addEntity("boss");
 	if (bossEnt)
 	{
-		//AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		//animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
-		//bossEnt->addComponent("mesh", animMeshComp);
-		//sceneObject->addMeshComponent(animMeshComp);
 		bossEnt->scale({ 1, 1, 1 });
 		bossEnt->translate({ 0,2.5,0 });
 
@@ -1184,6 +1180,11 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 				{
 					platform->setPosition(Vector3(((float)x+1) * scaling + (x+1)*0.05f, 2, (float)(y+1) * scaling + (y+1)*0.05f));
 					platform->scale(scaling, 0.5f, scaling);
+					platform->addComponent("grow", new GrowingComponent(platform, platform->getScaling(), 8.f)); 
+					static_cast<GrowingComponent*>(platform->getComponent("grow"))->setDone(true);
+					platform->addComponent("shrink", new ShrinkingComponent(platform, Vector3(0.01, 0.01, 0.01), 8.f)); 
+					static_cast<ShrinkingComponent*>(platform->getComponent("shrink"))->setDone(true);
+
 
 					sceneObject->addComponent(platform, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
 					sceneObject->createNewPhysicsComponent(platform);
@@ -1193,44 +1194,29 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 
 			}
 		}
-		////
-
-		//sceneObject->m_boss->addAction(new MoveToTargetInGridAction(bossEnt, sceneObject->m_boss, platformArray, Vector2(2,5), 10.f, &sceneObject->m_boss->currentPlatformIndex, sceneObject->m_boss->getActionQueue()));
-		//sceneObject->m_boss->addAction(new MoveToTargetInGridAction(bossEnt, sceneObject->m_boss, platformArray, Vector2(6,0), 10.f, &sceneObject->m_boss->currentPlatformIndex, sceneObject->m_boss->getActionQueue()));
-		//sceneObject->m_boss->addAction(new MoveToTargetInGridAction(bossEnt, sceneObject->m_boss, platformArray, Vector2(2,5), 10.f, &sceneObject->m_boss->currentPlatformIndex, sceneObject->m_boss->getActionQueue()));
-		
-		//sceneObject->m_boss->addAction(new MoveToTargetInGridAction(bossEnt, sceneObject->m_boss, platformArray, Vector2(0,5), 10.f, &sceneObject->m_boss->currentPlatformIndex, sceneObject->m_boss->getActionQueue()));
-		//sceneObject->m_boss->addAction(new ShootLaserAction(bossEnt, sceneObject->m_boss, 4));
-		//sceneObject->m_boss->addAction(new MoveToTargetInGridAction(bossEnt, sceneObject->m_boss, platformArray, Vector2(1,5), 10.f, &sceneObject->m_boss->currentPlatformIndex, sceneObject->m_boss->getActionQueue()));
-		//sceneObject->m_boss->addAction(new ShootLaserAction(bossEnt, sceneObject->m_boss, 4));
-
 		sceneObject->addCheckpoint(sceneObject->m_sceneEntryPosition + Vector3(0, 0, 0));
 		Physics::get().Attach(sceneObject->m_boss, true, false);
 
 		//Segments
-		Entity* segmentEntity = sceneObject->addEntity("projectileSegment");
-		sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("Boss_Bot.lrm", Material({ L"DarkGrayTexture.png" })));
-		segmentEntity->setScale({ 1,1,1 });
+		for (int i = 0; i < 5; i++)
+		{
+			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
+			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("Boss_Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+			segmentEntity->setScale({ 1,1,1 });
 
-		BossSegment* projectileSegment = new BossSegment();
-		projectileSegment->initializeSegment(segmentEntity, false);
-		sceneObject->m_boss->addSegment(projectileSegment);
-		sceneObject->createNewPhysicsComponent(segmentEntity, false, "mesh");
-		projectileSegment->Attach(sceneObject);
-		projectileSegment->m_entityOffset = Vector3(0, 0, 0);
+			BossSegment* projectileSegment = new BossSegment();
+			projectileSegment->initializeSegment(segmentEntity, false);
+			projectileSegment->m_entityOffset = Vector3(0, 3 * sceneObject->m_boss->m_bossSegments.size(), 0);
+			sceneObject->m_boss->addSegment(projectileSegment);
+			sceneObject->createNewPhysicsComponent(segmentEntity, false, "mesh");
+			projectileSegment->Attach(sceneObject);
 
+		}
 		MeshComponent* headComponent = new MeshComponent("Boss_Top.lrm", Material({ L"DarkGrayTexture.png" }));
-		headComponent->setPosition(0, (4*sceneObject->m_boss->m_bossSegments.size())-1, 0);
+		headComponent->setPosition(0, (3 * sceneObject->m_boss->m_bossSegments.size()), 0);
 		sceneObject->addComponent(bossEnt, "meshHead", headComponent);
-		//segmentEntity->setPosition(sceneObject->m_boss->m_bossEntity->getTranslation() + Vector3(0, 6, 0));
-
-		//ShootProjectileAction* action = new ShootProjectileAction(segmentEntity, sceneObject->m_boss, 4, 0);
-		//action->setTarget(sceneObject->m_sceneEntryPosition);
-		//projectileSegment->addAction(action);
 		
 
-		//ShootLaserAction* action = new ShootLaserAction(segmentEntity, sceneObject->m_boss, 10, 0);
-		//projectileSegment->addAction(action);
 	}
 
 	Entity* skybox = sceneObject->addEntity("SkyBox");
@@ -1673,7 +1659,6 @@ void Scene::checkLasers(float dt)
 		float maxSize = 2;
 		Entity* entity = laserStruct.second->entity;
 		float size = (currTime / lifeTime) * maxSize;
-		std::cout << size << std::endl;
 		entity->setScale({ 1+size, 1 + size, entity->getScaling().z });
 	}
 
@@ -1693,94 +1678,45 @@ void Scene::checkPlatforms(float dt)
 	{
 		float currTime = displacedPlatformStruct.second->timer.timeElapsed();
 		float lifeTime = displacedPlatformStruct.second->stayDisplacedFor;
-		if (currTime > lifeTime)
-		{
-			//idsToReset.push_back(displacedPlatformStruct.first);
-			Entity* entity = m_displacedPlatforms.at(displacedPlatformStruct.first)->entity;
+		Entity* entity = m_displacedPlatforms.at(displacedPlatformStruct.first)->entity;
 
+		if (static_cast<ShrinkingComponent*>(displacedPlatformStruct.second->entity->getComponent("shrink"))->doneTweening() && !displacedPlatformStruct.second->displaced)
+		{
+			displacedPlatformStruct.second->displaced = true;
+			physicallyMovePlatform(displacedPlatformStruct.second->entity);
+		}
+
+
+		if (currTime > lifeTime && displacedPlatformStruct.second->displaced)
+		{
 			PhysicsComponent* comp = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
 			Vector3 currPos = comp->getActorPosition();
 			comp->setPosition(currPos - displacedPlatformStruct.second->offsetBy);
+			displacedPlatformStruct.second->displaced = false;
+			static_cast<GrowingComponent*>(entity->getComponent("grow"))->setDone(false);
+			idsToReset.push_back(displacedPlatformStruct.first);
 
 			MeshComponent* meshComp = static_cast<MeshComponent*>(entity->getComponent("mesh"));
 			meshComp->setVisible(true);
-			idsToReset.push_back(displacedPlatformStruct.first);
+			
 		}
 	}
 
 	for (int i = 0; i < idsToReset.size(); i++)
 	{
-		m_platformsGrowing[idsToReset[i]] = m_displacedPlatforms[idsToReset[i]];
-		m_platformsGrowing[idsToReset[i]]->doneTweening = false;
 		m_displacedPlatforms.erase(idsToReset[i]);
 	}
-
-	//Shrinking
-	std::vector<UINT> idsToRemoveShrink;
-	for (auto displacedPlatformStruct : m_platformsShrinking)
-	{
-		Entity* entity = displacedPlatformStruct.second->entity;
-		if (!displacedPlatformStruct.second->doneTweening)
-		{
-			entity->setScale(entity->getScaling().x - 8.f * dt, entity->getScaling().y, entity->getScaling().z - 8.f * dt);
-		}
-
-		if (entity->getScaling().x <= displacedPlatformStruct.second->targetSize.x)
-		{
-			displacedPlatformStruct.second->doneTweening = true;
-			physicallyMovePlatform(displacedPlatformStruct.second->entity);
-			idsToRemoveShrink.push_back(displacedPlatformStruct.first);
-		}
-			
-	}
-	for (int i = 0; i < idsToRemoveShrink.size(); i++)
-	{
-		m_displacedPlatforms[idsToRemoveShrink.at(i)] = m_platformsShrinking[idsToRemoveShrink.at(i)];
-		m_platformsShrinking.erase(idsToRemoveShrink.at(i));
-		
-	}
-	//-----------------------------
-	//Growing
-	std::vector<UINT> idsToRemoveGrow;
-	for (auto displacedPlatformStruct : m_platformsGrowing)
-	{
-		Entity* entity = displacedPlatformStruct.second->entity;
-		if (!displacedPlatformStruct.second->doneTweening)
-		{
-			entity->setScale(entity->getScaling().x + 8.f * dt, entity->getScaling().y, entity->getScaling().z + 8.f * dt);
-		}
-
-		if (entity->getScaling().x >= displacedPlatformStruct.second->originalSize.x)
-		{
-			displacedPlatformStruct.second->entity->setScale(displacedPlatformStruct.second->originalSize);
-			displacedPlatformStruct.second->doneTweening = true;
-			idsToRemoveGrow.push_back(displacedPlatformStruct.first);
-		}
-
-	}
-	for (int i = 0; i < idsToRemoveGrow.size(); i++)
-	{
-		m_platformsGrowing.erase(idsToRemoveGrow.at(i));
-
-	}
-
 }
 
 void Scene::displacePlatform(Entity* entity)
 {
-
-
 	Vector3 offsetAmount = Vector3(0, 300.f, 0);
 	PhysicsComponent* comp = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
 	Vector3 currPos = comp->getActorPosition();
-	//comp->setPosition(currPos + offsetAmount);
 
-	//MeshComponent* meshComp = static_cast<MeshComponent*>(entity->getComponent("mesh"));
-	//meshComp->setVisible(false);
-
-
-	if (!findPlatformAlready(entity))
+	if (!findPlatformAlready(entity) && static_cast<GrowingComponent*>(entity->getComponent("grow"))->doneTweening())
 	{
+
 		BossStructures::PlatformDisplace* displacedPlatform = new BossStructures::PlatformDisplace();
 		displacedPlatform->id = m_nrOfDisplacedPlatforms++;
 		displacedPlatform->entity = entity;
@@ -1788,7 +1724,8 @@ void Scene::displacePlatform(Entity* entity)
 		displacedPlatform->targetSize = Vector3(0.1f, 0.1f, 0.1f);
 		displacedPlatform->originalSize = entity->getScaling();
 		
-		m_platformsShrinking[m_nrOfDisplacedPlatforms] = displacedPlatform;
+		m_displacedPlatforms[m_nrOfDisplacedPlatforms] = displacedPlatform;
+		static_cast<ShrinkingComponent*>(entity->getComponent("shrink"))->setDone(false);
 	}
 }
 

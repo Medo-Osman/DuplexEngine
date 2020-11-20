@@ -446,6 +446,12 @@
     <ClInclude Include="WaitAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
     </ClInclude>
+    <ClInclude Include="ShrinkingComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GrowingComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">

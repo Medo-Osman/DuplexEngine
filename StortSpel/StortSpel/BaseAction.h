@@ -39,7 +39,7 @@ namespace BossStructures
 		bool doneTweening = false;
 		Vector3 targetSize = Vector3(0.001f, 0.001f, 0.001f);
 		Vector3 originalSize;
-
+		bool displaced = false;
 		Vector3 offsetBy; //How much was it offset by
 		PlatformDisplace()
 		{
