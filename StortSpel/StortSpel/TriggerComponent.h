@@ -39,7 +39,7 @@ public:
 			m_physicsPtr->removeActor(m_actor);
 	}
 
-	void initTrigger(int sceneID, Transform* transform, XMFLOAT3 boxExtends, Vector3 offset = {0, 0, 0 })
+	void initTrigger(int sceneID, Transform* transform, XMFLOAT3 halfBoxExtends, Vector3 offset = {0, 0, 0 })
 	{
 		m_sceneID = sceneID;
 		m_physicsData.entityIdentifier = m_parentEntityIdentifier;

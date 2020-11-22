@@ -555,15 +555,16 @@ void Player::increaseScoreBy(int value)
 
 void Player::respawnPlayer()
 {
-	if (m_pickupPointer->isActive())
+	if (m_pickupPointer)
 	{
-		m_pickupPointer->onDepleted();
-		m_pickupPointer->onRemove();
-		SAFE_DELETE(m_pickupPointer);
+		if (m_pickupPointer->isActive())
+		{
+			m_pickupPointer->onDepleted();
+			m_pickupPointer->onRemove();
+			SAFE_DELETE(m_pickupPointer);
 
+		}
 	}
-	
-
 
 	m_state = PlayerState::IDLE;
 	m_controller->setPosition(m_checkpointPos);

@@ -1419,7 +1419,7 @@ void Scene::reactOnPlayer(PlayerMessageData& msg)
 			triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
 			triggerComponent->setIntData(0);
 			trampoline->addComponent("heightTrigger", triggerComponent);
-			triggerComponent->initTrigger(trampoline, { 0.4f, 0.1, 0.4f }, { 0.f, 1.f, 0.f });
+			triggerComponent->initTrigger(m_sceneID, trampoline, { 0.4f, 0.1, 0.4f }, { 0.f, 1.f, 0.f });
 		}
 
 		if ((PickupType)msg.intEnum == PickupType::CANNON)
