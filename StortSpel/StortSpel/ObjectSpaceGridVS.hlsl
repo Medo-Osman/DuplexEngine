@@ -39,7 +39,7 @@ vs_out main(vs_in input)
 	vs_out output;
 	output.pos = mul(float4(input.pos, 1), wvpMatrix);
 	output.uv = input.uv;
-	output.normal = normalize(mul(float4(input.normal, 0), worldMatrix));
+	output.normal = normalize(mul(float4(input.normal, 0), worldMatrix)).xyz;
 	output.tangent = input.tangent;
 	output.bitangent = input.bitangent;
 	output.worldPos = mul(float4(input.pos, 1), worldMatrix);

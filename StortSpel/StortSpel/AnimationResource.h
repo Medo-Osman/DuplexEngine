@@ -68,9 +68,9 @@ public:
 	{
 		if (m_frames)
 		{
-			/*
+			
 			// this is now done inside the frame itself. I think.
-			for (size_t i = 0; i < m_frameCount; i++)
+			/*for (size_t i = 0; i < m_frameCount; i++)
 			{
 				if(m_frames[i].jointTransforms)
 					delete[] m_frames[i].jointTransforms;

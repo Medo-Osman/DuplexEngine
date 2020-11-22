@@ -28,14 +28,6 @@ ShaderProgram::ShaderProgram(std::initializer_list <LPCWSTR> shaderFiles, D3D_PR
 
 ShaderProgram::~ShaderProgram()
 {
-	m_VS = nullptr;
-	m_HS = nullptr;
-	m_DS = nullptr;
-	m_GS = nullptr;
-	m_PS = nullptr;
-
-	m_inputLayout = nullptr;
-
 	for (int i = 0; i < m_renderTargets.size(); i++)
 	{
 		m_renderTargets.at(i) = nullptr;
@@ -111,7 +103,6 @@ void ShaderProgram::compileShaders(VertexLayoutType inputLayoutType)
 	{
 		hr = D3DCompileFromFile(m_shaderFiles[ShaderType::Pixel], nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", flags, 0, Blob.GetAddressOf(), errorBlob.GetAddressOf());
 
-		assert(SUCCEEDED(hr));
 		if (FAILED(hr))
 			errorBlobCheck(errorBlob);
 
@@ -320,7 +311,7 @@ void ShaderProgram::inputLayoutSetup(VertexLayoutType inputLayoutType, Microsoft
 	
 	HRESULT hr = m_devicePtr->CreateInputLayout(
 		input_element_desc,
-		layoutArraySize,
+		(UINT)layoutArraySize,
 		VSBlob->GetBufferPointer(),
 		VSBlob->GetBufferSize(),
 		m_inputLayout.GetAddressOf()

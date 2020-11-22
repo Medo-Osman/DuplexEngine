@@ -19,7 +19,7 @@ namespace BossStructures
 	{
 		Timer timer;
 		float maxDuration = 5; //For how many seconds the action should be performed for
-		float cooldownAfterAction = 0.2; //For many seconds long it should wait before
+		float cooldownAfterAction = 0.2f; //For many seconds long it should wait before
 	};
 
 

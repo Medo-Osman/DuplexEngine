@@ -69,15 +69,16 @@ private:
 	bool m_cursorEnabled;
 
 	std::vector<InputObserver*> m_inputObservers;
-
 	std::vector<iContext*> m_contexts;
+
 
 	InputData m_currentInputData;
 
 	bool fillInputDataUsingKey(const char& key, const bool& wasPressed, const bool& isMouse = false);
-
+	bool inputDataChanged = false;
 public:
 	Input();
+	~Input();
 	LRESULT handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lParam);
 	void readBuffers();
 	void addContext(iContext* context);
@@ -86,6 +87,8 @@ public:
 	MouseEvent getMouseEvent();
 	Keyboard* getKeyboard();
 	Mouse* getMouse();
+	std::vector<iContext*>* getIContextPtr();
+
 
 	void Attach(InputObserver* observer);
 	void Detach(InputObserver* observer);

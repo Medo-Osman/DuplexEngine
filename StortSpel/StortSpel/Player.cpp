@@ -34,7 +34,7 @@ Player::Player()
 		vec.emplace_back(new CannonPickup());
 		Pickup::initPickupArray(vec);
 	}
-
+	
 	//GUI
 	m_score = 0;
 	GUITextStyle style;
@@ -46,13 +46,13 @@ Player::Player()
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
 
 	GUIImageStyle imageStyle;
-	imageStyle.position = Vector2(400, 50);
-	imageStyle.scale = Vector2(0.9, 0.9);
+	imageStyle.position = Vector2(400.f, 50.f);
+	imageStyle.scale = Vector2(0.9f, 0.9f);
 	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
 	//Test Button stuff
 	GUIButtonStyle btnStyle;
-	btnStyle.position = Vector2(140, 200);
+	btnStyle.position = Vector2(240, 200);
 	btnStyle.scale = Vector2(0.5, 0.5);
 	closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
 
@@ -616,7 +616,7 @@ void Player::handlePickupOnUse()
 		//m_speedModifierTime = 0;
 		break;
 	case PickupType::HEIGHTBOOST:
-		//Kalla på animation
+		//Kalla pï¿½ animation
 		jump(false);
 		break;
 	case PickupType::CANNON:
