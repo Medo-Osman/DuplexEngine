@@ -75,8 +75,9 @@ Player::~Player()
 	if (m_playerEntity)
 		delete m_playerEntity;
 
-	if (m_3dMarker)
-		delete m_3dMarker;
+	//Deleted by scene
+	//if (m_3dMarker)
+	//	delete m_3dMarker;
 
 	Pickup::clearStaticPickupArrayPlz();
 }
@@ -322,6 +323,7 @@ void Player::playerStateLogic(const float& dt)
 			m_velocity = m_direction;
 			m_cameraOffset = Vector3(0.f, 0.f, 0.f);
 			m_3dMarker->setPosition(0, -9999, -9999);
+			m_shouldFire = false;
 		}
 		else //Draw marker
 		{
@@ -337,7 +339,7 @@ void Player::playerStateLogic(const float& dt)
 
 		m_velocity.x = m_direction.x;
 		m_velocity.z = m_direction.z;
-		if (m_controller->checkGround(m_controller->getFootPosition(), DirectX::XMVector3Normalize(m_velocity), 0.3f))
+		if (m_controller->checkGround(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_velocity), 1.f))
 		{
 			PlayerMessageData data;
 			data.playerActionType = PlayerActions::ON_FIRE_CANNON;
