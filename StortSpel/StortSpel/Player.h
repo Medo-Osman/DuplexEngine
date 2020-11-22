@@ -166,7 +166,7 @@ private:
     void roll();
     bool canDash() const;
     void dash();
-    void jump(bool incrementCounter = true);
+    void jump(const bool& incrementCounter = true, const float& multiplier = 1.0f);
     void prepDistVariables();
 
     void rollAnimation();

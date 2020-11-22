@@ -72,7 +72,8 @@ private:
 	int m_nrOfScore = 0;
 	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
 	void addCheckpoint(const Vector3& position);
-	void createParticleEntity(void* particleComponent, Vector3 position);
+	void createScoreParticleEntity(Vector3 position);
+
 
 	void addSlowTrap(const Vector3& position, Vector3 scale);
 	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
@@ -91,6 +92,7 @@ public:
 	~Scene();
 	void activateScene();
 	void deactivateScene();
+
 
 	void loadScene(std::string path);
 	void loadTestLevel();

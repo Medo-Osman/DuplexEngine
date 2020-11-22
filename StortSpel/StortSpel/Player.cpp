@@ -78,6 +78,7 @@ Player::~Player()
 	if (m_3dMarker)
 		delete m_3dMarker;
 
+	Pickup::clearStaticPickupArrayPlz();
 }
 
 void Player::setCannonEntity(Entity* entity)
@@ -310,7 +311,7 @@ void Player::playerStateLogic(const float& dt)
 		m_controller->setPosition(m_cannonEntity->getTranslation());
 		m_velocity.y = 0;
 
-		GUIHandler::get().setVisible(m_cannonCrosshairID, true);
+		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 
 
 		if (m_shouldFire)
@@ -320,6 +321,7 @@ void Player::playerStateLogic(const float& dt)
 			m_direction = m_cameraTransform->getForwardVector();
 			m_velocity = m_direction;
 			m_cameraOffset = Vector3(0.f, 0.f, 0.f);
+			m_3dMarker->setPosition(0, -9999, -9999);
 		}
 		else //Draw marker
 		{
@@ -553,6 +555,16 @@ void Player::increaseScoreBy(int value)
 
 void Player::respawnPlayer()
 {
+	if (m_pickupPointer->isActive())
+	{
+		m_pickupPointer->onDepleted();
+		m_pickupPointer->onRemove();
+		SAFE_DELETE(m_pickupPointer);
+
+	}
+	
+
+
 	m_state = PlayerState::IDLE;
 	m_controller->setPosition(m_checkpointPos);
 }
@@ -750,7 +762,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 					}	
 					else
 					{
-						jump(false);
+						jump(false, 1.5f);
 						environmenPickup = true;
 					}
 
@@ -758,6 +770,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 					break;
 				case PickupType::CANNON:
 					shouldTriggerEntityBeRemoved = true;
+					break;
 				case PickupType::SCORE:
 					addPickupByAssosiatedID = false;
 					break;
@@ -816,6 +829,10 @@ Pickup* getCorrectPickupByID(int id)
 		break;
 	case PickupType::HEIGHTBOOST:
 		createPickup = new HeightPickup(*dynamic_cast<HeightPickup*>(pickupPtr));
+		break;
+	case PickupType::CANNON:
+		createPickup = new CannonPickup(*dynamic_cast<CannonPickup*>(pickupPtr));
+		break;
 	case PickupType::SCORE: //Score is not saved as a pointer so not implemented.
 		break;
 	default:
@@ -877,11 +894,11 @@ void Player::serverPlayerAnimationChange(PlayerState currentState, float current
 	}
 }
 
-void Player::jump(bool incrementCounter)
+void Player::jump(const bool& incrementCounter, const float& multiplier)
 {
 	m_currentDistance = 0;
 	m_state = PlayerState::JUMPING;
-	m_velocity.y = JUMP_SPEED * m_playerScale;// * dt;
+	m_velocity.y = JUMP_SPEED * m_playerScale * multiplier;// * dt;
 	if(incrementCounter)
 		m_jumps++;
 }

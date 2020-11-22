@@ -52,17 +52,19 @@ void Scene::deactivateScene()
 	m_player->Detach(this);
 }
 
-void Scene::createParticleEntity(void* particleComponent, Vector3 position)
+void Scene::createScoreParticleEntity(Vector3 position)
 {
-	ParticleComponent* pc = static_cast<ParticleComponent*>(particleComponent);
 	std::string name = "tempParticleEntity" + std::to_string(m_tempParticleID++);
 	Entity* particleEntity = this->addEntity(name);
-	particleEntity->setPosition(position);
-	pc->setTransform(particleEntity);
-	particleEntity->addComponent("particle", pc);
-	pc->activate();
+	ParticleComponent* particleComponent = new ParticleComponent(particleEntity, new ScorePickupParticle());
 
-	m_tempParticleComponent.emplace_back(pc);
+
+	particleEntity->setPosition(position);
+	particleComponent->setTransform(particleEntity);
+	particleEntity->addComponent("particle", particleComponent);
+	particleComponent->activate();
+
+	m_tempParticleComponent.emplace_back(particleComponent);
 }
 
 void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
@@ -72,7 +74,7 @@ void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
 	{
 		if (physicsData.associatedTriggerEnum == (int)PickupType::SCORE)
 		{
-			this->createParticleEntity(physicsData.pointer, entity->getTranslation());
+			this->createScoreParticleEntity(entity->getTranslation());
 		}
 	}
 	//std::vector<Component*> vec;
@@ -112,11 +114,10 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 
 	Entity* pickupPtr = addEntity(name);
 
-	ParticleComponent* particleComponent = new ParticleComponent(pickupPtr, new ScorePickupParticle());
 
 	pickupPtr->setPosition(position);
 	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST));
-	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6, particleComponent));
+	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger(pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }

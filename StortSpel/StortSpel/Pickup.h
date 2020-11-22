@@ -26,6 +26,16 @@ public:
 		return PICKUP_VECTOR_INIT;
 	}
 
+	static void clearStaticPickupArrayPlz()
+	{
+		//k
+		for (size_t i = 0; i < PICKUP_VECTOR.size(); i++)
+		{
+			SAFE_DELETE(PICKUP_VECTOR[i]);
+		}
+		PICKUP_VECTOR.clear();
+	}
+
 	static void initPickupArray(std::vector<Pickup*>& vec)
 	{
 		if (!PICKUP_VECTOR_INIT)
