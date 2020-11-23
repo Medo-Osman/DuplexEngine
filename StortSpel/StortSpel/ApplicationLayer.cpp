@@ -44,7 +44,10 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	// Gamepad
 	Microsoft::WRL::Wrappers::RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);
 	if (FAILED(initialize))
+	{
 		ErrorLogger::get().logError("RoInitializeWrapper initialize(RO_INIT_MULTITHREADED) failed! Needed for Gamepad support.");
+		//wprintf_s(L"ERROR: Line:%d HRESULT: 0x%X\n", initialize, hr);
+	}
 
 	// Renderer
 	m_rendererPtr = &Renderer::get();//new Renderer();
