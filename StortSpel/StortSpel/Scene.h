@@ -62,9 +62,6 @@ private:
 
 	//Displaced platforms from the grid
 	std::unordered_map<UINT, BossStructures::PlatformDisplace*> m_displacedPlatforms;
-	std::unordered_map<UINT, BossStructures::PlatformDisplace*> m_platformsShrinking;
-	std::unordered_map<UINT, BossStructures::PlatformDisplace*> m_platformsGrowing;
-
 	std::vector<Vector3> deferredPointInstantiationList;
 	//---------------------------------------------------------------End of boss stuff
 

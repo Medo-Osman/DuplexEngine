@@ -28,8 +28,13 @@ void Boss::update(const float& dt)
 	for (int i = 0; i < m_bossSegments.size(); i++)
 	{
 		m_bossSegments.at(i)->update(dt);
-		PhysicsComponent* comp = static_cast<PhysicsComponent*>(m_bossSegments.at(i)->m_bossEntity->getComponent("physics"));
-		comp->setPosition(m_bossEntity->getTranslation() + m_bossSegments.at(i)->m_entityOffset);
+
+		Component* compPtr = m_bossSegments.at(i)->m_bossEntity->getComponent("physics");
+		if (compPtr)
+		{
+			PhysicsComponent* physComp = static_cast<PhysicsComponent*>(m_bossSegments.at(i)->m_bossEntity->getComponent("physics"));
+			physComp->setPosition(m_bossEntity->getTranslation() + m_bossSegments.at(i)->m_entityOffset);
+		}
 
 		m_bossSegments.at(i)->m_bossEntity->setPosition(m_bossEntity->getTranslation() + (m_bossSegments.at(i)->m_bossEntity->getTranslation() - m_bossEntity->getTranslation()));
 	}
@@ -48,7 +53,7 @@ void Boss::addSegment(BossSegment* segment)
 	m_bossSegments.push_back(segment);
 }
 
-BossStructures::IntVec Boss::getNewPlatformTarget()
+BossStructures::IntVec Boss::getNewPlatformTarget() //Generate new random target 
 {
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);

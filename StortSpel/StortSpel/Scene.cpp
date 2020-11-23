@@ -42,7 +42,15 @@ Scene::~Scene()
 
 	//Clean boss
 	if (m_boss)
+	{
+		for (int i = 0; i < m_boss->m_bossSegments.size(); i++)
+		{
+			BossSegment* segment = m_boss->m_bossSegments.at(i);
+			segment->Detach(this);
+		}
+
 		delete m_boss;
+	}
 }
 
 void Scene::createParticleEntity(void* particleComponent, Vector3 position)
@@ -1155,6 +1163,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	sceneObject->createStaticPlatform(Vector3(0, 15, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
 	sceneObject->m_sceneEntryPosition = Vector3(0, 17, 20);
 
+	//Generate the boss, if boss does not exist in the scene it will not be updated in sceneUpdate() either.
 	Entity* bossEnt = sceneObject->addEntity("boss");
 	if (bossEnt)
 	{
@@ -1195,10 +1204,14 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 
 			}
 		}
+		//// Grid structure finished
+
+
+		//Added the platform to spawn on, as well as a checkpoint on it.
 		sceneObject->addCheckpoint(sceneObject->m_sceneEntryPosition + Vector3(0, 0, 0));
 		Physics::get().Attach(sceneObject->m_boss, true, false);
 
-		//Segments
+		//Generate a set of segments on the boss, primarily to display the interface.
 		for (int i = 0; i < 6; i++)
 		{
 			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
@@ -1212,9 +1225,12 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 			sceneObject->createNewPhysicsComponent(segmentEntity, false, "mesh");
 			projectileSegment->Attach(sceneObject);
 
-			ShootLaserAction* action2 = new ShootLaserAction(segmentEntity, projectileSegment, 5);
-			projectileSegment->addAction(action2);
+			//This is to add actions to the segment just generated, they will however shoot independently of the boss moving aroud.
+			//ShootLaserAction* action = new ShootLaserAction(segmentEntity, projectileSegment, 5);
+			//projectileSegment->addAction(action);
 		}
+		
+		//Add the head of the boss, just another mesh in the boss entity.
 		MeshComponent* headComponent = new MeshComponent("Boss_Top.lrm", Material({ L"DarkGrayTexture.png" }));
 		headComponent->setPosition(0, (3 * sceneObject->m_boss->m_bossSegments.size()), 0);
 		sceneObject->addComponent(bossEnt, "meshHead", headComponent);
@@ -1241,7 +1257,8 @@ void Scene::updateScene(const float& dt)
 		m_boss->update(dt);
 		Vector3 targetPos = static_cast<CharacterControllerComponent*>(m_player->getPlayerEntity()->getComponent("CCC"))->getFootPosition() + Vector3(0, 1, 0);
 		
-		//If boss it not moving, pick a new target at random.
+		//This is the primary action loop of the boss.
+		//If boss it not moving, pick a new target at random, wait for two seconds, then shoot. Start over.
 		if (m_boss->getActionQueue()->size() == 0)
 		{
 			BossStructures::IntVec platformTargetIndex = m_boss->getNewPlatformTarget();
@@ -1256,9 +1273,13 @@ void Scene::updateScene(const float& dt)
 
 		//Check lasers
 		checkLasers(dt);
+
 		//Check projectiles and their lifetime so they do not continue on forever in case they missed.
 		checkProjectiles();
+
+		//Check if the boss platforms are correctly placed
 		checkPlatforms(dt);
+
 		for (int i = 0; i < deferredPointInstantiationList.size(); i++)
 		{
 			addScore(deferredPointInstantiationList[i]);
@@ -1747,12 +1768,6 @@ void Scene::physicallyMovePlatform(Entity* entity)
 bool Scene::findPlatformAlready(Entity* entity)
 {
 	bool found = false;
-	for (auto displacedPlatformStruct : m_platformsShrinking)
-		if (displacedPlatformStruct.second->entity == entity)
-			found = true;
-	for (auto displacedPlatformStruct : m_platformsGrowing)
-		if (displacedPlatformStruct.second->entity == entity)
-			found = true;
 	for (auto displacedPlatformStruct : m_displacedPlatforms)
 		if (displacedPlatformStruct.second->entity == entity)
 			found = true;

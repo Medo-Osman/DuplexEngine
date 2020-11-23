@@ -24,6 +24,7 @@ private:
 	Vector3 dir;
 	Entity* targetEntity = nullptr;
 public:
+	//MoveToTargetInGridAction(Entity* bossEntity, BossSubject* bossSubject, BossStructures::PlatformArray* platformArray, Vector2 targetIndicies, float speed, Vector2* currentPlatformIndex, std::vector<BossStructures::BaseAction*>* actionQueue)
 	MoveToTargetInGridAction(Entity* bossEntity, BossSubject* bossSubject, BossStructures::PlatformArray* platformArray, Vector2 targetIndicies, float speed, Vector2* currentPlatformIndex, std::vector<BossStructures::BaseAction*>* actionQueue)
 		:BaseAction(bossEntity, bossSubject)
 	{
