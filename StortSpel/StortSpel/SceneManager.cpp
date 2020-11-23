@@ -172,7 +172,8 @@ void SceneManager::inputUpdate(InputData& inputData)
 		else if (inputData.actionData[i] == LOAD_TEST_SCENE)
 		{
 			m_nextScene = new Scene();
-			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadBossTest, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 
 			m_gameStarted = true;
@@ -248,7 +249,7 @@ void SceneManager::swapScenes()
 		//Reset boss
 		if (m_currentScene->m_boss)
 			m_currentScene->m_boss->Detach(m_currentScene);
-		//hej detta �r big changes
+
 		// Swap
 		delete m_currentScene;
 		m_currentScene = m_nextScene;

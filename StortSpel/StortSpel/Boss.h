@@ -5,40 +5,32 @@
 #include "BaseAction.h"
 #include "ShootProjectileAction.h"
 #include "MoveToAction.h"
+#include "BossSegment.h"
+#include "MoveOneInGridAction.h"
+#include "MoveToTargetInGridAction.h"
+#include "ShootLaserXZAction.h"
+#include "WaitAction.h"
+
+#include "ShrinkingComponent.h"
+#include "GrowingComponent.h"
 
 
-class Boss : public BossSubject, public PhysicsObserver
+class Boss : public PhysicsObserver, public BossSegment
 {
 private:
-	std::map<int, BossObserver*> m_observers;
-	std::vector<BossStructures::BaseAction*> m_actionQueue;
-
-	Entity* m_bossEntity = nullptr;
-	BossStructures::BaseAction* m_currentAction = nullptr;
-
-	UINT m_uniqueActionID = 0;
-
-	//Determines if the action queue will loop, if true the action queue will only be executed once
-	//and actions will be deleted once completed.
-	bool m_destroyActionOnComplete = true;
 public:
+
+
+	BossStructures::PlatformArray platformArray = BossStructures::PlatformArray(10);
+	Vector2 currentPlatformIndex = Vector2(0, 0);
+	std::vector<BossSegment*> m_bossSegments;
+
 	Boss() { };
 	~Boss();
 	void update(const float& dt);
 	void initialize(Entity* entity, bool destroyActionOnComplete = true);
-	UINT addAction(BossStructures::BaseAction* action);
-	void nextAction();
-	BossStructures::BaseAction* getCurrentAction();
-	std::vector<BossStructures::BaseAction*>* getActionQueue();
-
-	void setDestroyActionOnComplete(bool value);
-	void startActionWithID(UINT id);
-	
-
-	// Inherited via BossSubject
-	virtual void Attach(BossObserver* observer) override;
-	virtual void Detach(BossObserver* observer) override;
-	virtual void Notify(BossMovementType type, BossStructures::BossActionData data) override;
+	void addSegment(BossSegment* segment);
+	BossStructures::IntVec getNewPlatformTarget();
 
 	// Inherited via PhysicsObserver
 	virtual void sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity) override;

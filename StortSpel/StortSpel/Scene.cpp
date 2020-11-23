@@ -43,6 +43,12 @@ Scene::~Scene()
 	//Clean boss
 	if (m_boss)
 	{
+		for (int i = 0; i < m_boss->m_bossSegments.size(); i++)
+		{
+			BossSegment* segment = m_boss->m_bossSegments.at(i);
+			segment->Detach(this);
+		}
+
 		m_boss->Detach(this);
 		delete m_boss;
 	}
@@ -836,6 +842,7 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 
 	sceneObject->m_sceneEntryPosition = Vector3(0, 0, 0);
 
+
 	Entity* bossEnt = sceneObject -> addEntity("boss");
 	if (bossEnt)
 	{
@@ -859,6 +866,7 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 		sceneObject->m_boss->addAction(new ShootProjectileAction(bossEnt, sceneObject->m_boss, 3, 0));
 
 		Physics::get().Attach(sceneObject->m_boss, true, false);
+
 	}
 
 	Material gridTest = Material({ L"BlackGridBlueLines.png" });
@@ -1147,19 +1155,130 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 	*finished = true;
 }
 
+void Scene::loadBossTest(Scene* sceneObject, bool* finished)
+{
+	sceneObject->createStaticPlatform(Vector3(0, 15, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	sceneObject->m_sceneEntryPosition = Vector3(0, 17, 20);
+
+	//Generate the boss, if boss does not exist in the scene it will not be updated in sceneUpdate() either.
+	Entity* bossEnt = sceneObject->addEntity("boss");
+	if (bossEnt)
+	{
+		bossEnt->scale({ 1, 1, 1 });
+		bossEnt->translate({ 0,2.5,0 });
+
+		sceneObject->m_boss = new Boss();
+		sceneObject->m_boss->Attach(sceneObject);
+		sceneObject->m_boss->initialize(bossEnt, true);
+
+		//// Init grid structure
+		BossStructures::PlatformArray* platformArray = &sceneObject->m_boss->platformArray;
+		float spacingBetweenPlatforms = 1.f;
+		int total = 0;
+		float scaling = 10.f;
+		Vector3 platformPos = Vector3(15, 0, 15);
+		for (int x = 0; x < platformArray->columns.size(); x++)
+		{
+			for (int y = 0; y < platformArray->columns.size(); y++)
+			{
+				Entity* platform = sceneObject->addEntity("bossPlatform-" + std::to_string(total++));
+				Vector3 offset = sceneObject->m_sceneEntryPosition;
+				if (platform)
+				{
+					platform->setPosition(Vector3(((float)x) * scaling + (x)*0.05f, 2, (float)(y) * scaling + (y)*0.05f) + platformPos);
+					platform->scale(scaling, 0.5f, scaling);
+					platform->addComponent("grow", new GrowingComponent(platform, platform->getScaling(), 8.f)); 
+					static_cast<GrowingComponent*>(platform->getComponent("grow"))->setDone(true);
+					platform->addComponent("shrink", new ShrinkingComponent(platform, Vector3(0.01, 0.01, 0.01), 8.f)); 
+					static_cast<ShrinkingComponent*>(platform->getComponent("shrink"))->setDone(true);
+
+
+					sceneObject->addComponent(platform, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+					sceneObject->createNewPhysicsComponent(platform);
+
+					(*platformArray)[x][y] = platform;
+				}
+
+			}
+		}
+		//// Grid structure finished
+
+
+		//Added the platform to spawn on, as well as a checkpoint on it.
+		sceneObject->addCheckpoint(sceneObject->m_sceneEntryPosition + Vector3(0, 0, 0));
+		Physics::get().Attach(sceneObject->m_boss, true, false);
+
+		//Generate a set of segments on the boss, primarily to display the interface.
+		for (int i = 0; i < 6; i++)
+		{
+			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
+			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("Boss_Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+			segmentEntity->setScale({ 1,1,1 });
+
+			BossSegment* projectileSegment = new BossSegment();
+			projectileSegment->initializeSegment(segmentEntity, false);
+			projectileSegment->m_entityOffset = Vector3(0, 3 * sceneObject->m_boss->m_bossSegments.size(), 0);
+			sceneObject->m_boss->addSegment(projectileSegment);
+			sceneObject->createNewPhysicsComponent(segmentEntity, false, "mesh");
+			projectileSegment->Attach(sceneObject);
+
+			//This is to add actions to the segment just generated, they will however shoot independently of the boss moving aroud.
+			//ShootLaserAction* action = new ShootLaserAction(segmentEntity, projectileSegment, 5);
+			//projectileSegment->addAction(action);
+		}
+		
+		//Add the head of the boss, just another mesh in the boss entity.
+		MeshComponent* headComponent = new MeshComponent("Boss_Top.lrm", Material({ L"DarkGrayTexture.png" }));
+		headComponent->setPosition(0, (3 * sceneObject->m_boss->m_bossSegments.size()), 0);
+		sceneObject->addComponent(bossEnt, "meshHead", headComponent);
+
+		//Add custom action
+		//sceneObject->m_boss->addAction(new ShootLaserAction(bossEnt, sceneObject->m_boss, 4.f));
+	}
+
+	Entity* skybox = sceneObject->addEntity("SkyBox");
+	skybox->m_canCull = false;
+	if (skybox)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		//Disable shadow casting
+		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	}
+
+	*finished = true;
+}
+
 void Scene::updateScene(const float& dt)
 {
 	if (m_boss)
 	{
 		m_boss->update(dt);
+		Vector3 targetPos = static_cast<CharacterControllerComponent*>(m_player->getPlayerEntity()->getComponent("CCC"))->getFootPosition() + Vector3(0, 1, 0);
+		
+		//This is the primary action loop of the boss.
+		//If boss it not moving, pick a new target at random, wait for two seconds, then shoot. Start over.
+		if (m_boss->getActionQueue()->size() == 0)
+		{
+			BossStructures::IntVec platformTargetIndex = m_boss->getNewPlatformTarget();
+			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
+			m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 2)); //Wait before moving again
+			m_boss->addAction(new ShootLaserAction(m_boss->m_bossSegments.at(0)->m_bossEntity, m_boss, 4));
+		}
 
 		ShootProjectileAction* ptr = dynamic_cast<ShootProjectileAction*>(m_boss->getCurrentAction());
-
 		if (ptr)
 			ptr->setTarget(static_cast<CharacterControllerComponent*>(m_player->getPlayerEntity()->getComponent("CCC"))->getFootPosition() + Vector3(0, 1, 0));
 
+		//Check lasers
+		checkLasers(dt);
+
 		//Check projectiles and their lifetime so they do not continue on forever in case they missed.
 		checkProjectiles();
+
+		//Check if the boss platforms are correctly placed
+		checkPlatforms(dt);
 
 		for (int i = 0; i < deferredPointInstantiationList.size(); i++)
 		{
@@ -1371,15 +1490,51 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 	if(type == BossMovementType::ShootProjectile)
 		createProjectile(data.origin, data.direction, data.speed);
 
+	if (type == BossMovementType::ShootLaser)
+	{
+		createLaser(data);
+	}
+
+	if (type == BossMovementType::ClearColumn)
+	{
+		for (int i = 0; i < m_boss->platformArray.columns.size(); i++)
+		{
+			displacePlatform(m_boss->platformArray[m_boss->currentPlatformIndex.x][i]);
+		}
+	}
+
+	if (type == BossMovementType::ClearRow)
+	{
+		for (int i = 0; i < m_boss->platformArray.columns.size(); i++)
+		{
+			displacePlatform(m_boss->platformArray[i][m_boss->currentPlatformIndex.y]);
+		}
+	}
+
+	if (type == BossMovementType::MovePlatform) //Move a platform that the boss has moved over for a period of time.
+	{
+		Entity* entity;
+		entity = static_cast<Entity*>(data.pointer0);
+
+		displacePlatform(entity);
+	}
+
 	if (type == BossMovementType::DropPoints)
 	{
-		Entity* projectile = static_cast<Entity*>(data.pointer0);
-		//addScore(data.origin+Vector3(0,2,0));
-		deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
+			Entity* projectile = static_cast<Entity*>(data.pointer0);
+			Component* component = projectile->getComponent("projectile");
 
-		ProjectileComponent* component = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
-		m_projectiles.erase(component->m_id);
-		removeEntity(projectile->getIdentifier());
+			if (component != nullptr)
+			{
+				ProjectileComponent* projComponent = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
+				m_projectiles.erase(projComponent->m_id);
+				removeEntity(projectile->getIdentifier());
+				deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
+			}
+			else	
+				addScore(data.origin+Vector3(0,5,0));
+
+		
 	}
 
 
@@ -1475,6 +1630,7 @@ void Scene::checkProjectiles()
 		{
 			idsToRemove.push_back(projectileEntity.first);
 		}
+
 	}
 
 	//can not remove mid-loop
@@ -1483,4 +1639,139 @@ void Scene::checkProjectiles()
 		removeEntity(m_projectiles[idsToRemove[i]]->getIdentifier());
 		m_projectiles.erase(idsToRemove[i]);
 	}
+}
+
+void Scene::createLaser(BossStructures::BossActionData data)
+{
+	Entity* laserEntity = addEntity("laser" + std::to_string(m_nrOfLasers++));
+
+	if (laserEntity)
+	{
+		laserEntity->setRotation(data.rotation);
+		laserEntity->setPosition(data.origin);
+		laserEntity->m_canCull = false;
+		Material mat = Material({ L"red.png", L"red.png" });
+		mat.setEmissiveStrength(700.f);
+
+		MeshComponent* mComp = new MeshComponent("Boss_Laser.lrm", EMISSIVE, mat);
+		mComp->setCastsShadow(false);
+		addComponent(laserEntity, "mesh", mComp);
+		laserEntity->setScale(1, 1, 10);
+
+		BossStructures::BossLaser* laserObject = new BossStructures::BossLaser();
+		laserObject->entity = laserEntity;
+		laserObject->id = m_nrOfLasers;
+		laserObject->lifeTime = 0.5f;
+		laserObject->timer.restart();
+
+		m_lasers[laserObject->id] = laserObject;
+	}
+}
+
+void Scene::checkLasers(float dt)
+{
+	std::vector<UINT> idsToRemove;
+
+	for (auto laserStruct : m_lasers)
+	{
+		float currTime = laserStruct.second->timer.timeElapsed();
+		float lifeTime = laserStruct.second->lifeTime;
+		if (currTime > lifeTime)
+		{
+			idsToRemove.push_back(laserStruct.first);
+		}
+
+		float maxSize = 2;
+		Entity* entity = laserStruct.second->entity;
+		float size = (currTime / lifeTime) * maxSize;
+		entity->setScale({ 1+size, 1 + size, entity->getScaling().z });
+	}
+
+	//can not remove mid-loop
+	for (int i = 0; i < idsToRemove.size(); i++)
+	{
+		removeEntity(m_lasers[idsToRemove[i]]->entity->getIdentifier());
+		delete m_lasers[idsToRemove[i]];
+		m_lasers.erase(idsToRemove[i]);
+	}
+}
+
+void Scene::checkPlatforms(float dt)
+{
+	std::vector<UINT> idsToReset;
+	for (auto displacedPlatformStruct : m_displacedPlatforms)
+	{
+		float currTime = displacedPlatformStruct.second->timer.timeElapsed();
+		float lifeTime = displacedPlatformStruct.second->stayDisplacedFor;
+		Entity* entity = m_displacedPlatforms.at(displacedPlatformStruct.first)->entity;
+
+		if (static_cast<ShrinkingComponent*>(displacedPlatformStruct.second->entity->getComponent("shrink"))->doneTweening() && !displacedPlatformStruct.second->displaced)
+		{
+			displacedPlatformStruct.second->displaced = true;
+			physicallyMovePlatform(displacedPlatformStruct.second->entity);
+		}
+
+
+		if (currTime > lifeTime && displacedPlatformStruct.second->displaced)
+		{
+			PhysicsComponent* comp = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
+			Vector3 currPos = comp->getActorPosition();
+			comp->setPosition(currPos - displacedPlatformStruct.second->offsetBy);
+			displacedPlatformStruct.second->displaced = false;
+			static_cast<GrowingComponent*>(entity->getComponent("grow"))->setDone(false);
+			idsToReset.push_back(displacedPlatformStruct.first);
+
+			MeshComponent* meshComp = static_cast<MeshComponent*>(entity->getComponent("mesh"));
+			meshComp->setVisible(true);
+			
+		}
+	}
+
+	for (int i = 0; i < idsToReset.size(); i++)
+	{
+		m_displacedPlatforms.erase(idsToReset[i]);
+	}
+}
+
+void Scene::displacePlatform(Entity* entity)
+{
+	Vector3 offsetAmount = Vector3(0, 300.f, 0);
+	PhysicsComponent* comp = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
+	Vector3 currPos = comp->getActorPosition();
+
+	if (!findPlatformAlready(entity) && static_cast<GrowingComponent*>(entity->getComponent("grow"))->doneTweening())
+	{
+
+		BossStructures::PlatformDisplace* displacedPlatform = new BossStructures::PlatformDisplace();
+		displacedPlatform->id = m_nrOfDisplacedPlatforms++;
+		displacedPlatform->entity = entity;
+		displacedPlatform->offsetBy = offsetAmount;
+		displacedPlatform->targetSize = Vector3(0.1f, 0.1f, 0.1f);
+		displacedPlatform->originalSize = entity->getScaling();
+		
+		m_displacedPlatforms[m_nrOfDisplacedPlatforms] = displacedPlatform;
+		static_cast<ShrinkingComponent*>(entity->getComponent("shrink"))->setDone(false);
+	}
+}
+
+void Scene::physicallyMovePlatform(Entity* entity)
+{
+	Vector3 offsetAmount = Vector3(0, 300.f, 0);
+	PhysicsComponent* comp = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
+	Vector3 currPos = comp->getActorPosition();
+	comp->setPosition(currPos + offsetAmount);
+
+	MeshComponent* meshComp = static_cast<MeshComponent*>(entity->getComponent("mesh"));
+	meshComp->setVisible(false);
+}
+
+bool Scene::findPlatformAlready(Entity* entity)
+{
+	bool found = false;
+	for (auto displacedPlatformStruct : m_displacedPlatforms)
+		if (displacedPlatformStruct.second->entity == entity)
+			found = true;
+	
+
+	return found;
 }

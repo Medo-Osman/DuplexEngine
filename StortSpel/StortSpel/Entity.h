@@ -56,7 +56,7 @@ public:
 		{
 			ErrorLogger::get().logError("Attempt to retrieve component by name failed, does not exist.");
 
-			return new InvalidComponent();
+			return nullptr;
 		}
 			
 		return m_components[componentName];
