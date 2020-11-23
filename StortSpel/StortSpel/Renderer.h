@@ -29,6 +29,9 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
 
+	// SSAO stuff
+
+
 	// Bloom stuff
 	ID3D11RenderTargetView* m_geometryPassRTVs[2];
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_glowMapRenderTargetViewPtr = NULL;
@@ -110,6 +113,7 @@ private:
 	void rasterizerSetup();
 	
 	void createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const int& height) const;
+	HRESULT initializeSSAO();
 	HRESULT initializeBloomFilter();
 	void calculateBloomWeights();
 	void downSamplePass();

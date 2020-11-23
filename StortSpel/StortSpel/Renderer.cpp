@@ -343,6 +343,26 @@ void Renderer::createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const 
 	viewPort.MaxDepth = 1.0f;
 }
 
+HRESULT Renderer::initializeSSAO()
+{
+	D3D11_TEXTURE2D_DESC textureDesc = { 0 };
+	ID3D11Texture2D* normalsNDepthTexture;
+	HRESULT hr;
+
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.MipLevels = 1;
+	textureDesc.ArraySize = 1;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	textureDesc.Width = m_settings.width;
+	textureDesc.Height = m_settings.height;
+	textureDesc.SampleDesc.Count = 1;
+
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &normalsNDepthTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+}
+
 HRESULT Renderer::initializeBloomFilter()
 {
 	D3D11_TEXTURE2D_DESC textureDesc = { 0 };
