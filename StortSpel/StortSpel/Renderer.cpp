@@ -534,7 +534,11 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		if (m_frustumCullingOn && parentEntity->m_canCull)
 		{
 			//Culling
-			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), *V);
+			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
+			XMVECTOR pos = parentEntity->getTranslation();
+			pos += component.second->getTranslation();
+			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
+			pos = XMVector3Transform(pos, *V);
 			XMFLOAT3 posFloat3;
 			XMStoreFloat3(&posFloat3, pos);
 
@@ -543,7 +547,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 				component.second->getMeshResourcePtr()->getMinMax(min, max);
 
 				XMFLOAT3 ext = (max - min);
-				ext = ext * parentEntity->getScaling();
+				ext = ext * scale;
 				XMFLOAT4 rot = parentEntity->getRotation();
 				BoundingOrientedBox box(posFloat3, ext, rot);
 				ContainmentType contType = frust->Contains(box);
