@@ -188,7 +188,6 @@ float lerp(const float& a, const float &b, const float &t)
 {
 	return a + (t * (b - a));
 }
-bool doOnce = false;
 
 Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 vel, float t)
 {
@@ -231,11 +230,6 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 	{
 		Vector3 curPos;
 		curPos = trajectoryEquation(pos, vel, t);
-		if (print)
-		{
-			std::cout << (int)curPos.x << " " << (int)curPos.y << " " << (int)curPos.z << std::endl;
-			doOnce = true;
-		}
 
 		t += 0.5f;
 		bool hit = Physics::get().hitSomething(curPos, m_controller->getOriginalRadius(), m_controller->getOriginalHalfHeight());
@@ -261,8 +255,6 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 			m_3dMarker->setPosition(m_playerEntity->getTranslation());
 		}
 	}
-
-	ImGui::Text("Found Position:(%d, %d, %d)", (int)pos.x, (int)pos.y, (int)pos.z);
 
 	return returnPosition;
 }
@@ -556,13 +548,6 @@ void Player::setPlayerEntity(Entity* entity)
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
-
-	//To test heightpickup faster, if you see this you can remove it
-	m_pickupPointer = new CannonPickup();
-	m_pickupPointer->onPickup(m_playerEntity);
-
-
-
 }
 
 Vector3 Player::getCheckpointPos()
