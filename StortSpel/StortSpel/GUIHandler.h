@@ -6,7 +6,7 @@
 #include "GUIButton.h"
 #include "Input.h"
 
-class GUIHandler
+class GUIHandler : public InputObserver
 {
 private:
 	GUIHandler();
@@ -32,6 +32,10 @@ private:
 
 	Input* m_input = nullptr;
 
+	// Menu Gamepad Selection
+	int m_inMenu;
+	int m_selectedMenuButton;
+
 public:
 	static GUIHandler& get();
 	~GUIHandler();
@@ -53,5 +57,10 @@ public:
 
 	std::vector< GUIElement* >* getElementMap();
 
+	// Menu Gamepad Selection
+	void setInMenu(bool inMenu, int startIndex = 0);
+
 	void render();
+
+	virtual void inputUpdate(InputData& inputData) override;
 };

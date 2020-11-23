@@ -27,10 +27,11 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	const wchar_t WINDOWTILE[] = L"Lucid Runners";
 	HRESULT hr = 0;
 	bool initOK = false;
-	SetCursor(NULL);
 	this->createWin32Window(hInstance, WINDOWTILE, hWnd);// hwnd is refference, is set to created window.
 	m_window = hWnd;
 
+	// Input
+	SetCursor(NULL);
 	RAWINPUTDEVICE rawIDevice;
 	rawIDevice.usUsagePage = 0x01;
 	rawIDevice.usUsage = 0x02;
@@ -39,6 +40,16 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 
 	if (RegisterRawInputDevices(&rawIDevice, 1, sizeof(rawIDevice)) == FALSE)
 		return false;
+
+	// Gamepad
+	Microsoft::WRL::Wrappers::RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);
+	if (FAILED(initialize))
+	{
+		ErrorLogger::get().logError("RoInitializeWrapper initialize(RO_INIT_MULTITHREADED) failed! Needed for Gamepad support.");
+		//wprintf_s(L"ERROR: Line:%d HRESULT: 0x%X\n", initialize, hr);
+	}
+
+	// Renderer
 	m_rendererPtr = &Renderer::get();//new Renderer();
 	hr = m_rendererPtr->initialize(m_window);
 	if (SUCCEEDED(hr))
@@ -49,7 +60,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	// Audio
 	AudioHandler::get().initialize(m_window);
 
-	//PhysX
+	// PhysX
 	m_physics = &Physics::get();
 	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
 	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input, &m_window);
@@ -103,7 +114,7 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 	);
 	assert(_d3d11Window);
 
-	//RedirectIOToConsole(); // Disabled For PlayTest
+	RedirectIOToConsole(); // Disabled For PlayTest
 }
 
 void ApplicationLayer::RedirectIOToConsole()

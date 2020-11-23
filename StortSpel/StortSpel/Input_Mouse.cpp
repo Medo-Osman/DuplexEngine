@@ -7,17 +7,17 @@ MouseEvent::MouseEvent()
 	mousePos.x = 0;
 	mousePos.y = 0;
 }
-MouseEvent::MouseEvent(Event evnt, int x, int y)
+MouseEvent::MouseEvent(Event evnt, float x, float y)
 {
 	this->eventType = evnt;
 	mousePos.x = x;
 	mousePos.y = y;
 }
-int MouseEvent::getPosX() const
+float MouseEvent::getPosX() const
 {
 	return mousePos.x;
 }
-int MouseEvent::getPosY()const
+float MouseEvent::getPosY()const
 {
 	return mousePos.y;
 }
@@ -66,7 +66,7 @@ bool Mouse::empty() const
 void Mouse::onMove(MousePos pos)
 {
 	m_mousePos = pos;
-	m_events.push(MouseEvent(Event::MouseMove, (int)(pos.x * 0.25), (int)(pos.y * 0.25)));
+	m_events.push(MouseEvent(Event::MouseMove, (pos.x * 0.25f), (pos.y * 0.25f)));
 }
 void Mouse::onRawMove(MousePos pos)
 {
@@ -123,11 +123,11 @@ bool Mouse::isMDown() const
 {
 	return m_MDown;
 }
-int Mouse::getPosX() const
+float Mouse::getPosX() const
 {
 	return m_mousePos.x;
 }
-int Mouse::getPosY() const
+float Mouse::getPosY() const
 {
 	return m_mousePos.y;
 }

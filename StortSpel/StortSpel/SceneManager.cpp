@@ -18,8 +18,6 @@ SceneManager::~SceneManager()
 
 void SceneManager::initalize()
 {
-
-
 	//define gui button
 	GUIButtonStyle btnStyle;
 	//start button
@@ -27,38 +25,51 @@ void SceneManager::initalize()
 	btnStyle.scale = Vector2(1, 1);
 	m_singleplayerIndex = GUIHandler::get().addGUIButton(L"singleplayerBtn.png", btnStyle);
 
-	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_singleplayerIndex))->Attach(this);
-
-
-	//Exit button
-	btnStyle.position = Vector2(1600, 100);
-	btnStyle.scale = Vector2(1, 1);
-	m_exitIndex = GUIHandler::get().addGUIButton(L"exitBtn.png", btnStyle);
-
-	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_exitIndex))->Attach(this);
+	GUIButton* startButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_singleplayerIndex));
+	startButton->Attach(this);
 
 	//join button
 	btnStyle.position = Vector2(140, 550);
 	btnStyle.scale = Vector2(1, 1);
 	m_joinGameIndex = GUIHandler::get().addGUIButton(L"joinBtn.png", btnStyle);
 
-	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_joinGameIndex))->Attach(this);
+	GUIButton* joinButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_joinGameIndex));
+	joinButton->Attach(this);
+	joinButton->setPrevMenuButton(startButton);
+	startButton->setNextMenuButton(joinButton);
 
 	//Host Button
 	btnStyle.position = Vector2(140, 700);
 	btnStyle.scale = Vector2(1, 1);
 	m_hostGameIndex = GUIHandler::get().addGUIButton(L"hostBtn.png", btnStyle);
 
-	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_hostGameIndex))->Attach(this);
+	GUIButton* hostButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_hostGameIndex));
+	hostButton->Attach(this);
+	hostButton->setPrevMenuButton(joinButton);
+	joinButton->setNextMenuButton(hostButton);
 
+	//Exit button
+	btnStyle.position = Vector2(140, 850);
+	btnStyle.scale = Vector2(1, 1);
+	m_exitIndex = GUIHandler::get().addGUIButton(L"exitBtn.png", btnStyle);
+
+	GUIButton* exitButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_exitIndex));
+	exitButton->Attach(this);
+	exitButton->setPrevMenuButton(hostButton);
+	exitButton->setNextMenuButton(startButton);
+	startButton->setPrevMenuButton(exitButton);
+	hostButton->setNextMenuButton(exitButton);
+
+	// Used for Menu Selection
+	GUIHandler::get().setInMenu(true, m_singleplayerIndex);
 
 	// Start Scene
 	m_currentScene = new Scene();
-
 	Scene::loadMainMenu(m_currentScene, m_nextSceneReady);
 	disableMovement();
 	*m_nextSceneReady = false;
 	//m_currentScene->loadArena();
+
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
 	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
@@ -96,6 +107,7 @@ void SceneManager::updateScene(const float &dt)
 			Engine::get().getPlayerPtr()->setScore(0);
 			m_gameStarted = false;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::START:
 			sceneLoaderThread = std::thread(Scene::loadTestLevel, m_nextScene,m_nextSceneReady);
@@ -104,19 +116,23 @@ void SceneManager::updateScene(const float &dt)
 			m_gameStarted = true;
 			enableMovement();
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::ARENA:
 			sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::MAINMENU:
 			disableMovement();
 			m_nextScene->loadMainMenu(m_nextScene, m_nextSceneReady);
+			GUIHandler::get().setInMenu(true, m_singleplayerIndex);
 			break;
 		case ScenesEnum::ENDSCENE:
 			//
+			GUIHandler::get().setInMenu(true, m_singleplayerIndex);
 			break;
 		default:
 			break;
@@ -156,7 +172,8 @@ void SceneManager::inputUpdate(InputData& inputData)
 		else if (inputData.actionData[i] == LOAD_TEST_SCENE)
 		{
 			m_nextScene = new Scene();
-			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadBossTest, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 
 			m_gameStarted = true;
@@ -232,11 +249,10 @@ void SceneManager::swapScenes()
 		//Reset boss
 		if (m_currentScene->m_boss)
 			m_currentScene->m_boss->Detach(m_currentScene);
-
+			
 		m_currentScene->deactivateScene();
 	
 
-		//hej detta �r big changes
 		// Swap
 		delete m_currentScene;
 		m_currentScene = m_nextScene;
@@ -253,8 +269,9 @@ void SceneManager::swapScenes()
 		Physics::get().Attach(m_currentScene, false, true);
 		Physics::get().changeScene(m_currentScene->getSceneID());
 		CharacterControllerComponent* ccc = static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"));
-		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), 1.75f, 0.5, "human");
+		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), 1.75f, 0.5f, "human");
 		ccc->setPosition(m_currentScene->getEntryPosition());
+
 	}
 }
 

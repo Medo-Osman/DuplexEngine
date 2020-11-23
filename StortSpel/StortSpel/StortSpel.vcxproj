@@ -265,6 +265,7 @@
     <ClInclude Include="Boss.h" />
     <ClInclude Include="BarrelComponent.h" />
     <ClInclude Include="BarrelTriggerComponent.h" />
+    <ClInclude Include="BossSegment.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CannonPickup.h" />
@@ -273,12 +274,15 @@
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
     <ClInclude Include="FlippingComponent.h" />
+    <ClInclude Include="GrowingComponent.h" />
     <ClInclude Include="GUIButton.h" />
     <ClInclude Include="GUIContext.h" />
     <ClInclude Include="GUIImageLabel.h" />
     <ClInclude Include="HeightPickup.h" />
     <ClInclude Include="Particles\LineArrayParticle.h" />
     <ClInclude Include="MoveToAction.h" />
+    <ClInclude Include="MoveOneInGridAction.h" />
+    <ClInclude Include="MoveToTargetInGridAction.h" />
     <ClInclude Include="Particles\Particle.h" />
     <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="Particles\PlayerLineParticle.h" />
@@ -307,7 +311,9 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="ShadowMap.h" />
+    <ClInclude Include="ShootLaserXZAction.h" />
     <ClInclude Include="ShootProjectileAction.h" />
+    <ClInclude Include="ShrinkingComponent.h" />
     <ClInclude Include="SpeedPickup.h" />
     <ClInclude Include="SweepingComponent.h" />
     <ClInclude Include="PhysicsComponent.h" />
@@ -333,6 +339,7 @@
     <ClInclude Include="Traps.h" />
     <ClInclude Include="TriggerComponent.h" />
     <ClInclude Include="VertexStructs.h" />
+    <ClInclude Include="WaitAction.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BasicPixelShader.hlsl">

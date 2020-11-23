@@ -22,7 +22,7 @@ struct InputData
 	std::vector<State> stateData;
 	std::vector<RangeData> rangeData;
 	Mouse* mousePtr = nullptr;
-
+	  
 	void removeStateData(State stateID)
 	{
 		bool removed = false;
@@ -33,6 +33,10 @@ struct InputData
 				removed = true;
 			}
 		}
+	}
+	void clearStateData()
+	{
+		stateData.clear();
 	}
 	void removeActionData(const int& pos)
 	{
@@ -68,6 +72,12 @@ private:
 	Mouse m_Mouse;
 	bool m_cursorEnabled;
 
+	// Gamepad
+	std::unique_ptr<GamePad> m_gamepad;
+	GamePad::ButtonStateTracker m_tracker;
+	float m_rightStickSensetivity	= 10.f;
+	bool m_invertedRightStickY		= false;
+
 	std::vector<InputObserver*> m_inputObservers;
 	std::vector<iContext*> m_contexts;
 
@@ -89,9 +99,6 @@ public:
 	Mouse* getMouse();
 	std::vector<iContext*>* getIContextPtr();
 
-
 	void Attach(InputObserver* observer);
 	void Detach(InputObserver* observer);
-
-
 };

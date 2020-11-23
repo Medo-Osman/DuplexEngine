@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <assert.h>
 #include <wrl/client.h>
+#include <wrl/wrappers/corewrappers.h>
 #define NOMINMAX
 #include <map>
 #include <unordered_map>
@@ -40,6 +41,7 @@
 #include <SpriteBatch.h>
 #include <SpriteFont.h>
 #include <CommonStates.h>
+#include <GamePad.h>
 
 //PhysX
 #include"PxPhysicsAPI.h"

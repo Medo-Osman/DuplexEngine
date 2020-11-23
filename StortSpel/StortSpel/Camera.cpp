@@ -81,7 +81,7 @@ void Camera::inputUpdate(InputData& inputData)
 				m_newIncrements = true;
 			}
 
-			XMFLOAT2 mouseDelta = XMFLOAT2((float)inputData.rangeData[i].pos.x, (float)inputData.rangeData[i].pos.y);
+			XMFLOAT2 mouseDelta = XMFLOAT2(inputData.rangeData[i].pos.x, inputData.rangeData[i].pos.y) * m_sensitivity;
 
 			//(float)inputData.rangeData[i].pos
 

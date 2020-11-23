@@ -411,7 +411,7 @@ void Player::playerStateLogic(const float& dt)
 			m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
 	}
 
-	//std::cout << m_velocity.y << "\n";
+	//std::cout << m_velocity.z << "\n";
 
 	// Max Gravity Tests
 	if (m_velocity.y <= -MAX_FALL_SPEED)

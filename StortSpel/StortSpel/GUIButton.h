@@ -39,6 +39,11 @@ private:
 	int m_textureHeight = 0;
 
 	bool m_hovered = false;
+	bool m_gamepadSelected = false;
+
+	// Menu Gamepad Selection
+	GUIButton* m_nextMenuButton = nullptr;
+	GUIButton* m_prevMenuButton = nullptr;
 
 public:
 	GUIButton(std::wstring texturePath, GUIButtonStyle style, HWND* window)
@@ -51,6 +56,25 @@ public:
 	~GUIButton()
 	{
 
+	}
+
+	int getNextMenuButton() { return m_nextMenuButton->m_index; }
+	int getPrevMenuButton() { return m_prevMenuButton->m_index; }
+	void setPrevMenuButton(GUIButton* prevButton) { m_prevMenuButton = prevButton; }
+	void setNextMenuButton(GUIButton* nextButton) { m_nextMenuButton = nextButton; }
+
+	void setIsHovered(bool hovered)
+	{
+		m_hovered = hovered;
+	}
+
+	void setIsSelected(bool selected)
+	{
+		m_gamepadSelected = selected;
+		if (m_gamepadSelected)
+			Notify(GUIUpdateType::HOVER_ENTER);
+		else
+			Notify(GUIUpdateType::HOVER_EXIT);
 	}
 
 	void setTexture(std::wstring texturePath)
@@ -116,11 +140,14 @@ public:
 		}
 		else //When it is not hovering over the button
 		{
-			if (m_hovered)
+			if (!m_gamepadSelected)
 			{
-				//Send message to observers that something has happened if it was previously hovered over.
-				Notify(GUIUpdateType::HOVER_EXIT);
-				m_hovered = false;
+				if (m_hovered)
+				{
+					//Send message to observers that something has happened if it was previously hovered over.
+					Notify(GUIUpdateType::HOVER_EXIT);
+					m_hovered = false;
+				}
 			}
 		}
 
@@ -141,6 +168,12 @@ public:
 				}
 
 				
+			}
+
+			if (states[i] == Action::SELECT)
+			{
+				if(m_gamepadSelected)
+					Notify(GUIUpdateType::CLICKED);
 			}
 		}
 

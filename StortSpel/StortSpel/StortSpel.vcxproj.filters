@@ -445,6 +445,26 @@
     </ClInclude>
     <ClInclude Include="Particles\LineArrayParticle.h">
       <Filter>Source Files\Graphics\Particles\Lines\LineArray</Filter>
+    <ClInclude Include="BossSegment.h">
+      <Filter>Source Files\Game\Boss</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveToTargetInGridAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveOneInGridAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="ShootLaserXZAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="WaitAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="ShrinkingComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GrowingComponent.h">
+      <Filter>Source Files\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

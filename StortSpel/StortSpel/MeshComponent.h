@@ -19,6 +19,7 @@ private:
 	std::vector<Material> m_materials;
 
 	bool m_castShadow = true;
+	bool m_visible = true;
 public:
 
 	MeshComponent(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums = { ShaderProgramsEnum::DEFAULT }, std::initializer_list<Material> materials = { Material() });
@@ -52,6 +53,9 @@ public:
 	{
 		m_castShadow = value;
 	}
+
+	bool isVisible();
+	void setVisible(bool val);
 
 protected:
 	MeshComponent(std::initializer_list<ShaderProgramsEnum> shaderEnums = { ShaderProgramsEnum::DEFAULT }, std::initializer_list<Material> materials = { Material() });
