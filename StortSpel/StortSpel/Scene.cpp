@@ -65,11 +65,11 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 {
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
-	Entity* music = sceneObject->addEntity("lobbyMusic");
+	/*Entity* music = sceneObject->addEntity("lobbyMusic");
 	if (music)
 	{
 		sceneObject->addComponent(music, "Music", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
-	}
+	}*/
 
 	Entity* floor = sceneObject->addEntity("Floor");
 	if (floor)
@@ -363,11 +363,11 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 {
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
-	Entity* music = sceneObject->addEntity("lobbyMusic");
+	/*Entity* music = sceneObject->addEntity("lobbyMusic");
 	if (music)
 	{
 		sceneObject->addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
-	}
+	}*/
 
 	Entity* floor = sceneObject->addEntity("Floor");
 	if (floor)
@@ -710,6 +710,8 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 		sceneObject->createNewPhysicsComponent(test, true);
 		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
+
+		sceneObject->addComponent(test, "3Dsound", new AudioComponent(L"fireplace.wav", true, 3.f, 0.f, true, test));
 	}
 
 	// Start:
@@ -810,8 +812,8 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	/////////////////////////////////////////////////////////////////////////////////////
 
 	// MUSIC
-	Entity* music = sceneObject->addEntity("music");
-	sceneObject->addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.1f));
+	/*Entity* music = sceneObject->addEntity("music");
+	sceneObject->addComponent(music, "music", new AudioComponent(L"BestSongPLS.wav", true, 0.1f));*/
 
 	// Lights
 	// - Point Light

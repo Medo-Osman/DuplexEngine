@@ -20,6 +20,8 @@ private:
 	XMVECTOR m_incrementRotation;
 	XMVECTOR m_incrementPosition;
 
+	float m_sensitivity = 0.1f;
+
 	void updateViewMatrix();
 public:
 	Camera();
