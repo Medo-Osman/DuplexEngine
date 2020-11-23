@@ -697,8 +697,10 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	Entity* itemBox = sceneObject->addEntity("itemBox");
 	if (itemBox)
 	{
-		sceneObject->addComponent(itemBox, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", RAINBOW, Material()));
-		itemBox->translate({ 2, 14, 2 });
+		//sceneObject->addComponent(itemBox, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", RAINBOW, Material()));
+		sceneObject->addComponent(itemBox, "itemBox", new MeshComponent("testCube_pCube1.lrm", RAINBOW, Material()));
+
+		itemBox->translate({ 2, 12, 2 });
 		itemBox->scale({ 3, 3, 3 });
 
 		sceneObject->addComponent(itemBox, "rotate", new RotateComponent(itemBox, { 0.f, 1.f, 0.f }));

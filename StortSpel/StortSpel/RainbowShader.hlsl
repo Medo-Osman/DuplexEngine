@@ -8,6 +8,14 @@ struct ps_in
     float4 worldPos : POSITION;
 };
 
+cbuffer perModel : register(b2)
+{
+    float4x4 worldMatrix;
+    float4x4 viewMatrix;
+    float4x4 projectionMatrix;
+    float4x4 wvpMatrix;
+};
+
 float3 HueShift(float3 Color, float Shift)
 {
     float3 P = float3(0.55735, 0.55735, 0.55735) * dot(float3(0.55735, 0.55735, 0.55735), Color);
@@ -64,7 +72,9 @@ float3 rgb2hsl(float3 c)
 
 float4 main(ps_in input) : SV_TARGET
 {
-    float3 color = rgb2hsl(input.worldPos.xyz);
+    float3 modelPosition = worldMatrix._41_42_43;
+    
+    float3 color = rgb2hsl(modelPosition);
     float3 finalColor = HueShift(color, input.worldPos.x / 10.f + input.worldPos.z / 10.f);
     
     return float4(finalColor, 1);
