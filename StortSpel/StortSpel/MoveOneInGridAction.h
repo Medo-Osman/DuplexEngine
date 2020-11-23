@@ -60,12 +60,6 @@ public:
 			//In case move in positive x
 			for (int x = m_currentPlatformIndex->x; x < m_currentPlatformIndex->x + m_moveHowMuch.x; x++)
 			{
-				/*PhysicsComponent* comp = static_cast<PhysicsComponent*>((*m_platformArray)[x][m_currentPlatformIndex->y]->getComponent("physics"));
-				Vector3 currPos = comp->getActorPosition();
-				comp->setPosition(currPos + Vector3(0, 300.f, 0));
-
-				MeshComponent* meshComp = static_cast<MeshComponent*>((*m_platformArray)[x][m_currentPlatformIndex->y]->getComponent("mesh"));
-				meshComp->setVisible(false);*/
 				Entity* platform = (*m_platformArray)[x][m_currentPlatformIndex->y];
 				movePlatform(platform);
 			}
@@ -75,12 +69,6 @@ public:
 			//In case move in negative x
 			for (int x = m_currentPlatformIndex->x; x > m_currentPlatformIndex->x + m_moveHowMuch.x; x--)
 			{
-				/*PhysicsComponent* comp = static_cast<PhysicsComponent*>((*m_platformArray)[x][m_currentPlatformIndex->y]->getComponent("physics"));
-				Vector3 currPos = comp->getActorPosition();
-				comp->setPosition(currPos + Vector3(0, 300.f, 0));
-
-				MeshComponent* meshComp = static_cast<MeshComponent*>((*m_platformArray)[x][m_currentPlatformIndex->y]->getComponent("mesh"));
-				meshComp->setVisible(false);*/
 				Entity* platform = (*m_platformArray)[x][m_currentPlatformIndex->y];
 				movePlatform(platform);
 			}
@@ -91,12 +79,6 @@ public:
 		{	//In case move in positive y
 			for (int y = m_currentPlatformIndex->y; y < m_currentPlatformIndex->y + m_moveHowMuch.y; y++)
 			{
-				/*PhysicsComponent* comp = static_cast<PhysicsComponent*>((*m_platformArray)[m_currentPlatformIndex->x][y]->getComponent("physics"));
-				Vector3 currPos = comp->getActorPosition();
-				comp->setPosition(currPos + Vector3(0, 300.f, 0));
-
-				MeshComponent* meshComp = static_cast<MeshComponent*>((*m_platformArray)[m_currentPlatformIndex->x][y]->getComponent("mesh"));
-				meshComp->setVisible(false);*/
 				Entity* platform = (*m_platformArray)[m_currentPlatformIndex->x][y];
 				movePlatform(platform);
 			}
@@ -105,12 +87,6 @@ public:
 		{	//In case move in negative y
 			for (int y = m_currentPlatformIndex->y; y > m_currentPlatformIndex->y + m_moveHowMuch.y; y--)
 			{
-				/*PhysicsComponent* comp = static_cast<PhysicsComponent*>((*m_platformArray)[m_currentPlatformIndex->x][y]->getComponent("physics"));
-				Vector3 currPos = comp->getActorPosition();
-				comp->setPosition(currPos + Vector3(0, 300.f, 0));
-
-				MeshComponent* meshComp = static_cast<MeshComponent*>((*m_platformArray)[m_currentPlatformIndex->x][y]->getComponent("mesh"));
-				meshComp->setVisible(false);*/
 				Entity* platform = (*m_platformArray)[m_currentPlatformIndex->x][y];
 				movePlatform(platform);
 			}
@@ -124,9 +100,6 @@ public:
 
 	virtual void update(const float& dt) override
 	{
-		//Vector3 dir = XMVector3Normalize(((*m_platformArray)[m_currentPlatformIndex->x + m_moveHowMuch.x][m_currentPlatformIndex->y + m_moveHowMuch.y]->getTranslation() - m_bossEntity->getTranslation()));
-		
-
 		m_bossEntity->setPosition(m_bossEntity->getTranslation() + dir * m_speed * dt);
 	}
 

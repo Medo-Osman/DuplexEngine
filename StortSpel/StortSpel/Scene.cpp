@@ -1229,6 +1229,9 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		MeshComponent* headComponent = new MeshComponent("Boss_Top.lrm", Material({ L"DarkGrayTexture.png" }));
 		headComponent->setPosition(0, (3 * sceneObject->m_boss->m_bossSegments.size()), 0);
 		sceneObject->addComponent(bossEnt, "meshHead", headComponent);
+
+		//Add custom action
+		//sceneObject->m_boss->addAction(new ShootLaserAction(bossEnt, sceneObject->m_boss, 4.f));
 	}
 
 	Entity* skybox = sceneObject->addEntity("SkyBox");
