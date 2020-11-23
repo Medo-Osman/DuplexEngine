@@ -112,9 +112,12 @@ public:
 		XMFLOAT3 scale = entity->getScaling() * meshComponent->getScaling();
 		std::string name = meshComponent->getFilePath() + std::to_string(geometryType);
 		PxGeometry* geometry; 
-		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshComponent->getTranslation()), Quaternion(XMQuaternionMultiply(entity->getRotation(), meshComponent->getRotation())), dynamic, this);
+		XMFLOAT3 boundsCenter;
+		meshComponent->getMeshResourcePtr()->getBoundsCenter(boundsCenter);
+		boundsCenter = boundsCenter * scale;
+		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshComponent->getTranslation() + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this);
 		bool addGeom = true;
-
+		
 		if (this->canAddGeometry())
 		{
 			if (!unique)
