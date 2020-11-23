@@ -20,9 +20,7 @@ private:
 	XMVECTOR m_incrementRotation;
 	XMVECTOR m_incrementPosition;
 
-	float m_sensitivity;
-
-	float m_sensitivity = 0.1f;
+	float m_sensitivity = 0.05f;
 
 	void updateViewMatrix();
 public:

@@ -11,7 +11,6 @@ Camera::Camera()
 	m_projectionMatrix = XMMatrixIdentity();
 	m_viewMatrix = XMMatrixIdentity();
 	m_newIncrements = false;
-	m_sensitivity = 0.001f;
 }
 Camera::~Camera() {}
 

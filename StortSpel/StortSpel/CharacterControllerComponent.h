@@ -99,6 +99,15 @@ public:
 	
 	bool checkGround(const Vector3 &origin, const Vector3 &unitDirection, const float &distance) const
 	{
+		//PxQueryFilterData fd;
+		//fd.flags |= PxQueryFlag::eANY_HIT;
+		//PxOverlapBuffer hit;            // [out] Overlap results
+		//PxCapsuleGeometry overlapShape(radius, halfHeight);  // [in] shape to test for overlaps
+		//PxTransform shapePose = PxTransform(PxVec3(position.x, position.y, position.z));    // [in] initial shape pose (at distance=0)
+
+
+		//bool status = m_scenePtr->overlap(overlapShape, shapePose, hit, fd);
+		//return status;
 		return m_physicsPtr->castRay(origin, unitDirection, distance);
 	}
 
