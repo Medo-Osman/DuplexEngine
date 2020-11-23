@@ -445,6 +445,7 @@
     </ClInclude>
     <ClInclude Include="Particles\LineArrayParticle.h">
       <Filter>Source Files\Graphics\Particles\Lines\LineArray</Filter>
+	</ClInclude>
     <ClInclude Include="BossSegment.h">
       <Filter>Source Files\Game\Boss</Filter>
     </ClInclude>
