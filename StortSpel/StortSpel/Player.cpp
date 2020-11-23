@@ -221,8 +221,7 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 	Vector3 returnPosition;
 
 	bool foundEnd = false;
-	bool print = !doOnce;
-	float t = 0.01;
+	float t = 0.5f;
 	Vector3 pos = position;
 	Vector3 vel = velocity;
 
