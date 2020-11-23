@@ -241,6 +241,7 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 		bool hit = Physics::get().hitSomething(curPos, m_controller->getOriginalRadius(), m_controller->getOriginalHalfHeight());
 		if (hit)
 		{
+			m_shouldDrawLine = true;
 			foundEnd = true;
 			returnPosition = curPos;
 			m_3dMarker->setPosition(returnPosition);
@@ -255,7 +256,10 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 
 		}
 		else
+		{
+			m_shouldDrawLine = false;
 			m_3dMarker->setPosition(m_playerEntity->getTranslation());
+		}
 	}
 
 	ImGui::Text("Found Position:(%d, %d, %d)", (int)pos.x, (int)pos.y, (int)pos.z);
@@ -452,6 +456,7 @@ bool Player::pickupUpdate(Pickup* pickupPtr, const float& dt)
 	{
 		if (pickupPtr->isActive())
 		{
+			pickupPtr->update(dt);
 			switch (pickupPtr->getPickupType())
 			{
 			case PickupType::SPEED:
@@ -460,7 +465,7 @@ bool Player::pickupUpdate(Pickup* pickupPtr, const float& dt)
 				{
 					m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
 				}
-				pickupPtr->update(dt);
+
 				if (pickupPtr->isDepleted())
 				{
 					if (m_goalSpeedModifier > 0.f)

@@ -22,6 +22,21 @@ public:
 	virtual void update(const float& dt)
 	{
 		Pickup::update(dt);
+		if (m_particleEffect)
+		{
+			if (!Engine::get().getPlayerPtr()->m_shouldDrawLine)
+			{
+				if(m_particleEffect->isActive())
+					m_particleEffect->deactivate();
+			}
+			else
+			{
+				if (!m_particleEffect->isActive())
+				{
+					m_particleEffect->activate();
+				}
+			}
+		}
 	}
 	virtual void onPickup(Entity* entityToDoEffectsOn)
 	{

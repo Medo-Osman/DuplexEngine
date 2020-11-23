@@ -127,7 +127,7 @@ private:
     Entity* m_3dMarker;
     Vector3 m_cameraOffset;
     LineData m_lineData[10];
-    
+
 
     //
     TrapType m_activeTrap;
@@ -181,6 +181,8 @@ private:
 public:
     Player();
     ~Player();
+    bool m_shouldDrawLine = false;
+
 
     virtual void Attach(PlayerObserver* observer)
     {
