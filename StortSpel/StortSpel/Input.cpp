@@ -4,7 +4,7 @@
 bool Input::fillInputDataUsingKey(const char& key, const bool& wasPressed, const bool& isMouse)
 {
 	bool foundContext = false;
-	for (std::vector<int>::size_type i = 0; i < m_contexts.size() && !foundContext; i++) {
+	for (size_t i = 0; i < m_contexts.size() && !foundContext; i++) {
 		if (wasPressed)
 		{
 			int action = m_contexts[i]->getAction(key);
@@ -37,6 +37,20 @@ Input::Input()
 {
 	m_cursorEnabled = false;
 	m_contexts.emplace_back(new MovementContext());
+	m_contexts.emplace_back(new GUIContext());
+	m_currentInputData.mousePtr = &m_Mouse;
+
+	// Gamepad
+	m_gamepad = std::make_unique<GamePad>();
+}
+
+Input::~Input()
+{
+	for (size_t i = 0; i < m_contexts.size(); i++)
+	{
+		delete m_contexts[i];
+	}
+	m_contexts.clear();
 }
 
 LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lParam)
@@ -56,7 +70,7 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 
 		if (key == VK_TAB)
 		{
-			m_contexts[0]->setMute(!m_contexts[0]->getMute());
+			//m_contexts[0]->setMute(!m_contexts[0]->getMute());
 			m_cursorEnabled = !m_cursorEnabled;
 			ShowCursor(CURSOR_SHOWING);
 		}
@@ -159,7 +173,7 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 	}
 	case WM_INPUT:
 	{
-		UINT size;
+		UINT size = 0;
 		GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, NULL, &size, sizeof(RAWINPUTHEADER));
 		if (size > 0)
 		{
@@ -170,8 +184,8 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 				if (rInput->header.dwType == RIM_TYPEMOUSE)
 				{
 					MousePos mPos;
-					mPos.x = rInput->data.mouse.lLastX;
-					mPos.y = rInput->data.mouse.lLastY;
+					mPos.x = (float)rInput->data.mouse.lLastX;
+					mPos.y = (float)rInput->data.mouse.lLastY;
 
 					m_Mouse.onRawMove(mPos);
 				}
@@ -207,7 +221,6 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 
 void Input::readBuffers()
 {
-	bool inputDataChanged = false;
 	m_currentInputData.actionData.clear();
 	m_currentInputData.rangeData.clear();
 
@@ -232,7 +245,7 @@ void Input::readBuffers()
 		if (mouseEvnt.getEvent() == Event::MouseMove || mouseEvnt.getEvent() == Event::MouseRAW_MOVE) //Range
 		{
 			bool foundContext = false;
-			for (std::vector<int>::size_type i = 0; i < m_contexts.size() && !foundContext; i++) 
+			for (size_t i = 0; i < m_contexts.size() && !foundContext; i++) 
 			{
 				Range rangeState = Range(m_contexts[i]->getRange(charConverted));
 				if (rangeState != -1 && !m_contexts[i]->getMute())
@@ -248,15 +261,179 @@ void Input::readBuffers()
 			inputDataChanged = this->fillInputDataUsingKey(charConverted, true, true) || inputDataChanged;
 		}
 	}
+	// Gamepad
+	auto gamepadState = m_gamepad->GetState(0);
+
+	if (gamepadState.IsConnected())
+	{
+		// Actions
+		m_tracker.Update(gamepadState);
+
+		// A
+		if (m_tracker.a == GamePad::ButtonStateTracker::PRESSED)
+			inputDataChanged = this->fillInputDataUsingKey(' ', true) || inputDataChanged; // Space
+		else if (m_tracker.a == GamePad::ButtonStateTracker::RELEASED)
+			inputDataChanged = this->fillInputDataUsingKey(' ', false) || inputDataChanged; // Space
+
+		// X
+		if (m_tracker.x == GamePad::ButtonStateTracker::PRESSED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('\x10', true) || inputDataChanged; // Shift
+			//if (m_gamepad->SetVibration(0, 0.1f, 0.1f)) {} // player 0, leftMotor, rightMotor
+		}
+		else if (m_tracker.x == GamePad::ButtonStateTracker::RELEASED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('\x10', false) || inputDataChanged; // Shift
+			//if (m_gamepad->SetVibration(0, 0.f, 0.f)) {}
+		}
+
+		// B
+		if (m_tracker.b == GamePad::ButtonStateTracker::PRESSED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('\x10', true) || inputDataChanged;
+			//if (m_gamepad->SetVibration(0, 0.1f, 0.1f)) {}
+		}
+		else if (m_tracker.b == GamePad::ButtonStateTracker::RELEASED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('\x10', false) || inputDataChanged;
+			//if (m_gamepad->SetVibration(0, 0.f, 0.f)) {}
+		}
+
+		// Y
+		if (m_tracker.y == GamePad::ButtonStateTracker::PRESSED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('F', true) || inputDataChanged;
+			if (m_gamepad->SetVibration(0, 0.5f, 0.5f)) {}
+		}
+		else if (m_tracker.y == GamePad::ButtonStateTracker::RELEASED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('F', false) || inputDataChanged;
+			if (m_gamepad->SetVibration(0, 0.f, 0.f)) {}
+		}
+
+		// Menu / Start
+		if (m_tracker.menu == GamePad::ButtonStateTracker::PRESSED)
+			inputDataChanged = this->fillInputDataUsingKey('P', true) || inputDataChanged; 
+		else if (m_tracker.menu == GamePad::ButtonStateTracker::RELEASED)
+			inputDataChanged = this->fillInputDataUsingKey('P', false) || inputDataChanged; 
+
+		// View / Back
+		if (m_tracker.view == GamePad::ButtonStateTracker::PRESSED)
+			inputDataChanged = this->fillInputDataUsingKey('\x0D', true) || inputDataChanged; //Enter 
+		else if (m_tracker.view == GamePad::ButtonStateTracker::RELEASED)
+			inputDataChanged = this->fillInputDataUsingKey('\x0D', false) || inputDataChanged; //Enter 
+
+		// Walk / Menu Navigation
+
+		// Up
+		if (m_tracker.dpadUp		== GamePad::ButtonStateTracker::PRESSED ||
+			m_tracker.leftStickUp	== GamePad::ButtonStateTracker::PRESSED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('W', true) || inputDataChanged;
+			inputDataChanged = this->fillInputDataUsingKey('\x26', true) || inputDataChanged; // Arrow Up
+		}
+		else
+		if (m_tracker.dpadUp		== GamePad::ButtonStateTracker::RELEASED ||
+			m_tracker.leftStickUp	== GamePad::ButtonStateTracker::RELEASED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('W', false) || inputDataChanged;
+			inputDataChanged = this->fillInputDataUsingKey('\x26', false) || inputDataChanged; // Arrow Up
+		}
+
+		// Left
+		if (m_tracker.dpadLeft		== GamePad::ButtonStateTracker::PRESSED ||
+			m_tracker.leftStickLeft	== GamePad::ButtonStateTracker::PRESSED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('A', true) || inputDataChanged;
+		}
+		else 
+		if (m_tracker.dpadLeft		== GamePad::ButtonStateTracker::RELEASED ||
+			m_tracker.leftStickLeft == GamePad::ButtonStateTracker::RELEASED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('A', false) || inputDataChanged;
+		}
+
+		// Down
+		if (m_tracker.dpadDown		== GamePad::ButtonStateTracker::PRESSED ||
+			m_tracker.leftStickDown == GamePad::ButtonStateTracker::PRESSED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('S', true) || inputDataChanged;
+			inputDataChanged = this->fillInputDataUsingKey('\x28', true) || inputDataChanged; // Arrow Down
+		}
+		else 
+		if (m_tracker.dpadDown		== GamePad::ButtonStateTracker::RELEASED ||
+			m_tracker.leftStickDown == GamePad::ButtonStateTracker::RELEASED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('S', false) || inputDataChanged;
+			inputDataChanged = this->fillInputDataUsingKey('\x28', false) || inputDataChanged; // Arrow Down
+		}
+
+		// Right
+		if (m_tracker.dpadRight		 == GamePad::ButtonStateTracker::PRESSED ||
+			m_tracker.leftStickRight == GamePad::ButtonStateTracker::PRESSED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('D', true) || inputDataChanged;
+		}
+		else 
+		if (m_tracker.dpadRight		 == GamePad::ButtonStateTracker::RELEASED ||
+			m_tracker.leftStickRight == GamePad::ButtonStateTracker::RELEASED)
+		{
+			inputDataChanged = this->fillInputDataUsingKey('D', false) || inputDataChanged;
+		}
+
+		// Camera
+		float posX = gamepadState.thumbSticks.rightX * m_rightStickSensetivity;
+		float posY = gamepadState.thumbSticks.rightY * m_rightStickSensetivity;
+
+		if (posX != 0.f || posY != 0.f)
+		{
+			if (!m_invertedRightStickY)
+				posY *= -1.f;
+
+			if (!m_contexts[0]->getMute())
+			{
+				MousePos pos({ posX, posY });
+				this->m_currentInputData.rangeData.emplace_back(RAW, pos);
+				inputDataChanged = true;
+			}
+		}
+
+		//if (gamepadState.buttons.y)
+			// Do action for button Y being down
+
+		//if (gamepadState.IsDPadLeftPressed())
+			// Do action for DPAD Left being down
+
+		//if (gamepadState.dpad.up || gamepadState.dpad.down || gamepadState.dpad.left || gamepadState.dpad.right)
+			// Do action based on any DPAD change
+
+		//float posx = gamepadState.thumbSticks.leftX;
+		//float posy = gamepadState.thumbSticks.leftY;
+			// These values are normalized to -1 to 1
+
+		//float throttle = gamepadState.triggers.right;
+			// This value is normalized 0 -> 1
+
+		//if (gamepadState.IsLeftTriggerPressed())
+			// Do action based on a left trigger pressed more than halfway
+	}
+	else
+	{
+		m_tracker.Reset();
+	}
 
 	//Notify
 	if (inputDataChanged)
 	{
-		for (std::vector<int>::size_type i = 0; i < m_inputObservers.size(); i++) 
+		for (size_t i = 0; i < m_inputObservers.size(); i++)
 		{
 			m_inputObservers[i]->inputUpdate(m_currentInputData);
 		}
 	}
+
+	// if Movement Context is muted
+	if (m_contexts[0]->getMute())
+		m_currentInputData.clearStateData();
 
 }
 
@@ -293,7 +470,10 @@ Mouse* Input::getMouse()
 	return &m_Mouse;
 }
 
-
+std::vector<iContext*>* Input::getIContextPtr()
+{
+	return &m_contexts;
+}
 
 void Input::Attach(InputObserver* observer)
 {
@@ -305,9 +485,12 @@ void Input::Attach(InputObserver* observer)
 void Input::Detach(InputObserver* observer)
 {
 	bool detatched = false;
-	for (std::vector<int>::size_type i = 0; i < m_inputObservers.size() || !detatched; i++) {
+	for (size_t i = 0; i < m_inputObservers.size() && !detatched; i++) {
 		if (m_inputObservers[i] == observer)
+		{
 			m_inputObservers.erase(m_inputObservers.begin() + i);
+			detatched = true;
+		}
 	}
 }
 

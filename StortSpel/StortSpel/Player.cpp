@@ -2,6 +2,10 @@
 #include "Player.h"
 #include"Pickup.h"
 #include"SpeedPickup.h"
+#include"ParticleComponent.h"
+#include "Traps.h"
+
+Pickup* getCorrectPickupByID(int id);
 
 Player::Player()
 {
@@ -25,7 +29,7 @@ Player::Player()
 		vec.emplace_back(new SpeedPickup());
 		Pickup::initPickupArray(vec);
 	}
-
+	
 	//GUI
 	m_score = 0;
 	GUITextStyle style;
@@ -37,15 +41,30 @@ Player::Player()
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
 
 	GUIImageStyle imageStyle;
-	imageStyle.position = Vector2(400, 50);
-	imageStyle.scale = Vector2(0.9, 0.9);
+	imageStyle.position = Vector2(400.f, 50.f);
+	imageStyle.scale = Vector2(0.9f, 0.9f);
 	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
+	//Test Button stuff
+	GUIButtonStyle btnStyle;
+	btnStyle.position = Vector2(240, 200);
+	btnStyle.scale = Vector2(0.5, 0.5);
+	closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
+
+	//Attach to the click listener for the button
+	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
 }
 
 Player::~Player()
 {
-	
+	if (m_playerEntity)
+		delete m_playerEntity;
+}
+
+bool Player::isRunning()
+{
+	Vector3 vec = m_movementVector;
+	return (vec.Length() > 0);
 }
 
 void Player::setStates(std::vector<State> states)
@@ -87,7 +106,7 @@ void Player::handleRotation(const float &dt)
 
 		auto cameraRot = m_cameraTransform->getRotation();
 		auto offset = Vector4(XMVector3AngleBetweenNormals(XMVector3Normalize(m_movementVector), m_cameraTransform->getForwardVector()));
-		
+
 		//if this vector has posisitv value the character is facing the positiv x axis, checks movementVec against cameraForward
 		if (XMVectorGetY(XMVector3Cross(m_movementVector, m_cameraTransform->getForwardVector())) > 0.0f)
 		{
@@ -98,7 +117,7 @@ void Player::handleRotation(const float &dt)
 		//This is the angleY target quaternion
 		targetRot = Quaternion(0, cameraRot.y, 0, cameraRot.w) * Quaternion::CreateFromYawPitchRoll(offset.y, 0, 0);//Quaternion::CreateFromYawPitchRoll(m_angleY, 0, 0);
 		targetRot.Normalize();
-	
+
 		//Land somewhere in between target and current
 		slerped = Quaternion::Slerp(currentRotation, targetRot, dt / PLAYER_ROTATION_SPEED);
 		slerped.Normalize();
@@ -129,7 +148,7 @@ void Player::playerStateLogic(const float& dt)
 			m_controller->setControllerSize(CAPSULE_HEIGHT);
 			m_controller->setControllerRadius(CAPSULE_RADIUS);
 			//m_animMesh->playAnimation("Running4.1", true);
-			m_animMesh->playBlendState("runOrIdle",0.3f);
+			idleAnimation();
 		}
 		else
 		{
@@ -149,9 +168,9 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
-			m_animMesh->playBlendState("runOrIdle", 0.5f);
 			m_horizontalMultiplier = PLAYER_MAX_SPEED;
 			m_beginDashSpeed = -1.f;
+			idleAnimation();
 		}
 		else
 		{
@@ -323,45 +342,68 @@ void Player::playerStateLogic(const float& dt)
 
 void Player::updatePlayer(const float& dt)
 {
+	switch (m_activeTrap)
+	{
+	case TrapType::EMPTY:
+		break;
+	case TrapType::SLOW:
+		m_slowTimer += dt;
+		if (m_slowTimer >= m_slowTime)
+		{
+			m_slowTimer = 0;
+			m_currentSpeedModifier = 1;
+			m_activeTrap = TrapType::EMPTY;
+		}
+		break;
+	default:
+		break;
+	}
+
+
 	if (m_pickupPointer)
 	{
-		switch (m_pickupPointer->getPickupType())
+		if (m_pickupPointer->isActive())
 		{
-		case PickupType::SPEED:
-			m_speedModifierTime += dt;
-			if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
+			switch (m_pickupPointer->getPickupType())
 			{
-				m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
-			}
-			m_pickupPointer->update(dt);
-			if(m_pickupPointer->isDepleted())
-			{
-				if (m_goalSpeedModifier > 0.f)
-				{
-					m_goalSpeedModifier *= -1;;
-					m_speedModifierTime = 0.f;
-				}
-				
+			case PickupType::SPEED:
+				m_speedModifierTime += dt;
 				if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
 				{
 					m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
-					m_currentSpeedModifier = max(1.0f, m_currentSpeedModifier);
 				}
-
-				if(m_pickupPointer->shouldDestroy())
+				m_pickupPointer->update(dt);
+				if (m_pickupPointer->isDepleted())
 				{
-					m_pickupPointer->onRemove();
-					m_pickupPointer = nullptr;
-					m_currentSpeedModifier = 1.f;
-				}
-			}
-			break;
-		case PickupType::SCORE:
+					if (m_goalSpeedModifier > 0.f)
+					{
+						m_goalSpeedModifier *= -1;;
+						m_speedModifierTime = 0.f;
+					}
 
-			break;
-		default:
-			break;
+					if (m_speedModifierTime <= FOR_FULL_EFFECT_TIME)
+					{
+						m_currentSpeedModifier += m_goalSpeedModifier * dt / FOR_FULL_EFFECT_TIME;
+						m_currentSpeedModifier = max(1.0f, m_currentSpeedModifier);
+					}
+
+					if (m_pickupPointer->shouldDestroy())
+					{
+						m_pickupPointer->onRemove();
+						delete m_pickupPointer;
+						m_pickupPointer = nullptr;
+						m_currentSpeedModifier = 1.f;
+					}
+				}
+				break;
+			case PickupType::SCORE:
+
+				break;
+			default:
+				break;
+			}
 		}
+		
 	}
 
 	if(m_state != PlayerState::ROLL)
@@ -384,6 +426,11 @@ void Player::setPlayerEntity(Entity* entity)
 Vector3 Player::getCheckpointPos()
 {
 	return m_checkpointPos;
+}
+
+Vector3 Player::getVelocity()
+{
+	return m_velocity;
 }
 
 void Player::setCheckpoint(Vector3 newPosition)
@@ -443,10 +490,33 @@ Entity* Player::getPlayerEntity() const
 	return m_playerEntity;
 }
 
+const bool Player::canUsePickup()
+{
+	return m_pickupPointer && !m_pickupPointer->isActive();
+}
+
+void Player::handlePickupOnUse()
+{
+	switch (m_pickupPointer->getPickupType())
+	{
+	case PickupType::SPEED:
+		//Not used since it is activated on use.
+
+		//m_currentSpeedModifier = 1.f;
+		//m_goalSpeedModifier = m_pickupPointer->getModifierValue();
+		//m_speedModifierTime = 0;
+		break;
+	default:
+		break;
+	}
+	
+	m_pickupPointer->onUse();
+}
+
 void Player::inputUpdate(InputData& inputData)
 {
 	this->setStates(inputData.stateData);
-	
+
 	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
 	{
 		switch (inputData.actionData[i])
@@ -468,13 +538,14 @@ void Player::inputUpdate(InputData& inputData)
 					dash();
 			}
 			break;
-
-		case USE:
-
+		case USEPICKUP:
+			if (canUsePickup())
+				handlePickupOnUse();
 			break;
 
 		case CLOSEINTROGUI:
 			GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+			GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
 			break;
 
 		case RESPAWN:
@@ -489,8 +560,33 @@ void Player::inputUpdate(InputData& inputData)
 
 void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEntityBeRemoved)
 {
+	if (physicsData.triggerType == TriggerType::TRAP)
+	{
+		switch ((TrapType)physicsData.associatedTriggerEnum)
+		{
+		case TrapType::SLOW:
+			m_activeTrap = (TrapType)physicsData.associatedTriggerEnum;
+			m_currentSpeedModifier = 0.5f;
+			m_goalSpeedModifier = physicsData.floatData;
+			m_speedModifierTime = 0;
+			break;
+		}
+
+	}
+
+	if (physicsData.triggerType == TriggerType::BARREL)
+	{
+
+		//spelare - barrel
+		/*	Vector3 direction = ->getTranslation() - m_playerEntity->getTranslation();
+		direction.Normalize();
+		m_playerEntity->translate(direction);*/
+
+		jump();
+	}
 	if (!shouldTriggerEntityBeRemoved)
 	{
+
 		if (physicsData.triggerType == TriggerType::CHECKPOINT)
 		{
 			Entity* ptr = static_cast<Entity*>(physicsData.pointer);
@@ -512,14 +608,14 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 			if (m_pickupPointer == nullptr)
 			{
 				bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
-				int duration = physicsData.intData;
+				float duration = (float)physicsData.intData;
 				switch ((PickupType)physicsData.associatedTriggerEnum)
 				{
 				case PickupType::SPEED:
+					shouldTriggerEntityBeRemoved = true;
 					m_currentSpeedModifier = 1.f;
 					m_goalSpeedModifier = physicsData.floatData;
 					m_speedModifierTime = 0;
-					shouldTriggerEntityBeRemoved = true;
 					break;
 				case PickupType::SCORE:
 					addPickupByAssosiatedID = false;
@@ -529,11 +625,14 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				}
 				if (addPickupByAssosiatedID)
 				{
-					m_pickupPointer = Pickup::getPickupByID(physicsData.associatedTriggerEnum);
+					m_pickupPointer = getCorrectPickupByID(physicsData.associatedTriggerEnum);
+					m_pickupPointer->setModifierValue(physicsData.floatData);
 					m_pickupPointer->onPickup(m_playerEntity, duration);
+					if (m_pickupPointer->shouldActivateOnPickup())
+						m_pickupPointer->onUse();
 				}
 			}
-			
+
 			if((PickupType)physicsData.associatedTriggerEnum == PickupType::SCORE)
 			{
 				int amount = (int)physicsData.floatData;
@@ -541,6 +640,77 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				m_audioComponent->playSound();
 				shouldTriggerEntityBeRemoved = true;
 			}
+
+		}
+	}
+}
+
+Pickup* getCorrectPickupByID(int id)
+{
+	Pickup* pickupPtr = Pickup::getPickupByID(id);
+	Pickup* createPickup = nullptr;
+	switch (pickupPtr->getPickupType())
+	{
+	case PickupType::SPEED:
+		createPickup = new SpeedPickup(*dynamic_cast<SpeedPickup*>(pickupPtr));
+		break;
+	case PickupType::SCORE: //Score is not saved as a pointer so not implemented.
+		break;
+	default:
+		break;
+	}
+
+	return createPickup;
+}
+
+void Player::update(GUIUpdateType type, GUIElement* guiElement)
+{
+	if (type == GUIUpdateType::CLICKED)
+	{
+		GUIHandler::get().setVisible(guiElement->m_index, false);
+
+		//Set instructions to not visible
+		GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+	}
+
+
+	if (type == GUIUpdateType::HOVER_ENTER)
+	{
+		GUIButton* button = dynamic_cast<GUIButton*>(guiElement);
+		button->setTexture(L"closeButtonSelected.png");
+	}
+
+	if (type == GUIUpdateType::HOVER_EXIT)
+	{
+		GUIButton* button = dynamic_cast<GUIButton*>(guiElement);
+		button->setTexture(L"closeButton.png");
+	}
+}
+void Player::serverPlayerAnimationChange(PlayerState currentState, float currentBlend)
+{
+	m_animMesh->setCurrentBlend(currentBlend);
+
+	if (currentState != m_state)
+	{
+		m_state = currentState;
+
+		switch (currentState)
+		{
+		case PlayerState::IDLE:
+			idleAnimation();
+			break;
+		case PlayerState::JUMPING:
+
+			break;
+		case PlayerState::FALLING:
+
+			break;
+		case PlayerState::DASH:
+			dashAnimation();
+			break;
+		case PlayerState::ROLL:
+			rollAnimation();
+			break;
 		}
 	}
 }
@@ -565,8 +735,7 @@ void Player::roll()
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
 
-	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
-	m_animMesh->setAnimationSpeed(2.f);
+	rollAnimation();
 }
 
 bool Player::canDash() const
@@ -579,11 +748,28 @@ void Player::dash()
 	prepDistVariables();
 	m_state = PlayerState::DASH;
 	m_beginDashSpeed = m_horizontalMultiplier;
-	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.2f, true);
+
+	dashAnimation();
 }
 
 void Player::prepDistVariables()
 {
 	m_currentDistance = 0.f;
 	m_moveDirection = m_playerEntity->getForwardVector();
+}
+
+void Player::rollAnimation()
+{
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
+	m_animMesh->setAnimationSpeed(2.0f);
+}
+
+void Player::dashAnimation()
+{
+	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.2f, true);
+}
+
+void Player::idleAnimation()
+{
+	m_animMesh->playBlendState("runOrIdle", 0.3f);
 }

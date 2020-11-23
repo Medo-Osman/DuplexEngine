@@ -3,6 +3,7 @@
 #include "Input_Keyboard.h"
 #include"iContext.h"
 #include"MovementContext.h"
+#include "GUIContext.h"
 
 struct RangeData
 {
@@ -20,7 +21,8 @@ struct InputData
 	std::vector<Action> actionData;
 	std::vector<State> stateData;
 	std::vector<RangeData> rangeData;
-
+	Mouse* mousePtr = nullptr;
+	  
 	void removeStateData(State stateID)
 	{
 		bool removed = false;
@@ -31,6 +33,10 @@ struct InputData
 				removed = true;
 			}
 		}
+	}
+	void clearStateData()
+	{
+		stateData.clear();
 	}
 	void removeActionData(const int& pos)
 	{
@@ -66,16 +72,23 @@ private:
 	Mouse m_Mouse;
 	bool m_cursorEnabled;
 
-	std::vector<InputObserver*> m_inputObservers;
+	// Gamepad
+	std::unique_ptr<GamePad> m_gamepad;
+	GamePad::ButtonStateTracker m_tracker;
+	float m_rightStickSensetivity	= 10.f;
+	bool m_invertedRightStickY		= false;
 
+	std::vector<InputObserver*> m_inputObservers;
 	std::vector<iContext*> m_contexts;
+
 
 	InputData m_currentInputData;
 
 	bool fillInputDataUsingKey(const char& key, const bool& wasPressed, const bool& isMouse = false);
-
+	bool inputDataChanged = false;
 public:
 	Input();
+	~Input();
 	LRESULT handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lParam);
 	void readBuffers();
 	void addContext(iContext* context);
@@ -84,9 +97,8 @@ public:
 	MouseEvent getMouseEvent();
 	Keyboard* getKeyboard();
 	Mouse* getMouse();
+	std::vector<iContext*>* getIContextPtr();
 
 	void Attach(InputObserver* observer);
 	void Detach(InputObserver* observer);
-
-
 };

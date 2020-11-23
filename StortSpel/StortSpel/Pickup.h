@@ -19,7 +19,7 @@ protected:
 	static bool PICKUP_VECTOR_INIT;
 	static std::vector<Pickup*> PICKUP_VECTOR;
 public:
-	static bool hasInitPickupArray()
+	static const bool hasInitPickupArray()
 	{
 		return PICKUP_VECTOR_INIT;
 	}
@@ -47,14 +47,18 @@ public:
 protected:
 	//Sound
 	std::wstring m_onPickupSound = L"OnPickup.wav";
+	std::wstring m_onUseSound = L"";
 	std::wstring m_whileActiveSound = L"";
 	std::wstring m_depletedSound = L"OnDepleted.wav";
 
 	PickupType m_pickupType = PickupType::SPEED;
 	std::vector<AudioComponent*> m_audioComponents;
 	Entity* m_entityToDoEffectsOn;
+	float m_modifierValue;
 
 	bool m_doneDepleted;
+	bool m_activateOnPickup;
+	bool m_active;
 
 	float m_timer;
 	float m_duration;
@@ -74,33 +78,88 @@ public:
 		m_pickupType = type;
 		m_removeTime = 1.f;
 		m_doneDepleted = false;
+		m_activateOnPickup = false;
+		m_duration = 0.f;
+		m_timer = 0.f;
 		m_entityToDoEffectsOn = nullptr;
 		m_whileAudio = nullptr;
+		m_active = false;
+		m_modifierValue = 0;
 	}
-	const PickupType& getPickupType()
+
+	~Pickup()
+	{
+		/*for (size_t i = 0; i < PICKUP_VECTOR.size(); i++)
+		{
+			SAFE_DELETE(PICKUP_VECTOR[i]);
+		}
+		PICKUP_VECTOR.clear();*/
+	}
+
+	const bool& isActive() const
+	{
+		return m_active;
+	}
+
+	const bool& shouldActivateOnPickup() const
+	{
+		return m_activateOnPickup;
+	}
+
+	const float& getModifierValue() const
+	{
+		return m_modifierValue;
+	}
+
+	void setModifierValue(float modifierValue)
+	{
+		m_modifierValue = modifierValue;
+	}
+
+
+	const PickupType& getPickupType() const
 	{
 		return m_pickupType;
 	}
-	bool isDepleted()
+	const bool isDepleted() const
 	{
 		return m_timer >= m_duration;
 	}
 
-	bool shouldDestroy()
+	const bool shouldDestroy() const
 	{
 		return m_timer >= m_duration + m_removeTime;
 	}
 
 	virtual void update(const float& dt)
 	{
-		m_timer += dt;
-		if (!m_doneDepleted && isDepleted())
+		if (m_active)
 		{
+			m_timer += dt;
+			if (!m_doneDepleted && isDepleted())
+			{
 				this->onDepleted();
 				m_doneDepleted = true;
+			}
 		}
 	}
-	virtual void onPickup(Entity* entityToDoEffectsOn, int duration)
+
+	virtual void onUse()
+	{
+		this->m_active = true;
+		if (m_onUseSound != L"")
+		{
+			m_entityToDoEffectsOn->addComponent("OnUse", addAudioComponent(m_onUseSound, false, 0.3f));
+			m_audioComponents.back()->playSound();
+		}
+
+		if (m_whileActiveSound != L"")
+		{
+			m_entityToDoEffectsOn->addComponent("WhileUsingPickup", m_whileAudio = addAudioComponent(m_whileActiveSound, true, 0.3f));
+			m_audioComponents.back()->playSound();
+		}
+	}
+	virtual void onPickup(Entity* entityToDoEffectsOn, float duration)
 	{
 		m_timer = 0.f;
 		m_duration = duration;
@@ -108,12 +167,6 @@ public:
 		if (m_onPickupSound != L"")
 		{
 			entityToDoEffectsOn->addComponent("OnPickup", addAudioComponent(m_onPickupSound, false, 0.3f));
-			m_audioComponents.back()->playSound();
-		}
-
-		if (m_whileActiveSound != L"")
-		{
-			entityToDoEffectsOn->addComponent("WhileUsingPickup", m_whileAudio = addAudioComponent(m_whileActiveSound, true, 0.3f));
 			m_audioComponents.back()->playSound();
 		}
 	}
@@ -135,7 +188,7 @@ public:
 		}
 		if (m_depletedSound != L"")
 		{
-			m_entityToDoEffectsOn->addComponent("OnDepeleted", addAudioComponent(m_depletedSound, false, 0.01f));
+			m_entityToDoEffectsOn->addComponent("OnDepeleted", addAudioComponent(m_depletedSound, false, 0.3f));
 			m_audioComponents.back()->playSound();
 		}
 	}

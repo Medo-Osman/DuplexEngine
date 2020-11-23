@@ -47,6 +47,7 @@ private:
 	PxFoundation* m_foundationPtr;
 	PxPhysics* m_physicsPtr;
 	PxPvd* m_PvdPtr;
+	PxPvdTransport* m_transport;
 	PxCpuDispatcher* m_dispatcherPtr;
 	PxScene* m_scenePtr;
 	PxControllerManager* m_controllManager;
@@ -61,6 +62,7 @@ private:
 	std::vector<PxActor*> m_actorsToRemoveAfterSimulation;
 
 	bool m_recordMemoryAllocations = true;
+	bool m_givenFirstScene = false;
 
 	Physics()
 	{
@@ -114,8 +116,20 @@ private:
 		return geometryHolder;
 	}
 
+	std::vector<PxScene*> m_scenes;
+	int m_nrOfThreads;
+	Vector3 m_gravity;
 
-
+	PxScene* createNewScene()
+	{
+		physx::PxSceneDesc sceneDesc(m_physicsPtr->getTolerancesScale());
+		sceneDesc.gravity = PxVec3(m_gravity.x, m_gravity.y, m_gravity.z);
+		m_dispatcherPtr = PxDefaultCpuDispatcherCreate(m_nrOfThreads);
+		sceneDesc.cpuDispatcher = m_dispatcherPtr;
+		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+		sceneDesc.simulationEventCallback = this;
+		return m_physicsPtr->createScene(sceneDesc);
+	}
 public:
 	Physics(const Physics&) = delete;
 	void operator=(Physics const&) = delete;
@@ -127,7 +141,8 @@ public:
 
 	~Physics()
 	{
-
+		for (auto& sharedGeometry : m_sharedGeometry)
+			delete sharedGeometry.second;
 	}
 
 	void release()
@@ -137,9 +152,58 @@ public:
 		m_scenePtr = nullptr;
 		m_physicsPtr->release();
 		m_PvdPtr->release();
+		m_transport->release();
 		delete m_dispatcherPtr;
 		PxCloseExtensions();
 		m_foundationPtr->release();
+	}
+
+	int getNewSceneID()
+	{
+		int id = (int)m_scenes.size();
+
+		if (m_givenFirstScene)
+		{
+			m_scenes.emplace_back(createNewScene());
+
+		}
+		else
+		{
+			m_scenes.emplace_back(m_scenePtr);
+			m_givenFirstScene = true;
+		}
+
+		return id;
+	}
+
+	void changeScene(int id)
+	{
+		if (id < m_scenes.size() && id > -1)
+		{
+			int pos = -1;
+			
+			for (int i = 0; i < m_scenes.size(); i++)
+			{
+				if (m_scenes[i] == m_scenePtr)
+				{
+					pos = i;
+				}
+			}
+
+			for (int i = 0; i < m_actorsToRemoveAfterSimulation.size(); i++)
+			{
+				m_actorsToRemoveAfterSimulation.at(i)->release();
+				m_actorsToRemoveAfterSimulation.at(i) = nullptr;
+			}
+			m_actorsToRemoveAfterSimulation.clear();
+
+			m_controllManager->release();
+			m_scenes[pos]->release();
+			m_scenes[pos] = nullptr;
+
+			m_scenePtr = m_scenes.at(id);
+			m_controllManager = PxCreateControllerManager(*m_scenePtr);
+		}
 	}
 
 	void Attach(PhysicsObserver* observer, bool reactOnTrigger, bool reactOnRemove)
@@ -179,11 +243,13 @@ public:
 
 	void init(const XMFLOAT3 &gravity = {0.0f, -9.81f, 0.0f}, const int &nrOfThreads = 1)
 	{
+		m_gravity = gravity;
+		m_nrOfThreads = nrOfThreads;
 		m_foundationPtr = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
 
 		m_PvdPtr = PxCreatePvd(*m_foundationPtr);
-		physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate(m_host, 5425, 10);
-		m_PvdPtr->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
+		m_transport = physx::PxDefaultPvdSocketTransportCreate(m_host, 5425, 10);
+		m_PvdPtr->connect(*m_transport, physx::PxPvdInstrumentationFlag::eALL);
 
 
 		m_physicsPtr = PxCreatePhysics(PX_PHYSICS_VERSION, *m_foundationPtr,
@@ -213,6 +279,15 @@ public:
 		this->loadDefaultMaterials();
 	}
 
+	void clearForce(PxRigidDynamic* actor)
+	{
+		actor->clearForce();
+		actor->clearTorque();
+		actor->setLinearVelocity({ 0,0,0 });
+		actor->setAngularVelocity({ 0,0,0 });
+
+	}
+
 	void addShapeForSharing(PxShape* shape, const std::string &name)
 	{
 		if (shape->isExclusive())
@@ -231,21 +306,25 @@ public:
 		{
 			bool shouldBeRemoved = false;
 			// ignore pairs when shapes have been deleted
+
+
 			if (pairs[i].flags & (PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER | PxTriggerPairFlag::eREMOVED_SHAPE_OTHER))
 				continue;
 
 			//Checks
-			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor())
+			PhysicsData* data = static_cast<PhysicsData*>(pairs[i].triggerActor->userData);
+			PhysicsData* otherData = static_cast<PhysicsData*>(pairs[i].otherActor->userData);
+			if (pairs[i].otherActor == m_controllManager->getController(0)->getActor() || (data->triggerType == TriggerType::PROJECTILE || otherData->triggerType == TriggerType::PROJECTILE))
 			{
-				for (size_t j = 0; j < m_reactOnTriggerObservers.size(); j++)
+				for (size_t j = 0; j < m_reactOnTriggerObservers.size() && !shouldBeRemoved; j++)
 				{
-					m_reactOnTriggerObservers[j]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), shouldBeRemoved);
+					m_reactOnTriggerObservers[j]->sendPhysicsMessage(*data, shouldBeRemoved);
 					if (shouldBeRemoved)
 					{
 						bool stopLoop = false;
 						for (size_t k = 0; k < m_reactOnRemoveObservers.size() && !stopLoop; k++)
 						{
-							m_reactOnRemoveObservers[k]->sendPhysicsMessage(*static_cast<PhysicsData*>(pairs[i].triggerActor->userData), stopLoop);
+							m_reactOnRemoveObservers[k]->sendPhysicsMessage(*data, stopLoop);
 						}
 					}
 				}
@@ -256,7 +335,9 @@ public:
 	void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) {}
 	void onWake(PxActor** actors, PxU32 count) {}
 	void onSleep(PxActor** actors, PxU32 count) {}
-	void onContact(const PxContactPairHeader & pairHeader, const PxContactPair * pairs, PxU32 nbPairs) {}
+	void onContact(const PxContactPairHeader & pairHeader, const PxContactPair * pairs, PxU32 nbPairs) 
+	{
+	}
 	void onAdvance(const PxRigidBody* const* bodyBuffer, const PxTransform * poseBuffer, const PxU32 count) {}
 
 
@@ -333,14 +414,14 @@ public:
 		m_actorsToRemoveAfterSimulation.emplace_back(actor);
 	}
 
-	PxRigidActor* createRigidActor(const XMFLOAT3 &position, const XMFLOAT4& quaternion, const bool &dynamic, void* physicsComponentPtr)
+	PxRigidActor* createRigidActor(const XMFLOAT3 &position, const XMFLOAT4& quaternion, const bool &dynamic, void* physicsComponentPtr, int sceneID)
 	{
 		PxVec3 pos(position.x, position.y, position.z);
 		PxQuat quat(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
 		PxRigidActor* actor = dynamic ? createDynamicActor(pos, quat) : createStaticActor(pos, quat);
 		actor->userData = physicsComponentPtr;
-		m_scenePtr->addActor(*actor);
+		m_scenes[sceneID]->addActor(*actor);
 		return actor;
 	}
 
@@ -363,6 +444,9 @@ public:
 	void setMassOfActor(PxRigidActor* actor, const float &weight)
 	{
 		static_cast<PxRigidDynamic*>(actor)->setMass(weight);
+		//static_cast<PxRigidDynamic*>(actor)->;
+
+
 	}
 
 	void addPhysicsMaterial(const PhysicsMaterial &physicsMaterial)
@@ -396,7 +480,8 @@ public:
 
 		for (size_t i = 0; i < m_actorsToRemoveAfterSimulation.size(); i++)
 		{
-			m_scenePtr->removeActor(*m_actorsToRemoveAfterSimulation[i], false);
+			PxActor* actor = m_actorsToRemoveAfterSimulation[i];
+			actor->getScene()->removeActor(*actor, false);
 		}
 		m_actorsToRemoveAfterSimulation.clear();
 	}
@@ -495,6 +580,11 @@ public:
 	{
 		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, false);
 		actor->setMass(newMass);
+	}
+
+	void setVelocity(PxRigidBody* actor, Vector3 velocity)
+	{
+		actor->setLinearVelocity(PxVec3(velocity.x, velocity.y, velocity.z));
 	}
 
 	void kinematicMove(PxRigidDynamic* actor, XMFLOAT3 destination, XMFLOAT4 quatRot)

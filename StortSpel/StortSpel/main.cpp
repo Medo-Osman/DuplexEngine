@@ -5,7 +5,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	
-	HRESULT hr = CoInitialize(NULL);
+	HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
 	bool initOK = false;
 	ApplicationLayer* g_Application = &ApplicationLayer::getInstance();
@@ -16,6 +16,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		OutputDebugStringA("Window Created!\n");
 		g_Application->applicationLoop();
 	}
+
+	//Renderer::get().printLiveObject();
 
 	return 0;
 };

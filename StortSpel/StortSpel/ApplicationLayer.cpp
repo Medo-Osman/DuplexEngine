@@ -7,30 +7,31 @@ ApplicationLayer::ApplicationLayer()
 {
 	m_rendererPtr = nullptr;
 	m_window = 0;
-	this->width = 1920;
-	this->height = 1080;
+	m_width = 1920;
+	m_height = 1080;
 	m_dt = 0.f;
-
+	m_consoleFile = nullptr;
 }
 
 ApplicationLayer::~ApplicationLayer()
 {
+	//_fclose_nolock(m_consoleFile);
+	/*if (m_consoleFile && m_consoleFile->_Placeholder)
+		fclose(m_consoleFile);*/
 	std::cout << "Memory upon shutdown: " << std::endl;
 }
 
 bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd)
 {
 	if (hWnd != NULL) return true;
-	const wchar_t WINDOWTILE[] = L"3DProject";
+	const wchar_t WINDOWTILE[] = L"Lucid Runners";
 	HRESULT hr = 0;
 	bool initOK = false;
-	CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-	SetCursor(NULL);
 	this->createWin32Window(hInstance, WINDOWTILE, hWnd);// hwnd is refference, is set to created window.
 	m_window = hWnd;
 
-	AudioHandler::get().initialize(m_window);
-
+	// Input
+	SetCursor(NULL);
 	RAWINPUTDEVICE rawIDevice;
 	rawIDevice.usUsagePage = 0x01;
 	rawIDevice.usUsage = 0x02;
@@ -39,6 +40,16 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 
 	if (RegisterRawInputDevices(&rawIDevice, 1, sizeof(rawIDevice)) == FALSE)
 		return false;
+
+	// Gamepad
+	Microsoft::WRL::Wrappers::RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);
+	if (FAILED(initialize))
+	{
+		ErrorLogger::get().logError("RoInitializeWrapper initialize(RO_INIT_MULTITHREADED) failed! Needed for Gamepad support.");
+		//wprintf_s(L"ERROR: Line:%d HRESULT: 0x%X\n", initialize, hr);
+	}
+
+	// Renderer
 	m_rendererPtr = &Renderer::get();//new Renderer();
 	hr = m_rendererPtr->initialize(m_window);
 	if (SUCCEEDED(hr))
@@ -46,13 +57,21 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 		initOK = true;
 		ShowWindow(m_window, showCmd);
 	}
-	//PhysX
+	// Audio
+	AudioHandler::get().initialize(m_window);
+
+	// PhysX
 	m_physics = &Physics::get();
 	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
+	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input, &m_window);
 
-	Engine::get().initialize();
+	// Engine
+	Engine::get().initialize(&m_input);
 	m_enginePtr = &Engine::get();
-
+	
+	
+	// Scene Manager
+	m_scenemanager.setContextPtr(m_input.getIContextPtr());
 	m_scenemanager.initalize();
 	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 
@@ -73,21 +92,21 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 
 	RECT windowRect;
 	windowRect.left = 20;
-	windowRect.right = windowRect.left + this->width;
+	windowRect.right = windowRect.left + m_width;
 	windowRect.top = 20;
-	windowRect.bottom = windowRect.top + this->height;
+	windowRect.bottom = windowRect.top + m_height;
 	AdjustWindowRect(&windowRect, NULL, false);
 
 	// Create the window.
 	_d3d11Window = CreateWindowEx(
 		0,                          // Optional window styles.
-		windowTitle,                 // Window class
+		windowTitle,                // Window class
 		windowTitle,				// Window text
 		WS_OVERLAPPEDWINDOW,        // Window style
-		windowRect.left,				// Position, X
+		windowRect.left,			// Position, X
 		windowRect.top,				// Position, Y
-		(float)this->width,	// Width
-		(float)this->height,	// Height
+		m_width,					// Width
+		m_height,					// Height
 		NULL,						// Parent window
 		NULL,						// Menu
 		hInstance,					// Instance handle
@@ -101,20 +120,20 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 void ApplicationLayer::RedirectIOToConsole()
 {
 	AllocConsole();
-	HANDLE stdHandle;
-	int hConsole;
-	FILE* fp;
-	stdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-	hConsole = _open_osfhandle((long)stdHandle, _O_TEXT);
-	fp = _fdopen(hConsole, "w");
+	HANDLE stdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	int hConsole = _open_osfhandle((long)stdHandle, _O_TEXT);
+	m_consoleFile = _fdopen(hConsole, "w");
 
-	freopen_s(&fp, "CONOUT$", "w", stdout);
+	if (freopen_s(&m_consoleFile, "CONOUT$", "w", stdout) == -1)
+	{
+		assert(false);
+	}
 }
 
 void ApplicationLayer::applicationLoop()
 {
 	MSG msg = { };
-	while (WM_QUIT != msg.message)
+	while (WM_QUIT != msg.message && !m_scenemanager.endGame)
 	{
 
 		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) // Message loop
@@ -126,14 +145,15 @@ void ApplicationLayer::applicationLoop()
 		{
 
 			this->m_dt = (float)m_timer.timeElapsed();
+			m_gameTime += m_dt;
 			m_timer.restart();
 
 			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
-
 			m_input.readBuffers();
 			m_physics->update(m_dt);
+
 			m_enginePtr->update(m_dt);
 			PerformanceTester::get().runPerformanceTestsGui(m_dt);
 			m_scenemanager.updateScene(m_dt);
@@ -143,6 +163,10 @@ void ApplicationLayer::applicationLoop()
 		}
 	}
 	m_physics->release();
+	m_enginePtr->release();
+	AudioHandler::get().release();
+	ResourceHandler::get().Destroy();
+	m_rendererPtr->release(); // Should be last
 }
 
 

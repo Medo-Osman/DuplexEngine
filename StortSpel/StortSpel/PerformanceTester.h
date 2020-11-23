@@ -32,7 +32,7 @@ private:
 			//pmc returns page memory used in bytes, split by 1000 to get kb, 1000 again to get mb.
 			return float(pmc.PagefileUsage / 1000.0 / 1000.0); //Mb
 		}
-
+		return -1.f;
 	}
 
 	float checkVram()
@@ -113,6 +113,11 @@ public:
 		ImGui::Text("VRAM: %d Mb", (int)vram);
 		ImGui::Text("%.0f FPS ", m_frameRate);
 		ImGui::End();
+	}
+
+	float getRam()
+	{
+		return checkRam();
 	}
 };
 

@@ -25,9 +25,9 @@ private:
 	MousePos mousePos;
 public:
 	MouseEvent();
-	MouseEvent(const Event evnt, const int x, const int y);
-	int getPosX() const;
-	int getPosY() const;
+	MouseEvent(const Event evnt, const float x, const float y);
+	float getPosX() const;
+	float getPosY() const;
 	Event getEvent() const;
 	MousePos getPos() const;
 	bool isValid() const;
@@ -62,7 +62,7 @@ public:
 	bool isLDown() const;
 	bool isRDown() const;
 	bool isMDown() const;
-	int getPosx() const;
-	int getPosY() const;
+	float getPosX() const;
+	float getPosY() const;
 	MousePos getPos() const;
 };

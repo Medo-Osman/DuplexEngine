@@ -8,7 +8,9 @@
 #include "Scene.h"
 #include "ShadowMap.h"
 //#include "LightComponent.h"
-
+#include"Particles\Particle.h"
+#include"Particles\RainingDogsParticle.h"
+#include"Particles\ScorePickupParticle.h"
 
 
 class Renderer
@@ -24,8 +26,6 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_geometryRenderTargetViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_finalRenderTargetViewPtr = NULL;
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_swapChainBufferPtr = NULL;
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_depthStencilBufferPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
 
@@ -66,7 +66,7 @@ private:
 	Buffer<PositionTextureVertex> m_renderQuadBuffer;
 
 	CS_BLUR_CBUFFER m_blurData;
-	float m_weightSigma = 10.f;
+	float m_weightSigma = 5.f;
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
@@ -75,6 +75,8 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_psSamplerState = NULL;
 
+	//Shadowmap
+	ShadowMap* m_shadowMap;
 
 	//Variables Config
 	static const UINT nrOfFeatureLevels = 2;
@@ -83,7 +85,6 @@ private:
 		D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_11_1,
 		D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_11_0,
 	};
-
 
 	//Variables
 	ID3D11DepthStencilState* skyboxDSSPtr;
@@ -98,15 +99,10 @@ private:
 
 	//FrustumCulling
 	bool m_frustumCullingOn = true;
-
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
 	unsigned int long m_currentSetMaterialId = 1000;
-
-
-	//Shadowmap
-	ShadowMap* m_shadowMap = nullptr;
 
 	//Functions
 	HRESULT createDeviceAndSwapChain();
@@ -140,10 +136,11 @@ public:
 	HRESULT initialize(const HWND& window);
 	void release();
 	void update(const float& dt);
-	void frustumCull();
+	void setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr);
 	void render();
 	ID3D11Device* getDevice();
 	ID3D11DeviceContext* getDContext();
 	ID3D11DepthStencilView* getDepthStencilView();
+	void printLiveObject();
 
 };

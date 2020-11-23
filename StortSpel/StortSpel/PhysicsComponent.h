@@ -105,14 +105,14 @@ public:
 		m_shape = nullptr;
 	}
 
-	void initActorAndShape(Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
+	void initActorAndShape(int sceneID, Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
 	{
 		m_dynamic = dynamic;
 		m_transform = entity;
 		XMFLOAT3 scale = entity->getScaling() * meshComponent->getScaling();
 		std::string name = meshComponent->getFilePath() + std::to_string(geometryType);
 		PxGeometry* geometry;
-		m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), m_transform->getRotation(), dynamic, this);
+		m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), m_transform->getRotation(), dynamic, this, sceneID);
 		bool addGeom = true;
 
 		if (this->canAddGeometry())
@@ -129,18 +129,21 @@ public:
 					}
 					else //Create shape and add shape for sharing
 					{
-						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, unique);
-						m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, entity->getScaling());
+						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true);
+						m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
 						m_physicsPtr->addShapeForSharing(m_shape, name);
 					}
+
 				}
 
 			}
-			if(addGeom)
+			if (addGeom)
 			{
-				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, unique);
-				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, entity->getScaling());
+				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false);
+				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
+				delete geometry;
 			}
+
 		}
 		
 
@@ -190,13 +193,13 @@ public:
 			ErrorLogger::get().logError(L"Trying to kinematicMove actor that is not kinematic and/or dynamic");
 	}
 
-	void initActor(Entity* entity, bool dynamic)
+	void initActor(int sceneID, Entity* entity, bool dynamic)
 	{
 		m_dynamic = dynamic;
 		m_transform = entity;
 		if (!m_actor)
 		{
-			m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), entity->getRotation(), dynamic, this);
+			m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), entity->getRotation(), dynamic, this, sceneID);
 		}
 		else
 		{
@@ -245,7 +248,7 @@ public:
 	}
 
 
-	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool unique)
+	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool saveGeometry)
 	{
 		XMFLOAT3 min, max;
 		PxGeometry* bb = nullptr;
@@ -253,10 +256,12 @@ public:
 		
 		std::string name = meshComponent->getFilePath() + std::to_string(geometry);
 		bb = m_physicsPtr->getGeometry(name);
+
 		if (!bb)
 		{
 			bb = createPrimitiveGeometry(geometry, min, max, meshComponent->getMeshResourcePtr()->getVertexArray(), meshComponent->getMeshResourcePtr()->getVertexBuffer().getSize());
-			m_physicsPtr->addGeometry(name, bb);
+			if(saveGeometry)
+				m_physicsPtr->addGeometry(name, bb);
 		}
 		
 		return bb;
@@ -274,6 +279,13 @@ public:
 		m_dynamic ? m_physicsPtr->setMassOfActor(m_actor, mass) : ErrorLogger::get().logError("Trying to change mass on a static actor.");
 	}
 
+	void clearForce()
+	{
+		if (m_dynamic)
+		{
+			m_physicsPtr->clearForce(static_cast<PxRigidDynamic*>(m_actor));
+		}
+	}
 
 	void addForce(XMFLOAT3 forceAdd, bool massIndependant = true)
 	{
@@ -305,7 +317,10 @@ public:
 
 	XMFLOAT3 getActorPosition()
 	{
-		return XMFLOAT3(m_actor->getGlobalPose().p.x, m_actor->getGlobalPose().p.y, m_actor->getGlobalPose().p.z);
+		if (m_actor)
+			return XMFLOAT3(m_actor->getGlobalPose().p.x, m_actor->getGlobalPose().p.y, m_actor->getGlobalPose().p.z);
+		else
+			return XMFLOAT3(0, 0, 0);
 	}
 
 	XMFLOAT4 getActorQuaternion()
@@ -331,6 +346,11 @@ public:
 	void setPose(XMFLOAT3 pos, XMFLOAT4 rotQ)
 	{
 		m_physicsPtr->setGlobalTransform(m_actor, pos, rotQ);
+	}
+
+	void setVelocity(Vector3 velocity)
+	{
+		m_physicsPtr->setVelocity(static_cast<PxRigidBody*>(m_actor), velocity);
 	}
 
 	bool checkGround(Vector3 origin, Vector3 unitDirection, float distance)

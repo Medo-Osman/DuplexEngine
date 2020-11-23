@@ -55,7 +55,7 @@ public:
 
 	static int convertEventToMouseChar(Event mouseEvent)
 	{
-		int convertedChar;
+		int convertedChar = 0;
 		switch (mouseEvent)
 		{
 		case Event::MouseLPressed:

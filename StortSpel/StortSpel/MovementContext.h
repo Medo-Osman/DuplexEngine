@@ -12,10 +12,12 @@ public:
 		//Actions
 		m_actionMapping[' '] = Action::JUMP;
 		m_actionMapping['O'] = Action::PLAYSOUND;
-		m_actionMapping['P'] = Action::SWAP_SCENES;
+		m_actionMapping['P'] = Action::TEST_SCENE;
+		m_actionMapping['0'] = Action::LOAD_SCENE;
+		m_actionMapping['9'] = Action::LOAD_TEST_SCENE;
 		m_actionMapping['\x10'] = Action::DASH; // Shift: '\x10'
-		m_actionMapping[(char)'m_rp'] = Action::USE; // Example of using mouse for action, m_rp is right mouse pressed.
 		m_actionMapping[(char)'\x0D'] = Action::CLOSEINTROGUI; //Enter 
+		m_actionMapping['F'] = Action::USEPICKUP;
 		m_actionMapping[(char)'\x24'] = Action::RESPAWN; //Home 
 
 		//States
@@ -25,7 +27,7 @@ public:
 		m_stateMapping['A'] = State::WALK_LEFT;
 
 		//Range
-		//m_rangeMapping[(char)'move'] = Range::REL; //Mouse position, can be used for UI and such. Leave it in here for example.
+		m_rangeMapping[(char)'move'] = Range::REL; //Mouse position, can be used for UI and such. Leave it in here for example.
 		m_rangeMapping[(char)'raw'] = Range::RAW; //How much has the mouse moved.
 		
 	}

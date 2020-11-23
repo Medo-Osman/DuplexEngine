@@ -12,8 +12,15 @@ Camera::Camera()
 	m_viewMatrix = XMMatrixIdentity();
 	m_newIncrements = false;
 	m_sensitivity = 0.001f;
-	ApplicationLayer::getInstance().m_input.Attach(this);
 }
+Camera::~Camera() {}
+
+void Camera::initialize(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
+{
+	ApplicationLayer::getInstance().m_input.Attach(this);
+	setProjectionMatrix(fov, aspectRatio, nearZ, farZ);
+}
+
 void Camera::setProjectionMatrix(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
 {
 	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH((fov / 360.f) * DirectX::XM_2PI,
@@ -75,7 +82,9 @@ void Camera::inputUpdate(InputData& inputData)
 				m_newIncrements = true;
 			}
 
-			XMFLOAT2 mouseDelta = XMFLOAT2((float)inputData.rangeData[i].pos.x, (float)inputData.rangeData[i].pos.y);
+			XMFLOAT2 mouseDelta = XMFLOAT2(inputData.rangeData[i].pos.x, inputData.rangeData[i].pos.y) * m_sensitivity;
+
+			//(float)inputData.rangeData[i].pos
 
 			// Set Pitch
 			XMFLOAT3 rotationF3;
@@ -112,6 +121,7 @@ void Camera::update(const float &dt)
 	//}
 	
 	m_position = Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation() + Vector3(0, 2, -5);
+	m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
 	
 	this->updateViewMatrix();
 }

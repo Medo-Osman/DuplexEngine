@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <assert.h>
 #include <wrl/client.h>
+#include <wrl/wrappers/corewrappers.h>
 #define NOMINMAX
 #include <map>
 #include <unordered_map>
@@ -31,7 +32,7 @@
 #include <dxgi1_2.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
-#include "SimpleMath.h"
+#include <SimpleMath.h>
 #include <DirectXCollision.h>
 #include <Effects.h>
 #include <DirectXColors.h>
@@ -40,6 +41,7 @@
 #include <SpriteBatch.h>
 #include <SpriteFont.h>
 #include <CommonStates.h>
+#include <GamePad.h>
 
 //PhysX
 #include"PxPhysicsAPI.h"
@@ -98,9 +100,13 @@ enum class TriggerType
 	EVENT,
 	PICKUP,
 	CHECKPOINT,
+	PROJECTILE,
+	TRAP,
+	BARREL,
 };
 
 enum class EventType
 {
 	SWAPSCENE,
+	BOSS_PROJECTILE_HIT,
 };

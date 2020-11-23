@@ -1,6 +1,7 @@
 #include "3DPCH.h"
 #include "GUIHandler.h"
 
+int GUIObserver::nr = 0;
 GUIHandler::GUIHandler()
 {
 	m_device = nullptr;
@@ -8,6 +9,8 @@ GUIHandler::GUIHandler()
 	m_spriteBatch = nullptr;
 	m_screenWidth = 0;
 	m_screenHeight = 0;
+	m_selectedMenuButton = -1;
+	m_inMenu = false;
 }
 
 GUIHandler& GUIHandler::get()
@@ -23,22 +26,48 @@ GUIHandler::~GUIHandler()
 
 	m_fonts.clear();
 
+	for (int i = 0; i < m_elements.size(); i++)
+		delete m_elements[i];
+
 	delete m_spriteBatch;
+
+	m_input->Detach(this);
 }
 
-void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext)
+void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext, Input* input, HWND* window)
 {
 	m_device = device;
 	m_dContext = dContext;
+	m_window = window;
+	m_input = input;
+	m_input->Attach(this);
 
 	m_states = std::make_unique< CommonStates >(m_device);
 
 	m_spriteBatch = new SpriteBatch(m_dContext);
 }
 
+int GUIHandler::addGUIButton(std::wstring buttonTextureString, GUIButtonStyle style)
+{
+	int index = (int)m_elements.size();
+	GUIButton* image = new GUIButton(buttonTextureString, style, m_window);
+	image->m_index = index;
+	image->setTexture(buttonTextureString);
+	m_elements.push_back(image);
+
+	m_input->Attach(image);
+
+	return index;
+}
+
+void GUIHandler::changeGUIButton(int index, std::wstring path)
+{
+	static_cast<GUIButton*>(m_elements[index])->setTexture(path);
+}
+
 int GUIHandler::addGUIText(std::string textString, std::wstring fontName, GUITextStyle style)
 {
-	// Font L"squirk.spritefont"
+	// Font
 	if (m_fonts.find(fontName) == m_fonts.end())
 	{
 		std::wstring path = m_FONTS_PATH + fontName;
@@ -46,14 +75,14 @@ int GUIHandler::addGUIText(std::string textString, std::wstring fontName, GUITex
 	}
 
 	// Text Element
-	int index = m_elements.size();
+	int index = (int)m_elements.size();
 	GUIText* text = new GUIText();
+	text->m_index = index;
 	text->setText(textString, m_fonts[fontName], style);
 	m_elements.push_back(text);
 
 	return index;
 }
-
 
 void GUIHandler::changeGUIText(int index, std::string newTextString)
 {
@@ -64,8 +93,9 @@ void GUIHandler::changeGUIText(int index, std::string newTextString)
 int GUIHandler::addGUIImage(std::wstring textureString, GUIImageStyle style)
 {
 	// Gui Element
-	int index = m_elements.size();
+	int index = (int)m_elements.size();
 	GUIImageLabel* image = new GUIImageLabel(textureString, style);
+	image->m_index = index;
 	image->setTexture(textureString);
 	m_elements.push_back(image);
 
@@ -92,6 +122,18 @@ bool GUIHandler::getVisible(int index)
 	return (m_elements[index]->isVisible());
 }
 
+std::vector<GUIElement*>* GUIHandler::getElementMap()
+{
+	return &this->m_elements;
+}
+
+void GUIHandler::setInMenu(bool inMenu, int startIndex)
+{
+	m_inMenu = inMenu;
+	if (m_inMenu)
+		m_selectedMenuButton = startIndex; // Reset Menu Selected Position
+}
+
 void GUIHandler::render()
 {
 	m_spriteBatch->Begin(SpriteSortMode_Deferred, m_states->NonPremultiplied());
@@ -104,4 +146,38 @@ void GUIHandler::render()
 		
 
 	m_spriteBatch->End();
+}
+
+void GUIHandler::inputUpdate(InputData& inputData)
+{
+	if (m_inMenu)
+	{
+		auto states = inputData.stateData;
+		for (int i = 0; i < states.size(); i++)
+		{
+			// For menues
+			if (states[i] == State::MENU_UP)
+			{
+				// Old selected button
+				GUIButton* button = dynamic_cast<GUIButton*>(m_elements[m_selectedMenuButton]);
+				button->setIsSelected(false);
+				m_selectedMenuButton = button->getPrevMenuButton();
+
+				// New selected button
+				button = dynamic_cast<GUIButton*>(m_elements[m_selectedMenuButton]);
+				button->setIsSelected(true);
+			}
+			else if (states[i] == State::MENU_DOWN)
+			{
+				// Old selected button
+				GUIButton* button = dynamic_cast<GUIButton*>(m_elements[m_selectedMenuButton]);
+				button->setIsSelected(false);
+				m_selectedMenuButton = button->getNextMenuButton();
+
+				// New selected button
+				button = dynamic_cast<GUIButton*>(m_elements[m_selectedMenuButton]);
+				button->setIsSelected(true);
+			}
+		}
+	}
 }

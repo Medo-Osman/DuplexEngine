@@ -5,6 +5,7 @@
 #include"TriggerComponent.h"
 #include"RotateComponent.h"
 #include"PickupComponent.h"
+#include"Particles\PlayerLineParticle.h"
 
 Engine::Engine()
 {
@@ -26,13 +27,17 @@ Engine::~Engine()
 	//for (std::pair<std::string, Entity*> entity : m_entities)
 	//	delete entity.second;
 
-	m_entities->clear();
+	//m_entities->clear();
+	//m_entities->clear();
+}
+
+void Engine::release()
+{
 }
 
 void Engine::update(const float& dt)
 {
-	m_player->updatePlayer(dt);
-	m_camera.update(dt);
+
 
 	//Example for updating light direction
 	/*Vector4 dir = m_skyLightDir;
@@ -42,8 +47,98 @@ void Engine::update(const float& dt)
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
 
+	m_camera.update(dt);
+	m_player->updatePlayer(dt);
 	updateLightData();
 
+}
+void Engine::readMaterials()
+{
+	std::unordered_map<std::string, std::vector<std::string>> materials;
+	std::vector<std::string> textureNames;
+
+	for (const auto& file : std::filesystem::directory_iterator(m_TEXTURES_PATH))
+	{
+		std::string filePath = file.path().generic_string();
+		std::string fileName = filePath.substr(filePath.find_last_of("/") + 1);
+		std::string rawFileName = "";
+		std::string textureName = "";
+		if (fileName.rfind("T_", 0) == 0)
+		{
+			rawFileName = fileName.substr(0, fileName.size() - 4);
+			textureName = rawFileName.substr(2);						// Remove start "T_"
+			textureName = textureName.substr(0, textureName.find("_")); // Remove ending "_D"
+			bool isTextrue = false;
+
+			// ---------------------------------------------------------------------------- Add diffuse to mat
+			if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_D")
+			{
+				materials[textureName].push_back(rawFileName);
+				isTextrue = true;
+			}
+			// ---------------------------------------------------------------------------- Add emissive to mat
+			if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_E")
+			{
+				materials[textureName].push_back(rawFileName);
+				isTextrue = true;
+			}
+			// ---------------------------------------------------------------------------- Add normal to mat
+			if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_N")
+			{
+				materials[textureName].push_back(rawFileName);
+				isTextrue = true;
+			}
+			// ---------------------------------------------------------------------------- Add ORM to mat
+			if (rawFileName.substr(rawFileName.size() - 4, std::string::npos) == "_ORM")
+			{
+				materials[textureName].push_back(rawFileName);
+				isTextrue = true;
+			}
+			// ---------------------------------------------------------------------------- 
+			if (std::find(textureNames.begin(), textureNames.end(), textureName) == textureNames.end() && isTextrue == true) // If unique textureName
+			{
+				textureNames.push_back(textureName);
+			}
+		}
+	}
+
+	for (int i = 0; i < materials.size(); i++)
+	{
+		Material mat;
+
+		for (int j = 0; j < 4 - materials[textureNames[i]].size(); j++)
+		{
+			materials[textureNames[i]].push_back("?");
+		}
+
+		if (materials[textureNames[i]].at(0) != "T_" + textureNames[i] + "_D")
+		{
+			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 0, "T_Missing_D");
+		}
+		if (materials[textureNames[i]].at(1) != "T_" + textureNames[i] + "_E")
+		{
+			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 1, "T_Missing_E");
+		}
+		if (materials[textureNames[i]].at(2) != "T_" + textureNames[i] + "_N")
+		{
+			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 2, "T_Missing_N");
+		}
+		if (materials[textureNames[i]].at(3) != "T_" + textureNames[i] + "_ORM")
+		{
+			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 3, "T_Missing_ORM");
+		}
+
+		for (int j = 0; j < 4; j++)
+		{
+			std::string name = materials[textureNames[i]].at(j) + ".png";
+			mat.addTexture(std::wstring(name.begin(), name.end()).c_str());
+		}
+		m_MaterialCache[textureNames[i]] = mat;
+	}
+}
+
+void Engine::updatePlayerAndCamera(const float& dt)
+{
 }
 void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities)
 {
@@ -66,7 +161,7 @@ bool Engine::addComponentToPlayer(std::string componentIdentifier, Component* co
 
 	if (component->getType() == ComponentType::MESH)
 	{
-		//MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
+		//M eshComponent* meshComponent = dynamic_cast<MeshComponent*>(component);
 		//m_currentScene->addMeshComponent(meshComponent);
 		//meshComponent->setRenderId(++m_meshCount);
 		//m_meshComponentMap->insert({m_meshCount, meshComponent});
@@ -101,6 +196,7 @@ void Engine::removeLightComponentFromPlayer(LightComponent* component)
 	//	m_lightCount -= nrOfErased;
 	//}
 	//m_currentScene->removeLightComponentFromMap(component);
+
 }
 
 std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
@@ -118,6 +214,11 @@ std::unordered_map<std::string, Entity*>* Engine::getEntityMap()
 	return m_entities;
 }
 
+Input* Engine::getInput()
+{
+	return m_input;
+}
+
 Vector4& Engine::getSkyLightDir()
 {
 	return m_skyLightDir;
@@ -131,10 +232,18 @@ Camera* Engine::getCameraPtr()
 {
 	return &m_camera;
 }
+
+float Engine::getGameTime()
+{
+	return ApplicationLayer::getInstance().getGameTime();
+}
 Player* Engine::getPlayerPtr()
 {
 	return m_player;
 }
+
+
+
 
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
@@ -144,16 +253,21 @@ void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContex
 	DeviceAndContextPtrsAreSet = true;
 }
 
-void Engine::initialize()
+void Engine::initialize(Input* input)
 {
+	m_input = input;
+
 	if (!DeviceAndContextPtrsAreSet)
 	{
 		// Renderer::initialize needs to be called and it needs to call setDeviceAndContextPtrs()
 		// before this function call be called.
 		assert(false);
 	}
-	
-	m_camera.setProjectionMatrix(80.f,  (float)m_settings.width/(float)m_settings.height, 0.01f, 1000.0f);
+
+	m_camera.initialize(80.f, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
+
+	// Audio Handler Listener setup
+	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
 	
 	// Player
 	m_player = new Player();
@@ -165,12 +279,13 @@ void Engine::initialize()
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
-	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
 	playerEntity->addComponent("mesh", animMeshComp);
+
 
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
-	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true);
 
 
 	m_player->setAnimMeshPtr(animMeshComp);
@@ -184,9 +299,14 @@ void Engine::initialize()
 
 	// - Camera Follow Transform ptr
 	m_player->setCameraTranformPtr(m_camera.getTransform());
-
+	
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
+	//GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
+
+	// Audio Handler needs Camera Transform ptr for 3D positional audio
+	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
+	readMaterials();
 }
 
 void Engine::updateLightData()
@@ -243,4 +363,3 @@ void Engine::updateLightData()
 
 	Renderer::get().setPointLightRenderStruct(lightInfo);
 }
-

@@ -13,7 +13,13 @@
 #include "AudioComponent.h"
 #include "CheckpointComponent.h"
 #include "Camera.h"
-
+#include "ProjectileComponent.h"
+#include "SlowTrapComponent.h"
+#include "PushTrapComponent.h"
+#include "BarrelComponent.h"
+#include "BarrelTriggerComponent.h"
+#include <filesystem>
+#include <algorithm>
 
 struct Settings
 {
@@ -27,15 +33,15 @@ class Engine
 {
 private:
 	Engine();
-	
+
 	static const int m_startWidth = 1920;
 	static const int m_startHeight = 1080;
 
-	
+
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
 
-	Vector4 m_skyLightDir = Vector4(0.5, -0.5, 0, 0);//Vector4(-0.8f, 1.0f, -0.7f, 0);//Vector4(-0.5, 0, -0.5, 0);
+	Vector4 m_skyLightDir = Vector4(0.25, -0.5, 0.25, 0);//Vector4(-0.8f, 1.0f, -0.7f, 0);//Vector4(-0.5, 0, -0.5, 0);
 	Vector4 m_skyLightColor = Vector4(1, 1, 1, 1);
 	FLOAT m_skyLightBrightness = 4.f;
 	FLOAT m_ambientLightLevel = 0.3f;
@@ -46,23 +52,32 @@ private:
 	std::unordered_map<std::string, LightComponent*>* m_lightComponentMap;
 
 	Player* m_player = nullptr;
-	Camera m_camera; 
+	Camera m_camera;
 	Settings m_settings;
+
+	Input* m_input = nullptr;
 	
+	// Materials
+	std::unordered_map<std::string, Material> m_MaterialCache;
+	const std::wstring m_TEXTURES_PATH = L"../res/textures/";
+	void readMaterials();
+
 
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
 	void updateLightData();
 
-	
+
 public:
 	static Engine& get();
 
-	void initialize();
+	void initialize(Input* input);
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 
 	~Engine();
 
+	void release();
 	void update(const float &dt);
+	void updatePlayerAndCamera(const float &dt);
 
 	void setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities);
 	void setMeshComponentMapPtr(std::unordered_map<unsigned int long, MeshComponent*>* meshComponents);
@@ -76,7 +91,13 @@ public:
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	Vector4& getSkyLightDir();
 
+	Input* getInput();
+
 	Settings getSettings() const;
 	Camera* getCameraPtr();
+	float getGameTime();
 	Player* getPlayerPtr();
+
+	ID3D11DeviceContext* getDeviceContextPtr() { return m_dContextPtr; }
+	ID3D11Device* getDevicePtr() { return m_devicePtr; }
 };
