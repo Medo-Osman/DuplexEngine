@@ -98,7 +98,6 @@ private:
 	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 	void createParticleEntity(void* particleComponent, Vector3 position);
 
-
 	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData);
 
 	const std::string m_LEVELS_PATH = "../res/levels/";
@@ -111,7 +110,6 @@ public:
 	Boss* m_boss = nullptr;
 	Scene();
 	~Scene();
-
 	bool disMovment = false;
 	static void loadMainMenu(Scene* sceneObject, bool* finished);
 	static void loadScene(Scene* sceneObject, std::string path, bool* finished);

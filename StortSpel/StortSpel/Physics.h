@@ -47,6 +47,7 @@ private:
 	PxFoundation* m_foundationPtr;
 	PxPhysics* m_physicsPtr;
 	PxPvd* m_PvdPtr;
+	PxPvdTransport* m_transport;
 	PxCpuDispatcher* m_dispatcherPtr;
 	PxScene* m_scenePtr;
 	PxControllerManager* m_controllManager;
@@ -140,7 +141,8 @@ public:
 
 	~Physics()
 	{
-
+		for (auto& sharedGeometry : m_sharedGeometry)
+			delete sharedGeometry.second;
 	}
 
 	void release()
@@ -150,6 +152,7 @@ public:
 		m_scenePtr = nullptr;
 		m_physicsPtr->release();
 		m_PvdPtr->release();
+		m_transport->release();
 		delete m_dispatcherPtr;
 		PxCloseExtensions();
 		m_foundationPtr->release();
@@ -157,7 +160,7 @@ public:
 
 	int getNewSceneID()
 	{
-		int id = m_scenes.size();
+		int id = (int)m_scenes.size();
 
 		if (m_givenFirstScene)
 		{
@@ -245,8 +248,8 @@ public:
 		m_foundationPtr = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
 
 		m_PvdPtr = PxCreatePvd(*m_foundationPtr);
-		physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate(m_host, 5425, 10);
-		m_PvdPtr->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
+		m_transport = physx::PxDefaultPvdSocketTransportCreate(m_host, 5425, 10);
+		m_PvdPtr->connect(*m_transport, physx::PxPvdInstrumentationFlag::eALL);
 
 
 		m_physicsPtr = PxCreatePhysics(PX_PHYSICS_VERSION, *m_foundationPtr,

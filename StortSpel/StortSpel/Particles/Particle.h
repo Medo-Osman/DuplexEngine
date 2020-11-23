@@ -215,13 +215,15 @@ protected:
 
 
 public:
-	~Particle()
-	{
-
-	}
 	Particle()
 	{
 		defaultConstructor();
+	}
+	~Particle()
+	{
+		m_vertexBufferRaw->Release();
+		m_streamOutBufferRaw->Release();
+		m_initBufferRaw->Release();
 	}
 
 	Particle(ParticleEffect particleType, bool neverDie = true)
@@ -251,6 +253,10 @@ public:
 
 	static void cleanStaticDataForParticles()
 	{
+		delete *m_vertexShaderBlob.ReleaseAndGetAddressOf();
+		delete *m_particleLayoutPtr.ReleaseAndGetAddressOf();
+		delete *m_resourceViewRandomTextureArray.ReleaseAndGetAddressOf();
+
 		std::for_each(m_vsMap.begin(), m_vsMap.end(),
 			[](std::pair<std::wstring, ID3D11VertexShader*> element) {
 
@@ -519,7 +525,10 @@ public:
 		randomData.SysMemPitch = ARRAYSIZE * sizeof(XMFLOAT4);
 		randomData.pSysMem = randomArray;
 
-		device->CreateTexture1D(&randomTextureDesc, &randomData, &randomTexture);
+		HRESULT hr = device->CreateTexture1D(&randomTextureDesc, &randomData, &randomTexture);
+
+		if (FAILED(hr))
+			ErrorLogger::get().logError("failed to create random texture for particles!");
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC randomViewTextureDesc;
 		ZeroMemory(&randomViewTextureDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
@@ -527,10 +536,12 @@ public:
 		randomViewTextureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		randomViewTextureDesc.Texture1D.MipLevels = 1;
 
-		device->CreateShaderResourceView(randomTexture, &randomViewTextureDesc, Particle::m_resourceViewRandomTextureArray.GetAddressOf());
+		hr = device->CreateShaderResourceView(randomTexture, &randomViewTextureDesc, Particle::m_resourceViewRandomTextureArray.GetAddressOf());
+		
+		if (FAILED(hr))
+			ErrorLogger::get().logError("failed to create random texture shader resource view for particles!");
 
 		randomTexture->Release();
 		randomTexture = nullptr;
-
 	}
 };

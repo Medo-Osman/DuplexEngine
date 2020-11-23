@@ -49,6 +49,7 @@ Scene::~Scene()
 			segment->Detach(this);
 		}
 
+		m_boss->Detach(this);
 		delete m_boss;
 	}
 }
@@ -115,13 +116,13 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 	{
 		sceneObject->addComponent(sign, "mesh",
 			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
-		sign->setScale(Vector3(10, 5, 0.2));
+		sign->setScale(Vector3(10.f, 5.f, 0.2f));
 
 		sceneObject->createNewPhysicsComponent(sign, true, "", PxGeometryType::eBOX, "default", true);
 		static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
 
 		sceneObject->addComponent(sign, "sweep",
-			new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
+			new SweepingComponent(sign, Vector3(0.f, 5.f, 10.f), Vector3(0.f, 5.5f, 10.f), 5.f));
 	}
 
 
@@ -139,9 +140,9 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
 
-	sceneObject->createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
+	sceneObject->createParisWheel(Vector3(30.f, 7.f, 0.f), 90.f, 30.f, 4);
 
-	sceneObject->createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
+	sceneObject->createSpotLight(Vector3(0.f, 21.f, -20.f), Vector3(10.f, 0.f, 0.f), Vector3(0.5f, 0.1f, 0.3f), 3.f);
 	*finished = true;
 }
 
@@ -169,20 +170,20 @@ void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
 
 void Scene::loadPickups()
 {
-	addPickup(Vector3(-30, 30, 105));
-	addPickup(Vector3(8.5, 40, 172));
+	addPickup(Vector3(-30.f, 30.f, 105.f));
+	addPickup(Vector3(8.5f, 40.f, 172.f));
 }
 
 void Scene::loadScore()
 {
-	addScore(Vector3(0, 9, 20));
-	addScore(Vector3(0, 15, 45));
+	addScore(Vector3(0.f, 9.f, 20.f));
+	addScore(Vector3(0.f, 15.f, 45.f));
 
-	addScore(Vector3(-16.54, 15.5, 105));
-	addScore(Vector3(16.54, 30, 105));
-	addScore(Vector3(-30, 40, 146));
-	addScore(Vector3(8.5, 18, 159.5));
-	addScore(Vector3(-11, 40, 222.5));
+	addScore(Vector3(-16.54f, 15.5f, 105.f));
+	addScore(Vector3(16.54f, 30.f, 105.f));
+	addScore(Vector3(-30.f, 40.f, 146.f));
+	addScore(Vector3(8.5f, 18.f, 159.5f));
+	addScore(Vector3(-11.f, 40.f, 222.5f));
 }
 
 void Scene::addScore(const Vector3& position, const int tier, std::string name)
@@ -297,7 +298,6 @@ void Scene::addBarrelDrop(Vector3 Position)
 	}
 }
 
-
 int Scene::getSceneID()
 {
 	return this->m_sceneID;
@@ -325,7 +325,7 @@ void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 tr
 		addComponent(pushWall, "mesh",
 			new MeshComponent("testCube_pCube1.lrm"));
 		pushWall->setScale(Vector3(10, 5, 1));
-		pushWall->rotate(0, 1.57, 0);
+		pushWall->rotate(0.f, 1.57f, 0.f);
 
 		createNewPhysicsComponent(pushWall, true, "", PxGeometryType::eBOX, "default", true);
 		static_cast<PhysicsComponent*>(pushWall->getComponent("physics"))->makeKinematic();
@@ -368,8 +368,6 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 void Scene::loadLobby(Scene* sceneObject, bool* finished)
 {
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
-
-
 
 	Entity* music = sceneObject->addEntity("lobbyMusic");
 	if (music)
@@ -483,13 +481,13 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 	{
 		sceneObject->addComponent(sign, "mesh",
 			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
-		sign->setScale(Vector3(10, 5, 0.2));
+		sign->setScale(Vector3(10.f, 5.f, 0.2f));
 
 		sceneObject->createNewPhysicsComponent(sign, true,"",PxGeometryType::eBOX,"default", true);
 		static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
 
 		sceneObject->addComponent(sign, "sweep",
-			new SweepingComponent(sign, Vector3(0, 5, 10), Vector3(0, 5.5, 10), 5));
+			new SweepingComponent(sign, Vector3(0.f, 5.f, 10.f), Vector3(0.f, 5.5f, 10.f), 5.f));
 	}
 
 
@@ -539,7 +537,7 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 		sceneObject->createNewPhysicsComponent(multiMatTest);
 	}
 
-	sceneObject->createSpotLight(Vector3(0, 21, -20), Vector3(10, 0, 0), Vector3(0.5, 0.1, 0.3), 3);
+	sceneObject->createSpotLight(Vector3(0.f, 21.f, -20.f), Vector3(10.f, 0.f, 0.f), Vector3(0.5f, 0.1f, 0.3f), 3.f);
 	*finished = true; //Inform the main thread that the loading is complete.
 }
 
@@ -653,20 +651,17 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 
 void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 {
-	Entity* entity;
-
 	sceneObject->loadPickups();
 	sceneObject->loadScore();
 
+	sceneObject->addCheckpoint(Vector3(0.f, 9.f, 5.f));
+	sceneObject->addCheckpoint(Vector3(14.54f, 30.f, 105.f));
+	sceneObject->addCheckpoint(Vector3(14.54f, 30.f, 105.f));
+	sceneObject->addCheckpoint(Vector3(-30.f, 40.f, 144.f));
+	sceneObject->addCheckpoint(Vector3(-11.f, 40.f, 218.5f));
 
-	sceneObject->addCheckpoint(Vector3(0, 9, 5));
-	sceneObject->addCheckpoint(Vector3(14.54, 30, 105));
-	sceneObject->addCheckpoint(Vector3(14.54, 30, 105));
-	sceneObject->addCheckpoint(Vector3(-30, 40, 144));
-	sceneObject->addCheckpoint(Vector3(-11, 40, 218.5));
-
-	sceneObject->addSlowTrap(Vector3(0, 13, 30), Vector3(3,3,3), Vector3(1.5, 1.5, 1.5));
-	sceneObject->addPushTrap(Vector3(-5, 20, 58), Vector3(5, 20, 58), Vector3(0, 18, 50));
+	sceneObject->addSlowTrap(Vector3(0.f, 13.f, 30.f), Vector3(3.f,3.f,3.f), Vector3(1.5f, 1.5f, 1.5f));
+	sceneObject->addPushTrap(Vector3(-5.f, 20.f, 58.f), Vector3(5.f, 20.f, 58.f), Vector3(0.f, 18.f, 50.f));
 
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
@@ -678,10 +673,10 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(barrelDropTrigger, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
 
-		barrelDropTrigger->setPosition(-30, 30, 105);
+		barrelDropTrigger->setPosition(-30.f, 30.f, 105.f);
 
 		sceneObject->addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
-		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1,1,1 });
+		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
 	}
 
 	/*Entity* stressObject = sceneObject->addEntity("stressObject");
@@ -731,52 +726,52 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	sceneObject->createStaticPlatform(Vector3(0, 17, 58), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
 	sceneObject->createStaticPlatform(Vector3(0, 19, 66), Vector3(0, 0, 0), Vector3(10, 4, 4), "testCube_pCube1.lrm");
 	// Left:
-	sceneObject->createStaticPlatform(Vector3(-10.2, 20.5, 73.2), Vector3(0, -45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-16.54, 20.5, 81), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-16.54, 17, 83), Vector3(0, 0, 0), Vector3(5, 6, 1), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-16.54, 13.5, 102.5), Vector3(0, 0, 0), Vector3(5, 1, 40), "testCube_pCube1.lrm");
-	//sceneObject->createStaticPlatform	(Vector3(-16.54, 21.75, 105),	Vector3(0, 0, 0),		Vector3(10, 10.5, 1),	"testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-16.54, 18, 128), Vector3(0, 0, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
+	sceneObject->createStaticPlatform(Vector3(-10.2f, 20.5f, 73.2f), Vector3(0, -45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-16.54f, 20.5f, 81.f), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-16.54f, 17, 83.f), Vector3(0, 0, 0), Vector3(5, 6, 1), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-16.54f, 13.5f, 102.5f), Vector3(0, 0, 0), Vector3(5, 1, 40), "testCube_pCube1.lrm");
+	//createStaticPlatform	(Vector3(-16.54, 21.75, 105),	Vector3(0, 0, 0),		Vector3(10, 10.5, 1),	"testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-16.54f, 18, 128.f), Vector3(0, 0, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
 	sceneObject->createStaticPlatform(Vector3(-14, 23, 135), Vector3(0, 45, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
-	sceneObject->createStaticPlatform(Vector3(-7, 28, 137.5), Vector3(0, 90, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
-	sceneObject->createStaticPlatform(Vector3(6, 28, 137.5), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(8.5, 28, 142.5), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
-	sceneObject->createParisWheel(Vector3(8.5, 28, 159.5), 0, 30, 4);
-	sceneObject->createStaticPlatform(Vector3(8.5, 37.7, 175), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(7.47, 37.7, 180), Vector3(0, -45, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
-	sceneObject->createFlippingPlatform(Vector3(2.2, 42, 185.5), Vector3(0, -225, 0), 3, 3);
-	sceneObject->createStaticPlatform(Vector3(-3.18, 37.7, 190.61), Vector3(0, -45, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-7, 28, 137.5f), Vector3(0, 90, 0), Vector3(1, 1, 1), "SquarePlatform.lrm");
+	sceneObject->createStaticPlatform(Vector3(6, 28, 137.5f), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(8.5f, 28, 142.5f), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createParisWheel(Vector3(8.5f, 28, 159.5f), 0.f, 30.f, 4);
+	sceneObject->createStaticPlatform(Vector3(8.5f, 37.7f, 175.f), Vector3(0.f, 0.f, 0.f), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(7.47f, 37.7f, 180.f), Vector3(0.f, -45, 0.f), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createFlippingPlatform(Vector3(2.2f, 42.f, 185.5f), Vector3(0.f, -225, 0.f), 3, 3);
+	sceneObject->createStaticPlatform(Vector3(-3.18f, 37.7f, 190.61f), Vector3(0.f, -45.f, 0.f), Vector3(5, 1, 5), "testCube_pCube1.lrm");
 	// Right:
-	sceneObject->createStaticPlatform(Vector3(10.2, 20.5, 73.2), Vector3(0, 45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(16.54, 20.5, 86), Vector3(0, 0, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(16.54, 24, 93), Vector3(0, 0, 0), Vector3(5, 6, 1), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(16.54, 27.5, 100), Vector3(0, 0, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(11.54, 27.5, 105), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
-	//sceneObject->createStaticPlatform	(Vector3(2, 30, 105),			Vector3(0, 0, 0),		Vector3(1, 1, 1),		"SquarePlatform.lrm");
-	sceneObject->createStaticPlatform(Vector3(-14, 27.5, 105), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-30, 27.5, 107.5), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-30, 32.6, 126.4), Vector3(-20, 0, 0), Vector3(5, 1, 30), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-30, 37.7, 145.32), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-30, 42, 160), Vector3(0, 0, 0), Vector3(5, 15, 1), "testCube_pCube1.lrm");
-	sceneObject->createFlippingPlatform(Vector3(-36, 37.7, 160), Vector3(0, 0, 0), 1, 2);
-	sceneObject->createFlippingPlatform(Vector3(-24, 37.7, 160), Vector3(0, 180, 0), 2, 1);
-	sceneObject->createStaticPlatform(Vector3(-30, 37.7, 175), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-23.67, 37.7, 185.3), Vector3(0, 45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-23.67, 45, 185.3), Vector3(0, 45, 0), Vector3(10, 10.5, 1), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(10.2f, 20.5f, 73.2f), Vector3(0, 45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(16.54f, 20.5f, 86.f), Vector3(0, 0, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(16.54f, 24.f, 93.f), Vector3(0, 0, 0), Vector3(5, 6, 1), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(16.54f, 27.5f, 100.f), Vector3(0, 0, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(11.54f, 27.5f, 105.f), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	//createStaticPlatform	(Vector3(2, 30, 105),			Vector3(0, 0, 0),		Vector3(1, 1, 1),		"SquarePlatform.lrm");
+	sceneObject->createStaticPlatform(Vector3(-14.f, 27.5f, 105.f), Vector3(0, 0, 0), Vector3(10, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-30.f, 27.5f, 107.5f), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-30.f, 32.6f, 126.4f), Vector3(-20, 0, 0), Vector3(5, 1, 30), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-30.f, 37.7f, 145.32f), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-30.f, 42.f, 160.f), Vector3(0, 0, 0), Vector3(5, 15, 1), "testCube_pCube1.lrm");
+	sceneObject->createFlippingPlatform(Vector3(-36.f, 37.7f, 160.f), Vector3(0, 0, 0), 1, 2);
+	sceneObject->createFlippingPlatform(Vector3(-24.f, 37.7f, 160.f), Vector3(0, 180, 0), 2, 1);
+	sceneObject->createStaticPlatform(Vector3(-30.f, 37.7f, 175.f), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-23.67f, 37.7f, 185.3f), Vector3(0, 45, 0), Vector3(5, 1, 20), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-23.67f, 45.f, 185.3f), Vector3(0, 45, 0), Vector3(10, 10.5, 1), "testCube_pCube1.lrm");
 	// End:
-	sceneObject->createFlippingPlatform(Vector3(-11, 37.7, 200), Vector3(0, 180, 0), 2, 2);
-	sceneObject->createStaticPlatform(Vector3(-11, 37.7, 215), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-11, 37.7, 222.5), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
+	sceneObject->createFlippingPlatform(Vector3(-11.f, 37.7f, 200.f), Vector3(0, 180, 0), 2, 2);
+	sceneObject->createStaticPlatform(Vector3(-11.f, 37.7f, 215.f), Vector3(0, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-11.f, 37.7f, 222.5f), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
 
 
-	sceneObject->createSweepingPlatform(Vector3(-5, 37.7, 228), Vector3(-5, 43.85, 246));
-	sceneObject->createSweepingPlatform(Vector3(-17, 43.85, 246), Vector3(-17, 37.7, 228));
-	sceneObject->createSweepingPlatform(Vector3(-5, 43.85, 251), Vector3(-5, 50, 270));
-	sceneObject->createSweepingPlatform(Vector3(-17, 50, 270), Vector3(-17, 43.85, 251));
+	sceneObject->createSweepingPlatform(Vector3(-5.f, 37.7f, 228.f), Vector3(-5.f, 43.85f, 246.f));
+	sceneObject->createSweepingPlatform(Vector3(-17.f, 43.85f, 246.f), Vector3(-17.f, 37.7f, 228.f));
+	sceneObject->createSweepingPlatform(Vector3(-5.f, 43.85f, 251.f), Vector3(-5.f, 50.f, 270.f));
+	sceneObject->createSweepingPlatform(Vector3(-17.f, 50.f, 270.f), Vector3(-17.f, 43.85f, 251.f));
 
-	sceneObject->createStaticPlatform(Vector3(-11, 50, 275), Vector3(0, 90, 0), Vector3(5, 1, 15), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-11, 51.68, 282.02), Vector3(-20, 0, 0), Vector3(5, 1, 10), "testCube_pCube1.lrm");
-	sceneObject->createStaticPlatform(Vector3(-11, 53.4, 289), Vector3(0, 0, 0), Vector3(5, 1, 5), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-11.f, 50.f, 275.f), Vector3(0.f, 90.f, 0.f), Vector3(5.f, 1.f, 15.f), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-11.f, 51.68f, 282.02f), Vector3(-20.f, 0.f, 0.f), Vector3(5.f, 1.f, 10.f), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(-11.f, 53.4f, 289.f), Vector3(0.f, 0.f, 0.f), Vector3(5.f, 1.f, 5.f), "testCube_pCube1.lrm");
 
 
 	Entity* clownMask = sceneObject->addEntity("ClownMask");
@@ -785,17 +780,17 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(clownMask, "mesh",
 			new MeshComponent("ClownMask_ClownEye_R1.lrm", Material({ L"DarkGrayTexture.png" })));
 
-		clownMask->setPosition(Vector3(-11.5, 60, 290));
-		clownMask->setRotation(XMConvertToRadians(7), XMConvertToRadians(180), XMConvertToRadians(0));
+		clownMask->setPosition(Vector3(-11.5f, 60.f, 290.f));
+		clownMask->setRotation(XMConvertToRadians(7.f), XMConvertToRadians(180.f), XMConvertToRadians(0.f));
 	}
 	Entity* goalTrigger = sceneObject->addEntity("trigger");
 	if (goalTrigger)
 	{
 		sceneObject->addComponent(goalTrigger, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
-		goalTrigger->setPosition(-11.5, 60.563, 292.347);
-		goalTrigger->setScale(13.176, 15.048, 1);
-		goalTrigger->setRotation(XMConvertToRadians(-10.102), XMConvertToRadians(0), XMConvertToRadians(0));
+		goalTrigger->setPosition(-11.5f, 60.563f, 292.347f);
+		goalTrigger->setScale(13.176f, 15.048f, 1.f);
+		goalTrigger->setRotation(XMConvertToRadians(-10.102f), XMConvertToRadians(0.f), XMConvertToRadians(0.f));
 
 		sceneObject->addComponent(goalTrigger, "trigger",
 			new TriggerComponent());
@@ -826,16 +821,16 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	// Lights
 	// - Point Light
-	sceneObject->createSpotLight(Vector3(16.54, 21, 92.7), Vector3(-90, 0, 0), Vector3(0, 1, 0), 3);
-	sceneObject->createSpotLight(Vector3(-30, 35, 159.7), Vector3(-90, 0, 0), Vector3(0, 1, 0), 3);
-	sceneObject->createSpotLight(Vector3(-32, 39, 176), Vector3(0, 45, 0), Vector3(0, 1, 0), 0.1);
+	sceneObject->createSpotLight(Vector3(16.54f, 21.f, 92.7f), Vector3(-90.f, 0.f, 0.f), Vector3(0.f, 1.f, 0.f), 3.f);
+	sceneObject->createSpotLight(Vector3(-30.f, 35.f, 159.7f), Vector3(-90.f, 0.f, 0.f), Vector3(0.f, 1.f, 0.f), 3.f);
+	sceneObject->createSpotLight(Vector3(-32.f, 39.f, 176.f), Vector3(0.f, 45.f, 0.f), Vector3(0.f, 1.f, 0.f), 0.1f);
 
-	sceneObject->createSpotLight(Vector3(-5, 22, 68.5), Vector3(0, -45, 0), Vector3(0, 0, 1), 0.1);
-	sceneObject->createSpotLight(Vector3(8.5, 60, 159.5), Vector3(90, 0, 0), Vector3(0, 0, 1), 0.2);
+	sceneObject->createSpotLight(Vector3(-5.f, 22.f, 68.5f), Vector3(0.f, -45.f, 0.f), Vector3(0.f, 0.f, 1.f), 0.1f);
+	sceneObject->createSpotLight(Vector3(8.5f, 60.f, 159.5f), Vector3(90.f, 0.f, 0.f), Vector3(0.f, 0.f, 1.f), 0.2f);
 
-	sceneObject->createSpotLight(Vector3(-11, 50, 275), Vector3(-35, 0, 0), Vector3(1, 0, 0), 0.3);
+	sceneObject->createSpotLight(Vector3(-11.f, 50.f, 275.f), Vector3(-35.f, 0.f, 0.f), Vector3(1.f, 0.f, 0.f), 0.3f);
 
-	*finished = true; //Inform the main thread that the loading is complete.
+	*finished = true;
 }
 
 void Scene::loadArena(Scene* sceneObject, bool* finished)
@@ -850,7 +845,7 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 	if (bossEnt)
 	{
 		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true);
 		bossEnt->addComponent("mesh", animMeshComp);
 		sceneObject->addMeshComponent(animMeshComp);
 		bossEnt->scale({ 4, 4, 4 });
@@ -890,7 +885,7 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 	if (entity)
 	{
 		sceneObject->addComponent(entity, "mesh", new MeshComponent("BossSign_pCube20.lrm", Material({ L"BossSign.png" })));
-		entity->setPosition({ 0, -8.3, 8 });
+		entity->setPosition({ 0.f, -8.3f, 8.f });
 	}
 
 
@@ -909,9 +904,9 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 	{
 		sceneObject->addComponent(goalTrigger, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
-		goalTrigger->setPosition(0, 10.563, 75.347);
-		goalTrigger->setScale(13.176, 15.048, 1);
-		goalTrigger->setRotation(XMConvertToRadians(-10.102), XMConvertToRadians(0), XMConvertToRadians(0));
+		goalTrigger->setPosition(0.f, 10.563f, 75.347f);
+		goalTrigger->setScale(13.176f, 15.048f, 1.f);
+		goalTrigger->setRotation(XMConvertToRadians(-10.102f), XMConvertToRadians(0), XMConvertToRadians(0));
 
 		sceneObject->addComponent(goalTrigger, "trigger",
 			new TriggerComponent());
@@ -972,7 +967,7 @@ void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpe
 		center->setPosition(position);
 	}
 
-	float test = 360 / nrOfPlatforms;
+	int test = 360 / nrOfPlatforms;
 	for (int i = 0; i < 360; i += test)
 	{
 		Entity* ParisWheelPlatform = addEntity("ParisWheelPlatform-" + std::to_string(nrOfParisWheels) + "_" + std::to_string(i));
@@ -988,7 +983,7 @@ void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpe
 			static_cast<PhysicsComponent*>(ParisWheelPlatform->getComponent("physics"))->makeKinematic();
 
 			addComponent(ParisWheelPlatform, "rotate",
-				new RotateAroundComponent(center, center->getRotationMatrix(), ParisWheelPlatform, 12, rotationSpeed, i));
+				new RotateAroundComponent(center, center->getRotationMatrix(), ParisWheelPlatform, 12.f, rotationSpeed, (float)i));
 		}
 	}
 }
@@ -1073,7 +1068,7 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 
 			float moveDistance = -5.f;
 			entity->translate({ moveDistance * i + 30.f, 2.f, 20.f });
-			entity->rotate({ 1.5708, 0.f, 0.f });
+			entity->rotate({ 1.5708f, 0.f, 0.f });
 		}
 	}
 
@@ -1100,14 +1095,14 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 				xCounter = 0;
 			}
 			PBRMatUntextured.setMetallic(yCounter * 0.2f - 0.2f);
-			PBRMatUntextured.setRoughness(xCounter * 0.18 + 0.1);
+			PBRMatUntextured.setRoughness(xCounter * 0.18f + 0.1f);
 			PBRMatUntextured.setTextured(0);
 
 			sceneObject->addComponent(entity, "mesh", new MeshComponent("Sphere_2m_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMatUntextured));
 
 			float moveDistance = 5.f;
 			entity->translate({ moveDistance * xCounter, moveDistance * yCounter - 3.f, 0.f });
-			entity->rotate({ 1.5708, 0.f, 0.f });
+			entity->rotate({ 1.5708f, 0.f, 0.f });
 		}
 	}
 
@@ -1450,7 +1445,7 @@ void Scene::removeLightComponent(LightComponent* component)
 {
 	getEntity(component->getParentEntityIdentifier())->removeComponent(component);
 
-	int nrOfErased = m_lightComponentMap.erase(component->getIdentifier());
+	int nrOfErased = (int)m_lightComponentMap.erase(component->getIdentifier());
 	if (nrOfErased > 0) //if it deleted more than 0 elements
 	{
 		m_lightCount -= nrOfErased;
@@ -1461,7 +1456,7 @@ void Scene::removeLightComponentFromMap(LightComponent* component)
 {
 
 
-	int nrOfErased = m_lightComponentMap.erase(component->getIdentifier());
+	int nrOfErased = (int)m_lightComponentMap.erase(component->getIdentifier());
 	if (nrOfErased > 0) //if it deleted more than 0 elements
 	{
 		m_lightCount -= nrOfErased;

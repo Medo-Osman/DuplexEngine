@@ -41,8 +41,8 @@ Player::Player()
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
 
 	GUIImageStyle imageStyle;
-	imageStyle.position = Vector2(400, 50);
-	imageStyle.scale = Vector2(0.9, 0.9);
+	imageStyle.position = Vector2(400.f, 50.f);
+	imageStyle.scale = Vector2(0.9f, 0.9f);
 	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
 	//Test Button stuff
@@ -59,7 +59,6 @@ Player::~Player()
 {
 	if (m_playerEntity)
 		delete m_playerEntity;
-
 }
 
 bool Player::isRunning()
@@ -534,7 +533,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 			if (m_pickupPointer == nullptr)
 			{
 				bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
-				int duration = physicsData.intData;
+				float duration = (float)physicsData.intData;
 				switch ((PickupType)physicsData.associatedTriggerEnum)
 				{
 				case PickupType::SPEED:

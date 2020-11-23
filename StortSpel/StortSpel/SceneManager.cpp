@@ -13,6 +13,7 @@ SceneManager::~SceneManager()
 {
 	delete m_currentScene;
 	delete m_nextScene;
+	delete m_nextSceneReady;
 }
 
 void SceneManager::initalize()
@@ -33,7 +34,6 @@ void SceneManager::initalize()
 	btnStyle.position = Vector2(1600, 100);
 	btnStyle.scale = Vector2(1, 1);
 	m_exitIndex = GUIHandler::get().addGUIButton(L"exitBtn.png", btnStyle);
-
 
 	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_exitIndex))->Attach(this);
 
@@ -255,29 +255,28 @@ void SceneManager::swapScenes()
 
 void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 {
+	GUIButton* button = dynamic_cast<GUIButton*>(guiElement);
 	if (type == GUIUpdateType::HOVER_ENTER)
 	{
-		GUIButton* buttonEnter = dynamic_cast<GUIButton*>(guiElement);
 		if (guiElement->m_index == m_exitIndex)
 		{
-			buttonEnter->setTexture(L"exitBtnHover.png");
+			button->setTexture(L"exitBtnHover.png");
 		}
 		if (guiElement->m_index == m_singleplayerIndex)
 		{
-			buttonEnter->setTexture(L"singleplayerBtnHover.png");
+			button->setTexture(L"singleplayerBtnHover.png");
 		}
 		if (guiElement->m_index == m_joinGameIndex)
 		{
-			buttonEnter->setTexture(L"joinBtnHover.png");
+			button->setTexture(L"joinBtnHover.png");
 		}
 		if (guiElement->m_index == m_hostGameIndex)
 		{
-			buttonEnter->setTexture(L"hostBtnHover.png");
+			button->setTexture(L"hostBtnHover.png");
 		}
 	}
 	if (type == GUIUpdateType::HOVER_EXIT)
 	{
-		GUIButton* button = dynamic_cast<GUIButton*>(guiElement);
 		if (guiElement->m_index == m_exitIndex)
 		{
 			button->setTexture(L"exitBtn.png");
@@ -295,7 +294,6 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			button->setTexture(L"hostBtn.png");
 		}
 	}
-
 
 	//Checks which button is being clicked
 	if (type == GUIUpdateType::CLICKED)
@@ -322,7 +320,6 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_exitIndex)
 		{
 			endGame = true;
-			//do stuff
 		}
 
 

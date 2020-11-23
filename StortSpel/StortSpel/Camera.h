@@ -23,6 +23,8 @@ private:
 	void updateViewMatrix();
 public:
 	Camera();
+	~Camera();
+	void initialize(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ);
 	void setProjectionMatrix(const float &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
 	void setPosition(const XMVECTOR&pos);
 	void setRotation(const XMVECTOR&rot);

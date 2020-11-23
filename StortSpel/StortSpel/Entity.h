@@ -18,9 +18,16 @@ public:
 	Entity(std::string identifier) { m_identifier = identifier; }
 	~Entity()
 	{
+		std::cout << m_identifier << ":\n";
+		std::cout << "	" << std::to_string(PerformanceTester::get().getRam()) << "\n";
 		for (auto& component : m_components)
+		{
+			std::cout << "	" << component.second->getIdentifier() << "\n";
 			delete component.second;
+		}
 		m_components.clear();
+		std::cout << "	~" << std::to_string(PerformanceTester::get().getRam()) << "\n";
+		std::cout << "\n \n";
 	}
 
 	void update(const float &dt)
@@ -46,7 +53,7 @@ public:
 	
 	void removeComponent(Component* component)
 	{
-		int deleted = m_components.erase(component->getIdentifier());
+		int deleted = (int)m_components.erase(component->getIdentifier());
 	}
 
 	Component* getComponent(std::string componentName)

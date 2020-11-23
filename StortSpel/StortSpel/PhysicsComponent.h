@@ -141,6 +141,7 @@ public:
 			{
 				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false);
 				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
+				delete geometry;
 			}
 
 		}

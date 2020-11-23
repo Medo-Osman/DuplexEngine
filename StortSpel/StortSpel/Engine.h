@@ -18,6 +18,8 @@
 #include "PushTrapComponent.h"
 #include "BarrelComponent.h"
 #include "BarrelTriggerComponent.h"
+#include <filesystem>
+#include <algorithm>
 
 struct Settings
 {
@@ -54,6 +56,11 @@ private:
 	Settings m_settings;
 
 	Input* m_input = nullptr;
+	
+	// Materials
+	std::unordered_map<std::string, Material> m_MaterialCache;
+	const std::wstring m_TEXTURES_PATH = L"../res/textures/";
+	void readMaterials();
 
 
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
@@ -68,6 +75,7 @@ public:
 
 	~Engine();
 
+	void release();
 	void update(const float &dt);
 	void updatePlayerAndCamera(const float &dt);
 

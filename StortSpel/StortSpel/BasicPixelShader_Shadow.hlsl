@@ -173,7 +173,7 @@ lightComputeResult computeLightFactor(ps_in input)
     return result;
 }
 
-ps_out main(ps_in input) : SV_TARGET
+ps_out main(ps_in input)
 {
     ps_out output;
     lightComputeResult lightResult = computeLightFactor(input);

@@ -96,8 +96,8 @@ public:
 		if (ScreenToClient(*m_window, &p))
 		{
 			//p.x and p.y are now relative to hwnd's client area
-			x = p.x;
-			y = p.y;
+			x = (float)p.x;
+			y = (float)p.y;
 			
 		}
 		//std::cout << " mouuse Y pos: " << y << " button position y: " << m_style.position.y << std::endl;

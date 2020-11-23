@@ -8,7 +8,7 @@ Renderer::Renderer()
 	//m_rTargetViewsArray = new ID3D11RenderTargetView * [8];
 	
 	//Variables
-
+	m_shadowMap = nullptr;
 }
 
 void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
@@ -18,28 +18,65 @@ void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
 
 void Renderer::release()
 {
+	delete m_shadowMap;
+	skyboxDSSPtr->Release();
+
+	for (std::pair<ShaderProgramsEnum, ShaderProgram*> element : m_compiledShaders)
+	{
+		delete element.second;
+	}
+	
 	Particle::cleanStaticDataForParticles();
 }
 
 Renderer::~Renderer()
 {
-	m_devicePtr = nullptr;
-	//m_dContextPtr.Reset();
-	//m_swapChainPtr.Reset();
+	/*delete *m_devicePtr.ReleaseAndGetAddressOf();
+	m_dContextPtr.Reset();
+	m_swapChainPtr.Reset();
+	m_geometryRenderTargetViewPtr.Reset();
+	m_finalRenderTargetViewPtr.Reset();
 
+	m_depthStencilViewPtr.Reset();
+	m_depthStencilStatePtr.Reset();
 
+	m_glowMapShaderResourceView.Reset();
+	m_glowMapRenderTargetViewPtr.Reset();
 
-	skyboxDSSPtr->Release();
-	for (std::pair<ShaderProgramsEnum, ShaderProgram*> element : m_compiledShaders)
-	{
-		delete element.second;
-	}
+	m_downSampledShaderResourceView.Reset();
+	m_downSampledUnorderedAccessView.Reset();
+	m_geometryShaderResourceView.Reset();
+	m_geometryUnorderedAccessView.Reset();
+	m_blurShaderResourceView.Reset();
+	m_blurUnorderedAccessView.Reset();
 
+	m_CSDownSample.Reset();
+	m_CSBlurr.Reset();
+
+	m_rasterizerStatePtr.Reset();
+
+	m_psSamplerState.Reset();
+
+	m_perObjectConstantBuffer.release();
+	m_lightBuffer.release();
+	m_cameraBuffer.release();
+	m_skyboxConstantBuffer.release();
+	m_shadowConstantBuffer.release();
+	
+	m_skelAnimationConstantBuffer.release();
+	m_currentMaterialConstantBuffer.release();
+
+	m_blurBuffer.release();
+	m_renderQuadBuffer.release();*/
+
+	//m_geometryPassRTVs[0]->Release();
+	//m_geometryPassRTVs[1]->Release();
 
 	//HRESULT hr = this->m_debugPtr->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 	//assert(SUCCEEDED(hr));
-	Microsoft::WRL::ComPtr< ID3D11Debug > m_deviceDebug;
-	m_debugPtr.Reset();
+	//m_debugPtr.ReleaseAndGetAddressOf();
+
+	printLiveObject();
 }
 
 HRESULT Renderer::initialize(const HWND& window)
@@ -54,12 +91,14 @@ HRESULT Renderer::initialize(const HWND& window)
 	if (!SUCCEEDED(hr)) return hr;
 
 	//Get swapchian buffer
-	hr = m_swapChainPtr->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)m_swapChainBufferPtr.GetAddressOf());
+	ID3D11Texture2D* swapChainBufferPtr;
+	hr = m_swapChainPtr->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&swapChainBufferPtr);
 	if (!SUCCEEDED(hr)) return hr;
 
 #ifdef _DEBUG
 	//Get Debugger
-	hr = m_devicePtr->QueryInterface(__uuidof(ID3D11Debug), (void**)m_debugPtr.GetAddressOf());
+	hr = m_devicePtr->QueryInterface(IID_PPV_ARGS(m_debugPtr.GetAddressOf()));
+						//QueryInterface(IID_PPV_ARGS(&debug))
 	if (!SUCCEEDED(hr)) return hr;
 
 //	ID3D11InfoQueue* infoQueue = nullptr;
@@ -71,9 +110,9 @@ HRESULT Renderer::initialize(const HWND& window)
 #endif
 
 
-	hr = m_devicePtr->CreateRenderTargetView(m_swapChainBufferPtr.Get(), 0, m_finalRenderTargetViewPtr.GetAddressOf());
+	hr = m_devicePtr->CreateRenderTargetView(swapChainBufferPtr, 0, m_finalRenderTargetViewPtr.GetAddressOf());
 	if (!SUCCEEDED(hr)) return hr;
-	int var = m_swapChainBufferPtr.Reset();
+	swapChainBufferPtr->Release();
 
 	hr = createDepthStencil();
 	if (!SUCCEEDED(hr)) return hr;
@@ -125,6 +164,8 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	hr = m_devicePtr->CreateShaderResourceView(glowTexture, &srvDesc, &m_glowMapShaderResourceView);
 	if (!SUCCEEDED(hr)) return hr;
+
+	glowTexture->Release();
 
 	m_geometryPassRTVs[0] = m_geometryRenderTargetViewPtr.Get();
 	m_geometryPassRTVs[1] = m_glowMapRenderTargetViewPtr.Get();
@@ -184,11 +225,11 @@ HRESULT Renderer::initialize(const HWND& window)
 	initRenderQuad();
 	
 
-	 //ImGui initialization
+	// ImGui initialization
 	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
+	ImGuiContext* imguictx = ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	//ImGui::SetCurrentContext(imguictx);
+	ImGui::SetCurrentContext(imguictx);
 
 	ImGui::StyleColorsDark();
 
@@ -198,7 +239,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	Particle::setupStaticDataForParticle(m_devicePtr.Get());
 
 	//Shadows - don't forget to update resolution constant in shader(s) as well
-	m_shadowMap = new ShadowMap((UINT)4096, (UINT)4096, m_devicePtr.Get(), Engine::get().getSkyLightDir());
+	m_shadowMap = new ShadowMap();
+	m_shadowMap->initialize((UINT)4096, (UINT)4096, m_devicePtr.Get(), Engine::get().getSkyLightDir());
 	m_shadowMap->createRasterState();
 
 	return hr;
@@ -266,11 +308,12 @@ HRESULT Renderer::createDepthStencil()
 	depthTextureDesc.SampleDesc.Count = 2;
 	depthTextureDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
 
-	hr = m_devicePtr->CreateTexture2D(&depthTextureDesc, 0, &m_depthStencilBufferPtr);
+	ID3D11Texture2D* depthStencilBufferPtr;
+	hr = m_devicePtr->CreateTexture2D(&depthTextureDesc, 0, &depthStencilBufferPtr);
 	if (!SUCCEEDED(hr)) return hr;
 
-	hr = m_devicePtr->CreateDepthStencilView(m_depthStencilBufferPtr.Get(), NULL, m_depthStencilViewPtr.GetAddressOf());
-
+	hr = m_devicePtr->CreateDepthStencilView(depthStencilBufferPtr, NULL, m_depthStencilViewPtr.GetAddressOf());
+	depthStencilBufferPtr->Release();
 	//Binding rendertarget and depth target to pipline
 //Best practice to use an array even if only using one rendertarget
 	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
@@ -405,6 +448,7 @@ HRESULT Renderer::initializeBloomFilter()
 
 	hr = m_devicePtr->CreateComputeShader(Blob->GetBufferPointer(), Blob->GetBufferSize(), NULL, m_CSBlurr.GetAddressOf());
 	assert(SUCCEEDED(hr));
+	return hr;
 }
 
 void Renderer::calculateBloomWeights()
@@ -490,6 +534,7 @@ void Renderer::blurPass()
 	m_dContextPtr->PSSetShaderResources(1, 1, m_downSampledShaderResourceView.GetAddressOf());
 	m_dContextPtr->Draw(vertexCount, 0);
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
 
 }
 
@@ -504,7 +549,7 @@ void Renderer::initRenderQuad()
 	fullScreenQuad.push_back({ XMFLOAT3(1.f, 1.f, 0.f), XMFLOAT2(1.f, 0.f) });
 	fullScreenQuad.push_back({ XMFLOAT3(1.f, -1.f, 0.f), XMFLOAT2(1.f, 1.f) });
 
-	m_renderQuadBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_VERTEX_BUFFER, fullScreenQuad.data(), fullScreenQuad.size());
+	m_renderQuadBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_VERTEX_BUFFER, fullScreenQuad.data(), (int)fullScreenQuad.size());
 }
 
 void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
@@ -600,7 +645,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
-				m_dContextPtr->PSSetShaderResources(2, 1, &m_shadowMap->m_depthMapSRV);
+				m_dContextPtr->PSSetShaderResources(2, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 
 				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
 				
@@ -802,13 +847,13 @@ void Renderer::render()
 	ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 	ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
 	ImGui::End();
-	// [ Bloom Filter ]
 
+	// Bloom Filter
 	downSamplePass();
 	blurPass();
 
 
-	//GUI
+	// GUI
 	GUIHandler::get().render();
 
 	// Render ImGui
@@ -831,4 +876,12 @@ ID3D11DeviceContext* Renderer::getDContext()
 ID3D11DepthStencilView* Renderer::getDepthStencilView()
 {
 	return m_depthStencilViewPtr.Get();
+}
+
+void Renderer::printLiveObject()
+{
+#if defined( DEBUG ) || defined( _DEBUG )
+	HRESULT hr = m_debugPtr->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+	assert(SUCCEEDED(hr));
+#endif
 }
