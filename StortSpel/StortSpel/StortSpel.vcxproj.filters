@@ -79,11 +79,17 @@
     <Filter Include="Source Files\Graphics\Particles\RainingDog\Draw">
       <UniqueIdentifier>{cb4f9acb-35a2-4e50-afe7-523299c12978}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Graphics\Particles\PlayerLines">
-      <UniqueIdentifier>{a1c79bd5-2660-43a9-b262-d5a650067a8a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Game\Traps">
       <UniqueIdentifier>{fda73094-e463-4574-9c83-c0425d6076d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\Lines">
+      <UniqueIdentifier>{a1c79bd5-2660-43a9-b262-d5a650067a8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\Lines\PlayerLines">
+      <UniqueIdentifier>{81cd15a0-dc26-411b-960a-cd15bfe82696}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\Lines\LineArray">
+      <UniqueIdentifier>{76330652-4474-42fc-9b9d-736c26b0023a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -389,9 +395,6 @@
     <ClInclude Include="Particles\RainingDogsParticle.h">
       <Filter>Source Files\Graphics\Particles\RainingDog</Filter>
     </ClInclude>
-    <ClInclude Include="Particles\PlayerLineParticle.h">
-      <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
-    </ClInclude>
     <ClInclude Include="BarrelComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
@@ -436,6 +439,12 @@
     </ClInclude>
     <ClInclude Include="CannonPickup.h">
       <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles\PlayerLineParticle.h">
+      <Filter>Source Files\Graphics\Particles\Lines\PlayerLines</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles\LineArrayParticle.h">
+      <Filter>Source Files\Graphics\Particles\Lines\LineArray</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -519,14 +528,11 @@
     <FxCompile Include="Particles\DrawLineByVelocityGS.hlsl">
       <Filter>Source Files\Graphics\Particles\Score</Filter>
     </FxCompile>
-    <FxCompile Include="Particles\PlayerLineStreamOutGS.hlsl">
-      <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
-    </FxCompile>
     <FxCompile Include="Particles\PlayerLineDrawVertexShader.hlsl">
-      <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
+      <Filter>Source Files\Graphics\Particles\Lines</Filter>
     </FxCompile>
     <FxCompile Include="Particles\PlayerLineDrawGS.hlsl">
-      <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
+      <Filter>Source Files\Graphics\Particles\Lines</Filter>
     </FxCompile>
     <FxCompile Include="ShadowVertex.hlsl">
       <Filter>Resource Files\Shader</Filter>
@@ -542,6 +548,12 @@
     </FxCompile>
     <FxCompile Include="EmissivePixelShader.hlsl">
       <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\PlayerLineStreamOutGS.hlsl">
+      <Filter>Source Files\Graphics\Particles\Lines\PlayerLines</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\ArrayOfLinesStreamOut.hlsl">
+      <Filter>Source Files\Graphics\Particles\Lines\LineArray</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

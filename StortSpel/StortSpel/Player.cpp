@@ -34,6 +34,12 @@ Player::Player()
 		vec.emplace_back(new CannonPickup());
 		Pickup::initPickupArray(vec);
 	}
+
+	for (int i = 0; i < 10; i++)
+	{
+		m_lineData[i].direction = { 0, 0, 0 };
+		m_lineData[i].position = { 0, 0, 0 };
+	}
 	
 	//GUI
 	m_score = 0;
@@ -183,21 +189,48 @@ float lerp(const float& a, const float &b, const float &t)
 	return a + (t * (b - a));
 }
 bool doOnce = false;
+
+Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 vel, float t)
+{
+	Vector3 curPos = pos;
+	Vector3 curVel = vel;
+
+	curVel.y -= GRAVITY * m_gravityScale * t;
+	if (curVel.y <= -MAX_FALL_SPEED)
+		curVel.y = -MAX_FALL_SPEED;
+	curPos = curVel * t + pos;
+
+	return curPos;
+}
+
+void Player::trajectoryEquationOutFill(Vector3 pos, Vector3 vel, float t, XMFLOAT3& outPos, XMFLOAT3& outDir)
+{
+	Vector3 curPos = pos;
+	Vector3 curVel = vel;
+
+	curVel.y -= GRAVITY * m_gravityScale * t;
+	if (curVel.y <= -MAX_FALL_SPEED)
+		curVel.y = -MAX_FALL_SPEED;
+	curPos = curVel * t + pos;
+
+	outPos = curPos;
+	outDir = curVel;
+}
+
 Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY)
 {
+	Vector3 returnPosition;
+
 	bool foundEnd = false;
 	bool print = !doOnce;
 	float t = 0.01;
 	Vector3 pos = position;
 	Vector3 vel = velocity;
+
 	while (!foundEnd && t < 200)
 	{
-		Vector3 curVel = vel;
-		Vector3 curPos = pos;
-		curVel.y -= GRAVITY * m_gravityScale * t;
-		if (curVel.y <= -MAX_FALL_SPEED)
-			curVel.y = -MAX_FALL_SPEED;
-		curPos = curVel * t + pos;
+		Vector3 curPos;
+		curPos = trajectoryEquation(pos, vel, t);
 		if (print)
 		{
 			std::cout << (int)curPos.x << " " << (int)curPos.y << " " << (int)curPos.z << std::endl;
@@ -209,8 +242,17 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 		if (hit)
 		{
 			foundEnd = true;
-			pos = curPos;
-			m_3dMarker->setPosition(pos);
+			returnPosition = curPos;
+			m_3dMarker->setPosition(returnPosition);
+			float tDist = t / 10;
+			for (int i = 0; i < 10; i++)
+			{
+				Vector3 lineDataPos;
+				Vector3 lineDataDir;
+				float tempT = tDist * i;
+				trajectoryEquationOutFill(pos, vel, tempT, m_lineData[i].position, this->m_lineData[i].direction);
+			}
+
 		}
 		else
 			m_3dMarker->setPosition(m_playerEntity->getTranslation());
@@ -218,7 +260,7 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 
 	ImGui::Text("Found Position:(%d, %d, %d)", (int)pos.x, (int)pos.y, (int)pos.z);
 
-	return pos;
+	return returnPosition;
 }
 
 void Player::playerStateLogic(const float& dt)
@@ -526,6 +568,11 @@ Vector3 Player::getCheckpointPos()
 Vector3 Player::getVelocity()
 {
 	return m_velocity;
+}
+
+LineData* Player::getLineDataArray()
+{
+	return m_lineData;
 }
 
 void Player::setCheckpoint(Vector3 newPosition)

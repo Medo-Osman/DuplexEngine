@@ -277,6 +277,7 @@
     <ClInclude Include="GUIContext.h" />
     <ClInclude Include="GUIImageLabel.h" />
     <ClInclude Include="HeightPickup.h" />
+    <ClInclude Include="Particles\LineArrayParticle.h" />
     <ClInclude Include="MoveToAction.h" />
     <ClInclude Include="Particles\Particle.h" />
     <ClInclude Include="ParticleComponent.h" />
@@ -415,6 +416,10 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Particles\ArrayOfLinesStreamOut.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Particles\DrawLineByVelocityGS.hlsl">

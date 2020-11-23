@@ -3,6 +3,7 @@
 #include"Pickup.h"
 #include"ParticleComponent.h"
 #include"Particles\PlayerLineParticle.h"
+#include"Particles\LineArrayParticle.h"
 
 class CannonPickup : public Pickup
 {
@@ -29,9 +30,11 @@ public:
 
 	virtual void onUse()
 	{
+		Engine* eng = &Engine::get();
 		Pickup::onUse();
-		m_particleEffect = new ParticleComponent(m_entityToDoEffectsOn, new PlayerLineParticle());
-		m_entityToDoEffectsOn->addComponent("heightParticle", m_particleEffect);
+		m_particleEffect = new ParticleComponent(m_entityToDoEffectsOn, new LineArrayParticle());
+		m_entityToDoEffectsOn->addComponent("trajectory", m_particleEffect);
+		m_particleEffect->getParticlePointer()->initParticle(eng->getDevicePtr(), eng->getCameraPtr(), m_entityToDoEffectsOn);
 		m_particleEffect->activate();
 	}
 	virtual void onDepleted()

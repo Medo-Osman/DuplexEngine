@@ -21,6 +21,26 @@ __declspec(align(16)) struct cbVSWVPMatrix
     }
 };
 
+
+__declspec(align(16)) struct LineData
+{
+    XMFLOAT3 position;
+    float pad;
+    XMFLOAT3 direction;
+    float paddy;
+
+    void* operator new(size_t i)
+    {
+        return _mm_malloc(i, 16);
+    }
+
+    void operator delete(void* p)
+    {
+        _mm_free(p);
+    }
+};
+
+
 struct perObjectMVP
 {
     XMMATRIX world; //model

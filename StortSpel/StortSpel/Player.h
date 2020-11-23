@@ -16,6 +16,7 @@
 #include "GUIHandler.h"
 #include "BarrelComponent.h"
 
+
 using namespace DirectX;
 
 enum class PlayerState
@@ -125,6 +126,8 @@ private:
     Vector3 m_direction;
     Entity* m_3dMarker;
     Vector3 m_cameraOffset;
+    LineData m_lineData[10];
+    
 
     //
     TrapType m_activeTrap;
@@ -157,6 +160,8 @@ private:
     //Private functions
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
+    Vector3 trajectoryEquation(Vector3 pos, Vector3 vel, float t);
+	void trajectoryEquationOutFill(Vector3 pos, Vector3 vel, float t, XMFLOAT3& outPos, XMFLOAT3& outDir);
     Vector3 calculatePath(Vector3 position, Vector3 velocity, float gravityY);
     void playerStateLogic(const float& dt);
 
@@ -206,6 +211,7 @@ public:
 
     Vector3 getCheckpointPos();
     Vector3 getVelocity();
+    LineData* getLineDataArray();
     void setCheckpoint(Vector3 newPosition);
 
     void setCameraTranformPtr(Transform* transform);
