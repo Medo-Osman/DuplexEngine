@@ -513,6 +513,19 @@ public:
 		return m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
 	}
 
+	bool hitSomething(Vector3 position, float radius, float halfHeight)
+	{
+		PxQueryFilterData fd;
+		fd.flags |= PxQueryFlag::eANY_HIT;
+		PxOverlapBuffer hit;            // [out] Overlap results
+		PxCapsuleGeometry overlapShape(radius, halfHeight) ;  // [in] shape to test for overlaps
+		PxTransform shapePose = PxTransform(PxVec3(position.x, position.y, position.z));    // [in] initial shape pose (at distance=0)
+
+
+		bool status = m_scenePtr->overlap(overlapShape, shapePose, hit, fd);
+		return status;
+	}
+
 	//Manager
 	PxController* addCapsuleController(const XMFLOAT3 &position, const float &height, const float &radius, const std::string &materialName, PxControllerBehaviorCallback* controlBehavior)
 	{
@@ -543,6 +556,12 @@ public:
 		ccd.scaleCoeff = 0.8f;
 
 		capsuleController = m_controllManager->createController(ccd);
+		dynamic_cast<PxRigidBody*>(capsuleController->getActor())->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, true);
+		PxShape* shapes[1];
+		PxRigidDynamic* actor = capsuleController->getActor();
+		int nrOfShapes = actor->getNbShapes();
+		actor->getShapes(shapes, 1 * sizeof(PxShape), 0);
+		shapes[0]->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 
 		return capsuleController;
 	}
@@ -578,7 +597,7 @@ public:
 
 	void makeKinematicActorDynamic(PxRigidBody* actor, float newMass)
 	{
-		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, false);
+		actor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, false);
 		actor->setMass(newMass);
 	}
 

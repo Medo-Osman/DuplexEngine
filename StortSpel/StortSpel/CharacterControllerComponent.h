@@ -12,6 +12,8 @@ private:
 	Transform* m_transform;
 
 	PxController* m_controller;
+	float m_originalRadius;
+	float m_originalHalfHeight;
 	bool canUseController() const
 	{
 		bool canUse = true;
@@ -45,10 +47,21 @@ public:
 
 	void initController(Transform* transform, const float& height, const float &radius, std::string material = "default")
 	{
+		m_originalHalfHeight = height;
+		m_originalRadius = radius;
 		m_transform = transform;
 		m_controller = m_physicsPtr->addCapsuleController(m_transform->getTranslation(), height, radius, material, this);
 	}
 
+	const float& getOriginalRadius()
+	{
+		return m_originalRadius;
+	}
+
+	const float& getOriginalHalfHeight()
+	{
+		return m_originalHalfHeight;
+	}
 	void move(const XMFLOAT3 &moveTowards, const float &dt)
 	{
 		if (!canUseController())
@@ -70,6 +83,14 @@ public:
 		if (!canUseController())
 			return {0.f, 0.f, 0.f};
 		PxExtendedVec3 footPos = m_controller->getFootPosition();
+		return XMFLOAT3((float)footPos.x, (float)footPos.y, (float)footPos.z);
+	}
+
+	Vector3 getCenterPosition() const
+	{
+		if (!canUseController())
+			return { 0.f, 0.f, 0.f };
+		PxExtendedVec3 footPos = m_controller->getPosition();
 		return XMFLOAT3((float)footPos.x, (float)footPos.y, (float)footPos.z);
 	}
 

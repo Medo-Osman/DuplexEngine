@@ -452,6 +452,12 @@
     <ClInclude Include="GrowingComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="HeightPickup.h">
+      <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
+    <ClInclude Include="CannonPickup.h">
+      <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">

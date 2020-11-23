@@ -16,6 +16,8 @@
 #include "GUIHandler.h"
 #include "BarrelComponent.h"
 
+using namespace DirectX;
+
 enum class PlayerState
 {
     IDLE,
@@ -23,12 +25,42 @@ enum class PlayerState
     FALLING,
     DASH,
     ROLL,
+    CANNON,
+    FLYINGBALL,
 };
 
-using namespace DirectX;
-using namespace SimpleMath;
+enum class PlayerActions
+{
+    ON_POWERUP_USE,
+    ON_FIRE_CANNON,
+};
 
-class Player : public InputObserver, public PhysicsObserver, public GUIObserver
+
+struct PlayerMessageData
+{
+    void* playerPtr;
+    PlayerActions playerActionType;
+    int intEnum;
+
+};
+
+class PlayerObserver {
+public:
+    PlayerObserver() {};
+    virtual ~PlayerObserver() {};
+    virtual void reactOnPlayer(PlayerMessageData& msg) = 0;
+};
+
+class PlayerSubject {
+public:
+    virtual ~PlayerSubject() {};
+    virtual void Attach(PlayerObserver* observer) = 0;
+    virtual void Detach(PlayerObserver* observer) = 0;
+};
+
+
+
+class Player : public InputObserver, public PhysicsObserver, public GUIObserver, public PlayerSubject
 {
 private:
     float m_playerScale = 2.0f;
@@ -91,7 +123,15 @@ private:
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
     Pickup* m_pickupPointer;
+    Pickup* m_environmentPickup;
    
+    //CAnnon
+    Entity* m_cannonEntity;
+    bool m_shouldFire = false;
+    Vector3 m_direction;
+    Entity* m_3dMarker;
+    Vector3 m_cameraOffset;
+
     //
     TrapType m_activeTrap;
 
@@ -117,15 +157,23 @@ private:
     float m_slowTimer = 0;
     int m_trapId = -1;
 
+    //Observer
+    std::vector<PlayerObserver*> m_playerObservers;
+
+
+    //Private functions
     void setStates(std::vector<State> states);
     void handleRotation(const float& dt);
+    Vector3 calculatePath(Vector3 position, Vector3 velocity, float gravityY);
     void playerStateLogic(const float& dt);
+
+    bool pickupUpdate(Pickup* pickupPtr, const float& dt);
 
     bool canRoll() const;
     void roll();
     bool canDash() const;
     void dash();
-    void jump();
+    void jump(const bool& incrementCounter = true, const float& multiplier = 1.0f);
     void prepDistVariables();
 
     void rollAnimation();
@@ -135,6 +183,27 @@ private:
 public:
     Player();
     ~Player();
+
+    virtual void Attach(PlayerObserver* observer)
+    {
+        m_playerObservers.emplace_back(observer);
+    }
+    virtual void Detach(PlayerObserver* observer)
+    {
+        int index = -1;
+        for (int i = 0; i < m_playerObservers.size() && index == -1; i++)
+        {
+            if (m_playerObservers[i] == observer)
+                index = i;
+        }
+        if (index != -1)
+            m_playerObservers.erase(m_playerObservers.begin() + index);
+    }
+
+    void setCannonEntity(Entity* entity);
+    Entity* get3DMarkerEntity();
+    Entity* getCannonEntity() { return m_cannonEntity; }
+    int m_cannonCrosshairID;
 
     bool isRunning();
 
@@ -159,6 +228,7 @@ public:
     int getScore();
     void setScore(int newScore);
     Entity* getPlayerEntity() const;
+    Vector3 getCameraOffset();
     const bool canUsePickup();
     void handlePickupOnUse();
     void inputUpdate(InputData& inputData);

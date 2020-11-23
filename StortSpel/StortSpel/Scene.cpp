@@ -54,17 +54,29 @@ Scene::~Scene()
 	}
 }
 
-void Scene::createParticleEntity(void* particleComponent, Vector3 position)
+void Scene::activateScene()
 {
-	ParticleComponent* pc = static_cast<ParticleComponent*>(particleComponent);
+	m_player->Attach(this);
+}
+
+void Scene::deactivateScene()
+{
+	m_player->Detach(this);
+}
+
+void Scene::createScoreParticleEntity(Vector3 position)
+{
 	std::string name = "tempParticleEntity" + std::to_string(m_tempParticleID++);
 	Entity* particleEntity = this->addEntity(name);
-	particleEntity->setPosition(position);
-	pc->setTransform(particleEntity);
-	particleEntity->addComponent("particle", pc);
-	pc->activate();
+	ParticleComponent* particleComponent = new ParticleComponent(particleEntity, new ScorePickupParticle());
 
-	m_tempParticleComponent.emplace_back(pc);
+
+	particleEntity->setPosition(position);
+	particleComponent->setTransform(particleEntity);
+	particleEntity->addComponent("particle", particleComponent);
+	particleComponent->activate();
+
+	m_tempParticleComponent.emplace_back(particleComponent);
 }
 
 void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
@@ -153,7 +165,7 @@ void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
 	{
 		if (physicsData.associatedTriggerEnum == (int)PickupType::SCORE)
 		{
-			this->createParticleEntity(physicsData.pointer, entity->getTranslation());
+			this->createScoreParticleEntity(entity->getTranslation());
 		}
 	}
 	//std::vector<Component*> vec;
@@ -195,11 +207,11 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 	mat.setEmissiveStrength(100.f);
 	Entity* pickupPtr = addEntity(name);
 
-	ParticleComponent* particleComponent = new ParticleComponent(pickupPtr, new ScorePickupParticle());
 
 	pickupPtr->setPosition(position);
+
 	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST, mat));
-	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6, particleComponent));
+	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
@@ -360,7 +372,8 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	pickupPtr = addEntity(name);
 	pickupPtr->setPosition(position);
 	addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, 1.f, 6));
+
+	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, tier, 1));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
@@ -1537,6 +1550,49 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 		
 	}
 
+
+}
+
+void Scene::reactOnPlayer(PlayerMessageData& msg)
+{
+
+	if (msg.playerActionType == PlayerActions::ON_POWERUP_USE) //Player have just used a powerup.
+	{
+		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
+		{
+			//Create a trampoline entity
+			Vector3 trampolineSpawnPos = m_player->getPlayerEntity()->getTranslation();
+			Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
+			trampoline->setPosition(trampolineSpawnPos);
+			addComponent(trampoline, "mesh1",
+				new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(trampoline, "mesh2",
+				new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(trampoline, "mesh3",
+				new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
+
+			createNewPhysicsComponent(trampoline, false);
+			TriggerComponent* triggerComponent = new TriggerComponent();
+			triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
+			triggerComponent->setIntData(0);
+			trampoline->addComponent("heightTrigger", triggerComponent);
+			triggerComponent->initTrigger(m_sceneID, trampoline, { 0.4f, 0.1, 0.4f }, { 0.f, 1.f, 0.f });
+		}
+
+		if ((PickupType)msg.intEnum == PickupType::CANNON)
+		{
+			Vector3 playerPos = m_player->getPlayerEntity()->getTranslation();
+			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
+			cannon->setPosition(playerPos);
+			addComponent(cannon, "mesh1", new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+
+			static_cast<Player*>(msg.playerPtr)->setCannonEntity(cannon);
+		}
+	}
+	else if (msg.playerActionType == PlayerActions::ON_FIRE_CANNON)
+	{
+		removeEntity(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getIdentifier());
+	}
 
 }
 
