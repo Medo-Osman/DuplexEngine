@@ -60,7 +60,7 @@ public:
 	{
 		m_physicsComponent = dynamic_cast<PhysicsComponent*>(this->findSiblingComponentOfType(ComponentType::PHYSICS));
 		if (m_physicsComponent)
-			m_physicsComponent->setSlide(true);
+			m_physicsComponent->setSlide(false);
 	}
 
 	~RotateAroundComponent() {}

@@ -389,6 +389,8 @@ void Scene::loadScene(std::string path)
 
 		Entity* newEntity = addEntity(entName);
 
+		assert(newEntity);
+
 		// Read transform values
 		Vector3 pos = readDataFromChar<Vector3>(levelData, offset);
 		Quaternion rotQuat = readDataFromChar<Quaternion>(levelData, offset);
@@ -472,7 +474,8 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 	memcpy(paramData, compData + offset, sizeOfData - offset);
 
 	Component* newComponent = nullptr;
-	;;;
+	
+																						// TODO: edvin will add a swinging component, it will need the onSceneLoad function.
 	switch (compType)
 	{
 	case ComponentType::MESH:
@@ -509,13 +512,24 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 		needsKinematicPhys = true;
 		break;
 	case ComponentType::ROTATE:
-		newComponent = new RotateComponent(entity, Vector3(1.0f, 0.0f, 0.f), 0.4f);
+		newComponent = new RotateComponent(entity, paramData);
 		needsDynamicPhys = true;
 		needsKinematicPhys = true;
 		break;
 	case ComponentType::LIGHT:
-		newComponent = new InvalidComponent();
+	{
+		LightType lightType = readDataFromChar<LightType>(compData, offset);
+		switch (lightType)
+		{
+		case Point:
+			newComponent = new LightComponent(paramData);
+			break;
+		case Spot:
+			newComponent = new SpotLightComponent(paramData);
+			break;
+		}
 		break;
+	}
 	case ComponentType::SWEEPING:
 		newComponent = new SweepingComponent(paramData, entity);
 		needsDynamicPhys = true;

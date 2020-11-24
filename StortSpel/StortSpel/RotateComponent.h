@@ -43,7 +43,7 @@ public:
 	{
 		m_physicsComponent = dynamic_cast<PhysicsComponent*>(this->findSiblingComponentOfType(ComponentType::PHYSICS));
 		if (m_physicsComponent)
-			m_physicsComponent->setSlide(true);
+			m_physicsComponent->setSlide(false);
 	}
 
 	~RotateComponent() {}
@@ -62,7 +62,12 @@ public:
 
 		//m_transform->setRotation(m_rotateVector, m_angle);
 
-		m_physicsComponent ? m_physicsComponent->kinematicMove(m_transform->getTranslation(), quat) :
-			m_transform->setRotationQuat(quat);
+		//m_physicsComponent ? m_physicsComponent->kinematicMove(m_transform->getTranslation(), quat) :
+		//	m_transform->setRotationQuat(quat);
+
+		if (m_physicsComponent)
+			m_physicsComponent->kinematicMove(m_transform->getTranslation(), quat);
+
+		m_transform->setRotationQuat(quat);
 	}
 };
