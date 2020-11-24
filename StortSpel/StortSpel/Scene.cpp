@@ -398,7 +398,7 @@ void Scene::loadScene(std::string path)
 		newEntity->setRotationQuat(rotQuat);
 		newEntity->setScale(scale);
 
-		bool isDynamic;
+		bool isDynamic ;
 		PxGeometryType::Enum geoType;
 		std::string physMatName;
 		bool needsKinematics = false;
@@ -434,13 +434,27 @@ void Scene::loadScene(std::string path)
 			isDynamic = true;
 
 		// TEMP:
-		if (hasPhysics && (newEntity->hasComponentsOfType(ComponentType::MESH) /*|| newEntity->hasComponentsOfType(ComponentType::ANIM_MESH)*/))
+		if (hasPhysics && (newEntity->hasComponentsOfType(ComponentType::MESH) || newEntity->hasComponentsOfType(ComponentType::ANIM_MESH)) )
 		{
 			createNewPhysicsComponent(newEntity, isDynamic, "", geoType, physMatName);
 			if(needsKinematics)
 				static_cast<PhysicsComponent*>(newEntity->getComponent("physics"))->makeKinematic();
 		}
-			
+	}
+
+	int nrOfPrefabs = 0;
+	nrOfPrefabs = readDataFromChar<int>(levelData, offset);
+	for (int i = 0; i < nrOfPrefabs; i++)
+	{
+		int prefabDataSize = readDataFromChar<int>(levelData, offset);
+
+		char* prefabData = new char[prefabDataSize];
+		memcpy(prefabData, levelData + offset, prefabDataSize);
+		offset += prefabDataSize;
+
+		addPrefabFromFile(prefabData);
+
+		delete[] prefabData;
 	}
 
 	delete[] levelData;
@@ -458,11 +472,12 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 	memcpy(paramData, compData + offset, sizeOfData - offset);
 
 	Component* newComponent = nullptr;
-
+	;;;
 	switch (compType)
 	{
 	case ComponentType::MESH:
 		newComponent = new MeshComponent(paramData);
+		//entity->translate( ((MeshComponent*)newComponent)->getMeshResourcePtr()->getBoundsCenter() );
 		break;
 	case ComponentType::ANIM_MESH:
 		newComponent = new AnimatedMeshComponent(paramData);
@@ -488,8 +503,10 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 	case ComponentType::UNASSIGNED:
 		newComponent = new InvalidComponent();
 		break;
-	case ComponentType::ROTATEAROUND:
-		newComponent = new InvalidComponent();
+	case ComponentType::ROTATEAROUND: // This simply doesn't work, and won't unless we make a system for identifying other entities in
+		newComponent = new RotateAroundComponent(paramData, entity, entity); 
+		needsDynamicPhys = true;
+		needsKinematicPhys = true;
 		break;
 	case ComponentType::ROTATE:
 		newComponent = new RotateComponent(entity, Vector3(1.0f, 0.0f, 0.f), 0.4f);
@@ -500,12 +517,12 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 		newComponent = new InvalidComponent();
 		break;
 	case ComponentType::SWEEPING:
-		newComponent = new InvalidComponent();
+		newComponent = new SweepingComponent(paramData, entity);
 		needsDynamicPhys = true;
 		needsKinematicPhys = true;
 		break;
 	case ComponentType::FLIPPING:
-		newComponent = new InvalidComponent();
+		newComponent = new FlippingComponent(paramData, entity);
 		needsDynamicPhys = true;
 		needsKinematicPhys = true;
 		break;
@@ -521,6 +538,74 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 
 	addComponent(entity, compName, newComponent);
 	//addComponent(entity, "mesh", newComponent);
+}
+
+void Scene::addPrefabFromFile(char* params)
+{
+	int offset = 0;
+	
+	PrefabType type;
+	type = (PrefabType)readDataFromChar<int>(params, offset);
+
+	Vector3 pos = readDataFromChar<Vector3>(params, offset);
+	
+	switch (type)
+	{
+	case PARIS_WHEEL:
+	{
+		float param1, param2; int param3;
+		param1 = readDataFromChar<float>(params, offset);
+		param2 = readDataFromChar<float>(params, offset);
+		param3 = readDataFromChar<int>(params, offset);
+		createParisWheel( pos, param1, param2, param3);
+		break;
+	}
+		
+	case FLIPPING_PLATFORM:
+	{
+		Vector3 param1; float param2, param3;
+		param1 = readDataFromChar<Vector3>(params, offset);
+		param2 = readDataFromChar<float>(params, offset);
+		param3 = readDataFromChar<float>(params, offset);
+		createFlippingPlatform(pos, param1, param2, param3);
+		break;
+	}
+	case SWEEPING_PLATFORM:
+	{
+		//Vector3 param1 = readDataFromChar<Vector3>(params, offset);
+		createSweepingPlatform(pos, readDataFromChar<Vector3>(params, offset));
+		break;
+	}
+	case PICKUP:
+		//int tier = ;
+		addPickup(pos, readDataFromChar<int>(params, offset));
+		break;
+	case SCORE:
+		//int tier = ;
+		addScore(pos, readDataFromChar<int>(params, offset));
+		break;
+	case pfCHECKPOINT:
+		addCheckpoint(pos);
+		break;
+	case SLOWTRAP:
+		addSlowTrap(pos, readDataFromChar<Vector3>(params, offset));
+		break;
+	case PUSHTRAP:
+	{
+		Vector3 wallpos1, wallpos2;
+		wallpos1 = readDataFromChar<Vector3>(params, offset);
+		wallpos2 = readDataFromChar<Vector3>(params, offset);
+		addPushTrap(wallpos1, wallpos2, pos);
+		break;
+	}
+	case BARRELDROP:
+		addBarrelDrop(pos);
+		break;
+	case GOAL_TRIGGER:
+		
+		break;
+	}
+	
 }
 
 void Scene::loadTestLevel()
@@ -844,7 +929,7 @@ void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpe
 			static_cast<PhysicsComponent*>(ParisWheelPlatform->getComponent("physics"))->makeKinematic();
 
 			addComponent(ParisWheelPlatform, "rotate",
-				new RotateAroundComponent(center, center->getRotationMatrix(), ParisWheelPlatform, 12, rotationSpeed, i));
+				new RotateAroundComponent(center, ParisWheelPlatform, 12, rotationSpeed, i));
 		}
 	}
 }
@@ -1149,6 +1234,9 @@ void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string 
 	bool found = false;
 
 	entity->getComponentsOfType(tempComponentVector, ComponentType::MESH);
+
+	if (tempComponentVector.empty())
+		entity->getComponentsOfType(tempComponentVector, ComponentType::ANIM_MESH);
 
 	if (meshName != "")
 	{

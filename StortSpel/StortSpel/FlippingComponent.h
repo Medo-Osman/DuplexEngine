@@ -49,7 +49,6 @@ public:
 	{
 		// Read data from package
 		int offset = 0;
-		std::string tempString = readStringFromChar(paramData, offset);
 
 		float upTime = readDataFromChar<float>(paramData, offset);
 		float downTime = readDataFromChar<float>(paramData, offset);

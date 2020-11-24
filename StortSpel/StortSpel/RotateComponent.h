@@ -13,8 +13,8 @@ private:
 	PhysicsComponent* m_physicsComponent;
 
 	Vector3 m_rotateVector;
-public:
-	RotateComponent(Transform* origin, Vector3 rotateVector, float rotationSpeed = 5.f)
+
+	void init(Transform* origin, Vector3 rotateVector, float rotationSpeed = 5.f)
 	{
 		m_type = ComponentType::ROTATE;
 		this->m_transform = origin;
@@ -22,6 +22,21 @@ public:
 		this->m_angle = 0.f;
 		this->m_rotationSpeed = rotationSpeed;
 		m_rotateVector = rotateVector;
+	}
+
+public:
+	RotateComponent(Transform* origin, Vector3 rotateVector, float rotationSpeed = 5.f)
+	{
+		init(origin, rotateVector, rotationSpeed);
+	}
+
+	RotateComponent(Transform* origin, char* paramData)
+	{
+		int offset = 0;
+		Vector3 rotateVector = readDataFromChar<Vector3>(paramData, offset);
+		float rotationSpeed = readDataFromChar<float>(paramData, offset);
+
+		init(origin, rotateVector, rotationSpeed);
 	}
 
 	virtual void onSceneLoad() override

@@ -207,6 +207,7 @@ void AnimatedMeshComponent::addSingleAnimation(std::string animationName, float 
 
 	animState newState;
 	newState.justOne = true;
+	newState.blend = 0.f;
 	newState.startTransitionDuration = transistionTime;
 	newState.playDuringStartTransistion = playDuringStartTransistion;
 	newState.structs.push_back(newStruct);

@@ -23,13 +23,13 @@ private:
 	XMMATRIX m_rotationMatrix;
 	PhysicsComponent* m_physicsComponent;
 
-	void init(Transform* origin, XMMATRIX originRotationAxis, Transform* transform, float radius, float rotationSpeed, float startAngle, bool lockRotationToParent)
+	void init(Transform* origin, Transform* transform, float radius, float rotationSpeed, float startAngle, bool lockRotationToParent)
 	{
 		m_type = ComponentType::ROTATEAROUND;
 		this->m_originTransform = origin;
 
 		//this->m_origin		  = origin;
-		this->m_rotation = originRotationAxis;
+		this->m_rotation = origin->getRotationMatrix();
 		this->m_transform = transform;
 		this->m_angle = startAngle;
 		this->m_radius = radius;
@@ -38,32 +38,29 @@ private:
 	}
 
 public:
-	RotateAroundComponent(Transform* origin, XMMATRIX originRotationAxis, Transform* transform, float radius, float rotationSpeed = 20.f, float startAngle = 0.f, bool lockRotationToParent = false)
+	RotateAroundComponent(Transform* origin, Transform* transform, float radius, float rotationSpeed = 20.f, float startAngle = 0.f, bool lockRotationToParent = false)
 	{
-		init(origin, originRotationAxis, transform, radius, rotationSpeed, startAngle, lockRotationToParent);
+		init(origin, transform, radius, rotationSpeed, startAngle, lockRotationToParent);
 	}
 
 	RotateAroundComponent(char* paramData, Transform* origin, Transform* transform)
 	{
 		// Read data from package
 		int offset = 0;
-		std::string tempString = readStringFromChar(paramData, offset);
 
-		XMMATRIX originRotationAxis = readDataFromChar<XMMATRIX>(paramData, offset);
 		float radius = readDataFromChar<float>(paramData, offset);
 		float rotationSpeed = readDataFromChar<float>(paramData, offset);
 		float startAngle = readDataFromChar<float>(paramData, offset);
 		bool lockRotationToParent = readDataFromChar<bool>(paramData, offset);
 
-		init(origin, originRotationAxis, transform, radius, rotationSpeed, startAngle, lockRotationToParent);
+		init(origin, transform, radius, rotationSpeed, startAngle, lockRotationToParent);
 	}
 
-	void setComponentMapPointer(std::unordered_map<std::string, Component*>* componentMap)
+	virtual void onSceneLoad() override
 	{
-		Component::setComponentMapPointer(componentMap);
 		m_physicsComponent = dynamic_cast<PhysicsComponent*>(this->findSiblingComponentOfType(ComponentType::PHYSICS));
 		if (m_physicsComponent)
-			m_physicsComponent->setSlide(false);
+			m_physicsComponent->setSlide(true);
 	}
 
 	~RotateAroundComponent() {}

@@ -82,7 +82,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 		else if (inputData.actionData[i] == LOAD_SCENE)
 		{
 			m_nextScene = new Scene();
-			m_nextScene->loadScene("tutTest");
+			m_nextScene->loadScene("levelMeshTest");
 			swapScenes();
 			m_gameStarted = false;
 		}

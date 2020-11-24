@@ -42,7 +42,6 @@ public:
 	{
 		// Read data from package
 		int offset = 0;
-		std::string tempString = readStringFromChar(paramData, offset);
 
 		Vector3 startPos = readDataFromChar<Vector3>(paramData, offset);
 		Vector3 endPos = readDataFromChar<Vector3>(paramData, offset);
@@ -57,9 +56,8 @@ public:
 		m_isMoving = true;
 	}
 
-	void setComponentMapPointer(std::unordered_map<std::string, Component*>* componentMap)
+	virtual void onSceneLoad() override
 	{
-		Component::setComponentMapPointer(componentMap);
 		m_physicsComponent = dynamic_cast<PhysicsComponent*>(this->findSiblingComponentOfType(ComponentType::PHYSICS));
 		if (m_physicsComponent)
 		{
