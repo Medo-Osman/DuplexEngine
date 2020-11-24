@@ -720,8 +720,11 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(test, "3Dsound", new AudioComponent(L"fireplace.wav", true, 3.f, 0.f, true, test));
 	}
 
+	sceneObject->createSwingingHammer(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(0, 0, 1), 1);
+	sceneObject->createSwingingHammer(Vector3(0, 6.5, 0), Vector3(0, 0, 0), Vector3(0, 0, 1), 5);
+	sceneObject->createStaticPlatform(Vector3(0, 13, 20), Vector3(0, 0, 0), Vector3(4, 1, 4), "testCube_pCube1.lrm");
 	// Start:
-	sceneObject->createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
+	sceneObject->createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
 	sceneObject->createStaticPlatform(Vector3(0, 8.5, 29.5), Vector3(0, 0, 0), Vector3(10, 3, 1), "testCube_pCube1.lrm");
 	sceneObject->createStaticPlatform(Vector3(0, 10.5, 39), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
 	sceneObject->createStaticPlatform(Vector3(0, 14, 48.5), Vector3(0, 0, 0), Vector3(10, 6, 1), "testCube_pCube1.lrm");
@@ -1588,6 +1591,37 @@ void Scene::createPointLight(Vector3 position, Vector3 color, float intensity)
 		pointLight->setIntensity(intensity);
 		addComponent(pLight, "point-" + std::to_string(m_nrOfPointLight), pointLight);
 		pLight->setPosition(position);
+	}
+}
+
+void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, Vector3 rotationAxis, float swingSpeed)
+{
+	m_nrOfSweepingPlatforms++;
+
+	Entity* hammerFrame = addEntity("HammerFrame-" + std::to_string(m_nrOfSweepingPlatforms));
+	if (hammerFrame)
+	{
+		addComponent(hammerFrame, "mesh",
+			new MeshComponent("Hammer_Frame_pCube7.lrm", Material({ L"DarkGrayTexture.png" })));
+
+		hammerFrame->setPosition(position);
+		hammerFrame->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+	}
+
+	Entity* hammer = addEntity("Hammer-" + std::to_string(m_nrOfSweepingPlatforms));
+	if (hammer)
+	{
+		addComponent(hammer, "mesh",
+			new MeshComponent("Hammer_pCylinder3.lrm", Material({ L"DarkGrayTexture.png" })));
+
+		hammer->setPosition({ position.x, position.y + 6.5f, position.z });
+		hammer->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+
+		createNewPhysicsComponent(hammer, true);
+		static_cast<PhysicsComponent*>(hammer->getComponent("physics"))->makeKinematic();
+
+		addComponent(hammer, "swing",
+			new SwingComponent(hammer, rotationAxis, swingSpeed));
 	}
 }
 

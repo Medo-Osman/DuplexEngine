@@ -20,6 +20,7 @@
 #include "BarrelTriggerComponent.h"
 #include <filesystem>
 #include <algorithm>
+#include "SwingComponent.h"
 
 struct Settings
 {
