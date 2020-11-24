@@ -39,8 +39,7 @@ public:
 	void disableMovement();
 	void enableMovement();
 
-	void setContextPtr(std::vector<iContext*>* m_contexts);
-	//std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
+	void setContextPtr(std::vector<iContext*>* contexts);
 	std::vector<iContext*>* getContextPtr();
 
 	void swapScenes();

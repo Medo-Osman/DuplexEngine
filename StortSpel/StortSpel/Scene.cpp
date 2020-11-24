@@ -19,7 +19,8 @@ Scene::Scene()
 
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
-
+	
+	
 }
 
 Scene::~Scene()
@@ -76,9 +77,6 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 		floor->translate({ 0,-2,0 });
 		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
-
-
-
 
 	Entity* test = sceneObject->addEntity("test");
 	if (test)
@@ -288,6 +286,14 @@ void Scene::addBarrelDrop(Vector3 Position)
 int Scene::getSceneID()
 {
 	return this->m_sceneID;
+}
+
+void Scene::sortScore()
+{
+	std::sort(m_scores.begin(), m_scores.end());
+	/*std::sort(m_scores.begin(), m_scores.end(), [](int a, int b) {
+		return a > b;
+		});*/
 }
 
 void Scene::addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox)
@@ -843,6 +849,12 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 {
+	GUITextStyle style;
+
+	sceneObject->setScoreVec();
+	sceneObject->sortScore();
+
+
 	Entity* floor = sceneObject->addEntity("Floor");
 	if (floor)
 	{
@@ -853,7 +865,6 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	//fourth player spawn at location Vector3(10,1,0)
 	Entity* pedestalPlaceFour = sceneObject->addEntity("pedastal1");
 	if (pedestalPlaceFour)
 	{
@@ -864,7 +875,6 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 		sceneObject->createNewPhysicsComponent(pedestalPlaceFour, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	//third player spawn at location Vector3(2,1,0)
 	Entity* pedestalPlaceThree = sceneObject->addEntity("pedastal2");
 	if (pedestalPlaceThree)
 	{
@@ -875,7 +885,6 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 		sceneObject->createNewPhysicsComponent(pedestalPlaceThree, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	//second player spawn at location Vector3(7,1,0)
 	Entity* pedestalPlaceTwo = sceneObject->addEntity("pedastal3");
 	if (pedestalPlaceTwo)
 	{
@@ -886,17 +895,16 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 		sceneObject->createNewPhysicsComponent(pedestalPlaceTwo, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	//first player spawn at location Vector3(5,1,0)
 	Entity* pedestalPlaceOne = sceneObject->addEntity("pedastal4");
 	if (pedestalPlaceOne)
 	{
 		sceneObject->addComponent(pedestalPlaceOne, "mesh", new MeshComponent("testCube_pCube1.lrm",
 			Material({ L"BlackTexture.png" })));
 		pedestalPlaceOne->scale({ 2.5, 4, 2.5 });
-		pedestalPlaceOne->translate({5,0,0 });
+		pedestalPlaceOne->translate({ 5,0,0 });
 		sceneObject->createNewPhysicsComponent(pedestalPlaceOne, false, "", PxGeometryType::eBOX, "earth", false);
 	}
-	
+
 	Entity* PlayerOne = sceneObject->addEntity("Playerdummy1");
 	if (PlayerOne)
 	{
@@ -904,8 +912,8 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
 		PlayerOne->addComponent("mesh", animMeshComp);
 		sceneObject->addMeshComponent(animMeshComp);
-		PlayerOne->scale({2, 2, 2.});
-		PlayerOne->translate({ 5,2,0 });
+		PlayerOne->scale({ 2, 2, 2. });
+
 	}
 	Entity* PlayerTwo = sceneObject->addEntity("Playerdummy2");
 	if (PlayerTwo)
@@ -915,7 +923,6 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 		PlayerTwo->addComponent("mesh", animMeshComp);
 		sceneObject->addMeshComponent(animMeshComp);
 		PlayerTwo->scale({ 2, 2, 2 });
-		PlayerTwo->translate({ 7,1.5,0 });
 	}
 	Entity* PlayerThree = sceneObject->addEntity("Playerdummy3");
 	if (PlayerThree)
@@ -925,11 +932,39 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 		PlayerThree->addComponent("mesh", animMeshComp);
 		sceneObject->addMeshComponent(animMeshComp);
 		PlayerThree->scale({ 2, 2, 2 });
-		PlayerThree->translate({ 1.5.5,0 });
 
 	}
 
+	sceneObject->setPlayersPosition(PlayerOne);
+	sceneObject->setPlayersPosition(PlayerTwo);
+	sceneObject->setPlayersPosition(PlayerThree);
 
+
+
+
+	style.position.y = 120.f;
+	style.scale = { 0.5f };
+	sceneObject->m_highScoreLabelIndex = GUIHandler::get().addGUIText("High Score", L"squirk.spritefont", style);
+	style.position.x = 160.f;
+	style.position.y = 300.f;
+
+	style.color = Colors::Yellow;
+
+	for (int i = 0; i < sceneObject->m_scores.size(); i++)
+	{
+		sceneObject->m_playerOneScoreIndex = GUIHandler::get().addGUIText(std::to_string(sceneObject->m_scores.at(i).first), L"squirk.spritefont", style);
+		style.position.y -= 50.0f;
+	}
+	style.position.x = 50.0f;
+	style.position.y = 300.f;
+	int rankings = 3;
+	for (int i = 0; i < sceneObject->m_scores.size(); i++)
+	{
+
+		sceneObject->m_highScoreLabelIndex = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"squirk.spritefont", style);
+		style.position.y -= 50.0f;
+	}
+	
 	*finished = true;
 }
 
@@ -1346,6 +1381,14 @@ void Scene::removeEntity(std::string identifier)
 	m_entities.erase(identifier);
 }
 
+void Scene::setScoreVec()
+{
+	//m_scores.push_back(std::make_pair(m_nrOfScore, "Player"));
+	m_scores.push_back(std::make_pair(m_nrOfScorePlayerOne, "Playerdummy1"));
+	m_scores.push_back(std::make_pair(m_nrOfScorePlayerTwo, "Playerdummy2"));
+	m_scores.push_back(std::make_pair(m_nrOfScorePlayerThree, "Playerdummy3"));
+}
+
 bool Scene::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
 {
 	entity->addComponent(componentIdentifier, component);
@@ -1431,6 +1474,32 @@ void Scene::addLightComponent(LightComponent* component)
 		ErrorLogger::get().logError("Maximum lights achieved, failed to add one.");
 }
 
+void Scene::setPlayersPosition(Entity* entity)
+{
+	int position = -1;
+	for (int i = 0; i < m_scores.size(); i++)
+	{
+		
+		if (m_scores.at(i).second == entity->getIdentifier())
+		{
+			position = i;
+		}
+
+	}
+	if (position==0)
+	{
+		entity->translate(2.5, 0.5, 0);
+	}
+	if (position == 1)
+	{
+		entity->translate(7, 1.5, 0);
+	}
+	if (position == 2)
+	{
+		entity->translate(5, 2, 0);
+	}
+}
+
 void Scene::removeLightComponent(LightComponent* component)
 {
 	getEntity(component->getParentEntityIdentifier())->removeComponent(component);
@@ -1467,6 +1536,7 @@ std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMa
 {
 	return &m_meshComponentMap;
 }
+
 
 void Scene::initDeferredPhysics()
 {

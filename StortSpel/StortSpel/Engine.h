@@ -72,8 +72,7 @@ public:
 	void setLightComponentMapPtr(std::unordered_map<std::string, LightComponent*>* lightComponents);
 
 	bool addComponentToPlayer(std::string componentIdentifier, Component* component);
-	void removeLightComponentFromPlayer(LightComponent* component);
-
+	
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
 	std::unordered_map<std::string, Entity*>* getEntityMap();

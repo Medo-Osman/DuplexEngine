@@ -38,6 +38,11 @@ void Camera::setRotation(const XMVECTOR& rot)
 	m_rotation = rot;
 	this->updateViewMatrix();
 }
+void Camera::setEndScenePosition(const XMVECTOR& pos)
+{
+	m_position = Vector3(0, 10, -10);
+	this->updateViewMatrix();
+}
 Transform* Camera::getTransform()
 {
 	return &m_transform;
@@ -112,14 +117,18 @@ void Camera::update(const float &dt)
 	//	m_transform.rotate(m_rotation);
 	//	m_newIncrements = false;
 	//}
-	
-	m_position = Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation() + Vector3(0, 2, -5);
-	m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
-	
+	if (endSceneCamera)
+	{
+		m_position = Vector3(0,2,-10);
+	}
+	else
+	{
+		m_position = Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation() + Vector3(0, 2, -5);
+		m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
+	}
 	this->updateViewMatrix();
+	
 }
-
-
 
 BoundingFrustum Camera::getFrustum()
 {
@@ -127,7 +136,6 @@ BoundingFrustum Camera::getFrustum()
 	BoundingFrustum::CreateFromMatrix(frust, m_projectionMatrix);
 	return frust;
 }
-
 
 //Private
 void Camera::updateViewMatrix()

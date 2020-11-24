@@ -94,18 +94,6 @@ bool Engine::addComponentToPlayer(std::string componentIdentifier, Component* co
 	return true;
 }
 
-void Engine::removeLightComponentFromPlayer(LightComponent* component)
-{
-	//m_player->getPlayerEntity()->removeComponent(component);
-
-	//int nrOfErased = m_lightComponentMap->erase(component->getIdentifier());
-	//if (nrOfErased > 0) //if it deleted more than 0 elements
-	//{
-	//	m_lightCount -= nrOfErased;
-	//}
-	//m_currentScene->removeLightComponentFromMap(component);
-
-}
 
 std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 {

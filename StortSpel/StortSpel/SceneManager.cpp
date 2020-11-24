@@ -7,6 +7,7 @@ SceneManager::SceneManager()
 	m_nextScene = nullptr;
 	m_swapScene = false;
 	Physics::get().Attach(this, true, false);
+	
 }
 
 SceneManager::~SceneManager()
@@ -17,6 +18,7 @@ SceneManager::~SceneManager()
 
 void SceneManager::initalize()
 {
+
 	//define gui button
 	GUIButtonStyle btnStyle;
 	//start button
@@ -70,7 +72,6 @@ void SceneManager::initalize()
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
-
 }
 
 void SceneManager::updateScene(const float &dt)
@@ -106,7 +107,6 @@ void SceneManager::updateScene(const float &dt)
 		case ScenesEnum::ARENA:
 			sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
-
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			break;
@@ -121,8 +121,11 @@ void SceneManager::updateScene(const float &dt)
 			sceneLoaderThread = std::thread(Scene::loadEndScene, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
-			//disableMovement();
-
+			disableMovement();
+			GUIHandler::get().setVisible(m_singleplayerIndex, true);
+			GUIHandler::get().setVisible(m_hostGameIndex, true);
+			GUIHandler::get().setVisible(m_joinGameIndex, true);
+			GUIHandler::get().setVisible(m_exitIndex, true);			
 			break;
 		default:
 			break;
@@ -224,6 +227,11 @@ void SceneManager::setContextPtr(std::vector<iContext*>* contexts)
 std::vector<iContext*>* SceneManager::getContextPtr()
 {
 	return m_contexts;
+}
+
+void SceneManager::setCameraPtr(Camera* camera)
+{
+	m_camera = camera;
 }
 
 void SceneManager::swapScenes()
