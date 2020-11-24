@@ -720,8 +720,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(test, "3Dsound", new AudioComponent(L"fireplace.wav", true, 3.f, 0.f, true, test));
 	}
 
-	sceneObject->createSwingingHammer(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(0, 0, 1), 1);
-	sceneObject->createSwingingHammer(Vector3(0, 6.5, 0), Vector3(0, 0, 0), Vector3(0, 0, 1), 5);
+	sceneObject->createSwingingHammer(Vector3(0, 6.5, 20), Vector3(0, 0, 0), 1);
 	sceneObject->createStaticPlatform(Vector3(0, 13, 20), Vector3(0, 0, 0), Vector3(4, 1, 4), "testCube_pCube1.lrm");
 	// Start:
 	sceneObject->createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
@@ -1594,7 +1593,7 @@ void Scene::createPointLight(Vector3 position, Vector3 color, float intensity)
 	}
 }
 
-void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, Vector3 rotationAxis, float swingSpeed)
+void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swingSpeed)
 {
 	m_nrOfSweepingPlatforms++;
 
@@ -1615,13 +1614,13 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, Vector3 rot
 			new MeshComponent("Hammer_pCylinder3.lrm", Material({ L"DarkGrayTexture.png" })));
 
 		hammer->setPosition({ position.x, position.y + 6.5f, position.z });
-		hammer->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+		//hammer->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 
 		createNewPhysicsComponent(hammer, true);
 		static_cast<PhysicsComponent*>(hammer->getComponent("physics"))->makeKinematic();
 
 		addComponent(hammer, "swing",
-			new SwingComponent(hammer, rotationAxis, swingSpeed));
+			new SwingComponent(hammer, rotation, swingSpeed));
 	}
 }
 

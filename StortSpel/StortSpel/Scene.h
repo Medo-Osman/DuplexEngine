@@ -36,7 +36,7 @@ private:
 	int m_nrOfPointLight = 0;
 	void createPointLight(Vector3 position, Vector3 color, float intensity);
 	int m_nrSwingningHammers = 0;
-	void createSwingingHammer(Vector3 position, Vector3 rotation, Vector3 rotationAxis, float swingSpeed);
+	void createSwingingHammer(Vector3 position, Vector3 rotation, float swingSpeed);
 	
 	//---------------------------------------------------------------Boss sstuff
 	UINT m_nrOfProjectiles = 0;

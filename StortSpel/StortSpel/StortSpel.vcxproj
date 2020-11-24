@@ -221,7 +221,7 @@
     <ClCompile Include="AudioHandler.cpp" />
     <ClCompile Include="Boss.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Component.h" />
+    <ClInclude Include="Component.h" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Entity.h" />
     <ClCompile Include="GUIHandler.cpp" />

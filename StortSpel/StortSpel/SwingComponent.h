@@ -8,7 +8,7 @@ private:
 	Transform* m_transform;
 	float m_swingSpeed;
 	float m_time = 0;
-	Vector3 m_rotateAxis;
+	Vector3 m_initialRot;
 
 	float m_rotationDirection = 1;
 	float m_alpha = 0;
@@ -23,12 +23,12 @@ private:
 	}
 
 public:
-	SwingComponent(Transform* transform, Vector3 rotationAxis, float swingSpeed)
+	SwingComponent(Transform* transform, Vector3 orginRotAsDeg, float swingSpeed)
 	{
 		m_type = ComponentType::SWING;
 		m_transform = transform;
 		m_swingSpeed = swingSpeed;
-		m_rotateAxis = rotationAxis;
+		m_initialRot = orginRotAsDeg;
 	}
 
 	void setComponentMapPointer(std::unordered_map<std::string, Component*>* componentMap)
@@ -47,19 +47,19 @@ public:
 		{
 			m_rotationDirection *= -1;
 
-			start = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(m_rotateAxis.x * 89 * m_rotationDirection),
-													   XMConvertToRadians(m_rotateAxis.y * 89 * m_rotationDirection),
-													   XMConvertToRadians(m_rotateAxis.z * 89 * m_rotationDirection));
+			start = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(m_initialRot.y),
+													   XMConvertToRadians(m_initialRot.x),
+													   XMConvertToRadians(89 * m_rotationDirection));
 																						   
-			end   = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(m_rotateAxis.x * 89 * m_rotationDirection * -1),
-													   XMConvertToRadians(m_rotateAxis.y * 89 * m_rotationDirection * -1),
-													   XMConvertToRadians(m_rotateAxis.z * 89 * m_rotationDirection * -1));
+			end   = Quaternion::CreateFromYawPitchRoll(XMConvertToRadians(m_initialRot.y),
+													   XMConvertToRadians(m_initialRot.x),
+													   XMConvertToRadians(89 * m_rotationDirection * -1));
+
 			m_doOnce = false;
 		}
-
 		m_alpha += dt * m_swingSpeed;
 		Quaternion q = Quaternion::Slerp(start, end, ParametricBlend(m_alpha));
-
+		
 		m_physicsComponent ? m_physicsComponent->kinematicMove(m_transform->getTranslation(), q) :
 			m_transform->setRotationQuat(q);
 
