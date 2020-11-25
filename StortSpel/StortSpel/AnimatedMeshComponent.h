@@ -38,6 +38,7 @@ struct animState
 
 	float startTransitionDuration;
 	bool playDuringStartTransistion;
+	bool playDuringEndTransistion;
 
 	std::string stateName;
 };
@@ -72,12 +73,12 @@ public:
 
 	skeletonAnimationCBuffer* getAllAnimationTransforms();
 
-	void playSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion);
-	void addSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion);
-	void queueSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion);
+	void playSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion, bool playDuringEndTransistion);
+	void addSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion, bool playDuringEndTransistion);
+	void queueSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion, bool playDuringEndTransistion);
 
-	void addBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, bool playDuringStartTransistion);
-	void addAndPlayBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, float transistionTime, bool playDuringStartTransistion);
+	void addBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, bool playDuringStartTransistion, bool playDuringEndTransistion);
+	void addAndPlayBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, float transistionTime, bool playDuringStartTransistion, bool playDuringEndTransistion);
 	bool playBlendState(std::string stateName, float transistionTime);
 	bool queueBlendState(std::string stateName, float transistionTime);
 	
