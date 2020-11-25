@@ -115,6 +115,7 @@ private:
 	void downSamplePass();
 	void blurPass();
 	void initRenderQuad();
+	void drawMeshResource(MeshComponent* component, BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	Renderer(); //{};

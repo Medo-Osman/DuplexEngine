@@ -81,6 +81,7 @@ void SceneManager::initalize()
 	Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
+	Engine::get().setQuadTreePtr(m_currentScene->getQuadTreePtr());
 
 
 }
@@ -259,6 +260,7 @@ void SceneManager::swapScenes()
 		Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
 		Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 		Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
+		Engine::get().setQuadTreePtr(m_currentScene->getQuadTreePtr());
 
 		// Set as PhysicsObserver
 		Physics::get().Attach(m_currentScene, false, true);

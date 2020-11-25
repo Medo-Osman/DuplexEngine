@@ -5,7 +5,7 @@
 #include "Boss.h"
 #include <map>
 #include"ParticleComponent.h"
-
+#include"QuadTree.h"
 enum class ScenesEnum
 {
 	LOBBY,
@@ -20,9 +20,10 @@ class Scene : public PhysicsObserver, public BossObserver
 private:
 	int m_sceneID = -1;
 	int m_tempParticleID = 0;
-	//std::unordered_map<std::string, Entity*> m_entities;
-	//Entity* m_player;
-	//std::vector<
+
+	QuadTree* m_quadTree;
+
+
 	int nrOfParisWheels = 0;
 	void createParisWheel(Vector3 position, float rotation, float rotationSpeed = 20, int nrOfPlatforms = 4);
 	int nrOfFlippingPlatforms = 0;
@@ -87,8 +88,12 @@ private:
 
 	void sendPhysicsMessage(PhysicsData& physicsData, bool& removed);
 
+	static void removeQuadTreeMeshComponentsFromMeshComponentMap(Scene* sceneObject);
+
+
 	int m_nrOfPickups = 0;
 	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
+	static void createQuadTree(Scene* sceneObject);
 	void loadPickups();
 	void loadScore();
 	int m_nrOfScore = 0;
@@ -144,6 +149,7 @@ public:
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
+	QuadTree* getQuadTreePtr();
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
 

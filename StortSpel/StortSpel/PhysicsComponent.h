@@ -105,6 +105,11 @@ public:
 		m_shape = nullptr;
 	}
 
+	bool isStatic()
+	{
+		return !m_dynamic;
+	}
+
 	void initActorAndShape(int sceneID, Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
 	{
 		m_dynamic = dynamic;
