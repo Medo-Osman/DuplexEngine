@@ -526,7 +526,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
 
-		if (m_frustumCullingOn && parentEntity->m_canCull)
+		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
 		{
 			//Culling
 			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), *V);
@@ -693,7 +693,7 @@ void Renderer::update(const float& dt)
 {
 	if (ImGui::Button("Toggle FrustumCulling"))
 	{
-		m_frustumCullingOn = !m_frustumCullingOn;
+		m_camera->frustumCullingOn = !m_camera->frustumCullingOn;
 	}
 }
 

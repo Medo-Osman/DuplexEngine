@@ -54,12 +54,11 @@ void SceneManager::initalize()
 	// Start Scene
 	*m_nextSceneReady = false;
 	m_currentScene = new Scene();
-	//Scene::loadLobby(m_currentScene, m_nextSceneReady); //Single thread first load-in.
+	 //Single thread first load-in.
 	Scene::loadMainMenu(m_currentScene, m_nextSceneReady);
 	*m_nextSceneReady = false; //Because init is required
 	disableMovement();
 
-	//m_currentScene->loadArena();
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
 	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
@@ -72,6 +71,7 @@ void SceneManager::initalize()
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
+	m_camera = Engine::get().getCameraPtr();
 }
 
 void SceneManager::updateScene(const float &dt)
@@ -95,6 +95,7 @@ void SceneManager::updateScene(const float &dt)
 			Engine::get().getPlayerPtr()->setScore(0);
 			m_gameStarted = false;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			m_camera->endSceneCamera = false;
 			break;
 		case ScenesEnum::START:
 			sceneLoaderThread = std::thread(Scene::loadTestLevel, m_nextScene, m_nextSceneReady);
@@ -102,6 +103,7 @@ void SceneManager::updateScene(const float &dt)
 			m_gameStarted = true;
 			enableMovement();
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			m_camera->endSceneCamera = false;
 
 			break;
 		case ScenesEnum::ARENA:
@@ -109,6 +111,7 @@ void SceneManager::updateScene(const float &dt)
 			sceneLoaderThread.detach();
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			m_camera->endSceneCamera = false;
 			break;
 		case ScenesEnum::MAINMENU:
 			disableMovement();
@@ -116,6 +119,7 @@ void SceneManager::updateScene(const float &dt)
 			sceneLoaderThread.detach();
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			m_gameStarted = false;
+			m_camera->endSceneCamera = false; // if this is false the camera follows the player as usual
 			break;
 		case ScenesEnum::ENDSCENE:
 			sceneLoaderThread = std::thread(Scene::loadEndScene, m_nextScene, m_nextSceneReady);
@@ -125,13 +129,13 @@ void SceneManager::updateScene(const float &dt)
 			GUIHandler::get().setVisible(m_singleplayerIndex, true);
 			GUIHandler::get().setVisible(m_hostGameIndex, true);
 			GUIHandler::get().setVisible(m_joinGameIndex, true);
-			GUIHandler::get().setVisible(m_exitIndex, true);			
+			GUIHandler::get().setVisible(m_exitIndex, true);
+			m_camera->endSceneCamera = true; // If this is true the camera no longer updates and have a fixed position in this scene
 			break;
 		default:
 			break;
 		}
 	}
-
 	swapScenes();
 	m_currentScene->updateScene(dt);
 }
@@ -229,11 +233,6 @@ std::vector<iContext*>* SceneManager::getContextPtr()
 	return m_contexts;
 }
 
-void SceneManager::setCameraPtr(Camera* camera)
-{
-	m_camera = camera;
-}
-
 void SceneManager::swapScenes()
 {
 	m_swapScene = false;
@@ -263,6 +262,7 @@ void SceneManager::swapScenes()
 		CharacterControllerComponent* ccc = static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"));
 		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), 1.75f, 0.5, "human");
 		ccc->setPosition(m_currentScene->getEntryPosition());
+
 	}
 }
 

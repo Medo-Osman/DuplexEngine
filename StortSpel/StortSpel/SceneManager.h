@@ -5,6 +5,7 @@
 #include "Boss.h"
 #include <thread>
 #include <future>
+#include "Camera.h"
 
 
 class SceneManager : public InputObserver, public PhysicsObserver, public GUIObserver
@@ -17,6 +18,7 @@ private:
 	bool m_loadNextSceneWhenReady = false;
 	ScenesEnum m_nextSceneEnum;
 	Input* inputPtr;
+	Camera* m_camera;
 
 	std::vector<iContext*>* m_contexts;
 	int m_singleplayerIndex = 0;

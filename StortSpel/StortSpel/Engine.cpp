@@ -41,7 +41,7 @@ void Engine::update(const float& dt)
 
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
-
+	
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
 	updateLightData();

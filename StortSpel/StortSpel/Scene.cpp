@@ -661,20 +661,19 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 
-	Entity* testEndSceneTrigger = sceneObject->addEntity("trigger");
-	if (testEndSceneTrigger)
+	Entity* endSceneTrigger = sceneObject->addEntity("endSceneTrigger");
+	if (endSceneTrigger)
 	{
-		sceneObject->addComponent(testEndSceneTrigger, "mesh",
+		sceneObject->addComponent(endSceneTrigger, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
-		testEndSceneTrigger->setPosition(9,7,0);
-		testEndSceneTrigger->setScale(13.176, 15.048, 1);
-		testEndSceneTrigger->setRotation(XMConvertToRadians(-10.102), XMConvertToRadians(0), XMConvertToRadians(0));
-
-		sceneObject->addComponent(testEndSceneTrigger, "trigger",
+		endSceneTrigger->setPosition(9,7,0);
+		endSceneTrigger->setScale(2, 2, 2);
+		
+		sceneObject->addComponent(endSceneTrigger, "endSceneTrigger",
 			new TriggerComponent());
 
-		TriggerComponent* tc = static_cast<TriggerComponent*>(testEndSceneTrigger->getComponent("trigger"));
-		tc->initTrigger(sceneObject->m_sceneID, testEndSceneTrigger, XMFLOAT3(9.0f, 8.0f, 0.5f));
+		TriggerComponent* tc = static_cast<TriggerComponent*>(endSceneTrigger->getComponent("endSceneTrigger"));
+		tc->initTrigger(sceneObject->m_sceneID, endSceneTrigger, XMFLOAT3(2.0f,2.0f,2.0f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
 		tc->setIntData((int)ScenesEnum::ENDSCENE);
 	}
@@ -932,7 +931,6 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 		PlayerThree->addComponent("mesh", animMeshComp);
 		sceneObject->addMeshComponent(animMeshComp);
 		PlayerThree->scale({ 2, 2, 2 });
-
 	}
 
 	sceneObject->setPlayersPosition(PlayerOne);

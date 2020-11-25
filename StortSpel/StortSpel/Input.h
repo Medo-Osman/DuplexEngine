@@ -87,7 +87,7 @@ public:
 	Keyboard* getKeyboard();
 	Mouse* getMouse();
 	std::vector<iContext*>* getIContextPtr();
-
+	
 
 	void Attach(InputObserver* observer);
 	void Detach(InputObserver* observer);
