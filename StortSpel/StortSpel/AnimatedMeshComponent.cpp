@@ -7,9 +7,7 @@ void AnimatedMeshComponent::init(const char* filepath)
 	m_transitionTime = 0.f;
 	m_type = ComponentType::ANIM_MESH;
 
-	//m_filePath = filepath;
-
-	SkeletalMeshResource* resPtr = (SkeletalMeshResource*)ResourceHandler::get().loadLRSMMesh(filepath);
+	SkeletalMeshResource* resPtr = dynamic_cast<SkeletalMeshResource*>(ResourceHandler::get().loadLRSMMesh(filepath));
 
 	setMeshResourcePtr(resPtr);
 
@@ -529,7 +527,7 @@ void AnimatedMeshComponent::calculateFrameForState(animState* state, ANIMATION_F
 		int prevFrame = 0;
 		int nextFrame = 0;
 
-		for (int u = 0; u < animResPtr->getFrameCount(); u++)
+		for (unsigned int u = 0; u < (int)animResPtr->getFrameCount(); u++)
 		{
 			nextFrame = u;
 			if (allFramesOfThisAnim[u].timeStamp > state->structs.at(i).animationTime)
@@ -548,7 +546,8 @@ void AnimatedMeshComponent::calculateFrameForState(animState* state, ANIMATION_F
 
 		// now that we have the progression we can interpolate (but if the time is close enough to a timestamp (really close) we can just pick it and skip interpolation and set the current time variable)
 		float allowedMargin = 0.05f;
-		allowedMargin* pow(state->structs.at(i).animationSpeed, 0.4);
+		if (state->structs.at(i).animationSpeed != 1.f)
+			allowedMargin *= pow(state->structs.at(i).animationSpeed, 0.4f);
 
 		if (progression < 0 + allowedMargin)
 			thisAnimFrame = new ANIMATION_FRAME(allFramesOfThisAnim[prevFrame], m_jointCount);
@@ -574,6 +573,7 @@ void AnimatedMeshComponent::calculateFrameForState(animState* state, ANIMATION_F
 		{
 			if (currentBlend == state->blendPoints.at(i))
 			{
+				SAFE_DELETE(*animStateFrame);
 				*animStateFrame = thisAnimFrame;
 			}
 			else

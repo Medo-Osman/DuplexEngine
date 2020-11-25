@@ -20,6 +20,7 @@ public:
 	{
 		for (auto& component : m_components)
 			delete component.second;
+
 		m_components.clear();
 	}
 
@@ -51,7 +52,7 @@ public:
 	
 	void removeComponent(Component* component)
 	{
-		int deleted = m_components.erase(component->getIdentifier());
+		int deleted = (int)m_components.erase(component->getIdentifier());
 	}
 
 	Component* getComponent(std::string componentName)
@@ -60,7 +61,7 @@ public:
 		{
 			ErrorLogger::get().logError("Attempt to retrieve component by name failed, does not exist.");
 
-			return new InvalidComponent();
+			return nullptr;
 		}
 			
 		return m_components[componentName];

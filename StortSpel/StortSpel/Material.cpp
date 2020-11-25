@@ -7,18 +7,16 @@ Material::Material()
 	ID3D11ShaderResourceView* errorTexturePtr = ResourceHandler::get().loadErrorTexture();
 	for (int i = 0; i < 5; i++)
 		this->m_textureArray.push_back(errorTexturePtr);
-	
-	this->m_materialConstData.UVScale = 1.0f;
 }
 
-Material::Material(std::initializer_list<const WCHAR*> fileNames)
+Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData)
 	:m_materialId(++totalMaterialCount), m_isDefault(false)
 {
 	for (auto fileName : fileNames)
 	{
 		addTexture(fileName);
 	}
-	this->m_materialConstData.UVScale = 1.0f;
+	m_materialConstData = materialConstData;
 }
 
 Material::Material(std::string materialName)
@@ -49,23 +47,19 @@ void Material::setMaterial(bool shaderNeedsResource[5], bool shaderNeedsCBuffer[
 {
 	/*if (shaderNeedsCBuffer[ShaderType::Vertex])
 		dContextPtr->VSSetConstantBuffers(2, 1, this->constBuffer.GetAddressOf());
-	
+
 	if (shaderNeedsCBuffer[ShaderType::Hull])
 		dContextPtr->HSSetConstantBuffers(2, 1, this->constBuffer.GetAddressOf());
-
 	if (shaderNeedsCBuffer[ShaderType::Domain])
 		dContextPtr->DSSetConstantBuffers(2, 1, this->constBuffer.GetAddressOf());
-
 	if (shaderNeedsCBuffer[ShaderType::Geometry])
 		dContextPtr->GSSetConstantBuffers(2, 1, this->constBuffer.GetAddressOf());
-
 	if (shaderNeedsCBuffer[ShaderType::Pixel])
 		dContextPtr->PSSetConstantBuffers(2, 1, this->constBuffer.GetAddressOf());
-		
+
 		To be more like the per model const buffer, there should be one constant buffer in renderer that gets sent in here as opposed
 		to the material having its own const buffer.
 		But I should ask if there should even be a per material const buffer in the first place.
-
 		(The way that the srvs get sent into set shader res is diffrent, could be trouble.)
 	*/
 
@@ -98,28 +92,68 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 		m_materialId = ++totalMaterialCount;
 		m_isDefault = false;
 	}
-	
+
 	this->m_textureArray.push_back(ResourceHandler::get().loadTexture(fileName, isCubeMap));
 }
 
 void Material::setUVScale(float scale)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.UVScale = scale;
 }
 
 void Material::setRoughness(float roughness)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.roughness = roughness;
 }
 
 void Material::setMetallic(float metallic)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.metallic = metallic;
 }
 
 void Material::setTextured(int textured)
 {
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		isDefault = false;
+	}
+
 	this->m_materialConstData.textured = textured;
+}
+
+void Material::setEmissiveStrength(float emissiveStrength)
+{
+	if (isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		isDefault = false;
+	}
+
+	this->m_materialConstData.emissiveStrength = emissiveStrength;
 }
 
 unsigned int long Material::getMaterialId()
@@ -187,92 +221,4 @@ void Material::readMaterials()
 		}
 		m_MaterialCache[textureNames[i]] = mat;
 	}
-	
-	/*
-	std::unordered_map<std::string, std::vector<std::string>> materials;
-	std::vector<std::string> textureNames;
-
-	for (const auto& file : std::filesystem::directory_iterator(m_TEXTURES_PATH))
-	{
-		std::string filePath = file.path().generic_string();
-		std::string fileName = filePath.substr(filePath.find_last_of("/") + 1);
-		std::string rawFileName = "";
-		std::string textureName = "";
-		if (fileName.rfind("T_", 0) == 0)
-		{
-			rawFileName = fileName.substr(0, fileName.size() - 4);
-			textureName = rawFileName.substr(2);						// Remove start "T_"
-			textureName = textureName.substr(0, textureName.find_last_of("_")); // Remove ending "_D"
-			if (textureName.find_last_of("_") != std::string::npos)
-				textureName = textureName.substr(0, textureName.find_last_of("_")); // Remove shaderprog letter "_E"
-			bool isTextrue = false;
-
-			// ---------------------------------------------------------------------------- Add diffuse to mat
-			if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_D")
-			{
-				materials[textureName].push_back(rawFileName);
-				isTextrue = true;
-			}
-			// ---------------------------------------------------------------------------- Add emissive to mat
-			if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_E")
-			{
-				materials[textureName].push_back(rawFileName);
-				isTextrue = true;
-			}
-			// ---------------------------------------------------------------------------- Add normal to mat
-			if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_N")
-			{
-				materials[textureName].push_back(rawFileName);
-				isTextrue = true;
-			}
-			// ---------------------------------------------------------------------------- Add ORM to mat
-			if (rawFileName.substr(rawFileName.size() - 4, std::string::npos) == "_ORM")
-			{
-				materials[textureName].push_back(rawFileName);
-				isTextrue = true;
-			}
-			// ---------------------------------------------------------------------------- 
-			if (std::find(textureNames.begin(), textureNames.end(), textureName) == textureNames.end() && isTextrue == true) // If unique textureName
-			{
-				textureNames.push_back(textureName);
-			}
-		}
-	}
-
-	for (int i = 0; i < materials.size(); i++)
-	{
-		Material mat;
-
-		for (int j = 0; j < 4 - materials[textureNames[i]].size(); j++)
-		{
-			materials[textureNames[i]].push_back("?");
-		}
-
-		if (materials[textureNames[i]].at(0) != "T_" + textureNames[i] + "_D")
-		{
-			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 0, "T_Missing_D");
-		}
-		if (materials[textureNames[i]].at(1) != "T_" + textureNames[i] + "_E")
-		{
-			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 1, "T_Missing_E");
-		}
-		if (materials[textureNames[i]].at(2) != "T_" + textureNames[i] + "_N")
-		{
-			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 2, "T_Missing_N");
-		}
-		if (materials[textureNames[i]].at(3) != "T_" + textureNames[i] + "_ORM")
-		{
-			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 3, "T_Missing_ORM");
-		}
-
-		for (int j = 0; j < 4; j++)
-		{
-			std::string name = materials[textureNames[i]].at(j) + ".png";
-			mat.addTexture(std::wstring(name.begin(), name.end()).c_str());
-		}
-		m_MaterialCache[textureNames[i]] = mat;
-	}
-	*/
-
-	int asehaseh = 0;
 }

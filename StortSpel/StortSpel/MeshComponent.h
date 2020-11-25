@@ -18,9 +18,9 @@ private:
 	std::vector<Material> m_materials;
 
 	bool m_castShadow = true;
-
+	bool m_visible = true;
+	
 protected:
-
 	std::string m_filePath;
 
 public:
@@ -56,6 +56,9 @@ public:
 	{
 		m_castShadow = value;
 	}
+
+	bool isVisible();
+	void setVisible(bool val);
 
 protected:
 	MeshComponent(std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials = { Material() });

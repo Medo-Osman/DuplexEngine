@@ -105,7 +105,7 @@ public:
 		m_shape = nullptr;
 	}
 
-	void initActorAndShape(Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
+	void initActorAndShape(int sceneID, Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
 	{
 		m_dynamic = dynamic;
 		m_transform = entity;
@@ -115,7 +115,7 @@ public:
 		XMFLOAT3 boundsCenter;
 		meshComponent->getMeshResourcePtr()->getBoundsCenter(boundsCenter);
 		boundsCenter = boundsCenter * scale;
-		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshComponent->getTranslation() + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this);
+		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshComponent->getTranslation() + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this, sceneID);
 		bool addGeom = true;
 		
 		if (this->canAddGeometry())
@@ -144,6 +144,7 @@ public:
 			{
 				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false);
 				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
+				delete geometry;
 			}
 
 		}
@@ -195,13 +196,13 @@ public:
 			ErrorLogger::get().logError(L"Trying to kinematicMove actor that is not kinematic and/or dynamic");
 	}
 
-	void initActor(Entity* entity, bool dynamic)
+	void initActor(int sceneID, Entity* entity, bool dynamic)
 	{
 		m_dynamic = dynamic;
 		m_transform = entity;
 		if (!m_actor)
 		{
-			m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), entity->getRotation(), dynamic, this);
+			m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), entity->getRotation(), dynamic, this, sceneID);
 		}
 		else
 		{
@@ -322,7 +323,10 @@ public:
 
 	XMFLOAT3 getActorPosition()
 	{
-		return XMFLOAT3(m_actor->getGlobalPose().p.x, m_actor->getGlobalPose().p.y, m_actor->getGlobalPose().p.z);
+		if (m_actor)
+			return XMFLOAT3(m_actor->getGlobalPose().p.x, m_actor->getGlobalPose().p.y, m_actor->getGlobalPose().p.z);
+		else
+			return XMFLOAT3(0, 0, 0);
 	}
 
 	XMFLOAT4 getActorQuaternion()

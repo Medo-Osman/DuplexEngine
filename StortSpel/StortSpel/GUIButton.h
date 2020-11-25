@@ -33,21 +33,48 @@ private:
 
 	std::map<int, GUIObserver*> m_observers;
 
+	HWND* m_window;
+
 	int m_textureWidth = 0;
 	int m_textureHeight = 0;
 
 	bool m_hovered = false;
+	bool m_gamepadSelected = false;
+
+	// Menu Gamepad Selection
+	GUIButton* m_nextMenuButton = nullptr;
+	GUIButton* m_prevMenuButton = nullptr;
 
 public:
-	GUIButton(std::wstring texturePath, GUIButtonStyle style)
+	GUIButton(std::wstring texturePath, GUIButtonStyle style, HWND* window)
 	{
 		m_type = GUIType::BUTTON;
 		m_style = style;
+		m_window = window;
 		//ApplicationLayer::getInstance().m_input.Attach(this);
 	}
 	~GUIButton()
 	{
 
+	}
+
+	int getNextMenuButton() { return m_nextMenuButton->m_index; }
+	int getPrevMenuButton() { return m_prevMenuButton->m_index; }
+	void setPrevMenuButton(GUIButton* prevButton) { m_prevMenuButton = prevButton; }
+	void setNextMenuButton(GUIButton* nextButton) { m_nextMenuButton = nextButton; }
+
+	void setIsHovered(bool hovered)
+	{
+		m_hovered = hovered;
+	}
+
+	void setIsSelected(bool selected)
+	{
+		m_gamepadSelected = selected;
+		if (m_gamepadSelected)
+			Notify(GUIUpdateType::HOVER_ENTER);
+		else
+			Notify(GUIUpdateType::HOVER_EXIT);
 	}
 
 	void setTexture(std::wstring texturePath)
@@ -81,8 +108,23 @@ public:
 	virtual void inputUpdate(InputData& inputData) override
 	{
 		//Mouse pos
-		float x = inputData.mousePtr->getPosX();
-		float y = inputData.mousePtr->getPosY();
+		//float x = inputData.mousePtr->getPosX();
+		//float y = inputData.mousePtr->getPosY();
+		POINT p;
+		float x;
+		float y;
+		if (GetCursorPos(&p))
+		{
+			//cursor position now in p.x and p.y
+		}
+		if (ScreenToClient(*m_window, &p))
+		{
+			//p.x and p.y are now relative to hwnd's client area
+			x = (float)p.x;
+			y = (float)p.y;
+			
+		}
+		//std::cout << " mouuse Y pos: " << y << " button position y: " << m_style.position.y << std::endl;
 
 		//Check if mouse is hovering over button
 		if (x > m_style.position.x && x < (m_style.position.x + (m_textureWidth * m_style.scale.x))
@@ -98,11 +140,14 @@ public:
 		}
 		else //When it is not hovering over the button
 		{
-			if (m_hovered)
+			if (!m_gamepadSelected)
 			{
-				//Send message to observers that something has happened if it was previously hovered over.
-				Notify(GUIUpdateType::HOVER_EXIT);
-				m_hovered = false;
+				if (m_hovered)
+				{
+					//Send message to observers that something has happened if it was previously hovered over.
+					Notify(GUIUpdateType::HOVER_EXIT);
+					m_hovered = false;
+				}
 			}
 		}
 
@@ -124,10 +169,15 @@ public:
 
 				
 			}
+
+			if (states[i] == Action::SELECT)
+			{
+				if(m_gamepadSelected)
+					Notify(GUIUpdateType::CLICKED);
+			}
 		}
 
 	}
-
 
 	// Inherited via GUISubject
 	virtual void Attach(GUIObserver* observer) override

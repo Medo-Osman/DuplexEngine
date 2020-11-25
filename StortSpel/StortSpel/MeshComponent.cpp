@@ -19,7 +19,7 @@ MeshComponent::MeshComponent(const char* filepath, std::initializer_list<Materia
 	:MeshComponent(filepath, ShaderProgramsEnum::DEFAULT, materials)
 {}
 
-MeshComponent::MeshComponent(const char* filepath, Material material)
+MeshComponent::MeshComponent(const char* filepath, Material material = Material())
 	: MeshComponent(filepath, { material })
 {}
 
@@ -95,6 +95,16 @@ Material* MeshComponent::getMaterialPtr(int index)
 		return &m_materials.at(0);
 
 	return &m_materials.at(index);
+}
+
+bool MeshComponent::isVisible()
+{
+	return m_visible;
+}
+
+void MeshComponent::setVisible(bool val)
+{
+	m_visible = val;
 }
 
 MeshComponent::MeshComponent(std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials)
