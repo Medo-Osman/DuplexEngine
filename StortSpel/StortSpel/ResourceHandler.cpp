@@ -244,7 +244,9 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 		fileStream.clear();
 		fileStream.close();
 
-		return loadLRMMesh(m_ERROR_MODEL_NAME.c_str()); // recursively load the error model instead, this'll be weird because it needs another input layout, but whatever
+		assert(false);
+
+		//return loadLRMMesh(m_ERROR_MODEL_NAME.c_str()); // recursively load the error model instead, this'll be weird because it needs another input layout, but whatever
 	}
 
 	// .lrm has 14 floats per vertex
@@ -324,6 +326,29 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 
 	//Create a new entry in the meshcache
 	m_meshCache[path] = thisSkelRes;
+
+	LRM_VERTEX* vertexArray2 = (LRSM_VERTEX*)vertexArray;
+	XMFLOAT3 min = { 99999, 99999, 99999 }, max = { -99999, -99999, -99999 };
+	for (int i = 0; i < vertexCount; i++)
+	{
+		XMFLOAT3 currentPos = vertexArray2[i].pos;
+		if (currentPos.x >= max.x)
+			max.x = currentPos.x;
+		if (currentPos.y >= max.y)
+			max.y = currentPos.y;
+		if (currentPos.z >= max.z)
+			max.z = currentPos.z;
+
+		if (currentPos.x <= min.x)
+			min.x = currentPos.x;
+		if (currentPos.y <= min.y)
+			min.y = currentPos.y;
+		if (currentPos.z <= min.z)
+			min.z = currentPos.z;
+	}
+
+	m_meshCache[path]->setMinMax(min, max);
+	m_meshCache[path]->storeVertexArray(vertexArray2, vertexCount);
 
 	delete[] vertexArray;
 	delete[] indexArray;
@@ -419,7 +444,6 @@ AnimationResource* ResourceHandler::loadAnimation(std::string path)
 			
 			offset += sizeof(JOINT_TRANSFORM);
 		}
-
 	}
 
 	m_animationCache[path] = animation;

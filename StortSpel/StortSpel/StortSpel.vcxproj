@@ -165,6 +165,7 @@
       <PrecompiledHeaderFile>3DPCH.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\3rd-Party\PhysX\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -223,7 +224,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClInclude Include="Component.h" />
     <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="Entity.h" />
+    <ClInclude Include="Entity.h" />
     <ClCompile Include="GUIHandler.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
@@ -272,6 +273,7 @@
     <ClInclude Include="CheckpointComponent.h" />
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
+    <ClInclude Include="DataHelper.h" />
     <ClInclude Include="FlippingComponent.h" />
     <ClInclude Include="GrowingComponent.h" />
     <ClInclude Include="GUIButton.h" />
@@ -313,7 +315,10 @@
     <ClInclude Include="ShrinkingComponent.h" />
     <ClInclude Include="SpeedPickup.h" />
     <ClInclude Include="SweepingComponent.h" />
-    <ClInclude Include="PhysicsComponent.h" />
+    <ClInclude Include="PhysicsComponent.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="PhysicsMaterial.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Input.h" />

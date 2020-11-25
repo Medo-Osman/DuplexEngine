@@ -70,6 +70,8 @@ void SceneManager::initalize()
 	*m_nextSceneReady = false;
 	//m_currentScene->loadArena();
 
+	m_currentScene->onSceneLoaded();
+
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
 	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
@@ -163,7 +165,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 		else if (inputData.actionData[i] == LOAD_SCENE)
 		{
 			m_nextScene = new Scene();
-			std::thread sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
 			sceneLoaderThread.detach();
 
 			m_gameStarted = false;
@@ -267,6 +269,7 @@ void SceneManager::swapScenes()
 		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), 1.75f, 0.5f, "human");
 		ccc->setPosition(m_currentScene->getEntryPosition());
 
+		m_currentScene->onSceneLoaded();
 	}
 }
 

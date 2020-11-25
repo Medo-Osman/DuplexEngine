@@ -102,9 +102,6 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Entity.h">
-      <Filter>Source Files\Game</Filter>
-    </ClCompile>
     <ClCompile Include="3DPCH.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
@@ -427,6 +424,12 @@
     </ClInclude>
     <ClInclude Include="MoveToAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="DataHelper.h">
+      <Filter>Source Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Source Files\Game</Filter>
     </ClInclude>
     <ClInclude Include="BossSegment.h">
       <Filter>Source Files\Game\Boss</Filter>
