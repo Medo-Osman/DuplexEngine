@@ -191,6 +191,10 @@ void Player::playerStateLogic(const float& dt)
 
 		if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
 		{
+			if (m_jumps == 1)
+				endJump_First();
+			//else
+			//	endJump_Second();
 			m_lastState = PlayerState::FALLING;
 			m_state = PlayerState::IDLE;
 			m_jumps = 0;
@@ -645,6 +649,10 @@ void Player::jump()
 	m_currentDistance = 0;
 	m_state = PlayerState::JUMPING;
 	m_velocity.y = JUMP_SPEED * m_playerScale;// * dt;
+	if (m_jumps == 0)
+		startJump_First();
+	else
+		startJump_Second();
 	m_jumps++;
 }
 
@@ -696,4 +704,29 @@ void Player::dashAnimation()
 void Player::idleAnimation()
 {
 	m_animMesh->playBlendState("runOrIdle", 0.3f);
+}
+
+void Player::startJump_First()
+{
+	m_animMesh->playSingleAnimation("JumpStart_First", 0.1f, true);
+	m_animMesh->queueSingleAnimation("JumpLoop_First", 0.f, true);
+}
+
+void Player::endJump_First()
+{
+	m_animMesh->playSingleAnimation("JumpEnd_First", 0.3f, true);
+	m_animMesh->setAnimationSpeed(0.1f);
+	m_animMesh->queueBlendState("runOrIdle", 2.3f);
+}
+
+void Player::startJump_Second()
+{
+	//m_animMesh->playSingleAnimation("JumpStart_Second", 0.1f, false);
+	//m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.1f, false);
+}
+
+void Player::endJump_Second()
+{
+	//m_animMesh->playSingleAnimation("JumpEnd_Second", 0.1f, false);
+	//m_animMesh->queueBlendState("runOrIdle", 0.3f);
 }

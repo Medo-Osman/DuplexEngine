@@ -279,13 +279,13 @@ void Engine::initialize(Input* input)
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
-	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
 	playerEntity->addComponent("mesh", animMeshComp);
-
+	playerEntity->setScaleUniform(0.5);
 
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
-	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true);
+	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"RunLoop", 2.f} }, "runOrIdle", 0.f, true);
 
 
 	m_player->setAnimMeshPtr(animMeshComp);
