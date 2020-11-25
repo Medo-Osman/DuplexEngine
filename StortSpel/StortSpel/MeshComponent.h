@@ -15,10 +15,14 @@ private:
 	unsigned long int m_renderId;
 	MeshResource* m_resourcePointer = nullptr;
 	std::vector<ShaderProgramsEnum> m_shaderProgEnums;
-	std::string  m_filePath;
 	std::vector<Material> m_materials;
 
 	bool m_castShadow = true;
+	bool m_visible = true;
+	
+protected:
+	std::string m_filePath;
+
 public:
 
 	MeshComponent(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums = { ShaderProgramsEnum::DEFAULT }, std::initializer_list<Material> materials = { Material() });
@@ -53,7 +57,13 @@ public:
 		m_castShadow = value;
 	}
 
-protected:
-	MeshComponent(std::initializer_list<ShaderProgramsEnum> shaderEnums = { ShaderProgramsEnum::DEFAULT }, std::initializer_list<Material> materials = { Material() });
+	bool isVisible();
+	void setVisible(bool val);
 
+protected:
+	MeshComponent(std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials = { Material() });
+	MeshComponent() {};
+
+	void init(std::initializer_list<ShaderProgramsEnum> shaderEnums = { ShaderProgramsEnum::DEFAULT }, std::initializer_list<Material> materials = { Material() });
+	void init(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums = { }, std::initializer_list<Material> materials = { });
 };

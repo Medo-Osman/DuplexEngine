@@ -32,6 +32,8 @@ public:
 	}
 	~AudioHandler();
 
+	void release();
+
 	void initialize(HWND &handle);
 	void setListenerTransformPtr(Transform* listenerTransform);
 	void onNewAudioDevice() { m_retryAudio = true; }

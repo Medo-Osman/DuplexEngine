@@ -111,10 +111,13 @@ public:
 		m_transform = entity;
 		XMFLOAT3 scale = entity->getScaling() * meshComponent->getScaling();
 		std::string name = meshComponent->getFilePath() + std::to_string(geometryType);
-		PxGeometry* geometry;
-		m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), m_transform->getRotation(), dynamic, this, sceneID);
+		PxGeometry* geometry; 
+		XMFLOAT3 boundsCenter;
+		meshComponent->getMeshResourcePtr()->getBoundsCenter(boundsCenter);
+		boundsCenter = boundsCenter * scale;
+		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshComponent->getTranslation() + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this, sceneID);
 		bool addGeom = true;
-
+		
 		if (this->canAddGeometry())
 		{
 			if (!unique)
@@ -141,6 +144,7 @@ public:
 			{
 				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false);
 				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
+				delete geometry;
 			}
 
 		}
@@ -309,9 +313,12 @@ public:
 	// Update
 	void update(float dt) override 
 	{
-		m_transform->setPosition(this->getActorPosition());
-		if(m_controllRotation)
-			m_transform->setRotationQuat(this->getActorQuaternion());
+		if (m_dynamic)
+		{
+			m_transform->setPosition(this->getActorPosition());
+			if (m_controllRotation)
+				m_transform->setRotationQuat(this->getActorQuaternion());
+		}	
 	}
 
 	XMFLOAT3 getActorPosition()

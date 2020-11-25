@@ -78,10 +78,22 @@ public:
 		m_pickupType = type;
 		m_removeTime = 1.f;
 		m_doneDepleted = false;
+		m_activateOnPickup = false;
+		m_duration = 0.f;
+		m_timer = 0.f;
 		m_entityToDoEffectsOn = nullptr;
 		m_whileAudio = nullptr;
 		m_active = false;
 		m_modifierValue = 0;
+	}
+
+	~Pickup()
+	{
+		/*for (size_t i = 0; i < PICKUP_VECTOR.size(); i++)
+		{
+			SAFE_DELETE(PICKUP_VECTOR[i]);
+		}
+		PICKUP_VECTOR.clear();*/
 	}
 
 	const bool& isActive() const
@@ -147,7 +159,7 @@ public:
 			m_audioComponents.back()->playSound();
 		}
 	}
-	virtual void onPickup(Entity* entityToDoEffectsOn, int duration)
+	virtual void onPickup(Entity* entityToDoEffectsOn, float duration)
 	{
 		m_timer = 0.f;
 		m_duration = duration;

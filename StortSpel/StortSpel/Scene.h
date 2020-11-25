@@ -15,6 +15,20 @@ enum class ScenesEnum
 	ENDSCENE,
 };
 
+enum PrefabType
+{
+	PARIS_WHEEL,
+	FLIPPING_PLATFORM,
+	SWEEPING_PLATFORM,
+	PICKUP,
+	SCORE,
+	pfCHECKPOINT,
+	SLOWTRAP,
+	PUSHTRAP,
+	BARRELDROP,
+	GOAL_TRIGGER
+};
+
 class Scene : public PhysicsObserver, public BossObserver
 {
 private:
@@ -34,14 +48,38 @@ private:
 	void createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity);
 	int m_nrOfPointLight = 0;
 	void createPointLight(Vector3 position, Vector3 color, float intensity);
+	int m_nrSwingningHammers = 0;
+	void createSwingingHammer(Vector3 position, Vector3 rotation, float swingSpeed);
+
+	//---------------------------------------------------------------Boss sstuff
 	UINT m_nrOfProjectiles = 0;
 	float m_projectileLifeTime = 10.f;
 	void createProjectile(Vector3 origin, Vector3 dir, float speed);
 	void checkProjectiles();
+
+	UINT m_nrOfLasers = 0;
+	void createLaser(BossStructures::BossActionData data);
+	void checkLasers(float dt);
+
+	UINT m_nrOfDisplacedPlatforms = 0;
+	void checkPlatforms(float dt);
+	void displacePlatform(Entity* entity);
+	void physicallyMovePlatform(Entity* entity);
+	bool findPlatformAlready(Entity* entity);
+
+
+
 	//For projectiles
 	std::unordered_map<UINT, Entity*> m_projectiles;
 
+	//For lasers
+	std::unordered_map<UINT, BossStructures::BossLaser*> m_lasers;
+
+	//Displaced platforms from the grid
+	std::unordered_map<UINT, BossStructures::PlatformDisplace*> m_displacedPlatforms;
 	std::vector<Vector3> deferredPointInstantiationList;
+	//---------------------------------------------------------------End of boss stuff
+
 
 	Player* m_player;
 
@@ -67,7 +105,7 @@ private:
 	int m_nrOfScorePlayerOne = 54;
 	int m_nrOfScorePlayerTwo = 12;
 	int m_nrOfScorePlayerThree = 31;
-	
+
 	int m_nrOfPickups = 0;
 	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
 	void loadPickups();
@@ -78,7 +116,11 @@ private:
 	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 	void createParticleEntity(void* particleComponent, Vector3 position);
 
-	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData);
+	//void addSlowTrap(const Vector3& position, Vector3 scale);
+	//void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
+
+	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData, bool& needsDynamicPhys, bool& needsKinematicPhys);
+	void addPrefabFromFile(char* params);
 
 	const std::string m_LEVELS_PATH = "../res/levels/";
 
@@ -95,11 +137,12 @@ private:
 	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
 
 
+	int startGameIndex = 0;
 public:
 	Boss* m_boss = nullptr;
 	Scene();
 	~Scene();
-	
+
 	static void loadMainMenu(Scene* sceneObject, bool* finished);
 	static void loadScene(Scene* sceneObject, std::string path, bool* finished);
 	static void loadTestLevel(Scene* sceneObject, bool* finished);
@@ -107,17 +150,21 @@ public:
 	static void loadLobby(Scene* sceneObject, bool* finished);
 	static void loadArena(Scene* sceneObject, bool* finished);
 	static void loadMaterialTest(Scene* sceneObject, bool* finished);
+	static void loadBossTest(Scene* sceneObject, bool* finished);
+
+	void onSceneLoaded();
+
 	void updateScene(const float &dt);
 	Vector3 getEntryPosition();
 	Entity* getEntity(std::string key);
 	Entity* addEntity(std::string identifier);
 	void removeEntity(std::string identifier);
-	
+
 	std::vector<std::pair<int, std::string>> m_scores;
 	void setScoreVec();
 	void sortScore();
 	void setPlayersPosition(Entity* entity);
-	
+
 	bool endSceneCamera = false;
 	bool addedBarrel = false;
 	bool gameStarted = false;
@@ -137,9 +184,6 @@ public:
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
-
-	void initDeferredPhysics();
-
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
 

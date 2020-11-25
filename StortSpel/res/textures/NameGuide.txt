@@ -1,0 +1,8 @@
+
+T_name_D.png = Texture, Diffuse
+T_name_E.png = Texture, Emissive
+T_name_N.png = Texture, Normal
+T_name_ORM.png = Texture, Oclossion Roughness Metallic
+
+
+

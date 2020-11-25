@@ -34,6 +34,10 @@ struct InputData
 			}
 		}
 	}
+	void clearStateData()
+	{
+		stateData.clear();
+	}
 	void removeActionData(const int& pos)
 	{
 		actionData.erase(actionData.begin() + pos);
@@ -68,6 +72,12 @@ private:
 	Mouse m_Mouse;
 	bool m_cursorEnabled;
 
+	// Gamepad
+	std::unique_ptr<GamePad> m_gamepad;
+	GamePad::ButtonStateTracker m_tracker;
+	float m_rightStickSensetivity	= 10.f;
+	bool m_invertedRightStickY		= false;
+
 	std::vector<InputObserver*> m_inputObservers;
 	std::vector<iContext*> m_contexts;
 
@@ -78,6 +88,7 @@ private:
 	bool inputDataChanged = false;
 public:
 	Input();
+	~Input();
 	LRESULT handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lParam);
 	void readBuffers();
 	void addContext(iContext* context);
@@ -87,10 +98,7 @@ public:
 	Keyboard* getKeyboard();
 	Mouse* getMouse();
 	std::vector<iContext*>* getIContextPtr();
-	
 
 	void Attach(InputObserver* observer);
 	void Detach(InputObserver* observer);
-
-
 };

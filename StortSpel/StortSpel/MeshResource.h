@@ -13,12 +13,13 @@ private:
 	LRM_VERTEX* m_vertexArray = nullptr;
 
 	XMFLOAT3 m_min, m_max;
+	XMFLOAT3 m_boundsCenter;
 
 	std::vector<std::uint32_t> m_materialOffsets;
 	
 public:
 	int vertCount = 0;
-	~MeshResource()
+	virtual ~MeshResource()
 	{
 		SAFE_DELETE(m_vertexArray);
 		//m_vertexBuffer.release();
@@ -29,7 +30,7 @@ public:
 	Buffer<float>& getVertexBuffer() { return m_vertexBuffer; }
 	Buffer<std::uint32_t>& getIndexBuffer() { return m_indexBuffer; }
 
-	void set(ID3D11DeviceContext* dContext) // ? Ska denna funktionen finnas här och sedan anropas innan draw eller ska koden ligga i en draw funktion 
+	void set(ID3D11DeviceContext* dContext)
 	{
 		UINT offset = 0;
 		
@@ -41,12 +42,23 @@ public:
 	{
 		m_min = min;
 		m_max = max;
+		m_boundsCenter = (m_max + m_min) / 2.f ;
 	}
 
 	void getMinMax(XMFLOAT3& min, XMFLOAT3& max)
 	{
 		min = m_min;
 		max = m_max;
+	}
+
+	void getBoundsCenter(XMFLOAT3& boundsCenter)
+	{
+		boundsCenter = m_boundsCenter;
+	}
+
+	XMFLOAT3 getBoundsCenter()
+	{
+		return m_boundsCenter;
 	}
 
 	void storeVertexArray(LRM_VERTEX vertexArray[], int nrOfVertecies)
@@ -78,7 +90,7 @@ public:
 		if (m_materialOffsets.empty())
 			return 1;
 		else
-			return m_materialOffsets.size();
+			return (int)m_materialOffsets.size();
 	}
 	
 	std::pair<std::uint32_t, std::uint32_t> getMaterialOffsetAndSize(int materialIndex)

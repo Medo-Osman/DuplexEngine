@@ -16,6 +16,7 @@ enum Action
 	LOAD_TEST_SCENE,
 	CLOSEINTROGUI,
 	USE,
+	SELECT
 };
 
 enum State
@@ -24,6 +25,8 @@ enum State
 	WALK_RIGHT,
 	WALK_FORWARD,
 	WALK_BACKWARD,
+	MENU_UP,
+	MENU_DOWN
 };
 
 enum Range

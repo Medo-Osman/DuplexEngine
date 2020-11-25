@@ -20,6 +20,13 @@ Transform::Transform()
 
 Transform::~Transform() {}
 
+void Transform::resetTransform()
+{
+	setPositionZero();
+	setRotationZero();
+	setScaleOne();
+}
+
 XMMATRIX Transform::calculateWorldMatrix()
 {
 	bool dirty = (m_translationDirty || m_scaleDirty || m_rotationDirty);

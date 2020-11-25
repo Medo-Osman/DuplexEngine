@@ -28,6 +28,11 @@ Engine::~Engine()
 	//	delete entity.second;
 
 	//m_entities->clear();
+	//m_entities->clear();
+}
+
+void Engine::release()
+{
 }
 
 void Engine::update(const float& dt)
@@ -41,7 +46,7 @@ void Engine::update(const float& dt)
 
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
-	
+
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
 	updateLightData();
@@ -150,7 +155,6 @@ void Engine::initialize(Input* input)
 {
 	m_input = input;
 
-
 	if (!DeviceAndContextPtrsAreSet)
 	{
 		// Renderer::initialize needs to be called and it needs to call setDeviceAndContextPtrs()
@@ -158,11 +162,11 @@ void Engine::initialize(Input* input)
 		assert(false);
 	}
 
-	m_camera.setProjectionMatrix(80.f,  (float)m_settings.width/(float)m_settings.height, 0.01f, 1000.0f);
+	m_camera.initialize(80.f, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 
 	// Audio Handler Listener setup
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
-	
+
 	// Player
 	m_player = new Player();
 
@@ -180,7 +184,7 @@ void Engine::initialize(Input* input)
 
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
-	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true, true);
 
 	m_player->setAnimMeshPtr(animMeshComp);
 
@@ -192,13 +196,14 @@ void Engine::initialize(Input* input)
 
 	// - Camera Follow Transform ptr
 	m_player->setCameraTranformPtr(m_camera.getTransform());
-	
+
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
 	//GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
 
 	// Audio Handler needs Camera Transform ptr for 3D positional audio
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
+	Material::readMaterials();
 }
 
 void Engine::updateLightData()

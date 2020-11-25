@@ -23,7 +23,7 @@ public:
 	}
 	virtual void onPickup(Entity* entityToDoEffectsOn, int duration)
 	{
-		Pickup::onPickup(entityToDoEffectsOn, duration);
+		Pickup::onPickup(entityToDoEffectsOn, (float)duration);
 	}
 
 	virtual void onUse()
