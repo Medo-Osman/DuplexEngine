@@ -28,7 +28,7 @@ private:
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
 
-	bool DeviceAndContextPtrsAreSet = false; //This bool just insures that no one tries to use the resourcehandler before Renderer::initialize has been called
+	bool DeviceAndContextPtrsAreSet = false; //This bool just ensures that no one tries to use the resourcehandler before Renderer::initialize has been called
 	void isResourceHandlerReady();
 
 	// Textures
@@ -47,8 +47,8 @@ private:
 	const std::wstring m_SOUNDS_PATH = L"../res/audio/";
 	const std::wstring m_ERROR_SOUND_NAME = L"ErrorSound.wav";
 
-
 public:
+	void checkResources();
 	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath, bool isCubeMap = false);
 	ID3D11ShaderResourceView* loadErrorTexture();
 	MeshResource* loadLRMMesh(const char* path);

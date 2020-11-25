@@ -54,8 +54,9 @@ public:
 	{
 		if (m_components.find(componentName) == m_components.end()) // If component does not exist
 		{
-			ErrorLogger::get().logError("Attempt to retrieve component by name failed, does not exist.");
+			//ErrorLogger::get().logError("Attempt to retrieve component by name failed, does not exist.");
 
+			//No longer an error, it is a valid way to check if a component exists externally.
 			return nullptr;
 		}
 			

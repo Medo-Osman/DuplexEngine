@@ -16,6 +16,47 @@ void ResourceHandler::isResourceHandlerReady()
 	}
 }
 
+void ResourceHandler::checkResources()
+{
+	
+	std::vector<std::string> idsToRemove;
+
+
+	for (auto meshStruct : m_meshCache)
+	{
+		if (meshStruct.second->getRefCount() == 0)
+		{
+			idsToRemove.push_back(meshStruct.first);
+			std::cout << "delete: " << meshStruct.second->debugName << std::endl;
+		}
+
+	}
+
+	
+	std::cout << "Before release, nr to remove: " << idsToRemove.size() << ", model count in cache: " << m_meshCache.size() << std::endl;
+	PerformanceTester::get().runPerformanceTestPrint();
+	for (int i = 0; i < idsToRemove.size(); i++)
+	{
+		std::cout << "\t--> deleting: " << m_meshCache[idsToRemove[i]]->debugName << std::endl;
+		delete m_meshCache[idsToRemove[i]];
+		m_meshCache.erase(idsToRemove[i]);
+	}
+	std::cout << "After release" << " model count in cache: " << m_meshCache.size() << std::endl;
+	PerformanceTester::get().runPerformanceTestPrint();
+
+	//for (auto meshStruct : MeshResource::resourcesToBeRemoved)
+	//{
+	//	std::cout << "DELETING: " << meshStruct->debugName << std::endl;
+
+	//	MeshResource* tempPtr = m_meshCache[meshStruct->debugName];
+	//	//m_meshCache[meshStruct->debugName] = nullptr; 
+	//	m_meshCache.erase(meshStruct->debugName);
+	//	delete tempPtr;
+	//}
+
+	//MeshResource::resourcesToBeRemoved.clear();
+}
+
 ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isCubeMap)
 {
 	if (m_textureCache.count(texturePath))
@@ -211,6 +252,7 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 	if(materialOffsets != nullptr)
 		delete[] materialOffsets;
 
+	m_meshCache[path]->debugName = path;
 	//Return the pointer of the new entry
 	return m_meshCache[path];
 }

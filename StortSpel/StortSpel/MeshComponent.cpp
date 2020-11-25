@@ -1,7 +1,6 @@
 #include "3DPCH.h"
 #include "MeshComponent.h"
 
-
 MeshComponent::MeshComponent(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials)
 {
 	m_type = ComponentType::MESH;
@@ -15,6 +14,8 @@ MeshComponent::MeshComponent(const char* filepath, std::initializer_list<ShaderP
 	{
 		m_materials.push_back(mat);
 	}
+
+	m_resourcePointer->addRef();
 }
 
 MeshComponent::MeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum, std::initializer_list<Material> materials)
@@ -37,6 +38,8 @@ MeshComponent::MeshComponent(char* paramData)
 {
 	m_type = ComponentType::MESH;
 	m_resourcePointer = ResourceHandler::get().loadLRMMesh(paramData);
+	m_resourcePointer->addRef();
+
 	m_filePath = paramData;
 	m_materials.push_back(Material());
 	m_shaderProgEnums.push_back(ShaderProgramsEnum::DEFAULT);

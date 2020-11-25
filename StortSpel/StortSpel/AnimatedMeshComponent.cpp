@@ -25,6 +25,7 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initiali
 		m_cBufferStruct.boneMatrixPallet[i] = XMMatrixIdentity();
 	}
 
+	getMeshResourcePtr()->addRef();
 	// when the temp rotation values go this might not need to be here
 	//applyPoseToJoints(XMMatrixIdentity());
 }
@@ -47,6 +48,7 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initiali
 
 AnimatedMeshComponent::~AnimatedMeshComponent()
 {
+	getMeshResourcePtr()->deleteRef();
 	m_joints;
 }
 

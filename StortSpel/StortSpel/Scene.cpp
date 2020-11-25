@@ -679,15 +679,18 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
 	}
 
-	/*Entity* stressObject = sceneObject->addEntity("stressObject");
-	if (stressObject)
+	for (int i = 0; i < 3; i++)
 	{
-		sceneObject->addComponent(stressObject, "mesh",
-			new MeshComponent("highPolyTestSpider_highPolyTestSpider1.lrm", Material({ L"Wellcome.png" })));
+		Entity* stressObject = sceneObject->addEntity("stressObject" + std::to_string(i));
+		if (stressObject)
+		{
+			sceneObject->addComponent(stressObject, "mesh",
+				new MeshComponent("highPolyTestSpider_highPolyTestSpider1.lrm", Material({ L"Wellcome.png" })));
 
-		stressObject->setPosition(0, 6, 0);
+			stressObject->setPosition(0, 6*i*0.15f + 6, 0);
 
-	}*/
+		}
+	}
 
 
 

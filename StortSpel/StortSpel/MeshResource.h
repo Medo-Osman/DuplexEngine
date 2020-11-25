@@ -1,7 +1,6 @@
 #include "3DPCH.h"
+#include "VertexStructs.h"
 #pragma once
-
-
 
 class MeshResource
 {
@@ -16,13 +15,38 @@ private:
 
 	std::vector<std::uint32_t> m_materialOffsets;
 	
+	int refCount = 0;
 public:
+	std::string debugName = "";
+	void addRef()
+	{
+		refCount++;
+	}
+
+	void deleteRef()
+	{
+		if(this && refCount > 0)
+			refCount--;
+
+		if (refCount == 0)
+		{
+			//MeshResource::resourcesToBeRemoved.push_back(this);
+			//std::cout << "delete resource " << debugName << " vec size: " << resourcesToBeRemoved.size() << std::endl;
+		}
+			
+	}
+
+	int getRefCount()
+	{
+		return refCount;
+	}
+
 	int vertCount = 0;
 	virtual ~MeshResource()
 	{
-		SAFE_DELETE(m_vertexArray);
-		//m_vertexBuffer.release();
-		//m_indexBuffer.release();
+		//SAFE_DELETE(m_vertexArray);
+		m_vertexBuffer.release();
+		m_indexBuffer.release();
 		delete[] m_vertexArray;
 	}
 	
@@ -104,4 +128,5 @@ public:
 		
 		return { offset, size };
 	}
+
 };
