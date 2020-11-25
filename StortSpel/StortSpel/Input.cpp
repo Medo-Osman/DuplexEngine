@@ -219,7 +219,7 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 	return 0;
 }
 
-void Input::readBuffers()
+void Input::readBuffers(const float& dt)
 {
 	m_currentInputData.actionData.clear();
 	m_currentInputData.rangeData.clear();
@@ -382,8 +382,8 @@ void Input::readBuffers()
 		}
 
 		// Camera
-		float posX = gamepadState.thumbSticks.rightX * m_rightStickSensetivity;
-		float posY = gamepadState.thumbSticks.rightY * m_rightStickSensetivity;
+		float posX = gamepadState.thumbSticks.rightX * m_rightStickSensetivity * dt;
+		float posY = gamepadState.thumbSticks.rightY * m_rightStickSensetivity * dt;
 
 		if (posX != 0.f || posY != 0.f)
 		{

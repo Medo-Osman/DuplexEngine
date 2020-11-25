@@ -28,6 +28,8 @@ struct Settings
 };
 
 const std::string PLAYER_ENTITY_NAME = "playerEntity";
+const float PLAYER_CAPSULE_HEIGHT = 1.75f;
+const float PLAYER_CAPSULE_RADIUS = 0.4f;
 
 class Engine
 {
@@ -51,12 +53,15 @@ private:
 	std::unordered_map<unsigned int long, MeshComponent*>* m_meshComponentMap;
 	std::unordered_map<std::string, LightComponent*>* m_lightComponentMap;
 
+	// Player
 	Player* m_player = nullptr;
+
+	// Camera
 	Camera m_camera;
 	Settings m_settings;
 
 	Input* m_input = nullptr;
-	
+
 	// Materials
 	std::unordered_map<std::string, Material> m_MaterialCache;
 	const std::wstring m_TEXTURES_PATH = L"../res/textures/";

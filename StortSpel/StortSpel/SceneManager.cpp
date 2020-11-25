@@ -270,7 +270,7 @@ void SceneManager::swapScenes()
 		Physics::get().Attach(m_currentScene, false, true);
 		Physics::get().changeScene(m_currentScene->getSceneID());
 		CharacterControllerComponent* ccc = static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"));
-		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), 1.75f, 0.5f, "human");
+		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), PLAYER_CAPSULE_HEIGHT, PLAYER_CAPSULE_RADIUS, "human");
 		ccc->setPosition(m_currentScene->getEntryPosition());
 
 	}

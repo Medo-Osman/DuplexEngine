@@ -133,11 +133,16 @@ void AnimatedMeshComponent::playSingleAnimation(std::string animationName, float
 {
 	if (!m_inBindPose)
 	{
-		if (m_currentState->justOne && m_currentState->structs.at(0).animationName == animationName)
-			return;
-
-		if (m_transitionTime > 0.f && m_animationQueue.front()->stateName == animationName)
-			return;
+		if (m_transitionTime > 0.f || transistionTime > 0.f)
+        {
+            if (!m_animationQueue.empty() && m_animationQueue.front()->stateName == animationName)
+                return;
+        }
+        else
+        {
+            if (m_currentState->justOne && m_currentState->structs.at(0).animationName == animationName)
+                return;
+        }
 	}
 
 	std::queue<animState*> empty = std::queue<animState*>(); // Make the queue empty by swaping it with an empty one
@@ -274,11 +279,16 @@ bool AnimatedMeshComponent::playBlendState(std::string stateName, float transist
 	// check if it is already playing
 	if (!m_inBindPose)
 	{
-		if (m_currentState->stateName == stateName)
-			return true;
-
-		if (m_transitionTime > 0.f && m_animationQueue.front()->stateName == stateName)
-			return true;
+		if (m_transitionTime > 0.f || transistionTime > 0.f)
+		{
+			if (!m_animationQueue.empty() && m_animationQueue.front()->stateName == stateName)
+				return true;
+		}
+		else
+		{
+			if (m_currentState->stateName == stateName)
+				return true;
+		}
 	}
 	
 	if (m_storedStates.find(stateName) == m_storedStates.end()) // If the animation isn't in the stored states map

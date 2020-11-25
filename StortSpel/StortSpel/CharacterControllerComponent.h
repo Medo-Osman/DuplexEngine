@@ -13,7 +13,7 @@ private:
 
 	PxController* m_controller;
 	float m_originalRadius;
-	float m_originalHalfHeight;
+	float m_originalHeight;
 	bool canUseController() const
 	{
 		bool canUse = true;
@@ -47,7 +47,7 @@ public:
 
 	void initController(Transform* transform, const float& height, const float &radius, std::string material = "default")
 	{
-		m_originalHalfHeight = height;
+		m_originalHeight = height;
 		m_originalRadius = radius;
 		m_transform = transform;
 		m_controller = m_physicsPtr->addCapsuleController(m_transform->getTranslation(), height, radius, material, this);
@@ -58,9 +58,9 @@ public:
 		return m_originalRadius;
 	}
 
-	const float& getOriginalHalfHeight()
+	const float& getOriginalHeight()
 	{
-		return m_originalHalfHeight;
+		return m_originalHeight;
 	}
 	void move(const XMFLOAT3 &moveTowards, const float &dt)
 	{
@@ -118,18 +118,9 @@ public:
 		//m_transform->setPosition(XMFLOAT3(position.x, position.y, position.z ));
 	}
 	
-	bool checkGround(const Vector3 &origin, const Vector3 &unitDirection, const float &distance) const
+	bool checkGround() const
 	{
-		//PxQueryFilterData fd;
-		//fd.flags |= PxQueryFlag::eANY_HIT;
-		//PxOverlapBuffer hit;            // [out] Overlap results
-		//PxCapsuleGeometry overlapShape(radius, halfHeight);  // [in] shape to test for overlaps
-		//PxTransform shapePose = PxTransform(PxVec3(position.x, position.y, position.z));    // [in] initial shape pose (at distance=0)
-
-
-		//bool status = m_scenePtr->overlap(overlapShape, shapePose, hit, fd);
-		//return status;
-		return m_physicsPtr->castRay(origin, unitDirection, distance);
+		return m_physicsPtr->sphereIntersectionTest(m_controller->getPosition() + PxExtendedVec3(0.f, ((m_originalHeight / 2.f) + 0.2f) * -1.f, 0.f), m_originalRadius);
 	}
 
 	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxShape& shape, const PxActor& actor) //Controller colides with shapes

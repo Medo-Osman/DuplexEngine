@@ -513,6 +513,18 @@ public:
 		return m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
 	}
 
+	bool sphereIntersectionTest(const PxExtendedVec3& origin, const float& radius)
+	{
+		PxQueryFilterData fd;
+		fd.flags |= PxQueryFlag::eANY_HIT;
+		PxOverlapBuffer hit;            // [out] Overlap results
+		PxSphereGeometry overlapShape(radius);  // [in] shape to test for overlaps
+		PxTransform shapePose(origin.x, origin.y, origin.z);    // [in] initial shape pose (at distance=0)
+
+		bool status = m_scenePtr->overlap(overlapShape, shapePose, hit, fd);
+		return status;
+	}
+
 	bool hitSomething(Vector3 position, float radius, float halfHeight)
 	{
 		PxQueryFilterData fd;
@@ -532,7 +544,7 @@ public:
 		PxController* capsuleController = nullptr;
 		PxCapsuleControllerDesc ccd;
 		ccd.climbingMode = PxCapsuleClimbingMode::eCONSTRAINED;
-		ccd.contactOffset = 0.1f;
+		ccd.contactOffset = 0.001f;
 		ccd.height = height;
 		ccd.radius = radius;
 		ccd.invisibleWallHeight = 0.f;

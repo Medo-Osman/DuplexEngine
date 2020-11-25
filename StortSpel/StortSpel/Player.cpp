@@ -15,6 +15,7 @@ Player::Player()
 	m_jumps = 0;
 	m_currentDistance = 0;
 	m_hasDashed = false;
+	m_transitionTime = MAX_TRANSITION_TIME;
 	m_angleY = 0;
 	m_playerEntity = nullptr;
 	m_animMesh = nullptr;
@@ -197,7 +198,7 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 		}
 
 		t += 0.5f;
-		bool hit = Physics::get().hitSomething(curPos, m_controller->getOriginalRadius(), m_controller->getOriginalHalfHeight());
+		bool hit = Physics::get().hitSomething(curPos, m_controller->getOriginalRadius(), m_controller->getOriginalHeight());
 		if (hit)
 		{
 			foundEnd = true;
@@ -215,7 +216,20 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 
 void Player::playerStateLogic(const float& dt)
 {
-	Vector3 directionalMovement = Vector3(m_movementVector.x, 0, m_movementVector.z);
+	Vector3 directionalMovement;
+	//if (m_lastDirectionalMovement.LengthSquared() == 0.f || m_lastDirectionalMovement.LengthSquared() < 0.1f)
+	//{
+		directionalMovement = Vector3(m_movementVector.x, 0, m_movementVector.z);
+	//}
+	//else
+	//{
+	//	//float directionDifference = XMVectorGetX(XMVector3Dot(m_lastDirectionalMovement, m_movementVector));
+	//	Vector3 velocityDirection = Vector3(m_velocity.x, 0.f, m_velocity.z);
+	//	velocityDirection.Normalize();
+	//	directionalMovement = XMVectorLerp(velocityDirection, m_movementVector, 0.5f);
+	//}
+
+		//directionalMovement = Vector3(m_lastDirectionalMovement.x + (m_movementVector.x * directionDifference), 0, m_lastDirectionalMovement.z + (m_movementVector.z * directionDifference));
 	switch (m_state)
 	{
 	case PlayerState::ROLL:
@@ -223,10 +237,31 @@ void Player::playerStateLogic(const float& dt)
 		if (m_currentDistance >= ROLL_TRAVEL_DISTANCE)
 		{
 			m_lastState = PlayerState::ROLL;
-			m_state = PlayerState::IDLE;
-			m_controller->setControllerSize(CAPSULE_HEIGHT);
-			m_controller->setControllerRadius(CAPSULE_RADIUS);
-			//m_animMesh->playAnimation("Running4.1", true);
+
+			if (m_transitionTime < MAX_TRANSITION_TIME) // Normal Movement
+			{
+				directionalMovement = m_moveDirection;
+				// Add Speed
+				m_horizontalMultiplier = PLAYER_MAX_SPEED * m_currentSpeedModifier;
+
+				m_transitionTime += dt;
+			}
+			else
+			{
+				if (m_controller->checkGround())
+				{
+					m_state = PlayerState::IDLE;
+					std::cout << "-------------ROLL CHANGED TO IDLE!!!\n";
+				}
+				else
+				{
+					m_state = PlayerState::FALLING;
+					std::cout << "-------------ROLL CHANGED TO FALLING!!!\n";
+				}
+			}
+			
+			m_controller->setControllerSize(m_controller->getOriginalHeight());
+			m_controller->setControllerRadius(m_controller->getOriginalRadius());
 			idleAnimation();
 		}
 		else
@@ -237,6 +272,7 @@ void Player::playerStateLogic(const float& dt)
 			m_horizontalMultiplier += ROLL_SPEED * dt;
 
 			m_currentDistance += ROLL_SPEED * dt;
+			m_transitionTime = 0.f;
 		}
 		break;
 
@@ -247,7 +283,7 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
-			m_horizontalMultiplier = PLAYER_MAX_SPEED;
+			m_horizontalMultiplier = 0.f;
 			m_beginDashSpeed = -1.f;
 			idleAnimation();
 		}
@@ -256,13 +292,15 @@ void Player::playerStateLogic(const float& dt)
 			/*m_currentDistance += DASH_TRAVEL_DISTANCE * DASH_SPEED;
 			m_velocity += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE;*/
 
-			m_currentDistance += DASH_SPEED * dt * m_currentSpeedModifier;
-
-			float t = m_currentDistance / (DASH_TRAVEL_DISTANCE * m_currentSpeedModifier);
-			float sqt = t * t;
-			float parametricBlend = sqt / (2.0f * (sqt - t) + 1.0f);
-			float speedValue = lerp(m_beginDashSpeed, DASH_TRAVEL_DISTANCE * m_currentSpeedModifier, parametricBlend); // m_beginDashSpeed is set in dash() function
-			m_horizontalMultiplier = speedValue;
+			float t = m_currentDistance / DASH_TRAVEL_DISTANCE;
+			/*float sqt = t * t;
+			float parametricBlend = sqt / (2.0f * (sqt - t) + 1.0f);*/
+			//m_dashEndPosition - m_dashStartPosition;
+			float speedValue = lerp(DASH_SPEED * m_currentSpeedModifier, DASH_OUT_SPEED, t); // m_beginDashSpeed is set in dash() function
+			//float speedValue = lerp(m_beginDashSpeed * dt, DASH_TRAVEL_DISTANCE * m_currentSpeedModifier, parametricBlend); // m_beginDashSpeed is set in dash() function
+			m_horizontalMultiplier = speedValue + 0.1f;
+			m_currentDistance += (speedValue + 0.1f) * dt;
+			std::cout << t << " \n";
 
 			directionalMovement = m_moveDirection;
 			//m_horizontalMultiplier += m_currentDistance * DASH_SPEED * dt;
@@ -287,7 +325,7 @@ void Player::playerStateLogic(const float& dt)
 			m_jumps = ALLOWED_NR_OF_JUMPS - 1;
 
 		// On Ground Check
-		if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
+		if (m_controller->checkGround())
 		{
 			m_lastState = PlayerState::FALLING;
 			m_state = PlayerState::IDLE;
@@ -329,7 +367,7 @@ void Player::playerStateLogic(const float& dt)
 				m_horizontalMultiplier = PLAYER_MAX_SPEED * m_currentSpeedModifier;
 		}
 
-		if (!m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f))
+		if (!m_controller->checkGround())
 		{
 			m_lastState = PlayerState::IDLE;
 			m_state = PlayerState::FALLING;
@@ -367,7 +405,7 @@ void Player::playerStateLogic(const float& dt)
 
 		m_velocity.x = m_direction.x;
 		m_velocity.z = m_direction.z;
-		if (m_controller->checkGround(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_velocity), 1.f))
+		if (m_controller->checkGround())
 		{
 			PlayerMessageData data;
 			data.playerActionType = PlayerActions::ON_FIRE_CANNON;
@@ -392,8 +430,7 @@ void Player::playerStateLogic(const float& dt)
 	// Gravity
 	if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING || m_state == PlayerState::ROLL || m_state == PlayerState::FLYINGBALL)
 	{
-		if (m_playerEntity->getTranslation().y != m_lastPosition.y || m_verticalMultiplier == 0)
-			m_verticalMultiplier -= GRAVITY * m_gravityScale * dt;
+		m_verticalMultiplier -= GRAVITY * m_gravityScale * dt;
 	}
 	/*if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f) && m_state != PlayerState::JUMPING)
 		m_verticalMultiplier = 0.f;*/
@@ -404,10 +441,12 @@ void Player::playerStateLogic(const float& dt)
 
 	// Multiplier Print
 	m_timeCounter += dt;
-	if (m_timeCounter > 1.f)
+	if (m_timeCounter > 0.1f)
 	{
-		std::cout << m_horizontalMultiplier << "\n";
-		std::cout << m_currentSpeedModifier << "\n";
+		//std::cout << m_velocity.x << m_velocity.y << m_velocity.z << "\n";
+		//std::cout << m_horizontalMultiplier << "\n";
+		//std::cout << m_verticalMultiplier << "\n";
+		//std::cout << m_currentSpeedModifier << "\n";
 
 		switch (m_state)
 		{
@@ -421,13 +460,13 @@ void Player::playerStateLogic(const float& dt)
 
 		std::cout << "\n";
 
-		m_timeCounter -= 1.f;
+		m_timeCounter -= 0.1f;
 	}
 
 	// Final frame velocity
-	if (directionalMovement.LengthSquared() > 0)
+	if (directionalMovement.LengthSquared() > 0.f)
 		m_lastDirectionalMovement = directionalMovement;
-	
+
 	m_velocity = ((m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier)) * dt;
 
 	m_controller->move(m_velocity, 1.f);
@@ -578,9 +617,6 @@ void Player::setPlayerEntity(Entity* entity)
 	//To test heightpickup faster, if you see this you can remove it
 	m_pickupPointer = new CannonPickup();
 	m_pickupPointer->onPickup(m_playerEntity);
-
-
-
 }
 
 Vector3 Player::getCheckpointPos()
@@ -734,8 +770,7 @@ void Player::inputUpdate(InputData& inputData)
 		case DASH:
 			if (m_state == PlayerState::IDLE)
 			{
-				if (canRoll())
-					roll();
+				roll();
 			}
 			else
 			{
@@ -992,7 +1027,8 @@ void Player::roll()
 	m_controller->setControllerSize(ROLL_HEIGHT);
 	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
-
+	m_verticalMultiplier = 0.f;
+	std::cout << "ROLL PRESSED!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	rollAnimation();
 }
 
@@ -1005,7 +1041,7 @@ void Player::dash()
 {
 	prepDistVariables();
 	m_state = PlayerState::DASH;
-	m_beginDashSpeed = m_horizontalMultiplier;
+	m_beginDashSpeed = DASH_SPEED;
 
 	dashAnimation();
 }
@@ -1019,7 +1055,7 @@ void Player::prepDistVariables()
 void Player::rollAnimation()
 {
 	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
-	m_animMesh->setAnimationSpeed(2.0f);
+	m_animMesh->setAnimationSpeed(1.5f);
 }
 
 void Player::dashAnimation()
@@ -1030,4 +1066,5 @@ void Player::dashAnimation()
 void Player::idleAnimation()
 {
 	m_animMesh->playBlendState("runOrIdle", 0.3f);
+	m_animMesh->setAnimationSpeed(1.0f);
 }

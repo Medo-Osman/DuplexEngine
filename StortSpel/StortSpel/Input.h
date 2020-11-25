@@ -75,7 +75,7 @@ private:
 	// Gamepad
 	std::unique_ptr<GamePad> m_gamepad;
 	GamePad::ButtonStateTracker m_tracker;
-	float m_rightStickSensetivity	= 10.f;
+	float m_rightStickSensetivity	= 1000.f;
 	bool m_invertedRightStickY		= false;
 
 	std::vector<InputObserver*> m_inputObservers;
@@ -90,7 +90,7 @@ public:
 	Input();
 	~Input();
 	LRESULT handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lParam);
-	void readBuffers();
+	void readBuffers(const float& dt);
 	void addContext(iContext* context);
 	void removeContext(iContext* context);
 

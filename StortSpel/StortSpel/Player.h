@@ -65,15 +65,11 @@ class Player : public InputObserver, public PhysicsObserver, public GUIObserver,
 private:
     float m_playerScale = 2.0f;
 
-    //CONTROLLER CONFIG
-    const float CAPSULE_HEIGHT = 1.5f;
-    const float CAPSULE_RADIUS = 0.01f;
-
     //WALK CONFIG
     const float PLAYER_MAX_SPEED = 10.f;
     const float PLAYER_ACCELERATION = 50.f; // times dt
     const float PLAYER_DECELERATION = 30.f; // times dt
-    const float PLAYER_ROTATION_SPEED = 0.07f;
+    const float PLAYER_ROTATION_SPEED = 0.08f;
     float m_verticalMultiplier;
     float m_horizontalMultiplier;
     Vector3 m_movementVector;
@@ -92,16 +88,20 @@ private:
     float m_gravityScale = 4.f;
 
     //DASH CONFIG 
-    const float DASH_TRAVEL_DISTANCE = 25.f;
-    const float DASH_SPEED = 80.0f;
+    const float DASH_TRAVEL_DISTANCE = 10.f;
+    const float DASH_SPEED = 50.0f;
+    const float DASH_OUT_SPEED = 20.0f;
     float m_beginDashSpeed = -1.f;
     bool m_hasDashed;
 
     //Roll CONFIG
     const float ROLL_TRAVEL_DISTANCE = 30.f;
-    const float ROLL_SPEED = 60.0f;
+    const float ROLL_SPEED = 50.0f;
     const float ROLL_HEIGHT = 0.3f;
-    const float ROLL_RADIUS = 0.2f;
+    const float ROLL_RADIUS = 0.3f;
+    const float ROLL_TRANSITION_SPEED = 8.0f;
+    const float MAX_TRANSITION_TIME = 0.2f; // Sec
+    float m_transitionTime;
 
     float m_currentSpeedModifier;
     float m_goalSpeedModifier;
@@ -136,7 +136,7 @@ private:
     TrapType m_activeTrap;
 
     Vector3 m_velocity = Vector3();
-    Vector3 m_lastDirectionalMovement;
+    Vector3 m_lastDirectionalMovement = Vector3();
     Vector3 m_lastPosition = Vector3();
     float m_previousVerticalMovement = 0.f;
 
