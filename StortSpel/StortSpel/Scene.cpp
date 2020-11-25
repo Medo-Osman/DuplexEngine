@@ -598,7 +598,7 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 		memcpy(prefabData, levelData + offset, prefabDataSize);
 		offset += prefabDataSize;
 
-		addPrefabFromFile(prefabData);
+		sceneObject->addPrefabFromFile(prefabData);
 
 		delete[] prefabData;
 	}
@@ -739,8 +739,13 @@ void Scene::addPrefabFromFile(char* params)
 		addCheckpoint(pos);
 		break;
 	case SLOWTRAP:
-		addSlowTrap(pos, readDataFromChar<Vector3>(params, offset));
+	{
+		Vector3 scale, hitBox;
+		scale = readDataFromChar<Vector3>(params, offset);
+		hitBox = readDataFromChar<Vector3>(params, offset);
+		addSlowTrap(pos, scale, hitBox);
 		break;
+	}
 	case PUSHTRAP:
 	{
 		Vector3 wallpos1, wallpos2;

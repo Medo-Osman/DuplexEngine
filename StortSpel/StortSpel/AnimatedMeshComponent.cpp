@@ -153,7 +153,7 @@ void AnimatedMeshComponent::playSingleAnimation(std::string animationName, float
 			*/
 		if (m_transitionTime > 0.f || transistionTime > 0.f)
 		{
-			if (m_animationQueue.front()->stateName == animationName)
+			if (!m_animationQueue.empty() && m_animationQueue.front()->stateName == animationName)
 				return;
 		}
 		else
@@ -308,7 +308,7 @@ bool AnimatedMeshComponent::playBlendState(std::string stateName, float transist
 
 		if (m_transitionTime > 0.f || transistionTime > 0.f)
 		{
-			if (m_animationQueue.front()->stateName == stateName)
+			if (!m_animationQueue.empty() && m_animationQueue.front()->stateName == stateName)
 				return true;
 		}
 		else
