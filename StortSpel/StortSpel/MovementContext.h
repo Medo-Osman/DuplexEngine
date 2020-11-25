@@ -29,6 +29,6 @@ public:
 		//Range
 		m_rangeMapping[(char)'move'] = Range::REL; //Mouse position, can be used for UI and such. Leave it in here for example.
 		m_rangeMapping[(char)'raw'] = Range::RAW; //How much has the mouse moved.
-		
+		m_rangeMapping[(char)'walk'] = Range::WALK;
 	}
 };

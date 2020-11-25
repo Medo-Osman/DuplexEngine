@@ -109,8 +109,10 @@ bool Player::isRunning()
 	return (vec.Length() > 0);
 }
 
-void Player::setStates(std::vector<State> states)
+void Player::setStates(InputData& inputData)
 {
+	std::vector<State>& states = inputData.stateData;
+	std::vector<RangeData>& range = inputData.rangeData; // Used for Gamepad left stick walking/Running
 	m_movementVector = Vector3();
 	if (m_state != PlayerState::DASH && m_state != PlayerState::ROLL)
 	{
@@ -123,6 +125,14 @@ void Player::setStates(std::vector<State> states)
 			case WALK_FORWARD:	m_movementVector += m_cameraTransform->getForwardVector(); break;
 			case WALK_BACKWARD: m_movementVector += m_cameraTransform->getBackwardVector(); break;	
 			default: break;
+			}
+		}
+		for (size_t i = 0; i < range.size(); i++) // Get Analog input for walking/running
+		{
+			if (range[i].rangeFlag == Range::WALK)
+			{
+				Vector3 analogWalkW(range[i].pos.x, 0.f, range[i].pos.y);
+				m_movementVector += XMVector3TransformCoord(analogWalkW, m_cameraTransform->getRotationMatrix());
 			}
 		}
 	}
@@ -756,7 +766,7 @@ void Player::inputUpdate(InputData& inputData)
 	}
 
 
-	this->setStates(inputData.stateData);
+	this->setStates(inputData);
 
 	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
 	{

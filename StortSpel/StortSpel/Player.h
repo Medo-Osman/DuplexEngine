@@ -162,7 +162,7 @@ private:
 
 
     //Private functions
-    void setStates(std::vector<State> states);
+    void setStates(InputData& inputData);
     void handleRotation(const float& dt);
     Vector3 calculatePath(Vector3 position, Vector3 velocity, float gravityY);
     void playerStateLogic(const float& dt);

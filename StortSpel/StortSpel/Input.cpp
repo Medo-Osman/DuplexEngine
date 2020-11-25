@@ -324,61 +324,60 @@ void Input::readBuffers(const float& dt)
 			inputDataChanged = this->fillInputDataUsingKey('\x0D', false) || inputDataChanged; //Enter 
 
 		// Walk / Menu Navigation
-
 		// Up
-		if (m_tracker.dpadUp		== GamePad::ButtonStateTracker::PRESSED ||
-			m_tracker.leftStickUp	== GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.dpadUp == GamePad::ButtonStateTracker::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('W', true) || inputDataChanged;
 			inputDataChanged = this->fillInputDataUsingKey('\x26', true) || inputDataChanged; // Arrow Up
 		}
-		else
-		if (m_tracker.dpadUp		== GamePad::ButtonStateTracker::RELEASED ||
-			m_tracker.leftStickUp	== GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.dpadUp == GamePad::ButtonStateTracker::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('W', false) || inputDataChanged;
 			inputDataChanged = this->fillInputDataUsingKey('\x26', false) || inputDataChanged; // Arrow Up
 		}
 
 		// Left
-		if (m_tracker.dpadLeft		== GamePad::ButtonStateTracker::PRESSED ||
-			m_tracker.leftStickLeft	== GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.dpadLeft == GamePad::ButtonStateTracker::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('A', true) || inputDataChanged;
 		}
-		else 
-		if (m_tracker.dpadLeft		== GamePad::ButtonStateTracker::RELEASED ||
-			m_tracker.leftStickLeft == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.dpadLeft == GamePad::ButtonStateTracker::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('A', false) || inputDataChanged;
 		}
 
 		// Down
-		if (m_tracker.dpadDown		== GamePad::ButtonStateTracker::PRESSED ||
-			m_tracker.leftStickDown == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.dpadDown == GamePad::ButtonStateTracker::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('S', true) || inputDataChanged;
 			inputDataChanged = this->fillInputDataUsingKey('\x28', true) || inputDataChanged; // Arrow Down
 		}
-		else 
-		if (m_tracker.dpadDown		== GamePad::ButtonStateTracker::RELEASED ||
-			m_tracker.leftStickDown == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.dpadDown	== GamePad::ButtonStateTracker::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('S', false) || inputDataChanged;
 			inputDataChanged = this->fillInputDataUsingKey('\x28', false) || inputDataChanged; // Arrow Down
 		}
 
 		// Right
-		if (m_tracker.dpadRight		 == GamePad::ButtonStateTracker::PRESSED ||
-			m_tracker.leftStickRight == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.dpadRight == GamePad::ButtonStateTracker::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('D', true) || inputDataChanged;
 		}
-		else 
-		if (m_tracker.dpadRight		 == GamePad::ButtonStateTracker::RELEASED ||
-			m_tracker.leftStickRight == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.dpadRight == GamePad::ButtonStateTracker::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('D', false) || inputDataChanged;
+		}
+
+		// Analog Left Stick input
+		bool foundContext = false;
+		for (size_t i = 0; i < m_contexts.size() && !foundContext; i++)
+		{
+			if (Range::WALK != -1 && !m_contexts[i]->getMute())
+			{
+				MousePos pos({ gamepadState.thumbSticks.leftX, gamepadState.thumbSticks.leftY });
+				m_currentInputData.rangeData.emplace_back(Range::WALK, pos);
+				inputDataChanged = true;
+			}
 		}
 
 		// Camera
@@ -398,6 +397,7 @@ void Input::readBuffers(const float& dt)
 			}
 		}
 
+		// Example code
 		//if (gamepadState.buttons.y)
 			// Do action for button Y being down
 

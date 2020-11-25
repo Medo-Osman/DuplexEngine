@@ -34,4 +34,5 @@ enum Range
 {
 	RAW,
 	REL,
+	WALK
 };
