@@ -6,6 +6,7 @@ void AnimatedMeshComponent::init(const char* filepath)
 	m_inBindPose = true;
 	m_transitionTime = 0.f;
 	m_type = ComponentType::ANIM_MESH;
+	m_filePath = filepath;
 
 	SkeletalMeshResource* resPtr = dynamic_cast<SkeletalMeshResource*>(ResourceHandler::get().loadLRSMMesh(filepath));
 

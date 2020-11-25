@@ -1519,6 +1519,8 @@ void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string 
 	if (tempComponentVector.empty())
 		entity->getComponentsOfType(tempComponentVector, ComponentType::ANIM_MESH);
 
+	assert(!tempComponentVector.empty());
+
 	if (meshName != "")
 	{
 		for (std::size_t i = 0; i < tempComponentVector.size() && !found; ++i) {
