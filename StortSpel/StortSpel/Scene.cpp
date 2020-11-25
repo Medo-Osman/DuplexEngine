@@ -963,7 +963,7 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 	if (bossEnt)
 	{
 		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true, true);
 		bossEnt->addComponent("mesh", animMeshComp);
 		sceneObject->addMeshComponent(animMeshComp);
 		bossEnt->scale({ 4, 4, 4 });

@@ -686,13 +686,13 @@ void Player::prepDistVariables()
 
 void Player::rollAnimation()
 {
-	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false, true);
 	m_animMesh->setAnimationSpeed(1.6f);
 }
 
 void Player::dashAnimation()
 {
-	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true);
+	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true, true);
 }
 
 void Player::idleAnimation()

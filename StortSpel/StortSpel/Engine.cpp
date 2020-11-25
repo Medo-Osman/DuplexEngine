@@ -201,7 +201,7 @@ void Engine::initialize(Input* input)
 
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
-	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true);
+	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true, true);
 
 
 	m_player->setAnimMeshPtr(animMeshComp);
