@@ -19,7 +19,7 @@ private:
 	bool m_kinematic;
 	bool m_slide;
 
-	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, MeshResource* meshResource)
+	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, MeshResource* meshResource, Vector3 scale = {1, 1, 1 })
 	{
 		PxTriangleMesh* tringMesh;
 		PositionVertex* vertexArray;
@@ -55,7 +55,7 @@ private:
 			break;
 		case physx::PxGeometryType::eTRIANGLEMESH:
 			tringMesh = m_physicsPtr->getTriangleMeshe(meshResource->getFilePath(), meshResource->getVertexArraySize(), meshResource->getVertexArray(), meshResource->getIndexArraySize(), meshResource->getIndexArray());
-			createdGeometry = new physx::PxTriangleMeshGeometry(tringMesh, PxMeshScale(), PxMeshGeometryFlag::eDOUBLE_SIDED);
+			createdGeometry = new physx::PxTriangleMeshGeometry(tringMesh, PxMeshScale(PxVec3(scale.x, scale.y, scale.z)), PxMeshGeometryFlag::eDOUBLE_SIDED);
 			break;
 		default:
 			break;
@@ -115,6 +115,7 @@ public:
 
 	void initActorAndShape(int sceneID, Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
 	{
+		bool forceMakeKinematic = geometryType == PxGeometryType::eTRIANGLEMESH && dynamic;
 		m_dynamic = dynamic;
 		m_transform = entity;
 		XMFLOAT3 scale = entity->getScaling() * meshComponent->getScaling();
@@ -123,7 +124,7 @@ public:
 		XMFLOAT3 boundsCenter;
 		meshComponent->getMeshResourcePtr()->getBoundsCenter(boundsCenter);
 		boundsCenter = boundsCenter * scale;
-		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshComponent->getTranslation() + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this, sceneID);
+		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshComponent->getTranslation() + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this, sceneID, forceMakeKinematic);
 		bool addGeom = true;
 		
 		if (this->canAddGeometry())
@@ -321,12 +322,11 @@ public:
 	// Update
 	void update(float dt) override 
 	{
-		if (m_dynamic)
-		{
-			m_transform->setPosition(this->getActorPosition());
-			if (m_controllRotation)
-				m_transform->setRotationQuat(this->getActorQuaternion());
-		}	
+		//IF we check if it is static, anytime anyone moves a static physics object's entity transform it will be in the wrong position. We also don't mirror the transform in the first place.
+		m_transform->setPosition(this->getActorPosition());
+		if (m_controllRotation)
+			m_transform->setRotationQuat(this->getActorQuaternion());
+		
 	}
 
 	XMFLOAT3 getActorPosition()

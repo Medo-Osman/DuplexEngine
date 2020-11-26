@@ -836,7 +836,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(test, "3Dsound", new AudioComponent(L"fireplace.wav", true, 3.f, 0.f, true, test));
 	}
 
-	sceneObject->createSwingingHammer(Vector3(0, 6.5, 20), Vector3(0, 0, 0), 1);
+	sceneObject->createSwingingHammer(Vector3(0, 9.3, 20), Vector3(0, 0, 0), 1);
 	sceneObject->createStaticPlatform(Vector3(0, 13, 20), Vector3(0, 0, 0), Vector3(4, 1, 4), "testCube_pCube1.lrm");
 	// Start:
 	sceneObject->createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
@@ -1731,29 +1731,30 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 		addComponent(hammerFrame, "mesh",
 			new MeshComponent("Hammer_Frame_pCube7.lrm", Material({ L"DarkGrayTexture.png" })));
 
+		hammerFrame->setPosition(position);
+		hammerFrame->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 
 		createNewPhysicsComponent(hammerFrame, false, "", PxGeometryType::eTRIANGLEMESH);
 
-		hammerFrame->setPosition(position);
-		hammerFrame->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+		
 	}
 
-	//Entity* hammer = addEntity("Hammer-" + std::to_string(m_nrOfSweepingPlatforms));
-	//if (hammer)
-	//{
-	//	addComponent(hammer, "mesh",
-	//		new MeshComponent("Hammer_pCylinder3.lrm", Material({ L"DarkGrayTexture.png" })));
+	Entity* hammer = addEntity("Hammer-" + std::to_string(m_nrOfSweepingPlatforms));
+	if (hammer)
+	{
+		addComponent(hammer, "mesh",
+			new MeshComponent("Hammer_pCylinder3.lrm", Material({ L"DarkGrayTexture.png" })));
 
 
-	//	hammer->setPosition({ position.x, position.y + 6.5f, position.z });
-	//	//hammer->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+		hammer->setPosition({ position.x, position.y + 6.5f, position.z });
+		hammer->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 
-	//	//createNewPhysicsComponent(hammer, true);
-	//	//static_cast<PhysicsComponent*>(hammer->getComponent("physics"))->makeKinematic();
+		createNewPhysicsComponent(hammer, true, "", PxGeometryType::eTRIANGLEMESH);
+		static_cast<PhysicsComponent*>(hammer->getComponent("physics"))->makeKinematic();
 
-	//	//addComponent(hammer, "swing",
-	//	//	new SwingComponent(hammer, rotation, swingSpeed));
-	//}
+		addComponent(hammer, "swing",
+			new SwingComponent(hammer, rotation, swingSpeed));
+	}
 }
 
 void Scene::createProjectile(Vector3 origin, Vector3 dir, float speed)

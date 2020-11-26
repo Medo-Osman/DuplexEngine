@@ -470,13 +470,15 @@ public:
 		m_actorsToRemoveAfterSimulation.emplace_back(actor);
 	}
 
-	PxRigidActor* createRigidActor(const XMFLOAT3 &position, const XMFLOAT4& quaternion, const bool &dynamic, void* physicsComponentPtr, int sceneID)
+	PxRigidActor* createRigidActor(const XMFLOAT3& position, const XMFLOAT4& quaternion, const bool& dynamic, void* physicsComponentPtr, int sceneID, bool needsToBeKinematic = false)
 	{
 		PxVec3 pos(position.x, position.y, position.z);
 		PxQuat quat(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
 		PxRigidActor* actor = dynamic ? createDynamicActor(pos, quat) : createStaticActor(pos, quat);
 		actor->userData = physicsComponentPtr;
+		if(needsToBeKinematic) //If dynamic and trianglemesh is set this will be true.
+			static_cast<PxRigidDynamic*>(actor)->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
 		m_scenes[sceneID]->addActor(*actor);
 		return actor;
 	}
