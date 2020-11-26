@@ -193,8 +193,8 @@ void Player::playerStateLogic(const float& dt)
 		{
 			if (m_jumps == 1)
 				endJump_First();
-			//else
-			//	endJump_Second();
+			else
+				endJump_Second();
 			m_lastState = PlayerState::FALLING;
 			m_state = PlayerState::IDLE;
 			m_jumps = 0;
@@ -694,13 +694,14 @@ void Player::prepDistVariables()
 
 void Player::rollAnimation()
 {
-	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false, true);
-	m_animMesh->setAnimationSpeed(1.6f);
+	m_animMesh->playSingleAnimation("Slide", 0.2f, false, false);
+	m_animMesh->setAnimationSpeed(1.2f);
 }
 
 void Player::dashAnimation()
 {
-	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true, true);
+	m_animMesh->playSingleAnimation("Dash", 0.1f, false, true);
+	m_animMesh->setAnimationSpeed(100.f);
 }
 
 void Player::idleAnimation()
@@ -710,25 +711,25 @@ void Player::idleAnimation()
 
 void Player::startJump_First()
 {
-	m_animMesh->playSingleAnimation("JumpStart_First", 0.1f, true);
-	m_animMesh->queueSingleAnimation("JumpLoop_First", 0.f, true);
+	m_animMesh->playSingleAnimation("JumpStart_First", 0.1f, true, false);
+	m_animMesh->queueSingleAnimation("JumpLoop_First", 0.f, true, false);
 }
 
 void Player::endJump_First()
 {
-	m_animMesh->playSingleAnimation("JumpEnd_First", 0.3f, true);
+	m_animMesh->playSingleAnimation("JumpEnd_First", 0.02f, false, false);
 	m_animMesh->setAnimationSpeed(0.1f);
-	m_animMesh->queueBlendState("runOrIdle", 2.3f);
+	m_animMesh->queueBlendState("runOrIdle", 3.3f);
 }
 
 void Player::startJump_Second()
 {
-	//m_animMesh->playSingleAnimation("JumpStart_Second", 0.1f, false);
-	//m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.1f, false);
+	m_animMesh->playSingleAnimation("JumpStart_Second", 0.1f, true, false);
+	m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.1f, true, false);
 }
 
 void Player::endJump_Second()
 {
-	//m_animMesh->playSingleAnimation("JumpEnd_Second", 0.1f, false);
-	//m_animMesh->queueBlendState("runOrIdle", 0.3f);
+	m_animMesh->playSingleAnimation("JumpEnd_Second", 0.1f, false, false);
+	m_animMesh->queueBlendState("runOrIdle", 0.3f);
 }

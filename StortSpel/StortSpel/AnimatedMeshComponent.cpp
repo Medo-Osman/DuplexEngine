@@ -642,6 +642,9 @@ void AnimatedMeshComponent::update(float dt)
 
 			if(keepPlayingCurrent)
 				m_currentState->structs.at(i).animationTime += dt * m_currentState->structs.at(i).animationSpeed;
+			
+			if ((inTransition && !m_currentState->playDuringEndTransistion))
+				m_currentState->structs.at(i).animationTime = m_currentState->structs.at(i).animationResource->getTimeSpan();
 		}
 		if (inTransition)
 		{
