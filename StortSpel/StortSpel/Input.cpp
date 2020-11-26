@@ -70,9 +70,17 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 
 		if (key == VK_TAB)
 		{
-			//m_contexts[0]->setMute(!m_contexts[0]->getMute());
 			m_cursorEnabled = !m_cursorEnabled;
-			ShowCursor(CURSOR_SHOWING);
+			if (m_cursorEnabled)
+			{
+				while (::ShowCursor(TRUE) < 0);
+				m_contexts[0]->setMute(true);
+			}
+			else
+			{
+				while (::ShowCursor(FALSE) >= 0);
+				m_contexts[0]->setMute(false);
+			}
 		}
 
 		return 0;
