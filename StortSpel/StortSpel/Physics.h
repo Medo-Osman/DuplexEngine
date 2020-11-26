@@ -311,8 +311,6 @@ public:
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 		}
 		PxCookingParams params = PxCookingParams(PxTolerancesScale());
-		params.meshPreprocessParams.set(PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE);
-		params.meshPreprocessParams.set(PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH);
 		m_cookingPtr = PxCreateCooking(PX_PHYSICS_VERSION, *m_foundationPtr, params);
 
 		assert(m_cookingPtr);
