@@ -216,7 +216,7 @@ void Scene::addCheckpoint(const Vector3& position)
 
 	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.1f));
 
-	createNewPhysicsComponent(checkPoint, false, "", PxGeometryType::eTRIANGLEMESH);
+	createNewPhysicsComponent(checkPoint, false);
 }
 
 void Scene::addBarrelDrop(Vector3 Position)
@@ -903,7 +903,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		clownMask->setPosition(Vector3(-11.5f, 60.f, 290.f));
 		clownMask->setRotation(XMConvertToRadians(7.f), XMConvertToRadians(180.f), XMConvertToRadians(0.f));
 
-		sceneObject->createNewPhysicsComponent(clownMask, false, "", PxGeometryType::eTRIANGLEMESH);
+		sceneObject->createNewPhysicsComponent(clownMask, false);
 	}
 	Entity* goalTrigger = sceneObject->addEntity("trigger");
 	if (goalTrigger)
