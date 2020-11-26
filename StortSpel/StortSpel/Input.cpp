@@ -262,108 +262,109 @@ void Input::readBuffers(const float& dt)
 		}
 	}
 	// Gamepad
-	auto gamepadState = m_gamepad->GetState(0);
+	auto gamepadState = m_gamepad->GetState(0, GamePad::DEAD_ZONE_CIRCULAR);
 
 	if (gamepadState.IsConnected())
 	{
 		// Actions
 		m_tracker.Update(gamepadState);
+		using BState = GamePad::ButtonStateTracker;
 
 		// A
-		if (m_tracker.a == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.a == BState::PRESSED)
 			inputDataChanged = this->fillInputDataUsingKey(' ', true) || inputDataChanged; // Space
-		else if (m_tracker.a == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.a == BState::RELEASED)
 			inputDataChanged = this->fillInputDataUsingKey(' ', false) || inputDataChanged; // Space
 
 		// X
-		if (m_tracker.x == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.x == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('\x10', true) || inputDataChanged; // Shift
 			//if (m_gamepad->SetVibration(0, 0.1f, 0.1f)) {} // player 0, leftMotor, rightMotor
 		}
-		else if (m_tracker.x == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.x == BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('\x10', false) || inputDataChanged; // Shift
 			//if (m_gamepad->SetVibration(0, 0.f, 0.f)) {}
 		}
 
 		// B
-		if (m_tracker.b == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.b == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('\x10', true) || inputDataChanged;
 			//if (m_gamepad->SetVibration(0, 0.1f, 0.1f)) {}
 		}
-		else if (m_tracker.b == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.b == BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('\x10', false) || inputDataChanged;
 			//if (m_gamepad->SetVibration(0, 0.f, 0.f)) {}
 		}
 
 		// Y
-		if (m_tracker.y == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.y == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('F', true) || inputDataChanged;
 			if (m_gamepad->SetVibration(0, 0.5f, 0.5f)) {}
 		}
-		else if (m_tracker.y == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.y == BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('F', false) || inputDataChanged;
 			if (m_gamepad->SetVibration(0, 0.f, 0.f)) {}
 		}
 
 		// Menu / Start
-		if (m_tracker.menu == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.menu == BState::PRESSED)
 			inputDataChanged = this->fillInputDataUsingKey('P', true) || inputDataChanged; 
-		else if (m_tracker.menu == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.menu == BState::RELEASED)
 			inputDataChanged = this->fillInputDataUsingKey('P', false) || inputDataChanged; 
 
 		// View / Back
-		if (m_tracker.view == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.view == BState::PRESSED)
 			inputDataChanged = this->fillInputDataUsingKey('\x0D', true) || inputDataChanged; //Enter 
-		else if (m_tracker.view == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.view == BState::RELEASED)
 			inputDataChanged = this->fillInputDataUsingKey('\x0D', false) || inputDataChanged; //Enter 
 
 		// Walk / Menu Navigation
 		// Up
-		if (m_tracker.dpadUp == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.dpadUp == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('W', true) || inputDataChanged;
 			inputDataChanged = this->fillInputDataUsingKey('\x26', true) || inputDataChanged; // Arrow Up
 		}
-		else if (m_tracker.dpadUp == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.dpadUp == BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('W', false) || inputDataChanged;
 			inputDataChanged = this->fillInputDataUsingKey('\x26', false) || inputDataChanged; // Arrow Up
 		}
 
 		// Left
-		if (m_tracker.dpadLeft == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.dpadLeft == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('A', true) || inputDataChanged;
 		}
-		else if (m_tracker.dpadLeft == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.dpadLeft == BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('A', false) || inputDataChanged;
 		}
 
 		// Down
-		if (m_tracker.dpadDown == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.dpadDown == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('S', true) || inputDataChanged;
 			inputDataChanged = this->fillInputDataUsingKey('\x28', true) || inputDataChanged; // Arrow Down
 		}
-		else if (m_tracker.dpadDown	== GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.dpadDown	== BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('S', false) || inputDataChanged;
 			inputDataChanged = this->fillInputDataUsingKey('\x28', false) || inputDataChanged; // Arrow Down
 		}
 
 		// Right
-		if (m_tracker.dpadRight == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.dpadRight == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('D', true) || inputDataChanged;
 		}
-		else if (m_tracker.dpadRight == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.dpadRight == BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('D', false) || inputDataChanged;
 		}
@@ -372,11 +373,20 @@ void Input::readBuffers(const float& dt)
 		bool foundContext = false;
 		for (size_t i = 0; i < m_contexts.size() && !foundContext; i++)
 		{
-			if (Range::WALK != -1 && !m_contexts[i]->getMute())
+			if (WALK != -1 && !m_contexts[i]->getMute())
 			{
 				MousePos pos({ gamepadState.thumbSticks.leftX, gamepadState.thumbSticks.leftY });
-				m_currentInputData.rangeData.emplace_back(Range::WALK, pos);
-				inputDataChanged = true;
+				if (pos.x > -m_centerDeadzoneLeftLimit && pos.x < m_centerDeadzoneLeftLimit) // Check if pos X is within center Deadzone
+					pos.x = 0;
+				
+				if (pos.y > -m_centerDeadzoneLeftLimit && pos.y < m_centerDeadzoneLeftLimit) // Check if pos X is within center Deadzone
+					pos.y = 0;
+				
+				if (pos.x != 0.f || pos.y != 0.f) // only send input if it has changed
+				{
+					m_currentInputData.rangeData.emplace_back(WALK, pos);
+					inputDataChanged = true;
+				}
 			}
 		}
 

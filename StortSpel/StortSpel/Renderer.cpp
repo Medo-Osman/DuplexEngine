@@ -863,7 +863,7 @@ void Renderer::render()
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-	m_swapChainPtr->Present(1, 0);
+	m_swapChainPtr->Present(0, 0);
 }
 
 ID3D11Device* Renderer::getDevice()

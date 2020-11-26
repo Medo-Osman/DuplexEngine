@@ -133,6 +133,8 @@ void Player::setStates(InputData& inputData)
 			{
 				Vector3 analogWalkW(range[i].pos.x, 0.f, range[i].pos.y);
 				m_movementVector += XMVector3TransformCoord(analogWalkW, m_cameraTransform->getRotationMatrix());
+				//if (m_timeCounter > 0.1f)
+					std::cout << range[i].pos.x << ", " << range[i].pos.y << "\n";
 			}
 		}
 	}
@@ -458,7 +460,7 @@ void Player::playerStateLogic(const float& dt)
 		//std::cout << m_verticalMultiplier << "\n";
 		//std::cout << m_currentSpeedModifier << "\n";
 
-		switch (m_state)
+		/*switch (m_state)
 		{
 		case PlayerState::DASH:		std::cout << "DASH\n"; break;
 		case PlayerState::ROLL:		std::cout << "ROLL\n"; break;
@@ -466,9 +468,9 @@ void Player::playerStateLogic(const float& dt)
 		case PlayerState::FALLING:	std::cout << "FALLING\n"; break;
 		case PlayerState::IDLE:		std::cout << "IDLE\n"; break;
 		default: break;
-		}
+		}*/
 
-		std::cout << "\n";
+		//std::cout << "\n";
 
 		m_timeCounter -= 0.1f;
 	}

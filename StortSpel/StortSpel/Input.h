@@ -76,6 +76,7 @@ private:
 	std::unique_ptr<GamePad> m_gamepad;
 	GamePad::ButtonStateTracker m_tracker;
 	float m_rightStickSensetivity	= 1000.f;
+	float m_centerDeadzoneLeftLimit	= 0.3f;
 	bool m_invertedRightStickY		= false;
 
 	std::vector<InputObserver*> m_inputObservers;
