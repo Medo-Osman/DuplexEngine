@@ -53,20 +53,22 @@ void Engine::update(const float& dt)
 	}
 	PacketHandler::get().setPlayerData(m_player->getPlayerEntity()->getTranslation());
 	PacketHandler::get().setPlayerData(m_player->getPlayerEntity()->getRotation());
-	PacketHandler::get().setPlayerData(m_player->getState());
+	PacketHandler::get().setPlayerState(m_player->getState());
 	PacketHandler::get().setPlayerData(m_player->getAnimMeshComp()->getCurrentBlend());
-	Vector4 test = m_player->getPlayerEntity()->getRotation();
+	PacketHandler::get().setPlayerScore(m_player->getScore());
+	//Vector4 test = m_player->getPlayerEntity()->getRotation();
 	for (int i = 0; i < 3; i++)
 	{
 		if (serverPlayers->at(i)->getNetworkID() == -1)
 		{
 			serverPlayers->at(i)->setNetworkID(PacketHandler::get().getIDAt(i + 1));
 		}
-
-		serverPlayers->at(i)->getPlayerEntity()->setPosition(PacketHandler::get().getPosAt(i + 1));
-		serverPlayers->at(i)->getPlayerEntity()->setRotationQuat(PacketHandler::get().getRotAt(i + 1));
-		serverPlayers->at(i)->serverPlayerAnimationChange((PlayerState)PacketHandler::get().getStateAt(i + 1), PacketHandler::get().getBlendAt(i + 1));
-
+		else
+		{
+			serverPlayers->at(i)->getPlayerEntity()->setPosition(PacketHandler::get().getPosAt(i + 1));
+			serverPlayers->at(i)->getPlayerEntity()->setRotationQuat(PacketHandler::get().getRotAt(i + 1));
+			serverPlayers->at(i)->serverPlayerAnimationChange((PlayerState)PacketHandler::get().getStateAt(i + 1), PacketHandler::get().getBlendAt(i + 1));
+		}
 	}
 }
 void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities)

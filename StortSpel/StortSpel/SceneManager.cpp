@@ -105,6 +105,10 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 	{
 		if ((TrapType)physicsData.associatedTriggerEnum == TrapType::PUSH)
 		{
+			//Send activation message to server
+			PacketHandler::get().sendTrapData(static_cast<PushTrapComponent*>(physicsData.pointer)->getParentEntityIdentifier());
+
+
 			static_cast<PushTrapComponent*>(physicsData.pointer)->push();
 		}
 	}
@@ -117,6 +121,9 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 		
 			if (barrelTriggerPtr->m_triggerTimer.timeElapsed() >= 3)
 			{
+				//Send activation message to server
+				//PacketHandler::get().setTrapActive(physicsData.entityIdentifier);
+
 				m_currentScene->addBarrelDrop(Vector3(-30, 50, 130));
 				barrelTriggerPtr->m_triggerTimer.restart();
 				m_currentScene->addedBarrel = true;

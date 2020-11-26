@@ -7,6 +7,12 @@ struct SimpleData
 	Vector4 rot;
 	int state;
 	float blend;
+	int score;
+};
+struct TrapData
+{
+	std::string entityID;
+	bool isActive;
 };
 class PacketHandler
 {
@@ -19,8 +25,11 @@ private:
 	void welcomeReceived(Packet* _packet);
 	void playerData(Packet* _packet);
 	void newPlayerConnection(Packet* _packet);
+	void trapActivation(Packet* _packet);
+	void playerPickUp(Packet* _packet);
 
 	void sendPlayerData();
+
 public:
 	PacketHandler(const PacketHandler&) = delete;
 	void operator=(PacketHandler const&) = delete;
@@ -39,9 +48,14 @@ public:
 
 	void setPlayerData(Vector3 pos);
 	void setPlayerData(Vector4 rot);
-	void setPlayerData(int state);
+	void setPlayerState(int state);
 	void setPlayerData(float blend);
+	void setPlayerScore(int score);
 
+	void sendTrapData(std::string entityID);
+	void sendScorePickup(std::string entityID);
+	std::vector<TrapData>& getTrapData();
+	std::vector<std::string>& getEntitiesToBeRemoved();
 	void update();
 	
 private:
@@ -53,7 +67,8 @@ private:
 	bool isConnected;
 
 	SimpleData serverPlayerData[4];
-
+	std::vector<TrapData> trapData;
+	std::vector<std::string> entitiesToBeRemoved;
 
 
 };

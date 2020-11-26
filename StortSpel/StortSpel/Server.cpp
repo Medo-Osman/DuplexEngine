@@ -1,6 +1,8 @@
 #include "3DPCH.h"
 #include "Server.h"
-
+#include <windows.h>
+#include <wbemidl.h>
+#pragma comment(lib,"wbemuuid.lib")
 Server::Server()
 {
 
@@ -105,7 +107,7 @@ void Server::playerPacket(Packet* _packet)
 	int id = _packet->getID();
 	int playerID = _packet->ReadInt();
 	float x, y, z, w;
-	int state, blend;
+	int state, blend, score;
 
 	Packet _outPacket(id);
 
@@ -132,29 +134,120 @@ void Server::playerPacket(Packet* _packet)
 
 	state = _packet->ReadInt();
 	blend = _packet->ReadFloat();
+	score = _packet->ReadInt();
 
 	_outPacket.Write(state);
 	_outPacket.Write(blend);
-
+	if (playerID == 1)
+	{
+		std::cout << blend << std::endl;
+	}
+	_outPacket.Write(score);
 
 	sendToAllExcept(&_outPacket);
 }
 
-void Server::addTrap()
+void Server::trapPacket(Packet* _packet)
 {
-	Trap temp;
-	//Is this line correct?
-	temp.id = traps.size();
+	int length = _packet->ReadInt();
+	std::string entityID = _packet->ReadString(length);
 
-	temp.active = 0;
-	traps.push_back(temp);
+	Packet _outPacket(5);
+	//_outPacket.Write(length);
+	_outPacket.Write(entityID);
+
+	sendToAllExcept(&_outPacket);
 }
 
-void Server::setTrapActive(int id, bool tf)
+void Server::pickUpPacket(Packet* _packet)
 {
-	traps[id].active = (int)tf;
+	int length = _packet->ReadInt();
+	std::string entityID = _packet->ReadString(length);
 
-	//Then send trap packet to all clients
+	Packet _outPacket(6);
+	_outPacket.Write(entityID);
+
+	sendToAllExcept(&_outPacket);
+}
+using namespace std;
+BSTR Server::getServerIP()
+{
+	CoInitializeEx(0, 0);
+	CoInitializeSecurity(0, -1, 0, 0, 0, 3, 0, 0, 0);
+
+	IWbemLocator* locator = 0;
+
+	CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER, IID_IWbemLocator, (void**)&locator);
+
+	IWbemServices* services = 0;
+	const wchar_t* name = L"root\\cimv2";
+
+	if (SUCCEEDED(locator->ConnectServer((BSTR)name, 0, 0, 0, 0, 0, 0, &services)))
+	{
+		CoSetProxyBlanket(services, 10, 0, 0, 3, 3, 0, 0);
+
+		const wchar_t* language = L"WQL";
+		const wchar_t* query = L"SELECT * from Win32_NetworkAdapterConfiguration where IPEnabled ='TRUE'";
+
+		IEnumWbemClassObject* e = 0;
+
+		if (SUCCEEDED(services->ExecQuery(
+			(BSTR)language,
+			(BSTR)query,
+			WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY
+			,
+			0,
+			&e)))
+		{
+			printf("Query OK!\n");
+
+			IWbemClassObject* object = 0;
+			ULONG u = 0;
+
+			//lets enumerate all data from this table
+			while (e)
+			{
+				e->Next(WBEM_INFINITE, 1, &object, &u);
+				if (!u) break;//no more data,end enumeration
+				VARIANT data;
+
+				//Default gateway (Router)
+				if (SUCCEEDED(object->Get(L" ", 0, &data, 0, 0)))
+				{
+					printf("%d\n", data.vt);
+					SAFEARRAY* safe = NULL;
+					safe = V_ARRAY(&data);
+					BSTR element;
+					long i = 0;
+					SafeArrayGetElement(safe, &i, (void*)&element);
+					wcout << L"Gateway: " << element << endl;
+
+				}
+
+				//Ip address
+				if (SUCCEEDED(object->Get(L"IpAddress", 0, &data, 0, 0)))
+				{
+					return ((BSTR*)(data.parray->pvData))[0];
+				}
+
+
+				VariantClear(&data);
+			}
+		}
+		else
+		{
+			printf("Error executing query!\n");
+		}
+	}
+	else
+	{
+		printf("Connection error!\n");
+	}
+
+	//close all used data
+	services->Release();
+	locator->Release();
+	CoUninitialize();
 }
 
 void Server::update()
@@ -236,6 +329,15 @@ void Server::update()
 				if (_packet.getID() == 3)
 				{
 					playerPacket(&_packet);
+				}
+				else if (_packet.getID() == 5)
+				{
+					
+					trapPacket(&_packet);
+				}
+				else if (_packet.getID() == 6)
+				{
+					pickUpPacket(&_packet);
 				}
 
 

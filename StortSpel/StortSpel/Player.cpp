@@ -7,8 +7,9 @@
 
 Pickup* getCorrectPickupByID(int id);
 
-Player::Player()
+Player::Player(bool isLocal)
 {
+	m_isLocal = isLocal;
 	m_movementVector = XMVectorZero();
 	m_jumps = 0;
 	m_currentDistance = 0;
@@ -260,7 +261,7 @@ void Player::playerStateLogic(const float& dt)
 		float blend = vectorLen / (PLAYER_SPEED * dt);
 
 		if ((PLAYER_SPEED * dt) <= 0.0f)
-			blend = 0.0f;
+			blend = -1.0f;
 
 		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
 		//// analog animation:
@@ -564,6 +565,8 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 					m_pickupPointer->onPickup(m_playerEntity, duration);
 					if (m_pickupPointer->shouldActivateOnPickup())
 						m_pickupPointer->onUse();
+
+					PacketHandler::get().sendScorePickup(physicsData.entityIdentifier);
 				}
 			}
 
@@ -573,6 +576,9 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				this->increaseScoreBy(amount);
 				m_audioComponent->playSound();
 				shouldTriggerEntityBeRemoved = true;
+
+				//Send a packet that says that we've picked up this specific star
+				PacketHandler::get().sendScorePickup(physicsData.entityIdentifier);
 			}
 
 		}
@@ -623,7 +629,7 @@ void Player::update(GUIUpdateType type, GUIElement* guiElement)
 void Player::serverPlayerAnimationChange(PlayerState currentState, float currentBlend)
 {
 	m_animMesh->setCurrentBlend(currentBlend);
-
+	//std::cout << currentBlend << std::endl;
 	if (currentState != m_state)
 	{
 		m_state = currentState;

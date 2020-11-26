@@ -35,7 +35,7 @@ private:
 
     //NETWORK ID
     int m_playerID = -1;
-
+    bool m_isLocal;
     //CONTROLLER CONFIG
     const float CAPSULE_HEIGHT = 1.5f;
     const float CAPSULE_RADIUS = 0.01f;
@@ -129,7 +129,7 @@ private:
     void idleAnimation();
   
 public:
-    Player();
+    Player(bool isLocal = false);
     ~Player();
 
     bool isRunning();

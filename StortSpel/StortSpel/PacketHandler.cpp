@@ -1,6 +1,7 @@
 #include "3DPCH.h"
 #include "PacketHandler.h"
-
+#include "Engine.h"
+#include "Traps.h"
 PacketHandler::PacketHandler()
 {
 	isConnected = false;
@@ -66,9 +67,7 @@ void PacketHandler::handlePacket(Packet* _packet)
 	int ID = _packet->getID();
 	switch (ID)
 	{
-	case 0:
-		//std::cout << "Trash msg received, continuing loop" << std::endl;
-		break;
+
 	case 2:
 		welcomeReceived(_packet);
 		break;
@@ -79,6 +78,14 @@ void PacketHandler::handlePacket(Packet* _packet)
 
 	case 4:
 		newPlayerConnection(_packet);
+		break;
+
+	case 5:
+		trapActivation(_packet);
+		break;
+
+	case 6:
+		playerPickUp(_packet);
 		break;
 	}
 }
@@ -106,6 +113,7 @@ void PacketHandler::playerData(Packet* _packet)
 	Vector4 rotation = _packet->ReadVector4();
 	int state = _packet->ReadInt();
 	float blend = _packet->ReadFloat();
+	int score = _packet->ReadInt();
 
 	for (int i = 1; i < 4; i++)
 	{
@@ -115,7 +123,9 @@ void PacketHandler::playerData(Packet* _packet)
 			serverPlayerData[i].rot = rotation;
 			serverPlayerData[i].state = state;
 			serverPlayerData[i].blend = blend;
-
+			serverPlayerData[i].score = score;
+			//Add a score component that shows the score of all current players
+			
 			//std::cout << "Player at ID " + std::to_string(ID) + " has moved" << std::endl;
 		}
 	}
@@ -141,6 +151,29 @@ void PacketHandler::newPlayerConnection(Packet* _packet)
 
 }
 
+void PacketHandler::trapActivation(Packet* _packet)
+{
+	//std::cout << "trap package received" << std::endl;
+	int length = _packet->ReadInt();
+	std::string entityID = _packet->ReadString(length);
+
+	std::vector<Component*> pushTraps;
+	Engine::get().getEntityMap()->at(entityID)->getComponentsOfType(pushTraps, ComponentType::TRIGGER);
+
+	static_cast<PushTrapComponent*>(pushTraps[0])->push();
+
+}
+
+void PacketHandler::playerPickUp(Packet* _packet)
+{
+	int length = _packet->ReadInt();
+	std::string entityID = _packet->ReadString(length);
+
+	//Find entity and remove it
+	entitiesToBeRemoved.push_back(entityID);
+	
+}
+
 void PacketHandler::sendPlayerData()
 {
 	//Write Packet ID
@@ -160,10 +193,31 @@ void PacketHandler::sendPlayerData()
 
 	//Write Player Animation Blend
 	_packet.Write(serverPlayerData[0].blend);
+	//Write Player Score
+	_packet.Write(serverPlayerData[0].score);
 
 
 	//Send Packet
 	int sendResult = send(sock, _packet.ToArray(), _packet.Lenght() + 1, 0);
+}
+
+void PacketHandler::sendTrapData(std::string entityID)
+{
+	
+	Packet _packet(5);
+	//add int for trap enum
+	_packet.Write(entityID);
+
+	int sendResult = send(sock, _packet.ToArray(), _packet.Lenght() + 1, 0);
+}
+
+void PacketHandler::sendScorePickup(std::string entityID)
+{
+	Packet _packet(6);
+	_packet.Write(entityID);
+
+	int sendResult = send(sock, _packet.ToArray(), _packet.Lenght() + 1, 0);
+
 }
 
 int PacketHandler::getIDAt(int i)
@@ -201,7 +255,7 @@ void PacketHandler::setPlayerData(Vector4 rot)
 	this->serverPlayerData[0].rot = rot;
 }
 
-void PacketHandler::setPlayerData(int state)
+void PacketHandler::setPlayerState(int state)
 {
 	this->serverPlayerData[0].state = state;
 }
@@ -209,6 +263,22 @@ void PacketHandler::setPlayerData(int state)
 void PacketHandler::setPlayerData(float blend)
 {
 	this->serverPlayerData[0].blend = blend;
+}
+
+void PacketHandler::setPlayerScore(int score)
+{
+	this->serverPlayerData[0].score = score;
+}
+
+
+std::vector<TrapData>& PacketHandler::getTrapData()
+{
+	return this->trapData;
+}
+
+std::vector<std::string>& PacketHandler::getEntitiesToBeRemoved()
+{
+	return this->entitiesToBeRemoved;
 }
 
 void PacketHandler::update()

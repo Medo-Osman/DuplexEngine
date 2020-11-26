@@ -222,6 +222,8 @@ void Scene::addBarrelDrop(Vector3 Position)
 		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger(rollingBarrel, { 1,1,1 });
 		m_despawnBarrelTimer.restart();
 		addedBarrel = true;
+
+		//PacketHandler::get().addTrap(rollingBarrel->getIdentifier());
 	}
 }
 
@@ -254,6 +256,7 @@ void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 tr
 
 		addComponent(pushWall, "sweep",
 			new SweepingComponent(pushWall, Vector3(wallPosition1), Vector3(wallPosition2), 1, true));
+		
 	}
 
 	Entity* pushWallTrigger = addEntity("pushTrigger");
@@ -296,7 +299,7 @@ void Scene::loadLobby()
 	Entity* music = addEntity("lobbyMusic");
 	if (music)
 	{
-		addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
+		//addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
 	}
 
 	Entity* floor = addEntity("Floor");
@@ -1056,6 +1059,12 @@ void Scene::updateScene(const float& dt)
 			m_tempParticleComponent.erase(m_tempParticleComponent.begin() + i);
 		}
 	}
+	std::vector<std::string>* temp = &PacketHandler::get().getEntitiesToBeRemoved();
+	for (int i = 0; i < temp->size(); i++)
+	{
+		removeEntity(temp->at(i));
+	}
+	temp->clear();
 
 	// AUDIO TEST
 	/*m_nightVolume += dt * m_nightSlide;

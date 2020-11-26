@@ -1,11 +1,6 @@
 #pragma once
 #include "Packet.h"
 #pragma comment (lib, "ws2_32.lib")
-struct Trap
-{
-	int id;
-	int active; //0 is inactive, 1 is active;
-};
 struct PlayerInfo
 {
 	int id;
@@ -21,6 +16,8 @@ private:
 	void sendToAll(Packet* _packet);
 
 	void playerPacket(Packet* _packet);
+	void trapPacket(Packet* _packet);
+	void pickUpPacket(Packet* _packet);
 public:
 	Server(const Server&) = delete;
 	void operator=(Server const&) = delete;
@@ -30,8 +27,7 @@ public:
 		return instance;
 	}
 
-	void addTrap();
-	void setTrapActive(int id, bool tf);
+	BSTR getServerIP();
 	void update();
 private:
 	SOCKET client;
@@ -43,5 +39,4 @@ private:
 
 	PlayerInfo playerInfo[4];
 
-	std::vector<Trap> traps;
 };

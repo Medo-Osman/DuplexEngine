@@ -40,12 +40,14 @@ public:
 	//Writes
 	void Write(int _value);
 	void Write(float _value);
+	void Write(std::string string);
 	void Write(Vector3 position);
 	void Write(Quaternion quaternion);
 
 	//Reads
 	int ReadInt();
 	float ReadFloat();
+	std::string ReadString(int length);
 	XMFLOAT3 ReadVector3();
 	XMFLOAT4 ReadVector4();
 

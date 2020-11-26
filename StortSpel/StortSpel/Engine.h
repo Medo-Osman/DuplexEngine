@@ -55,7 +55,7 @@ private:
 	Player* m_player = nullptr;
 	std::vector<Player*>* serverPlayers;
 
-	
+	bool isHost = true;
 
 	Camera m_camera; 
 	Settings m_settings;

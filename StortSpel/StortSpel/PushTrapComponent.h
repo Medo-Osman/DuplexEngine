@@ -33,4 +33,9 @@ public:
 	{
 		TriggerComponent::update(dt);
 	}
+
+	SweepingComponent* getSweepComponent()
+	{
+		return m_controlledSweepingComponent;
+	}
 };

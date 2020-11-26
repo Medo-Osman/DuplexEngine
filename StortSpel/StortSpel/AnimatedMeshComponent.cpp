@@ -188,6 +188,7 @@ void AnimatedMeshComponent::addSingleAnimation(std::string animationName, float 
 
 	animState newState;
 	newState.justOne = true;
+	newState.blend = 0.f;
 	newState.startTransitionDuration = transistionTime;
 	newState.playDuringStartTransistion = playDuringStartTransistion;
 	newState.structs.push_back(newStruct);
@@ -357,17 +358,25 @@ void AnimatedMeshComponent::setCurrentBlend(float blend)
 
 float AnimatedMeshComponent::getCurrentBlend()
 {
+	float returnValue = -1.0f;
 	if (m_inBindPose)
-		return 0.f;
+	{
+		return returnValue;
+
+	}
 	
 	if (m_transitionTime > 0.f)
 	{
-		return m_animationQueue.front()->blend;
+		returnValue = m_animationQueue.front()->blend;
+		return returnValue;
 	}
 	else
 	{
-		return m_currentState->blend;
+		returnValue = m_currentState->blend;
+		return returnValue;
 	}
+
+
 }
 
 void AnimatedMeshComponent::applyAnimationFrame()

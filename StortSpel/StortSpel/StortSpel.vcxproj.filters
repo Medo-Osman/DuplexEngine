@@ -180,26 +180,23 @@
     <ClCompile Include="SceneManager.cpp">
       <Filter>Source Files\Game\Scenes</Filter>
     </ClCompile>
-    <ClCompile Include="Packet.cpp">
-      <Filter>Source Files\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="ServerPlayer.cpp">
-      <Filter>Source Files\Game</Filter>
-    </ClCompile>
     <ClCompile Include="Particles\Particle.cpp">
       <Filter>Source Files\Graphics\Particles</Filter>
     </ClCompile>
     <ClCompile Include="ShadowMap.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Boss.cpp">
+      <Filter>Source Files\Game\Boss</Filter>
+    </ClCompile>
+    <ClCompile Include="Packet.cpp">
+      <Filter>Source Files\Network</Filter>
+    </ClCompile>
     <ClCompile Include="PacketHandler.cpp">
       <Filter>Source Files\Network</Filter>
     </ClCompile>
     <ClCompile Include="Server.cpp">
       <Filter>Source Files\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="Boss.cpp">
-      <Filter>Source Files\Game\Boss</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -392,9 +389,6 @@
     <ClInclude Include="AnimationResource.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
-    <ClInclude Include="Packet.h">
-      <Filter>Source Files\Network</Filter>
-    </ClInclude>
     <ClInclude Include="Particles\Particle.h">
       <Filter>Source Files\Graphics\Particles</Filter>
     </ClInclude>
@@ -428,17 +422,8 @@
     <ClInclude Include="GUIButton.h">
       <Filter>Source Files\Graphics\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="ServerPlayer.h">
-      <Filter>Source Files\Game</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketHandler.h">
-      <Filter>Source Files\Network</Filter>
-    </ClInclude>
     <ClInclude Include="ShadowMap.h">
       <Filter>Source Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Server.h">
-      <Filter>Source Files\Network</Filter>
     </ClInclude>
     <ClInclude Include="Boss.h">
       <Filter>Source Files\Game\Boss</Filter>
@@ -454,6 +439,18 @@
     </ClInclude>
     <ClInclude Include="MoveToAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>Source Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketHandler.h">
+      <Filter>Source Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Server.h">
+      <Filter>Source Files\Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

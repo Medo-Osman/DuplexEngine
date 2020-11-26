@@ -44,6 +44,18 @@ void Packet::Write(float _value)
 	}
 }
 
+void Packet::Write(std::string string)
+{
+	Write((int)string.length());
+	char vOut;
+	for (int i = 0; i < string.length(); i++)
+	{
+
+		vOut = string[i];
+		buffer.push_back(vOut);
+	}
+}
+
 void Packet::Write(Vector3 position)
 {
 	Write(position.x);
@@ -82,6 +94,17 @@ float Packet::ReadFloat()
 	}
 	float vOut = (float)strtod(vIn, NULL);
 	return vOut;
+}
+
+std::string Packet::ReadString(int length)
+{
+	std::string returnString;
+	for (int i = 0; i < length; i++)
+	{
+		returnString += readableBuffer[readPos++];
+	}
+
+	return returnString;
 }
 
 XMFLOAT3 Packet::ReadVector3()
