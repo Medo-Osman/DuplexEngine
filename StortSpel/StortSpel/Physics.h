@@ -101,14 +101,13 @@ private:
 
 
 
-	PxTriangleMesh* createTriangleMesh(int nrOfVerticies, PositionVertex vertexArray[], int nrOfIndicies, uint32_t indiciesArray[], Vector3 centerOffset = {0, 0, 0 })
+	PxTriangleMesh* createTriangleMesh(int nrOfVerticies, PositionVertex vertexArray[], int nrOfIndicies, uint32_t indiciesArray[])
 	{
 		PxVec3* vertArray = new PxVec3[nrOfVerticies];
 		for (int i = 0; i < nrOfVerticies; i++)
 		{
 			PositionVertex v = vertexArray[i];
-			v.position;
-			vertArray[i] = PxVec3(v.position.x + centerOffset.x, v.position.y + centerOffset.y, v.position.z + centerOffset.z);
+			vertArray[i] = PxVec3(v.position.x, v.position.y, v.position.z);
 		}
 
 		PxTriangleMeshDesc meshDesc;
@@ -322,7 +321,7 @@ public:
 	}
 
 
-	PxTriangleMesh* getTriangleMeshe(std::string nameOfMesh, int nrOfVerticies, PositionVertex vertexArray[], int nrOfIndicies, uint32_t indiciesArray[], Vector3 centerOffset)
+	PxTriangleMesh* getTriangleMeshe(std::string nameOfMesh, int nrOfVerticies, PositionVertex vertexArray[], int nrOfIndicies, uint32_t indiciesArray[])
 	{
 		if (m_triangleMeshes.find(nameOfMesh) != m_triangleMeshes.end())
 		{
@@ -330,7 +329,7 @@ public:
 		}
 		else
 		{
-			return m_triangleMeshes[nameOfMesh] = (createTriangleMesh(nrOfVerticies, vertexArray, nrOfIndicies, indiciesArray, centerOffset));
+			return m_triangleMeshes[nameOfMesh] = (createTriangleMesh(nrOfVerticies, vertexArray, nrOfIndicies, indiciesArray));
 		}
 	}
 
