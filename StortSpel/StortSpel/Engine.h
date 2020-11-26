@@ -56,13 +56,12 @@ private:
 	Settings m_settings;
 
 	Input* m_input = nullptr;
-	
+
 	// Materials
-	
+
 
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
 	void updateLightData();
-
 
 public:
 	static Engine& get();
@@ -74,14 +73,12 @@ public:
 
 	void release();
 	void update(const float &dt);
-	void updatePlayerAndCamera(const float &dt);
 
 	void setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities);
 	void setMeshComponentMapPtr(std::unordered_map<unsigned int long, MeshComponent*>* meshComponents);
 	void setLightComponentMapPtr(std::unordered_map<std::string, LightComponent*>* lightComponents);
 
 	bool addComponentToPlayer(std::string componentIdentifier, Component* component);
-	void removeLightComponentFromPlayer(LightComponent* component);
 
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();

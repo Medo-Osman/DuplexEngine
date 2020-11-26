@@ -11,15 +11,16 @@ Scene::Scene()
 {
 	// Player
 	m_player = Engine::get().getPlayerPtr();
+
 	m_entities[PLAYER_ENTITY_NAME] = m_player->getPlayerEntity();
+
 	m_sceneEntryPosition = { 0, 0, 0 };
 	m_sceneID = Physics::get().getNewSceneID();
 
-
-
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
-
+	setScoreVec();
+	sortScore();
 
 }
 
@@ -87,9 +88,6 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-
-
-
 	Entity* test = sceneObject->addEntity("test");
 	if (test)
 	{
@@ -107,9 +105,6 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(test, "flipp",
 			new FlippingComponent(test, 1, 1));
 	}
-
-
-
 
 	Entity* sign = sceneObject->addEntity("sign");
 	if (sign)
@@ -215,6 +210,8 @@ void Scene::addCheckpoint(const Vector3& position)
 	static_cast<TriggerComponent*>(checkPoint->getComponent("checkpoint"))->initTrigger( m_sceneID, checkPoint, { 4, 4, 4 });
 
 	addComponent(checkPoint, "sound", new AudioComponent(L"OnPickup.wav", false, 0.1f));
+
+	createNewPhysicsComponent(checkPoint, false);
 }
 
 void Scene::addBarrelDrop(Vector3 Position)
@@ -240,6 +237,7 @@ int Scene::getSceneID()
 {
 	return this->m_sceneID;
 }
+
 
 void Scene::addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox)
 {
@@ -697,12 +695,12 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 void Scene::addPrefabFromFile(char* params)
 {
 	int offset = 0;
-	
+
 	PrefabType type;
 	type = (PrefabType)readDataFromChar<int>(params, offset);
 
 	Vector3 pos = readDataFromChar<Vector3>(params, offset);
-	
+
 	switch (type)
 	{
 	case PARIS_WHEEL:
@@ -714,7 +712,7 @@ void Scene::addPrefabFromFile(char* params)
 		createParisWheel(pos, param1, param2, param3);
 		break;
 	}
-		
+
 	case FLIPPING_PLATFORM:
 	{
 		Vector3 param1; float param2, param3;
@@ -758,7 +756,7 @@ void Scene::addPrefabFromFile(char* params)
 		addBarrelDrop(pos);
 		break;
 	case GOAL_TRIGGER:
-		
+
 		break;
 	}
 }
@@ -767,7 +765,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 {
 	sceneObject->loadPickups();
 	sceneObject->loadScore();
-
 	sceneObject->addCheckpoint(Vector3(0.f, 9.f, 5.f));
 	sceneObject->addCheckpoint(Vector3(14.54f, 30.f, 105.f));
 	sceneObject->addCheckpoint(Vector3(14.54f, 30.f, 105.f));
@@ -778,6 +775,23 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	sceneObject->addPushTrap(Vector3(-5.f, 20.f, 58.f), Vector3(5.f, 20.f, 58.f), Vector3(0.f, 18.f, 50.f));
 
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
+	
+	Entity* endSceneTrigger = sceneObject->addEntity("endSceneTrigger");
+	if (endSceneTrigger)
+	{
+		sceneObject->addComponent(endSceneTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
+		endSceneTrigger->setPosition(9,7,0);
+		endSceneTrigger->setScale(2, 2, 2);
+
+		sceneObject->addComponent(endSceneTrigger, "endSceneTrigger",
+			new TriggerComponent());
+
+		TriggerComponent* tc = static_cast<TriggerComponent*>(endSceneTrigger->getComponent("endSceneTrigger"));
+		tc->initTrigger(sceneObject->m_sceneID, endSceneTrigger, XMFLOAT3(2.0f,2.0f,2.0f));
+		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
+		tc->setIntData((int)ScenesEnum::ENDSCENE);
+	}
 
 
 	Entity* barrelDropTrigger = sceneObject->addEntity("dropTrigger");
@@ -834,7 +848,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(test, "3Dsound", new AudioComponent(L"fireplace.wav", true, 3.f, 0.f, true, test));
 	}
 
-	sceneObject->createSwingingHammer(Vector3(0, 6.5, 20), Vector3(0, 0, 0), 1);
+	sceneObject->createSwingingHammer(Vector3(0, 9.3, 20), Vector3(0, 0, 0), 1);
 	sceneObject->createStaticPlatform(Vector3(0, 13, 20), Vector3(0, 0, 0), Vector3(4, 1, 4), "testCube_pCube1.lrm");
 	// Start:
 	sceneObject->createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
@@ -900,6 +914,8 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 		clownMask->setPosition(Vector3(-11.5f, 60.f, 290.f));
 		clownMask->setRotation(XMConvertToRadians(7.f), XMConvertToRadians(180.f), XMConvertToRadians(0.f));
+
+		sceneObject->createNewPhysicsComponent(clownMask, false);
 	}
 	Entity* goalTrigger = sceneObject->addEntity("trigger");
 	if (goalTrigger)
@@ -948,6 +964,94 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->createSpotLight(Vector3(-11.f, 50.f, 275.f), Vector3(-35.f, 0.f, 0.f), Vector3(1.f, 0.f, 0.f), 0.3f);
 
+	*finished = true;
+}
+
+void Scene::loadEndScene(Scene* sceneObject, bool* finished)
+{
+	Entity* floor = sceneObject->addEntity("Floor");
+	if (floor)
+	{
+		sceneObject->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"DarkGrayTexture.png" })));
+		floor->scale({ 30, 1, 30 });
+		floor->translate({ 0,-2,0 });
+		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	Entity* pedestalPlaceFour = sceneObject->addEntity("pedastal1");
+	if (pedestalPlaceFour)
+	{
+		sceneObject->addComponent(pedestalPlaceFour, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"BlackTexture.png" })));
+		pedestalPlaceFour->scale({ 2.5, 1, 2.5 });
+		pedestalPlaceFour->translate({ 10, -1,0 });
+		sceneObject->createNewPhysicsComponent(pedestalPlaceFour, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	Entity* pedestalPlaceThree = sceneObject->addEntity("pedastal2");
+	if (pedestalPlaceThree)
+	{
+		sceneObject->addComponent(pedestalPlaceThree, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"BlackTexture.png" })));
+		pedestalPlaceThree->scale({ 2.5, 2, 2.5 });
+		pedestalPlaceThree->translate({ 2.5,-0.5,0 });
+		sceneObject->createNewPhysicsComponent(pedestalPlaceThree, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	Entity* pedestalPlaceTwo = sceneObject->addEntity("pedastal3");
+	if (pedestalPlaceTwo)
+	{
+		sceneObject->addComponent(pedestalPlaceTwo, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"BlackTexture.png" })));
+		pedestalPlaceTwo->scale({ 2.5, 3, 2.5 });
+		pedestalPlaceTwo->translate({ 7.5,0,0 });
+		sceneObject->createNewPhysicsComponent(pedestalPlaceTwo, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	Entity* pedestalPlaceOne = sceneObject->addEntity("pedastal4");
+	if (pedestalPlaceOne)
+	{
+		sceneObject->addComponent(pedestalPlaceOne, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"BlackTexture.png" })));
+		pedestalPlaceOne->scale({ 2.5, 4, 2.5 });
+		pedestalPlaceOne->translate({ 5,0,0 });
+		sceneObject->createNewPhysicsComponent(pedestalPlaceOne, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	Entity* PlayerOne = sceneObject->addEntity("Playerdummy1");
+	if (PlayerOne)
+	{
+		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true, true);
+		PlayerOne->addComponent("mesh", animMeshComp);
+		sceneObject->addMeshComponent(animMeshComp);
+		PlayerOne->scale({ 2, 2, 2. });
+
+	}
+	Entity* PlayerTwo = sceneObject->addEntity("Playerdummy2");
+	if (PlayerTwo)
+	{
+		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true,true);
+		PlayerTwo->addComponent("mesh", animMeshComp);
+		sceneObject->addMeshComponent(animMeshComp);
+		PlayerTwo->scale({ 2, 2, 2 });
+	}
+	Entity* PlayerThree = sceneObject->addEntity("Playerdummy3");
+	if (PlayerThree)
+	{
+		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true, true);
+		PlayerThree->addComponent("mesh", animMeshComp);
+		sceneObject->addMeshComponent(animMeshComp);
+		PlayerThree->scale({ 2, 2, 2 });
+	}
+
+	sceneObject->setPlayersPosition(PlayerOne);
+	sceneObject->setPlayersPosition(PlayerTwo);
+	sceneObject->setPlayersPosition(PlayerThree);
+	
 	*finished = true;
 }
 
@@ -1304,9 +1408,9 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 				{
 					platform->setPosition(Vector3(((float)x) * scaling + (x)*0.05f, 2, (float)(y) * scaling + (y)*0.05f) + platformPos);
 					platform->scale(scaling, 0.5f, scaling);
-					platform->addComponent("grow", new GrowingComponent(platform, platform->getScaling(), 8.f)); 
+					platform->addComponent("grow", new GrowingComponent(platform, platform->getScaling(), 8.f));
 					static_cast<GrowingComponent*>(platform->getComponent("grow"))->setDone(true);
-					platform->addComponent("shrink", new ShrinkingComponent(platform, Vector3(0.01, 0.01, 0.01), 8.f)); 
+					platform->addComponent("shrink", new ShrinkingComponent(platform, Vector3(0.01, 0.01, 0.01), 8.f));
 					static_cast<ShrinkingComponent*>(platform->getComponent("shrink"))->setDone(true);
 
 
@@ -1343,7 +1447,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 			//ShootLaserAction* action = new ShootLaserAction(segmentEntity, projectileSegment, 5);
 			//projectileSegment->addAction(action);
 		}
-		
+
 		//Add the head of the boss, just another mesh in the boss entity.
 		MeshComponent* headComponent = new MeshComponent("Boss_Top.lrm", Material({ L"DarkGrayTexture.png" }));
 		headComponent->setPosition(0, (3 * sceneObject->m_boss->m_bossSegments.size()), 0);
@@ -1379,7 +1483,7 @@ void Scene::updateScene(const float& dt)
 	{
 		m_boss->update(dt);
 		Vector3 targetPos = static_cast<CharacterControllerComponent*>(m_player->getPlayerEntity()->getComponent("CCC"))->getFootPosition() + Vector3(0, 1, 0);
-		
+
 		//This is the primary action loop of the boss.
 		//If boss it not moving, pick a new target at random, wait for two seconds, then shoot. Start over.
 		if (m_boss->getActionQueue()->size() == 0)
@@ -1408,9 +1512,11 @@ void Scene::updateScene(const float& dt)
 			addScore(deferredPointInstantiationList[i]);
 		}
 
+		
+
 		deferredPointInstantiationList.clear();
 	}
-
+	
 
 	if (addedBarrel)
 	{
@@ -1483,6 +1589,10 @@ void Scene::removeEntity(std::string identifier)
 	delete m_entities[identifier];
 	m_entities.erase(identifier);
 }
+
+
+
+
 
 bool Scene::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
 {
@@ -1574,6 +1684,32 @@ void Scene::addLightComponent(LightComponent* component)
 		ErrorLogger::get().logError("Maximum lights achieved, failed to add one.");
 }
 
+void Scene::setPlayersPosition(Entity* entity)
+{
+	int position = -1;
+	for (int i = 0; i < m_scores.size(); i++)
+	{
+
+		if (m_scores.at(i).second == entity->getIdentifier())
+		{
+			position = i;
+		}
+
+	}
+	if (position==0)
+	{
+		entity->translate(2.5, 0.5, 0);
+	}
+	if (position == 1)
+	{
+		entity->translate(7, 1.5, 0);
+	}
+	if (position == 2)
+	{
+		entity->translate(5, 2, 0);
+	}
+}
+
 void Scene::removeLightComponent(LightComponent* component)
 {
 	getEntity(component->getParentEntityIdentifier())->removeComponent(component);
@@ -1594,6 +1730,11 @@ void Scene::removeLightComponentFromMap(LightComponent* component)
 	{
 		m_lightCount -= nrOfErased;
 	}
+}
+
+std::vector<std::pair<int, std::string>>* Scene::getScores()
+{
+	return &m_scores;
 }
 
 std::unordered_map<std::string, Entity*>* Scene::getEntityMap()
@@ -1659,10 +1800,10 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 				removeEntity(projectile->getIdentifier());
 				deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
 			}
-			else	
+			else
 				addScore(data.origin+Vector3(0,5,0));
 
-		
+
 	}
 
 
@@ -1731,6 +1872,10 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 
 		hammerFrame->setPosition(position);
 		hammerFrame->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+
+		createNewPhysicsComponent(hammerFrame, false, "", PxGeometryType::eTRIANGLEMESH);
+
+		
 	}
 
 	Entity* hammer = addEntity("Hammer-" + std::to_string(m_nrOfSweepingPlatforms));
@@ -1739,10 +1884,11 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 		addComponent(hammer, "mesh",
 			new MeshComponent("Hammer_pCylinder3.lrm", Material({ L"DarkGrayTexture.png" })));
 
-		hammer->setPosition({ position.x, position.y + 6.5f, position.z });
-		//hammer->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 
-		createNewPhysicsComponent(hammer, true);
+		hammer->setPosition({ position.x, position.y + 6.5f, position.z });
+		hammer->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+
+		createNewPhysicsComponent(hammer, true, "", PxGeometryType::eTRIANGLEMESH);
 		static_cast<PhysicsComponent*>(hammer->getComponent("physics"))->makeKinematic();
 
 		addComponent(hammer, "swing",
@@ -1882,7 +2028,7 @@ void Scene::checkPlatforms(float dt)
 
 			MeshComponent* meshComp = static_cast<MeshComponent*>(entity->getComponent("mesh"));
 			meshComp->setVisible(true);
-			
+
 		}
 	}
 
@@ -1907,7 +2053,7 @@ void Scene::displacePlatform(Entity* entity)
 		displacedPlatform->offsetBy = offsetAmount;
 		displacedPlatform->targetSize = Vector3(0.1f, 0.1f, 0.1f);
 		displacedPlatform->originalSize = entity->getScaling();
-		
+
 		m_displacedPlatforms[m_nrOfDisplacedPlatforms] = displacedPlatform;
 		static_cast<ShrinkingComponent*>(entity->getComponent("shrink"))->setDone(false);
 	}
@@ -1930,7 +2076,20 @@ bool Scene::findPlatformAlready(Entity* entity)
 	for (auto displacedPlatformStruct : m_displacedPlatforms)
 		if (displacedPlatformStruct.second->entity == entity)
 			found = true;
-	
+
 
 	return found;
+}
+
+void Scene::setScoreVec()
+{
+	//m_scores.push_back(std::make_pair(m_nrOfScore, "Player"));
+	m_scores.push_back(std::make_pair(m_nrOfScorePlayerOne, "Playerdummy1"));
+	m_scores.push_back(std::make_pair(m_nrOfScorePlayerTwo, "Playerdummy2"));
+	m_scores.push_back(std::make_pair(m_nrOfScorePlayerThree, "Playerdummy3"));
+}
+
+void Scene::sortScore()
+{
+	std::sort(m_scores.begin(), m_scores.end());
 }
