@@ -65,7 +65,7 @@ void SceneManager::initalize()
 
 	// Start Scene
 	m_currentScene = new Scene();
-	Scene::loadMainMenu(m_currentScene, m_nextSceneReady);
+	Scene::loadTestLevel(m_currentScene, m_nextSceneReady);
 	disableMovement();
 	*m_nextSceneReady = false;
 	//m_currentScene->loadArena();

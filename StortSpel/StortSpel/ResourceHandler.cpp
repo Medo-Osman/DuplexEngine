@@ -205,6 +205,8 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 
 	m_meshCache[path]->setMinMax(min, max);
 	m_meshCache[path]->storeVertexArray(vertexArray2, vertexCount);
+	m_meshCache[path]->storeIndexArray(indexArray, indexCount);
+	m_meshCache[path]->storeFilePath(path);
 
 	delete[] vertexArray;
 	delete[] indexArray;

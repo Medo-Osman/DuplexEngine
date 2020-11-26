@@ -19,8 +19,10 @@ private:
 	bool m_kinematic;
 	bool m_slide;
 
-	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, LRM_VERTEX vertexArray[], const int vertexCount)
+	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, MeshResource* meshResource)
 	{
+		PxTriangleMesh* tringMesh;
+		PositionVertex* vertexArray;
 		PxGeometry* createdGeometry = nullptr;
 		XMFLOAT3 vec = XMFLOAT3((max.x - min.x) / 2, (max.y - min.y) / 2, (max.z - min.z) / 2);
 		switch (geometryType)
@@ -34,9 +36,11 @@ private:
 			XMFLOAT3 center = { (max.x + min.x) * 0.5f, (max.y + min.y) * 0.5f, (max.z + min.z) * 0.5f };
 			float radius;
 			radius = 0;
-			for (int i = 0; i < vertexCount; i++)
+			vertexArray = meshResource->getVertexArray();
+
+			for (int i = 0; i < meshResource->getVertexArraySize(); i++)
 			{
-				XMFLOAT3 position = vertexArray[i].pos;
+				XMFLOAT3 position = vertexArray[i].position;
 				float tempDist = sqrt((position.x - center.x) * (position.x - center.x)
 					+ (position.y - center.y) * (position.y - center.y)
 					+ (position.z - center.z) * (position.z - center.z));
@@ -48,6 +52,10 @@ private:
 			break;
 		case physx::PxGeometryType::eBOX:
 			createdGeometry = new physx::PxBoxGeometry((max.x - min.x) / 2, (max.y - min.y) / 2, (max.z - min.z) / 2);
+			break;
+		case physx::PxGeometryType::eTRIANGLEMESH:
+			tringMesh = m_physicsPtr->getTriangleMeshe(meshResource->getFilePath(), meshResource->getVertexArraySize(), meshResource->getVertexArray(), meshResource->getIndexArraySize(), meshResource->getIndexArray());
+			createdGeometry = new physx::PxTriangleMeshGeometry(tringMesh);
 			break;
 		default:
 			break;
@@ -262,7 +270,7 @@ public:
 
 		if (!bb)
 		{
-			bb = createPrimitiveGeometry(geometry, min, max, meshComponent->getMeshResourcePtr()->getVertexArray(), meshComponent->getMeshResourcePtr()->getVertexBuffer().getSize());
+			bb = createPrimitiveGeometry(geometry, min, max, meshComponent->getMeshResourcePtr());
 			if(saveGeometry)
 				m_physicsPtr->addGeometry(name, bb);
 		}

@@ -1,7 +1,8 @@
 #pragma once
 #include"3DPCH.h"
 #include"PhysicsMaterial.h"
-
+#include"cooking\PxCooking.h"
+#include"VertexStructs.h"
 static physx::PxDefaultErrorCallback gDefaultErrorCallback;
 static physx::PxDefaultAllocator gDefaultAllocatorCallback;
 using namespace physx;
@@ -51,10 +52,12 @@ private:
 	PxCpuDispatcher* m_dispatcherPtr;
 	PxScene* m_scenePtr;
 	PxControllerManager* m_controllManager;
+	PxCooking* m_cookingPtr;
 
 	std::map<std::string, PxMaterial*> m_defaultMaterials;
 	std::map<std::string, PxGeometry*> m_sharedGeometry;
 	std::map<std::string, PxShape*> m_sharedShapes;
+	std::map<std::string, PxTriangleMesh*> m_triangleMeshes;
 
 	std::vector<PhysicsObserver*> m_reactOnTriggerObservers;
 	std::vector<PhysicsObserver*> m_reactOnRemoveObservers;
@@ -72,6 +75,7 @@ private:
 		m_dispatcherPtr = nullptr;
 		m_scenePtr = nullptr;
 		m_controllManager = nullptr;
+		m_cookingPtr = nullptr;
 	}
 
 	void loadDefaultMaterials()
@@ -93,6 +97,29 @@ private:
 	PxRigidActor* createStaticActor(PxVec3 pos, PxQuat rot)
 	{
 		return m_physicsPtr->createRigidStatic(PxTransform(pos, rot));
+	}
+
+
+
+	PxTriangleMesh* createTriangleMesh(int nrOfVerticies, PositionVertex vertexArray[], int nrOfIndicies, uint32_t indiciesArray[])
+	{
+		PxTriangleMeshDesc meshDesc;
+		meshDesc.points.count = nrOfVerticies;
+		meshDesc.points.stride = sizeof(PositionVertex);
+		meshDesc.points.data = vertexArray;
+
+		meshDesc.triangles.count = nrOfIndicies / 3;
+		meshDesc.triangles.stride = 3 * sizeof(uint32_t);
+		meshDesc.triangles.data = indiciesArray;
+		meshDesc.flags = PxMeshFlag::eFLIPNORMALS;
+		PxDefaultMemoryOutputStream writeBuffer;
+		PxTriangleMeshCookingResult::Enum result;
+		bool status = m_cookingPtr->cookTriangleMesh(meshDesc, writeBuffer, &result);
+		if (!status)
+			return NULL;
+
+		PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
+		return m_physicsPtr->createTriangleMesh(readBuffer);
 	}
 
 	PxGeometryHolder scaleGeometry(PxGeometry* geometry, XMFLOAT3 scale)
@@ -150,6 +177,7 @@ public:
 		m_controllManager->release();
 		m_scenePtr->release();
 		m_scenePtr = nullptr;
+		m_cookingPtr->release();
 		m_physicsPtr->release();
 		m_PvdPtr->release();
 		m_transport->release();
@@ -276,7 +304,28 @@ public:
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 		}
+		PxCookingParams params = PxCookingParams(PxTolerancesScale());
+		params.meshPreprocessParams.set(PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH);
+		m_cookingPtr = PxCreateCooking(PX_PHYSICS_VERSION, *m_foundationPtr, params);
+
+		assert(m_cookingPtr);
+
+
+
 		this->loadDefaultMaterials();
+	}
+
+
+	PxTriangleMesh* getTriangleMeshe(std::string nameOfMesh, int nrOfVerticies, PositionVertex vertexArray[], int nrOfIndicies, uint32_t indiciesArray[])
+	{
+		if (m_triangleMeshes.find(nameOfMesh) != m_triangleMeshes.end())
+		{
+			return m_triangleMeshes[nameOfMesh];
+		}
+		else
+		{
+			return m_triangleMeshes[nameOfMesh] = (createTriangleMesh(nrOfVerticies, vertexArray, nrOfIndicies, indiciesArray));
+		}
 	}
 
 	void clearForce(PxRigidDynamic* actor)
