@@ -19,6 +19,8 @@ private:
 	bool m_kinematic;
 	bool m_slide;
 
+	Vector3 m_centerOffset = {0.f, 0.f, 0.f};
+
 	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, MeshResource* meshResource, Vector3 scale = {1, 1, 1 })
 	{
 		PxTriangleMesh* tringMesh;
@@ -54,7 +56,7 @@ private:
 			createdGeometry = new physx::PxBoxGeometry((max.x - min.x) / 2, (max.y - min.y) / 2, (max.z - min.z) / 2);
 			break;
 		case physx::PxGeometryType::eTRIANGLEMESH:
-			tringMesh = m_physicsPtr->getTriangleMeshe(meshResource->getFilePath(), meshResource->getVertexArraySize(), meshResource->getVertexArray(), meshResource->getIndexArraySize(), meshResource->getIndexArray());
+			tringMesh = m_physicsPtr->getTriangleMeshe(meshResource->getFilePath(), meshResource->getVertexArraySize(), meshResource->getVertexArray(), meshResource->getIndexArraySize(), meshResource->getIndexArray(), m_centerOffset);
 			createdGeometry = new physx::PxTriangleMeshGeometry(tringMesh, PxMeshScale(PxVec3(scale.x, scale.y, scale.z)), PxMeshGeometryFlag::eDOUBLE_SIDED);
 			break;
 		default:
@@ -126,7 +128,7 @@ public:
 		boundsCenter = boundsCenter * scale;
 		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshComponent->getTranslation() + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this, sceneID, forceMakeKinematic);
 		bool addGeom = true;
-		
+		m_centerOffset = boundsCenter;
 		if (this->canAddGeometry())
 		{
 			if (!unique)
