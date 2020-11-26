@@ -19,7 +19,8 @@ Scene::Scene()
 
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
-
+	setScoreVec();
+	sortScore();
 
 }
 
@@ -235,13 +236,6 @@ int Scene::getSceneID()
 	return this->m_sceneID;
 }
 
-void Scene::sortScore()
-{
-	std::sort(m_scores.begin(), m_scores.end());
-	/*std::sort(m_scores.begin(), m_scores.end(), [](int a, int b) {
-		return a > b;
-		});*/
-}
 
 void Scene::addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox)
 {
@@ -769,7 +763,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 {
 	sceneObject->loadPickups();
 	sceneObject->loadScore();
-
 	sceneObject->addCheckpoint(Vector3(0.f, 9.f, 5.f));
 	sceneObject->addCheckpoint(Vector3(14.54f, 30.f, 105.f));
 	sceneObject->addCheckpoint(Vector3(14.54f, 30.f, 105.f));
@@ -780,7 +773,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	sceneObject->addPushTrap(Vector3(-5.f, 20.f, 58.f), Vector3(5.f, 20.f, 58.f), Vector3(0.f, 18.f, 50.f));
 
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
-
+	
 	Entity* endSceneTrigger = sceneObject->addEntity("endSceneTrigger");
 	if (endSceneTrigger)
 	{
@@ -972,12 +965,9 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 {
-	GUITextStyle style;
 
-	sceneObject->setScoreVec();
-	sceneObject->sortScore();
-
-
+	
+	
 	Entity* floor = sceneObject->addEntity("Floor");
 	if (floor)
 	{
@@ -1032,7 +1022,7 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 	if (PlayerOne)
 	{
 		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true, true);
 		PlayerOne->addComponent("mesh", animMeshComp);
 		sceneObject->addMeshComponent(animMeshComp);
 		PlayerOne->scale({ 2, 2, 2. });
@@ -1042,7 +1032,7 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 	if (PlayerTwo)
 	{
 		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true,true);
 		PlayerTwo->addComponent("mesh", animMeshComp);
 		sceneObject->addMeshComponent(animMeshComp);
 		PlayerTwo->scale({ 2, 2, 2 });
@@ -1051,7 +1041,7 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 	if (PlayerThree)
 	{
 		AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
-		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
+		animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true, true);
 		PlayerThree->addComponent("mesh", animMeshComp);
 		sceneObject->addMeshComponent(animMeshComp);
 		PlayerThree->scale({ 2, 2, 2 });
@@ -1063,30 +1053,10 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 
 
 
+	//sceneObject->showScore();
+	
 
-	style.position.y = 120.f;
-	style.scale = { 0.5f };
-	sceneObject->m_highScoreLabelIndex = GUIHandler::get().addGUIText("High Score", L"squirk.spritefont", style);
-	style.position.x = 160.f;
-	style.position.y = 300.f;
-
-	style.color = Colors::Yellow;
-
-	for (int i = 0; i < sceneObject->m_scores.size(); i++)
-	{
-		sceneObject->m_playerOneScoreIndex = GUIHandler::get().addGUIText(std::to_string(sceneObject->m_scores.at(i).first), L"squirk.spritefont", style);
-		style.position.y -= 50.0f;
-	}
-	style.position.x = 50.0f;
-	style.position.y = 300.f;
-	int rankings = 3;
-	for (int i = 0; i < sceneObject->m_scores.size(); i++)
-	{
-
-		sceneObject->m_highScoreLabelIndex = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"squirk.spritefont", style);
-		style.position.y -= 50.0f;
-	}
-
+	
 	*finished = true;
 }
 
@@ -1545,9 +1515,11 @@ void Scene::updateScene(const float& dt)
 			addScore(deferredPointInstantiationList[i]);
 		}
 
+		
+
 		deferredPointInstantiationList.clear();
 	}
-
+	
 
 	if (addedBarrel)
 	{
@@ -1621,13 +1593,9 @@ void Scene::removeEntity(std::string identifier)
 	m_entities.erase(identifier);
 }
 
-void Scene::setScoreVec()
-{
-	//m_scores.push_back(std::make_pair(m_nrOfScore, "Player"));
-	m_scores.push_back(std::make_pair(m_nrOfScorePlayerOne, "Playerdummy1"));
-	m_scores.push_back(std::make_pair(m_nrOfScorePlayerTwo, "Playerdummy2"));
-	m_scores.push_back(std::make_pair(m_nrOfScorePlayerThree, "Playerdummy3"));
-}
+
+
+
 
 bool Scene::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
 {
@@ -1765,6 +1733,11 @@ void Scene::removeLightComponentFromMap(LightComponent* component)
 	{
 		m_lightCount -= nrOfErased;
 	}
+}
+
+std::vector<std::pair<int, std::string>>* Scene::getScores()
+{
+	return &m_scores;
 }
 
 std::unordered_map<std::string, Entity*>* Scene::getEntityMap()
@@ -2104,4 +2077,20 @@ bool Scene::findPlatformAlready(Entity* entity)
 
 
 	return found;
+}
+
+void Scene::setScoreVec()
+{
+	//m_scores.push_back(std::make_pair(m_nrOfScore, "Player"));
+	m_scores.push_back(std::make_pair(m_nrOfScorePlayerOne, "Playerdummy1"));
+	m_scores.push_back(std::make_pair(m_nrOfScorePlayerTwo, "Playerdummy2"));
+	m_scores.push_back(std::make_pair(m_nrOfScorePlayerThree, "Playerdummy3"));
+}
+
+void Scene::sortScore()
+{
+	std::sort(m_scores.begin(), m_scores.end());
+	/*std::sort(m_scores.begin(), m_scores.end(), [](int a, int b) {
+		return a > b;
+		});*/
 }

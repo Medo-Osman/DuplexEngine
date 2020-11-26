@@ -15,9 +15,19 @@ private:
 	Scene* m_nextScene;
 	Input* inputPtr;
 	ScenesEnum m_nextSceneEnum;
-
+	Camera* m_camera;
 
 	bool m_swapScene;
+
+	int m_highScoreLabelIndex;
+	int m_playerOneScoreIndex;
+	int m_playerTwoScoreIndex;
+	int m_playerThreeScoreIndex;
+
+	int ett;
+	int tva;
+	int tter;
+	int fyra;
 
 	std::vector<iContext*>* m_contexts;
 
@@ -28,6 +38,10 @@ private:
 
 	bool* m_nextSceneReady = new bool;
 	bool m_loadNextSceneWhenReady = false;
+	std::vector<std::pair<int, std::string>>* m_scores;
+	void hideScore();
+	void showScore(); 
+
 
 public:
 	SceneManager();
@@ -47,6 +61,9 @@ public:
 
 	void setContextPtr(std::vector<iContext*>* contexts);
 	std::vector<iContext*>* getContextPtr();
+
+	void setScorePtr(std::vector<std::pair<int, std::string>>* m_scores);
+	std::vector<std::pair<int, std::string>>* getScorePtr();
 
 	void swapScenes();
 

@@ -33,7 +33,6 @@ public:
 	void setProjectionMatrix(const float &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
 	void setPosition(const XMVECTOR&pos);
 	void setRotation(const XMVECTOR&rot);
-	void setEndScenePosition(const XMVECTOR&pos);
 	bool endSceneCamera = false;
 	bool frustumCullingOn = true;
 

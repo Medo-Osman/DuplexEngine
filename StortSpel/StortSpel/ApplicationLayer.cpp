@@ -72,7 +72,6 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	
 	// Scene Manager
 	m_scenemanager.setContextPtr(m_input.getIContextPtr());
-	
 	m_scenemanager.initalize();
 	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 

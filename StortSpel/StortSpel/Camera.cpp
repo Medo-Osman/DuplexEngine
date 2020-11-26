@@ -45,11 +45,7 @@ void Camera::setRotation(const XMVECTOR& rot)
 	m_rotation = rot;
 	this->updateViewMatrix();
 }
-void Camera::setEndScenePosition(const XMVECTOR& pos)
-{
-	m_position = Vector3(0, 10, -10);
-	this->updateViewMatrix();
-}
+
 Transform* Camera::getTransform()
 {
 	return &m_transform;
