@@ -66,7 +66,6 @@ public:
 			bufferData.SysMemSlicePitch = 0;
 
 			hr = device->CreateBuffer(&bufferDesc, &bufferData, &m_bufferPtr);
-			//m_bufferPtr->AddRef();
 			assert(SUCCEEDED(hr) && "Failed to create buffer");
 			
 		}

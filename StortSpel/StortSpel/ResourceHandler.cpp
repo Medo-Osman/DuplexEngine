@@ -19,42 +19,52 @@ void ResourceHandler::isResourceHandlerReady()
 void ResourceHandler::checkResources()
 {
 	
-	std::vector<std::string> idsToRemove;
 
-
+	//=========================================== Meshes
+	std::vector<std::string> idsForMeshesToRemove;
 	for (auto meshStruct : m_meshCache)
 	{
 		if (meshStruct.second->getRefCount() == 0)
 		{
-			idsToRemove.push_back(meshStruct.first);
+			idsForMeshesToRemove.push_back(meshStruct.first);
 			std::cout << "delete: " << meshStruct.second->debugName << std::endl;
 		}
 
 	}
 
-	
-	std::cout << "Before release, nr to remove: " << idsToRemove.size() << ", model count in cache: " << m_meshCache.size() << std::endl;
-	PerformanceTester::get().runPerformanceTestPrint();
-	for (int i = 0; i < idsToRemove.size(); i++)
+	//std::cout << "Before release, nr to remove: " << idsToRemove.size() << ", model count in cache: " << m_meshCache.size() << std::endl;
+	//PerformanceTester::get().runPerformanceTestPrint();
+	for (int i = 0; i < idsForMeshesToRemove.size(); i++)
 	{
-		std::cout << "\t--> deleting: " << m_meshCache[idsToRemove[i]]->debugName << std::endl;
-		delete m_meshCache[idsToRemove[i]];
-		m_meshCache.erase(idsToRemove[i]);
+		std::cout << "\t--> deleting: " << m_meshCache[idsForMeshesToRemove[i]]->debugName << std::endl;
+		delete m_meshCache[idsForMeshesToRemove[i]];
+		m_meshCache.erase(idsForMeshesToRemove[i]);
 	}
-	std::cout << "After release" << " model count in cache: " << m_meshCache.size() << std::endl;
-	PerformanceTester::get().runPerformanceTestPrint();
+	//std::cout << "After release" << " model count in cache: " << m_meshCache.size() << std::endl;
+	//PerformanceTester::get().runPerformanceTestPrint();
+	idsForMeshesToRemove.clear();
+	//===========================================
 
-	//for (auto meshStruct : MeshResource::resourcesToBeRemoved)
-	//{
-	//	std::cout << "DELETING: " << meshStruct->debugName << std::endl;
+	//=========================================== Textures
+	/*std::vector<std::wstring> textureIdsToRemove;
+	for (auto textureStruct : m_textureCache)
+	{
+		if (textureStruct.second->getRefCount() == 0)
+		{
+			textureIdsToRemove.push_back(std::wstring(textureStruct.first.begin(), textureStruct.first.end()));
+			std::cout << "delete texture: " << textureStruct.second->debugName << std::endl;
+		}
 
-	//	MeshResource* tempPtr = m_meshCache[meshStruct->debugName];
-	//	//m_meshCache[meshStruct->debugName] = nullptr; 
-	//	m_meshCache.erase(meshStruct->debugName);
-	//	delete tempPtr;
-	//}
+	}
 
-	//MeshResource::resourcesToBeRemoved.clear();
+	for (int i = 0; i < textureIdsToRemove.size(); i++)
+	{
+		std::cout << "\t--> deleting texture: " << m_textureCache[textureIdsToRemove[i]]->debugName << std::endl;
+		delete m_textureCache[textureIdsToRemove[i]];
+		m_textureCache.erase(textureIdsToRemove[i]);
+	}*/
+
+	//===========================================
 }
 
 ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isCubeMap)

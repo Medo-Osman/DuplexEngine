@@ -1,8 +1,9 @@
 #include "3DPCH.h"
 #include "VertexStructs.h"
+#include "ReferenceCounted.h"
 #pragma once
 
-class MeshResource
+class MeshResource : public ReferenceCounted
 {
 private:
 	
@@ -17,29 +18,6 @@ private:
 	
 	int refCount = 0;
 public:
-	std::string debugName = "";
-	void addRef()
-	{
-		refCount++;
-	}
-
-	void deleteRef()
-	{
-		if(this && refCount > 0)
-			refCount--;
-
-		if (refCount == 0)
-		{
-			//MeshResource::resourcesToBeRemoved.push_back(this);
-			//std::cout << "delete resource " << debugName << " vec size: " << resourcesToBeRemoved.size() << std::endl;
-		}
-			
-	}
-
-	int getRefCount()
-	{
-		return refCount;
-	}
 
 	int vertCount = 0;
 	virtual ~MeshResource()

@@ -4,6 +4,7 @@
 #include "Layouts.h"
 #include "VertexStructs.h"
 #include "MeshResource.h"
+#include "TextureResource.h"
 #include "SkeletalMeshResource.h"
 #include "AnimationResource.h"
 #include "ConstantBufferTypes.h"

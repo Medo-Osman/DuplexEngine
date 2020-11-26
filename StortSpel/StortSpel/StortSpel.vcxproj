@@ -305,6 +305,7 @@
     <ClInclude Include="PickupComponent.h" />
     <ClInclude Include="ProjectileComponent.h" />
     <ClInclude Include="PushTrapComponent.h" />
+    <ClInclude Include="ReferenceCounted.h" />
     <ClInclude Include="RotateComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
@@ -331,6 +332,7 @@
     <ClInclude Include="SkeletalMeshResource.h" />
     <ClInclude Include="SpotLightComponent.h" />
     <ClInclude Include="TestComponent.h" />
+    <ClInclude Include="TextureResource.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="SlowTrapComponent.h" />
