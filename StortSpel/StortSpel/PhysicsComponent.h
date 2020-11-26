@@ -55,7 +55,7 @@ private:
 			break;
 		case physx::PxGeometryType::eTRIANGLEMESH:
 			tringMesh = m_physicsPtr->getTriangleMeshe(meshResource->getFilePath(), meshResource->getVertexArraySize(), meshResource->getVertexArray(), meshResource->getIndexArraySize(), meshResource->getIndexArray());
-			createdGeometry = new physx::PxTriangleMeshGeometry(tringMesh);
+			createdGeometry = new physx::PxTriangleMeshGeometry(tringMesh, PxMeshScale(), PxMeshGeometryFlag::eDOUBLE_SIDED);
 			break;
 		default:
 			break;

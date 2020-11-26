@@ -103,15 +103,21 @@ private:
 
 	PxTriangleMesh* createTriangleMesh(int nrOfVerticies, PositionVertex vertexArray[], int nrOfIndicies, uint32_t indiciesArray[])
 	{
+		PxVec3* vertArray = new PxVec3[nrOfVerticies];
+		for (int i = 0; i < nrOfVerticies; i++)
+		{
+			PositionVertex v = vertexArray[i];
+			vertArray[i] = PxVec3(v.position.x, v.position.y, v.position.z);
+		}
+
 		PxTriangleMeshDesc meshDesc;
 		meshDesc.points.count = nrOfVerticies;
-		meshDesc.points.stride = sizeof(PositionVertex);
-		meshDesc.points.data = vertexArray;
+		meshDesc.points.stride = sizeof(PxVec3);
+		meshDesc.points.data = vertArray;
 
 		meshDesc.triangles.count = nrOfIndicies / 3;
 		meshDesc.triangles.stride = 3 * sizeof(uint32_t);
 		meshDesc.triangles.data = indiciesArray;
-		meshDesc.flags = PxMeshFlag::eFLIPNORMALS;
 		PxDefaultMemoryOutputStream writeBuffer;
 		PxTriangleMeshCookingResult::Enum result;
 		bool status = m_cookingPtr->cookTriangleMesh(meshDesc, writeBuffer, &result);
@@ -305,6 +311,7 @@ public:
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 		}
 		PxCookingParams params = PxCookingParams(PxTolerancesScale());
+		params.meshPreprocessParams.set(PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE);
 		params.meshPreprocessParams.set(PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH);
 		m_cookingPtr = PxCreateCooking(PX_PHYSICS_VERSION, *m_foundationPtr, params);
 
