@@ -619,7 +619,7 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 	memcpy(paramData, compData + offset, sizeOfData - offset);
 
 	Component* newComponent = nullptr;
-																						// TODO: edvin will add a swinging component, it will need the onSceneLoad function.
+																						// TODO: edvin will add a swinging component
 	switch (compType)
 	{
 	case ComponentType::MESH:
@@ -649,7 +649,7 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 	case ComponentType::UNASSIGNED:
 		newComponent = new InvalidComponent();
 		break;
-	case ComponentType::ROTATEAROUND: // This simply doesn't work, and won't unless we make a system for identifying other entities in
+	case ComponentType::ROTATEAROUND: // This simply doesn't work, and won't unless we make a system for identifying other entities in the scene
 		newComponent = new RotateAroundComponent(paramData, entity, entity);
 		needsDynamicPhys = true;
 		needsKinematicPhys = true;
@@ -1086,6 +1086,8 @@ void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpe
 	}
 
 	int test = 360 / nrOfPlatforms;
+	assert(test > 0);
+
 	for (int i = 0; i < 360; i += test)
 	{
 		Entity* ParisWheelPlatform = addEntity("ParisWheelPlatform-" + std::to_string(nrOfParisWheels) + "_" + std::to_string(i));
