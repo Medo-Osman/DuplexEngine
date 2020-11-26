@@ -65,11 +65,11 @@ struct skeletonAnimationCBuffer
     XMMATRIX boneMatrixPallet[MAX_JOINT_COUNT]; // 30 is currently the max number of joint, this can be changed later if needed
 };
 
-const int BLUR_RADIUS = 12;
+const int BLUR_RADIUS = 15;
 
 struct CS_BLUR_CBUFFER
 {
-    float weights[BLUR_RADIUS];
+    float weights[BLUR_RADIUS + 1]; // BLUR_RADIUS + 1 * 4 bytes
     int radius;
     int direction;
     XMFLOAT2 pad;

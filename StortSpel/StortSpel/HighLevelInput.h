@@ -9,10 +9,14 @@ enum Action
 	ROLL,
 	USEPICKUP,
 	PLAYSOUND,
+	SWAP_SCENES,
+	PAUSE,
 	TEST_SCENE,
 	LOAD_SCENE,
+	LOAD_TEST_SCENE,
 	CLOSEINTROGUI,
 	USE,
+	SELECT
 };
 
 enum State
@@ -21,6 +25,8 @@ enum State
 	WALK_RIGHT,
 	WALK_FORWARD,
 	WALK_BACKWARD,
+	MENU_UP,
+	MENU_DOWN
 };
 
 enum Range
@@ -28,4 +34,3 @@ enum Range
 	RAW,
 	REL,
 };
-

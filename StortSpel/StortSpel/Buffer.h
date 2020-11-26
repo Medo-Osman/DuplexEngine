@@ -16,6 +16,13 @@ public:
 		m_stride = 0;
 		m_dynamic = false;
 	}
+
+	~Buffer()
+	{
+		if (m_bufferPtr != nullptr)
+			m_bufferPtr.Reset();
+	}
+
 	HRESULT initializeBuffer(ID3D11Device* device, bool dynamic, D3D11_BIND_FLAG bindFlag, T* data, int nrOf, bool defaultUse = false, UINT stride = 0)
 	{
 		HRESULT hr = 0;
@@ -61,7 +68,6 @@ public:
 			hr = device->CreateBuffer(&bufferDesc, nullptr, m_bufferPtr.GetAddressOf());
 
 		}
-
 		return hr;
 	}
 	HRESULT updateBuffer(ID3D11DeviceContext* dContext, T* data, int nrOf = 1)
@@ -90,7 +96,7 @@ public:
 	void release()
 	{
 		if(m_bufferPtr != nullptr)
-			m_bufferPtr->Release();
+			m_bufferPtr.Reset();
 	}
 
 	ID3D11Buffer* Get() const { return m_bufferPtr.Get(); }

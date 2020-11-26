@@ -8,12 +8,11 @@ private:
 	BossStructures::BossActionData m_data;
 	Timer m_timer;
 	float m_shootInterval = 0.5f; //Seconds
-	float m_maxDirectionOffset = 4.f;
 	Vector3 m_target;
 
 	bool m_targetSet = false;
 public:
-	ShootProjectileAction(Entity* bossEntity, BossSubject* bossSubject, int howLongShouldActionLast = 10, int coolDownAfterAction = 5)
+	ShootProjectileAction(Entity* bossEntity, BossSubject* bossSubject, float howLongShouldActionLast = 10, float coolDownAfterAction = 5)
 		:BaseAction(bossEntity, bossSubject)
 	{
 		m_movementActionType = BossMovementType::ShootProjectile;
@@ -24,7 +23,17 @@ public:
 
 	void setTarget(Vector3 target)
 	{
-		m_data.origin = m_bossEntity->getTranslation() + Vector3(0, m_bossEntity->getScaling().y / 2, 0);
+		//m_data.origin = static_cast<PhysicsComponent*>(m_bossEntity->getComponent("physics"))->getActorPosition();//m_bossEntity->getTranslation() + Vector3(0, m_bossEntity->getScaling().y / 2, 0);
+
+		Component* componentPtr = m_bossEntity->getComponent("physics");
+		if (componentPtr)
+		{
+			PhysicsComponent* physPtr = static_cast<PhysicsComponent*>(componentPtr);
+			m_data.origin = physPtr->getActorPosition();
+		}
+		else
+			m_data.origin = m_bossEntity->getTranslation();
+
 		m_target = target;
 		Vector3 unnormalizedDir = (target - m_data.origin);
 		m_data.direction = XMVector3Normalize(unnormalizedDir);
@@ -49,17 +58,16 @@ public:
 		m_timer.start();
 		m_timeData.timer.start();
 
-		//Have to do this isDone() is time controlled, otherwise it will skip the action if looping is enabled.
+		//Have to do this, isDone() is time controlled, otherwise it will skip the action if looping is enabled.
 		m_timer.restart();
 		m_timeData.timer.restart();
 
-		AnimatedMeshComponent* animComp = static_cast<AnimatedMeshComponent*>(m_bossEntity->getComponent("mesh"));
-		animComp->playSingleAnimation("platformer_guy_idle", 0.1f, false);
 	}
 
 	virtual void update(const float& dt) override
 	{
-		if (m_timer.timeElapsed() > m_shootInterval && m_targetSet)
+		//std::cout << m_timer.timeElapsed() << std::endl;
+		if (m_timer.timeElapsed() >= m_shootInterval && m_targetSet)
 		{
 			//m_bossEntity->lookAt(m_target);
 			m_data.speed = 10.f;

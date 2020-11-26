@@ -51,16 +51,17 @@ public:
 	void draw(ID3D11DeviceContext* deviceContextPtr)
 	{
 		if (m_active)
+		{
 			if (m_particle->draw(deviceContextPtr))
 			{
-				delete m_particle;
-				m_particle = nullptr;
+				SAFE_DELETE(m_particle);
 				m_active = false;
-			}	
+			}
+		}
 	}
 	~ParticleComponent()
 	{
-
+		SAFE_DELETE(m_particle);
 	}
 
 };

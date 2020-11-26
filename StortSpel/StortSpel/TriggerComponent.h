@@ -16,6 +16,7 @@ protected:
 	TriggerType m_triggerType;
 
 	PhysicsData m_physicsData;
+	int m_sceneID;
 
 public:
 	TriggerComponent()
@@ -37,12 +38,13 @@ public:
 			m_physicsPtr->removeActor(m_actor);
 	}
 
-	void initTrigger(Transform* transform, XMFLOAT3 boxExtends)
+	void initTrigger(int sceneID, Transform* transform, XMFLOAT3 boxExtends)
 	{
+		m_sceneID = sceneID;
 		m_physicsData.entityIdentifier = m_parentEntityIdentifier;
 		m_geometryHolder = PxBoxGeometry(boxExtends.x, boxExtends.y, boxExtends.z);
 		m_transform = transform;
-		m_actor = m_physicsPtr->createRigidActor(transform->getTranslation(), transform->getRotation(), true, &m_physicsData);
+		m_actor = m_physicsPtr->createRigidActor(transform->getTranslation(), transform->getRotation(), true, &m_physicsData, sceneID);
 		m_physicsPtr->createAndSetShapeForActor(m_actor, m_geometryHolder, "default", false, {1, 1, 1}, true);
 	}
 
@@ -53,7 +55,7 @@ public:
 		m_physicsData.pointer = pointer;
 		m_physicsData.stringData = stringData;
 		m_physicsData.floatData = floatData;
-		m_physicsData.intData = floatData;
+		m_physicsData.intData = intData;
 	}
 
 	void setEventPointer(void* ptr)

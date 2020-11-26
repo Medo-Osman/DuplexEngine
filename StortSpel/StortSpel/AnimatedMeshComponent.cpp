@@ -1,11 +1,15 @@
 #include "3DPCH.h"
 #include "AnimatedMeshComponent.h"
 
-AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials)
-	:MeshComponent(shaderEnums, materials), m_inBindPose(true), m_transitionTime(0.f)
+void AnimatedMeshComponent::init(const char* filepath)
 {
-	SkeletalMeshResource* resPtr = (SkeletalMeshResource*)ResourceHandler::get().loadLRSMMesh(filepath);
-	
+	m_inBindPose = true;
+	m_transitionTime = 0.f;
+	m_type = ComponentType::ANIM_MESH;
+	m_filePath = filepath;
+
+	SkeletalMeshResource* resPtr = dynamic_cast<SkeletalMeshResource*>(ResourceHandler::get().loadLRSMMesh(filepath));
+
 	setMeshResourcePtr(resPtr);
 
 	//take the joints from the meshresource and build the joints
@@ -19,7 +23,7 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initiali
 
 	m_rootIdx = resPtr->getRootIndex();
 	m_joints.at(m_rootIdx) = createJointAndChildren(m_rootIdx, resPtr->getJoints(), XMMatrixIdentity());
-	
+
 	for (int i = 0; i < m_jointCount; i++)
 	{
 		m_cBufferStruct.boneMatrixPallet[i] = XMMatrixIdentity();
@@ -27,6 +31,12 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initiali
 
 	// when the temp rotation values go this might not need to be here
 	//applyPoseToJoints(XMMatrixIdentity());
+}
+
+AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials)
+	:MeshComponent(shaderEnums, materials)
+{
+	init(filepath);
 }
 
 AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum, std::initializer_list<Material> materials)
@@ -38,12 +48,20 @@ AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, ShaderProgram
 {}
 
 AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, Material material)
-	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::DEFAULT, material)
+	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::SKEL_ANIM, material)
 {}
 
 AnimatedMeshComponent::AnimatedMeshComponent(const char* filepath, std::initializer_list<Material> materials)
-	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::DEFAULT, materials)
+	: AnimatedMeshComponent(filepath, ShaderProgramsEnum::SKEL_ANIM, materials)
 {}
+
+AnimatedMeshComponent::AnimatedMeshComponent(char* paramData)
+	:MeshComponent()
+{
+	int offset = 0;
+	MeshComponent::init({ ShaderProgramsEnum::SKEL_ANIM }, { Material() });
+	init(readStringFromChar(paramData, offset).c_str());
+}
 
 //std::string AnimatedMeshComponent::getAnimationName()
 //{
@@ -124,15 +142,26 @@ skeletonAnimationCBuffer* AnimatedMeshComponent::getAllAnimationTransforms()
 }
 
 
-void AnimatedMeshComponent::playSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion)
+void AnimatedMeshComponent::playSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion, bool playDuringEndTransistion)
 {
 	if (!m_inBindPose)
 	{
-		if (m_currentState->justOne && m_currentState->structs.at(0).animationName == animationName)
+		/*if (m_currentState->justOne && m_currentState->structs.at(0).animationName == animationName)
 			return;
 
 		if (m_transitionTime > 0.f && m_animationQueue.front()->stateName == animationName)
 			return;
+			*/
+		if (m_transitionTime > 0.f || transistionTime > 0.f)
+		{
+			if (!m_animationQueue.empty() && m_animationQueue.front()->stateName == animationName)
+				return;
+		}
+		else
+		{
+			if (m_currentState->justOne && m_currentState->structs.at(0).animationName == animationName)
+				return;
+		}
 	}
 
 	std::queue<animState*> empty = std::queue<animState*>(); // Make the queue empty by swaping it with an empty one
@@ -140,7 +169,7 @@ void AnimatedMeshComponent::playSingleAnimation(std::string animationName, float
 
 	if (m_storedStates.find(animationName) == m_storedStates.end()) // If the animation isn't in the stored states map
 	{
-		addSingleAnimation(animationName, transistionTime, playDuringStartTransistion);
+		addSingleAnimation(animationName, transistionTime, playDuringStartTransistion, playDuringEndTransistion);
 	}
 	else
 	{
@@ -178,7 +207,7 @@ void AnimatedMeshComponent::playSingleAnimation(std::string animationName, float
 	m_inBindPose = false;
 }
 
-void AnimatedMeshComponent::addSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion)
+void AnimatedMeshComponent::addSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion, bool playDuringEndTransistion)
 {
 	animationStruct newStruct;
 	newStruct.animationResource = ResourceHandler::get().loadAnimation((animationName + ".lra").c_str());
@@ -191,17 +220,18 @@ void AnimatedMeshComponent::addSingleAnimation(std::string animationName, float 
 	newState.blend = 0.f;
 	newState.startTransitionDuration = transistionTime;
 	newState.playDuringStartTransistion = playDuringStartTransistion;
+	newState.playDuringEndTransistion = playDuringEndTransistion;
 	newState.structs.push_back(newStruct);
 	newState.stateName = animationName;
 
 	m_storedStates[animationName] = newState;
 }
 
-void AnimatedMeshComponent::queueSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion)
+void AnimatedMeshComponent::queueSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion, bool playDuringEndTransistion)
 {
 	if (m_inBindPose)
 	{
-		playSingleAnimation(animationName, transistionTime, playDuringStartTransistion);
+		playSingleAnimation(animationName, transistionTime, playDuringStartTransistion, playDuringEndTransistion);
 		return;
 	}
 
@@ -211,12 +241,12 @@ void AnimatedMeshComponent::queueSingleAnimation(std::string animationName, floa
 	if (m_inBindPose)
 	{
 		ErrorLogger::get().logError("Trying to queue an animation when in bindpose, we'll just play it now. Please use the correct function.");
-		playSingleAnimation(animationName, transistionTime, playDuringStartTransistion);
+		playSingleAnimation(animationName, transistionTime, playDuringStartTransistion, playDuringEndTransistion);
 	}
 
 	if (m_storedStates.find(animationName) == m_storedStates.end()) // If the animation isn't in the stored states map
 	{
-		addSingleAnimation(animationName, transistionTime, playDuringStartTransistion);
+		addSingleAnimation(animationName, transistionTime, playDuringStartTransistion, playDuringEndTransistion);
 	}
 	else
 	{
@@ -233,12 +263,13 @@ void AnimatedMeshComponent::queueSingleAnimation(std::string animationName, floa
 	m_animationQueue.push(&m_storedStates[animationName]);
 }
 
-void AnimatedMeshComponent::addBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, bool playDuringStartTransistion)
+void AnimatedMeshComponent::addBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, bool playDuringStartTransistion, bool playDuringEndTransistion)
 {
 	animState newState;
 	newState.justOne = false;
 	newState.blend = 0.f;
 	newState.playDuringStartTransistion = playDuringStartTransistion;
+	newState.playDuringEndTransistion = playDuringEndTransistion;
 	newState.stateName = stateName;
 	
 	for (auto& params : animationParams)
@@ -259,9 +290,9 @@ void AnimatedMeshComponent::addBlendState(const std::initializer_list<std::pair<
 	m_storedStates[stateName] = newState;
 }
 
-void AnimatedMeshComponent::addAndPlayBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, float transistionTime, bool playDuringStartTransistion)
+void AnimatedMeshComponent::addAndPlayBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, float transistionTime, bool playDuringStartTransistion, bool playDuringEndTransistion)
 {
-	addBlendState(animationParams, stateName, playDuringStartTransistion);
+	addBlendState(animationParams, stateName, playDuringStartTransistion, playDuringEndTransistion);
 	playBlendState(stateName, transistionTime);
 }
 
@@ -270,11 +301,24 @@ bool AnimatedMeshComponent::playBlendState(std::string stateName, float transist
 	// check if it is already playing
 	if (!m_inBindPose)
 	{
+		/*
 		if (m_currentState->stateName == stateName)
 			return true;
 
 		if (m_transitionTime > 0.f && m_animationQueue.front()->stateName == stateName)
 			return true;
+		*/
+
+		if (m_transitionTime > 0.f || transistionTime > 0.f)
+		{
+			if (!m_animationQueue.empty() && m_animationQueue.front()->stateName == stateName)
+				return true;
+		}
+		else
+		{
+			if (m_currentState->stateName == stateName)
+				return true;
+		}
 	}
 	
 	if (m_storedStates.find(stateName) == m_storedStates.end()) // If the animation isn't in the stored states map
@@ -497,7 +541,7 @@ void AnimatedMeshComponent::calculateFrameForState(animState* state, ANIMATION_F
 		int prevFrame = 0;
 		int nextFrame = 0;
 
-		for (int u = 0; u < animResPtr->getFrameCount(); u++)
+		for (unsigned int u = 0; u < (int)animResPtr->getFrameCount(); u++)
 		{
 			nextFrame = u;
 			if (allFramesOfThisAnim[u].timeStamp > state->structs.at(i).animationTime)
@@ -516,7 +560,8 @@ void AnimatedMeshComponent::calculateFrameForState(animState* state, ANIMATION_F
 
 		// now that we have the progression we can interpolate (but if the time is close enough to a timestamp (really close) we can just pick it and skip interpolation and set the current time variable)
 		float allowedMargin = 0.05f;
-		allowedMargin* pow(state->structs.at(i).animationSpeed, 0.4);
+		if (state->structs.at(i).animationSpeed != 1.f)
+			allowedMargin *= pow(state->structs.at(i).animationSpeed, 0.4f);
 
 		if (progression < 0 + allowedMargin)
 			thisAnimFrame = new ANIMATION_FRAME(allFramesOfThisAnim[prevFrame], m_jointCount);
@@ -542,6 +587,7 @@ void AnimatedMeshComponent::calculateFrameForState(animState* state, ANIMATION_F
 		{
 			if (currentBlend == state->blendPoints.at(i))
 			{
+				SAFE_DELETE(*animStateFrame);
 				*animStateFrame = thisAnimFrame;
 			}
 			else
@@ -595,12 +641,20 @@ void AnimatedMeshComponent::update(float dt)
 	// increase animation time
 	if (!m_inBindPose)
 	{
+		bool inTransition = (m_transitionTime > 0.f);
+		
 		for (int i = 0; i < m_currentState->structs.size(); i++)
 		{
-			if(m_currentState->structs.at(i).animationSpeed > 0.f)
+			bool keepPlayingCurrent = true;
+
+			if (m_currentState->structs.at(i).animationSpeed == 0.f
+				|| (inTransition && !m_currentState->playDuringEndTransistion))
+				keepPlayingCurrent = false;
+
+			if(keepPlayingCurrent)
 				m_currentState->structs.at(i).animationTime += dt * m_currentState->structs.at(i).animationSpeed;
 		}
-		if (m_transitionTime > 0.f)
+		if (inTransition)
 		{
 			m_transitionTime -= dt;
 			
@@ -625,6 +679,9 @@ void AnimatedMeshComponent::update(float dt)
 
 void AnimatedMeshComponent::setAnimationSpeed(const float newAnimationSpeed)
 {
+	if (m_inBindPose)
+		return;
+	
 	if (m_transitionTime > 0.f) 
 	{
 		for (auto& animStruct : m_animationQueue.front()->structs)
@@ -643,6 +700,9 @@ void AnimatedMeshComponent::setAnimationSpeed(const float newAnimationSpeed)
 
 void AnimatedMeshComponent::setAnimationSpeed(const unsigned int structIndex, const float newAnimationSpeed)
 {
+	if (m_inBindPose)
+		return;
+	
 	if (m_transitionTime > 0.f)
 	{
 		m_animationQueue.front()->structs.at(structIndex).animationSpeed = newAnimationSpeed;

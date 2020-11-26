@@ -17,6 +17,25 @@ enum ShaderProgramsEnum
 	NONE
 };
 
+inline ShaderProgramsEnum charToShaderEnum(char e)
+{
+	switch (e)
+	{
+	case 'E':
+		return EMISSIVE;
+	case 'T':
+		return TEMP_TEST;
+	case 'S':
+		return SKEL_ANIM;
+	case 'P':
+		return PBRTEST;
+	case 'O':
+		return OBJECTSPACEGRID;
+	default:
+		return TEMP_TEST;
+	}
+}
+
 inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgram*>* compiledShadersMap, ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr, ID3D11DepthStencilView* depthStencilPtr)
 {
 	// Copy this and paste with diffrent parameters for each diffrent ShaderProgramEnum

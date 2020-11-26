@@ -118,6 +118,7 @@
       <PrecompiledHeaderFile>3DPCH.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\3rd-Party\PhysX\include;Kernel32.lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -164,6 +165,7 @@
       <PrecompiledHeaderFile>3DPCH.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\3rd-Party\PhysX\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -220,14 +222,12 @@
     <ClCompile Include="AudioHandler.cpp" />
     <ClCompile Include="Boss.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Component.h" />
+    <ClInclude Include="Component.h" />
     <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="Entity.h" />
+    <ClInclude Include="Entity.h" />
     <ClCompile Include="GUIHandler.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
-    <ClCompile Include="Packet.cpp" />
-    <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="Particles\Particle.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -242,7 +242,6 @@
     <ClCompile Include="ResourceHandler.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManager.cpp" />
-    <ClCompile Include="Server.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="ShadowMap.cpp" />
     <ClCompile Include="Timer.cpp" />
@@ -267,19 +266,22 @@
     <ClInclude Include="Boss.h" />
     <ClInclude Include="BarrelComponent.h" />
     <ClInclude Include="BarrelTriggerComponent.h" />
+    <ClInclude Include="BossSegment.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CharacterControllerComponent.h" />
     <ClInclude Include="CheckpointComponent.h" />
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
+    <ClInclude Include="DataHelper.h" />
     <ClInclude Include="FlippingComponent.h" />
+    <ClInclude Include="GrowingComponent.h" />
     <ClInclude Include="GUIButton.h" />
     <ClInclude Include="GUIContext.h" />
     <ClInclude Include="GUIImageLabel.h" />
     <ClInclude Include="MoveToAction.h" />
-    <ClInclude Include="Packet.h" />
-    <ClInclude Include="PacketHandler.h" />
+    <ClInclude Include="MoveOneInGridAction.h" />
+    <ClInclude Include="MoveToTargetInGridAction.h" />
     <ClInclude Include="Particles\Particle.h" />
     <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="Particles\PlayerLineParticle.h" />
@@ -307,12 +309,16 @@
     <ClInclude Include="RotateComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
-    <ClInclude Include="Server.h" />
     <ClInclude Include="ShadowMap.h" />
+    <ClInclude Include="ShootLaserXZAction.h" />
     <ClInclude Include="ShootProjectileAction.h" />
+    <ClInclude Include="ShrinkingComponent.h" />
     <ClInclude Include="SpeedPickup.h" />
     <ClInclude Include="SweepingComponent.h" />
-    <ClInclude Include="PhysicsComponent.h" />
+    <ClInclude Include="PhysicsComponent.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="PhysicsMaterial.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Input.h" />
@@ -328,6 +334,7 @@
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="SkeletalMeshResource.h" />
     <ClInclude Include="SpotLightComponent.h" />
+    <ClInclude Include="SwingComponent.h" />
     <ClInclude Include="TestComponent.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Transform.h" />
@@ -335,6 +342,7 @@
     <ClInclude Include="Traps.h" />
     <ClInclude Include="TriggerComponent.h" />
     <ClInclude Include="VertexStructs.h" />
+    <ClInclude Include="WaitAction.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BasicPixelShader.hlsl">

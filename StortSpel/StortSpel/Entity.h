@@ -20,7 +20,14 @@ public:
 	{
 		for (auto& component : m_components)
 			delete component.second;
+
 		m_components.clear();
+	}
+
+	void onSceneLoad()
+	{
+		for (auto& component : m_components)
+			component.second->onSceneLoad();
 	}
 
 	void update(const float &dt)
@@ -41,12 +48,11 @@ public:
 		newComponent->setParentEntityIdentifier(m_identifier);
 		m_components[newComponentName] = newComponent;
 		m_components[newComponentName]->setComponentMapPointer(&m_components);
-
 	}
 	
 	void removeComponent(Component* component)
 	{
-		int deleted = m_components.erase(component->getIdentifier());
+		int deleted = (int)m_components.erase(component->getIdentifier());
 	}
 
 	Component* getComponent(std::string componentName)
@@ -55,7 +61,7 @@ public:
 		{
 			ErrorLogger::get().logError("Attempt to retrieve component by name failed, does not exist.");
 
-			return new InvalidComponent();
+			return nullptr;
 		}
 			
 		return m_components[componentName];
@@ -70,6 +76,20 @@ public:
 				compVec.push_back(component.second);
 			}
 		}
+	}
+
+	bool hasComponentsOfType(ComponentType type)
+	{
+		bool hasType = false;
+
+		for (std::pair<std::string, Component*> component : m_components)
+			if (component.second->getType() == type)
+			{
+				hasType = true;
+				break;
+			}
+
+		return hasType;
 	}
 
 	bool m_canCull = true;

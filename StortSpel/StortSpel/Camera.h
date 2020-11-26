@@ -14,18 +14,27 @@ private:
 	Transform m_transform;
 
 	XMMATRIX m_viewMatrix;
+	//FrustumCulling
+
 	XMMATRIX m_projectionMatrix;
 
 	bool m_newIncrements;
 	XMVECTOR m_incrementRotation;
 	XMVECTOR m_incrementPosition;
 
+	float m_sensitivity = 0.1f;
+
 	void updateViewMatrix();
+	void updateViewMatrixEndScene();
 public:
 	Camera();
+	~Camera();
+	void initialize(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ);
 	void setProjectionMatrix(const float &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
 	void setPosition(const XMVECTOR&pos);
 	void setRotation(const XMVECTOR&rot);
+	bool endSceneCamera = false;
+	bool frustumCullingOn = true;
 
 	Transform* getTransform();
 
@@ -37,6 +46,8 @@ public:
 	const XMMATRIX& getProjectionMatrix() const;
 
 	BoundingFrustum getFrustum();
+	
+
 
 	virtual void update(const float& dt);
 	void inputUpdate(InputData& inputData);

@@ -4,7 +4,6 @@
 #include "AnimationResource.h"
 
 
-
 struct joint
 {
 	int index;
@@ -39,6 +38,7 @@ struct animState
 
 	float startTransitionDuration;
 	bool playDuringStartTransistion;
+	bool playDuringEndTransistion;
 
 	std::string stateName;
 };
@@ -60,22 +60,25 @@ private:
 	// when m_transitionTime is 0 no transtion is happening, when over 0 it means that it is counting down
 	float m_transitionTime;
 
+	void init(const char* filepath);
+
 public:
 	
-	AnimatedMeshComponent(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums = { ShaderProgramsEnum::DEFAULT }, std::initializer_list<Material> materials = { Material() });
+	AnimatedMeshComponent(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums = { ShaderProgramsEnum::SKEL_ANIM }, std::initializer_list<Material> materials = { Material() });
 	AnimatedMeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum, std::initializer_list<Material> materials = { Material() });
 	AnimatedMeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum, Material material);
 	AnimatedMeshComponent(const char* filepath, Material material);
 	AnimatedMeshComponent(const char* filepath, std::initializer_list<Material> materials);
+	AnimatedMeshComponent(char* paramData);
 
 	skeletonAnimationCBuffer* getAllAnimationTransforms();
 
-	void playSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion);
-	void addSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion);
-	void queueSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion);
+	void playSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion, bool playDuringEndTransistion);
+	void addSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion, bool playDuringEndTransistion);
+	void queueSingleAnimation(std::string animationName, float transistionTime, bool playDuringStartTransistion, bool playDuringEndTransistion);
 
-	void addBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, bool playDuringStartTransistion);
-	void addAndPlayBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, float transistionTime, bool playDuringStartTransistion);
+	void addBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, bool playDuringStartTransistion, bool playDuringEndTransistion);
+	void addAndPlayBlendState(const std::initializer_list<std::pair<const std::string, float>>& animationParams, std::string stateName, float transistionTime, bool playDuringStartTransistion, bool playDuringEndTransistion);
 	bool playBlendState(std::string stateName, float transistionTime);
 	bool queueBlendState(std::string stateName, float transistionTime);
 	

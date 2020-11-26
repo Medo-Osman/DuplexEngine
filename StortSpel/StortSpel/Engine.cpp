@@ -27,13 +27,17 @@ Engine::~Engine()
 	//for (std::pair<std::string, Entity*> entity : m_entities)
 	//	delete entity.second;
 
-	m_entities->clear();
+	//m_entities->clear();
+	//m_entities->clear();
+}
+
+void Engine::release()
+{
 }
 
 void Engine::update(const float& dt)
 {
-	m_player->updatePlayer(dt);
-	m_camera.update(dt);
+
 
 	//Example for updating light direction
 	/*Vector4 dir = m_skyLightDir;
@@ -43,6 +47,8 @@ void Engine::update(const float& dt)
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
 
+	m_camera.update(dt);
+	m_player->updatePlayer(dt);
 	updateLightData();
 
 
@@ -71,6 +77,7 @@ void Engine::update(const float& dt)
 		}
 	}
 }
+
 void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities)
 {
 	m_entities = entities;
@@ -117,18 +124,6 @@ bool Engine::addComponentToPlayer(std::string componentIdentifier, Component* co
 	return true;
 }
 
-void Engine::removeLightComponentFromPlayer(LightComponent* component)
-{
-	//m_player->getPlayerEntity()->removeComponent(component);
-
-	//int nrOfErased = m_lightComponentMap->erase(component->getIdentifier());
-	//if (nrOfErased > 0) //if it deleted more than 0 elements
-	//{
-	//	m_lightCount -= nrOfErased;
-	//}
-	//m_currentScene->removeLightComponentFromMap(component);
-
-}
 
 std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 {
@@ -173,6 +168,7 @@ Player* Engine::getPlayerPtr()
 	return m_player;
 }
 
+
 std::vector<Player*>* Engine::getServerPlayers()
 {
 	return this->serverPlayers;
@@ -191,7 +187,6 @@ void Engine::initialize(Input* input)
 {
 	m_input = input;
 
-
 	if (!DeviceAndContextPtrsAreSet)
 	{
 		// Renderer::initialize needs to be called and it needs to call setDeviceAndContextPtrs()
@@ -199,34 +194,33 @@ void Engine::initialize(Input* input)
 		assert(false);
 	}
 
-	m_camera.setProjectionMatrix(80.f,  (float)m_settings.width/(float)m_settings.height, 0.01f, 1000.0f);
+	m_camera.initialize(80.f, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 
 	// Audio Handler Listener setup
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
-	
+
 	// Player
 	m_player = new Player();
+
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
 
 	// - Entity
 	Entity* playerEntity = new Entity(PLAYER_ENTITY_NAME);
 	playerEntity->setPosition({ 0, 0, 0 });
+
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
 	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
 	playerEntity->addComponent("mesh", animMeshComp);
 
-
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
-	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", 0.f, true);
-
+	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true, true);
 
 	m_player->setAnimMeshPtr(animMeshComp);
 
 	//a4->setAnimationSpeed(0.05f);
-
 	// - Physics Componenet
 	playerEntity->addComponent("CCC", new CharacterControllerComponent());
 	CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(playerEntity->getComponent("CCC"));
@@ -259,6 +253,8 @@ void Engine::initialize(Input* input)
 
 	// Audio Handler needs Camera Transform ptr for 3D positional audio
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
+
+	Material::readMaterials();
 
 }
 

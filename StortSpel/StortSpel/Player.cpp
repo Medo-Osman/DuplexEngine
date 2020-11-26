@@ -30,7 +30,7 @@ Player::Player(bool isLocal)
 		vec.emplace_back(new SpeedPickup());
 		Pickup::initPickupArray(vec);
 	}
-
+	
 	//GUI
 	m_score = 0;
 	GUITextStyle style;
@@ -42,13 +42,13 @@ Player::Player(bool isLocal)
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
 
 	GUIImageStyle imageStyle;
-	imageStyle.position = Vector2(400, 50);
-	imageStyle.scale = Vector2(0.9, 0.9);
+	imageStyle.position = Vector2(400.f, 50.f);
+	imageStyle.scale = Vector2(0.9f, 0.9f);
 	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
 	//Test Button stuff
 	GUIButtonStyle btnStyle;
-	btnStyle.position = Vector2(140, 200);
+	btnStyle.position = Vector2(240, 200);
 	btnStyle.scale = Vector2(0.5, 0.5);
 	closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
 
@@ -60,7 +60,6 @@ Player::~Player()
 {
 	if (m_playerEntity)
 		delete m_playerEntity;
-
 }
 
 bool Player::isRunning()
@@ -244,7 +243,7 @@ void Player::playerStateLogic(const float& dt)
 			m_velocity += Vector3(0, -GRAVITY * m_gravityScale, 0);
 	}
 
-	//std::cout << m_velocity.y << "\n";
+	//std::cout << m_velocity.z << "\n";
 
 	// Max Gravity Tests
 	if (m_velocity.y <= -MAX_FALL_SPEED)
@@ -262,6 +261,8 @@ void Player::playerStateLogic(const float& dt)
 
 		if ((PLAYER_SPEED * dt) <= 0.0f)
 			blend = -1.0f;
+
+		std::cout << sizeof(float) << std::endl;
 
 		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
 		//// analog animation:
@@ -543,7 +544,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 			if (m_pickupPointer == nullptr)
 			{
 				bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
-				int duration = physicsData.intData;
+				float duration = (float)physicsData.intData;
 				switch ((PickupType)physicsData.associatedTriggerEnum)
 				{
 				case PickupType::SPEED:
@@ -704,13 +705,13 @@ void Player::prepDistVariables()
 
 void Player::rollAnimation()
 {
-	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false, true);
 	m_animMesh->setAnimationSpeed(1.6f);
 }
 
 void Player::dashAnimation()
 {
-	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true);
+	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.1f, true, true);
 }
 
 void Player::idleAnimation()

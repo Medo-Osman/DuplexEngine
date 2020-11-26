@@ -52,6 +52,14 @@ cbuffer perModel : register(b2)
     float4x4 wvpMatrix;
 };
 
+cbuffer MaterialBuffer : register(b3)
+{
+    float materialUVScale;
+    float materialRoughness;
+    float materialMetallic;
+    int materialTextured;
+    float materialEmissiveStrength;
+}
 
 struct ps_in
 {
@@ -62,6 +70,12 @@ struct ps_in
     float3 bitangent : BITANGENT;
     float4 worldPos : POSITION;
     float4 shadowPos : SPOS;
+};
+
+struct ps_out
+{
+    float4 diffuse : SV_Target0;
+    float4 glow : SV_Target1;
 };
 
 Texture2D diffuseTexture : TEXTURE : register(t0);
@@ -159,13 +173,17 @@ lightComputeResult computeLightFactor(ps_in input)
     return result;
 }
 
-float4 main(ps_in input) : SV_TARGET
+ps_out main(ps_in input)
 {
-    
-   
+    ps_out output;
     lightComputeResult lightResult = computeLightFactor(input);
-    return float4(lightResult.lightColor, 1);
-
-}
-
     
+    // Emissive color
+    float emissiveScalar = materialEmissiveStrength / 100.f;
+    output.glow = float4(lightResult.lightColor * emissiveScalar, 1.f);
+    
+    // Diffuse color
+    output.diffuse = float4(lightResult.lightColor, 1.f);
+    
+    return output;
+}
