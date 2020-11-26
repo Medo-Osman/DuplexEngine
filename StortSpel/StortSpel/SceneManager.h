@@ -19,22 +19,23 @@ private:
 
 	bool m_swapScene;
 
+	//GUI score
 	int m_highScoreLabelIndex;
 	int m_playerOneScoreIndex;
 	int m_playerTwoScoreIndex;
 	int m_playerThreeScoreIndex;
 
-	int ett;
-	int tva;
-	int tter;
-	int fyra;
-
+	int m_rankingScoreIndecOne;
+	int m_rankingScoreIndecTwo;
+	int m_rankingScoreIndecThree;
+	//
 	std::vector<iContext*>* m_contexts;
 
 	int m_singleplayerIndex = 0;
 	int m_exitIndex = 0;
 	int m_joinGameIndex = 0;
 	int m_hostGameIndex = 0;
+	int m_backToLobbyIndex = 0;
 
 	bool* m_nextSceneReady = new bool;
 	bool m_loadNextSceneWhenReady = false;

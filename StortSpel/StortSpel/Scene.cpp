@@ -965,9 +965,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 {
-
-	
-	
 	Entity* floor = sceneObject->addEntity("Floor");
 	if (floor)
 	{
@@ -1050,12 +1047,6 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 	sceneObject->setPlayersPosition(PlayerOne);
 	sceneObject->setPlayersPosition(PlayerTwo);
 	sceneObject->setPlayersPosition(PlayerThree);
-
-
-
-	//sceneObject->showScore();
-	
-
 	
 	*finished = true;
 }
@@ -2090,7 +2081,4 @@ void Scene::setScoreVec()
 void Scene::sortScore()
 {
 	std::sort(m_scores.begin(), m_scores.end());
-	/*std::sort(m_scores.begin(), m_scores.end(), [](int a, int b) {
-		return a > b;
-		});*/
 }
