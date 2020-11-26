@@ -323,9 +323,13 @@ public:
 	void update(float dt) override 
 	{
 		//IF we check if it is static, anytime anyone moves a static physics object's entity transform it will be in the wrong position. We also don't mirror the transform in the first place.
-		m_transform->setPosition(this->getActorPosition());
-		if (m_controllRotation)
-			m_transform->setRotationQuat(this->getActorQuaternion());
+		if (m_dynamic)
+		{
+			m_transform->setPosition(this->getActorPosition());
+			if (m_controllRotation)
+				m_transform->setRotationQuat(this->getActorQuaternion());
+		}
+		
 		
 	}
 
