@@ -108,7 +108,7 @@ private:
 		{
 			PositionVertex v = vertexArray[i];
 			v.position;
-			vertArray[i] = PxVec3(v.position.x + centerOffset.x, v.position.y + centerOffset.y, v.position.z + centerOffset.z);
+			vertArray[i] = PxVec3(v.position.x - centerOffset.x, v.position.y - centerOffset.y, v.position.z - centerOffset.z);
 		}
 
 		PxTriangleMeshDesc meshDesc;
