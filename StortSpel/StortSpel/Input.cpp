@@ -370,23 +370,19 @@ void Input::readBuffers(const float& dt)
 		}
 
 		// Analog Left Stick input
-		bool foundContext = false;
-		for (size_t i = 0; i < m_contexts.size() && !foundContext; i++)
+		if (!m_contexts[0]->getMute()) // only for Movement Context for now
 		{
-			if (WALK != -1 && !m_contexts[i]->getMute())
+			MousePos pos({ gamepadState.thumbSticks.leftX, gamepadState.thumbSticks.leftY });
+			if (pos.x > -m_centerDeadzoneLeftLimit && pos.x < m_centerDeadzoneLeftLimit) // Check if pos X is within center Deadzone
+				pos.x = 0;
+				
+			if (pos.y > -m_centerDeadzoneLeftLimit && pos.y < m_centerDeadzoneLeftLimit) // Check if pos X is within center Deadzone
+				pos.y = 0;
+				
+			if (pos.x != 0.f || pos.y != 0.f) // only send input if it has changed
 			{
-				MousePos pos({ gamepadState.thumbSticks.leftX, gamepadState.thumbSticks.leftY });
-				if (pos.x > -m_centerDeadzoneLeftLimit && pos.x < m_centerDeadzoneLeftLimit) // Check if pos X is within center Deadzone
-					pos.x = 0;
-				
-				if (pos.y > -m_centerDeadzoneLeftLimit && pos.y < m_centerDeadzoneLeftLimit) // Check if pos X is within center Deadzone
-					pos.y = 0;
-				
-				if (pos.x != 0.f || pos.y != 0.f) // only send input if it has changed
-				{
-					m_currentInputData.rangeData.emplace_back(WALK, pos);
-					inputDataChanged = true;
-				}
+				m_currentInputData.rangeData.emplace_back(WALK, pos);
+				inputDataChanged = true;
 			}
 		}
 
@@ -396,11 +392,10 @@ void Input::readBuffers(const float& dt)
 
 		if (posX != 0.f || posY != 0.f)
 		{
-			if (!m_invertedRightStickY)
-				posY *= -1.f;
-
-			if (!m_contexts[0]->getMute())
+			if (!m_contexts[0]->getMute()) // only for Movement Context for now
 			{
+				if (!m_invertedRightStickY)
+					posY *= -1.f;
 				MousePos pos({ posX, posY });
 				this->m_currentInputData.rangeData.emplace_back(RAW, pos);
 				inputDataChanged = true;

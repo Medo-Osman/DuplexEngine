@@ -116,14 +116,15 @@ void Player::setStates(InputData& inputData)
 	m_movementVector = Vector3();
 	if (m_state != PlayerState::DASH && m_state != PlayerState::ROLL)
 	{
+		Quaternion cameraRot = m_cameraTransform->getRotation();
 		for (size_t i = 0; i < states.size(); i++)
 		{
 			switch (states[i])
 			{
-			case WALK_LEFT:		m_movementVector += m_cameraTransform->getLeftVector(); break;
-			case WALK_RIGHT:	m_movementVector += m_cameraTransform->getRightVector(); break;
-			case WALK_FORWARD:	m_movementVector += m_cameraTransform->getForwardVector(); break;
-			case WALK_BACKWARD: m_movementVector += m_cameraTransform->getBackwardVector(); break;	
+			case WALK_LEFT:		m_movementVector += XMVector3Rotate(Vector3(-1.f, 0.f, 0.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
+			case WALK_RIGHT:	m_movementVector += XMVector3Rotate(Vector3(1.f, 0.f, 0.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
+			case WALK_FORWARD:	m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, 1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
+			case WALK_BACKWARD: m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, -1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
 			default: break;
 			}
 		}
@@ -132,7 +133,8 @@ void Player::setStates(InputData& inputData)
 			if (range[i].rangeFlag == Range::WALK)
 			{
 				Vector3 analogWalkW(range[i].pos.x, 0.f, range[i].pos.y);
-				m_movementVector += XMVector3TransformCoord(analogWalkW, m_cameraTransform->getRotationMatrix());
+				Quaternion cameraRot = m_cameraTransform->getRotation();
+				m_movementVector += XMVector3Rotate(analogWalkW, Vector4(0.f , cameraRot.y, 0.f, cameraRot.w));
 				//if (m_timeCounter > 0.1f)
 					std::cout << range[i].pos.x << ", " << range[i].pos.y << "\n";
 			}
@@ -149,16 +151,19 @@ void Player::handleRotation(const float &dt)
 
 	m_movementVector = XMVector3Normalize(m_movementVector);
 
-	if (Vector3(m_movementVector).LengthSquared() > 0) //Only update when moving
+	if (Vector3(m_movementVector).LengthSquared() > 0.f) //Only update when moving
 		m_angleY = XMVectorGetY(XMVector3AngleBetweenNormals(XMVectorSet(0, 0, 1, 0), m_movementVector));
 
-	if (Vector3(m_movementVector).LengthSquared() > 0)
+	if (Vector3(m_movementVector).LengthSquared() > 0.f)
 	{
 		//This is the current rotation in quaternions
 		currentRotation = m_playerEntity->getRotation();
 		currentRotation.Normalize();
 
 		auto cameraRot = m_cameraTransform->getRotation();
+
+		auto cameraForward = XMVector3Rotate(Vector3(0.f, 0.f, 1.f), Quaternion(0.f, cameraRot.y, 0.f, cameraRot.w));
+
 		auto offset = Vector4(XMVector3AngleBetweenNormals(XMVector3Normalize(m_movementVector), m_cameraTransform->getForwardVector()));
 
 		//if this vector has posisitv value the character is facing the positiv x axis, checks movementVec against cameraForward
