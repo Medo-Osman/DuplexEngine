@@ -22,7 +22,7 @@ private:
 	HWND m_window;
 	Engine* m_enginePtr;
 	SceneManager m_scenemanager;
-
+	
 	Timer m_timer;
 	float m_dt;
 	float m_gameTime = 0;

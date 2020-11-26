@@ -7,6 +7,7 @@ SceneManager::SceneManager()
 	m_nextScene = nullptr;
 	m_swapScene = false;
 	Physics::get().Attach(this, true, false);
+	
 }
 
 SceneManager::~SceneManager()
@@ -54,6 +55,14 @@ void SceneManager::initalize()
 	m_exitIndex = GUIHandler::get().addGUIButton(L"exitBtn.png", btnStyle);
 
 	GUIButton* exitButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_exitIndex));
+
+	btnStyle.position = Vector2(700, 800);
+	btnStyle.scale = Vector2(1.5, 1.5);
+	m_backToLobbyIndex = GUIHandler::get().addGUIButton(L"backToLobby.png", btnStyle);
+
+	GUIButton* backToLobbyButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_backToLobbyIndex));
+	backToLobbyButton->Attach(this);
+
 	exitButton->Attach(this);
 	exitButton->setPrevMenuButton(hostButton);
 	exitButton->setNextMenuButton(startButton);
@@ -66,6 +75,7 @@ void SceneManager::initalize()
 	// Start Scene
 	m_currentScene = new Scene();
 	Scene::loadTestLevel(m_currentScene, m_nextSceneReady);
+
 	disableMovement();
 	*m_nextSceneReady = false;
 	//m_currentScene->loadArena();
@@ -84,7 +94,36 @@ void SceneManager::initalize()
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
+	m_camera = Engine::get().getCameraPtr();
+	setScorePtr(m_currentScene->getScores());
+	
+	GUITextStyle style;
 
+	style.position.y = 120.f;
+	style.scale = { 0.5f };
+	m_highScoreLabelIndex = GUIHandler::get().addGUIText("High Score", L"squirk.spritefont", style);
+	style.position.x = 160.f;
+	style.position.y = 300.f;
+
+	style.color = Colors::Yellow;
+	m_playerOneScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(0).first), L"squirk.spritefont", style);
+	style.position.y -= 50.0f;
+	m_playerTwoScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(1).first), L"squirk.spritefont", style);
+	style.position.y -= 50.0f;
+	m_playerThreeScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(2).first), L"squirk.spritefont", style);
+
+
+	style.position.x = 50.0f;
+	style.position.y = 300.f;
+	int rankings = 3;
+	m_rankingScoreIndecOne = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"squirk.spritefont", style);
+	style.position.y -= 50.0f;
+	m_rankingScoreIndecTwo = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"squirk.spritefont", style);
+	style.position.y -= 50.0f;
+	m_rankingScoreIndecThree = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"squirk.spritefont", style);
+	hideScore();
+
+	GUIHandler::get().setVisible(m_backToLobbyIndex, false);
 }
 
 void SceneManager::updateScene(const float &dt)
@@ -97,7 +136,7 @@ void SceneManager::updateScene(const float &dt)
 		switch (m_nextSceneEnum)
 		{
 		case ScenesEnum::LOBBY:
-			
+
 			sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 			disableMovement();
@@ -107,17 +146,21 @@ void SceneManager::updateScene(const float &dt)
 			GUIHandler::get().setVisible(m_joinGameIndex, true);
 			GUIHandler::get().setVisible(m_exitIndex, true);
 			Engine::get().getPlayerPtr()->setScore(0);
+			hideScore();
 			m_gameStarted = false;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			m_camera->endSceneCamera = false;
 			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::START:
 			sceneLoaderThread = std::thread(Scene::loadTestLevel, m_nextScene,m_nextSceneReady);
 			sceneLoaderThread.detach();
-		
+			m_nextScene->hidescore = true;
 			m_gameStarted = true;
+			hideScore();
 			enableMovement();
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			m_camera->endSceneCamera = false;
 			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::ARENA:
@@ -125,22 +168,41 @@ void SceneManager::updateScene(const float &dt)
 			sceneLoaderThread.detach();
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			m_camera->endSceneCamera = false;
+			hideScore();
 			GUIHandler::get().setInMenu(false);
+			
 			break;
 		case ScenesEnum::MAINMENU:
 			disableMovement();
-			m_nextScene->loadMainMenu(m_nextScene, m_nextSceneReady);
+			sceneLoaderThread = std::thread(Scene::loadMainMenu, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			m_gameStarted = false;
+			m_camera->endSceneCamera = false; // if this is false the camera follows the player as usual
+			hideScore();
+			GUIHandler::get().setVisible(m_backToLobbyIndex, false);
 			GUIHandler::get().setInMenu(true, m_singleplayerIndex);
+
 			break;
 		case ScenesEnum::ENDSCENE:
-			//
+			sceneLoaderThread = std::thread(Scene::loadEndScene, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			disableMovement();
+			GUIHandler::get().setVisible(m_singleplayerIndex, false);
+			GUIHandler::get().setVisible(m_hostGameIndex, false);
+			GUIHandler::get().setVisible(m_joinGameIndex, false);
+			GUIHandler::get().setVisible(m_exitIndex, true);
+			GUIHandler::get().setVisible(m_backToLobbyIndex, true);
 			GUIHandler::get().setInMenu(true, m_singleplayerIndex);
+			showScore();
+			m_camera->endSceneCamera = true; // If this is true the camera no longer updates and have a fixed position in this scene
 			break;
 		default:
 			break;
 		}
 	}
-
 	swapScenes();
 	m_currentScene->updateScene(dt);
 }
@@ -239,6 +301,16 @@ std::vector<iContext*>* SceneManager::getContextPtr()
 	return m_contexts;
 }
 
+void SceneManager::setScorePtr(std::vector<std::pair<int, std::string>>* scores)
+{
+	m_scores = scores;
+}
+
+std::vector<std::pair<int, std::string>>* SceneManager::getScorePtr()
+{
+	return m_scores;
+}
+
 void SceneManager::swapScenes()
 {
 	m_swapScene = false;
@@ -294,7 +366,12 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			button->setTexture(L"hostBtnHover.png");
 		}
+		if (guiElement->m_index == m_backToLobbyIndex)
+		{
+			button->setTexture(L"backToLobbyHover.png");
+		}
 	}
+	
 	if (type == GUIUpdateType::HOVER_EXIT)
 	{
 		if (guiElement->m_index == m_exitIndex)
@@ -312,6 +389,10 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_hostGameIndex)
 		{
 			button->setTexture(L"hostBtn.png");
+		}
+		if (guiElement->m_index == m_backToLobbyIndex)
+		{
+			button->setTexture(L"backToLobby.png");
 		}
 	}
 
@@ -341,10 +422,40 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			endGame = true;
 		}
+		if (guiElement->m_index == m_backToLobbyIndex)
+		{
+			GUIHandler::get().setVisible(m_singleplayerIndex, true);
+			GUIHandler::get().setVisible(m_hostGameIndex, true);
+			GUIHandler::get().setVisible(m_joinGameIndex, true);
+			GUIHandler::get().setVisible(m_exitIndex, true);
+			m_nextSceneEnum = ScenesEnum::MAINMENU;
+			m_swapScene = true;
+		}
 
-
-		//m_gameStarted = true;
-		//m_gameRestarted = false;
 
 	}
 }
+void SceneManager::hideScore()
+{
+	GUIHandler::get().setVisible(m_highScoreLabelIndex, false);
+	GUIHandler::get().setVisible(m_playerOneScoreIndex, false);
+	GUIHandler::get().setVisible(m_playerTwoScoreIndex, false);
+	GUIHandler::get().setVisible(m_playerThreeScoreIndex, false);
+
+	GUIHandler::get().setVisible(m_rankingScoreIndecOne, false);
+	GUIHandler::get().setVisible(m_rankingScoreIndecTwo, false);
+	GUIHandler::get().setVisible(m_rankingScoreIndecThree, false);
+}
+
+void SceneManager::showScore()
+{
+	GUIHandler::get().setVisible(m_highScoreLabelIndex, true);
+	GUIHandler::get().setVisible(m_playerOneScoreIndex, true);
+	GUIHandler::get().setVisible(m_playerTwoScoreIndex, true);
+	GUIHandler::get().setVisible(m_playerThreeScoreIndex, true);
+
+	GUIHandler::get().setVisible(m_rankingScoreIndecOne, true);
+	GUIHandler::get().setVisible(m_rankingScoreIndecTwo, true);
+	GUIHandler::get().setVisible(m_rankingScoreIndecThree, true);
+}
+
