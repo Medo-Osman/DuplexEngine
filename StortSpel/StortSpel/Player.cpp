@@ -262,7 +262,7 @@ void Player::playerStateLogic(const float& dt)
 		if ((PLAYER_SPEED * dt) <= 0.0f)
 			blend = -1.0f;
 
-		std::cout << sizeof(float) << std::endl;
+		//std::cout << sizeof(float) << std::endl;
 
 		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
 		//// analog animation:

@@ -76,6 +76,22 @@ void Engine::update(const float& dt)
 			serverPlayers->at(i)->serverPlayerAnimationChange((PlayerState)PacketHandler::get().getStateAt(i + 1), PacketHandler::get().getBlendAt(i + 1));
 		}
 	}
+
+	if (isHost && !serverRunning)
+	{
+		std::thread serverThread(runServer);
+		serverThread.detach();
+		std::thread clientThread(runClient);
+		clientThread.detach();
+		serverRunning = true;
+	}
+	else if (isClient && !isConnected)
+	{
+		std::thread clientThread(runClient);
+		clientThread.detach();
+		isConnected = true;
+	}
+
 }
 
 void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities)
@@ -174,6 +190,16 @@ std::vector<Player*>* Engine::getServerPlayers()
 	return this->serverPlayers;
 }
 
+void Engine::setHost(bool tf)
+{
+	this->isHost = tf;
+}
+
+void Engine::setClient(bool tf)
+{
+	this->isClient = tf;
+}
+
 
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
@@ -240,7 +266,7 @@ void Engine::initialize(Input* input)
 
 		AnimatedMeshComponent* serverMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
 		serverEntity->addComponent("mesh", serverMeshComp);
-		serverMeshComp->addBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", true);
+		serverMeshComp->addBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", true, true);
 
 		serverPlayers->at(i) = new Player();
 		serverPlayers->at(i)->setAnimMeshPtr(serverMeshComp);
@@ -256,6 +282,30 @@ void Engine::initialize(Input* input)
 
 	Material::readMaterials();
 
+}
+using namespace std::literals::chrono_literals;
+void Engine::runClient()
+{
+	PacketHandler::get();
+	while (true)
+	{
+
+		PacketHandler::get().update();
+		//std::this_thread::sleep_for(0.3ms);
+
+	}
+}
+using namespace std::literals::chrono_literals;
+void Engine::runServer()
+{
+	Server::get();
+	while (true)
+	{
+
+		Server::get().update();
+		//std::this_thread::sleep_for(0.3ms);
+
+	}
 }
 
 void Engine::updateLightData()

@@ -56,17 +56,19 @@ private:
 	Player* m_player = nullptr;
 	std::vector<Player*>* serverPlayers;
 
-	bool isHost = true;
-
+	bool isHost = false;
+	bool serverRunning = false;
+	bool isClient = false;
+	bool isConnected = false;
 	Camera m_camera; 
 	Settings m_settings;
 
 	Input* m_input = nullptr;
 
-	Camera m_camera;
-	Settings m_settings;
 
-	Input* m_input = nullptr;
+	//NETWORK
+	static void runClient();
+	static void runServer();
 
 	// Materials
 
@@ -104,6 +106,8 @@ public:
 	Player* getPlayerPtr();
 	std::vector<Player*>* getServerPlayers();
 
+	void setHost(bool tf);
+	void setClient(bool tf);
 	ID3D11DeviceContext* getDeviceContextPtr() { return m_dContextPtr; }
 	ID3D11Device* getDevicePtr() { return m_devicePtr; }
 

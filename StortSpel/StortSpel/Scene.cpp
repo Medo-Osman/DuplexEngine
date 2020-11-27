@@ -1556,11 +1556,15 @@ void Scene::updateScene(const float& dt)
 		}
 	}
 	std::vector<std::string>* temp = &PacketHandler::get().getEntitiesToBeRemoved();
-	for (int i = 0; i < temp->size(); i++)
+	if (temp->size() > 0)
 	{
-		removeEntity(temp->at(i));
+		for (int i = 0; i < temp->size(); i++)
+		{
+			removeEntity(temp->at(i));
+		}
+		temp->clear();
 	}
-	temp->clear();
+
 
 	// AUDIO TEST
 	/*m_nightVolume += dt * m_nightSlide;

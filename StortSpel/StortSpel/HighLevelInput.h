@@ -16,7 +16,8 @@ enum Action
 	LOAD_TEST_SCENE,
 	CLOSEINTROGUI,
 	USE,
-	SELECT
+	SELECT,
+	READY_UP
 };
 
 enum State

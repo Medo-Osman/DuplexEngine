@@ -18,6 +18,7 @@ public:
 		m_actionMapping['\x10'] = Action::DASH; // Shift: '\x10'
 		m_actionMapping[(char)'\x0D'] = Action::CLOSEINTROGUI; //Enter 
 		m_actionMapping['F'] = Action::USEPICKUP;
+		m_actionMapping['I'] = Action::READY_UP;
 
 		//States
 		m_stateMapping['W'] = State::WALK_FORWARD;

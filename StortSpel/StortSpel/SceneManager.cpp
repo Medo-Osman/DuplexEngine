@@ -29,6 +29,34 @@ void SceneManager::initalize()
 	GUIButton* startButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_singleplayerIndex));
 	startButton->Attach(this);
 
+
+	//start button
+	btnStyle.position = Vector2(140, 100);
+	btnStyle.scale = Vector2(1, 1);
+	m_multiPlayerIndexTwo = GUIHandler::get().addGUIButton(L"2.png", btnStyle);
+
+	GUIButton* peopleButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_multiPlayerIndexTwo));
+	peopleButton->Attach(this);
+
+	btnStyle.position = Vector2(140, 300);
+	btnStyle.scale = Vector2(1, 1);
+	m_multiPlayerIndexThree = GUIHandler::get().addGUIButton(L"3.png", btnStyle);
+
+	peopleButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_multiPlayerIndexThree));
+	peopleButton->Attach(this);
+
+	btnStyle.position = Vector2(140, 500);
+	btnStyle.scale = Vector2(1, 1);
+	m_multiPlayerIndexFour = GUIHandler::get().addGUIButton(L"4.png", btnStyle);
+
+	peopleButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_multiPlayerIndexFour));
+	peopleButton->Attach(this);
+
+	GUIHandler::get().setVisible(m_multiPlayerIndexTwo, false);
+	GUIHandler::get().setVisible(m_multiPlayerIndexThree, false);
+	GUIHandler::get().setVisible(m_multiPlayerIndexFour, false);
+
+
 	//join button
 	btnStyle.position = Vector2(140, 550);
 	btnStyle.scale = Vector2(1, 1);
@@ -139,12 +167,16 @@ void SceneManager::updateScene(const float &dt)
 
 			sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
-			disableMovement();
+			enableMovement();
+			//disableMovement();
 			//Reset game variables that are needed here
-			GUIHandler::get().setVisible(m_singleplayerIndex, true);
-			GUIHandler::get().setVisible(m_hostGameIndex, true);
-			GUIHandler::get().setVisible(m_joinGameIndex, true);
-			GUIHandler::get().setVisible(m_exitIndex, true);
+			//GUIHandler::get().setVisible(m_singleplayerIndex, true);
+			//GUIHandler::get().setVisible(m_hostGameIndex, true);
+			//GUIHandler::get().setVisible(m_joinGameIndex, true);
+			//GUIHandler::get().setVisible(m_exitIndex, true);
+			GUIHandler::get().setVisible(m_multiPlayerIndexTwo, true);
+			GUIHandler::get().setVisible(m_multiPlayerIndexThree, true);
+			GUIHandler::get().setVisible(m_multiPlayerIndexFour, true);
 			Engine::get().getPlayerPtr()->setScore(0);
 			hideScore();
 			m_gameStarted = false;
@@ -242,6 +274,11 @@ void SceneManager::inputUpdate(InputData& inputData)
 
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+		}
+		else if (inputData.actionData[i] == READY_UP && !PacketHandler::get().getReady())
+		{
+			std::cout << "sending rdy package" << std::endl;
+			PacketHandler::get().sendReady();
 		}
 	}
 }
@@ -378,7 +415,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			button->setTexture(L"backToLobbyHover.png");
 		}
 	}
-	
+
 	if (type == GUIUpdateType::HOVER_EXIT)
 	{
 		if (guiElement->m_index == m_exitIndex)
@@ -420,10 +457,27 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_joinGameIndex)
 		{
 			//do stuff
+			Engine::get().setClient(true);
+			m_gameStarted = true;
+			GUIHandler::get().setVisible(m_singleplayerIndex, false);
+			GUIHandler::get().setVisible(m_hostGameIndex, false);
+			GUIHandler::get().setVisible(m_joinGameIndex, false);
+			GUIHandler::get().setVisible(m_exitIndex, false);
+			m_nextSceneEnum = ScenesEnum::LOBBY;
+			m_swapScene = true;
 		}
 		if (guiElement->m_index == m_hostGameIndex)
 		{
 			//do stuff
+			Engine::get().setHost(true);
+			m_gameStarted = true;
+			GUIHandler::get().setVisible(m_singleplayerIndex, false);
+			GUIHandler::get().setVisible(m_hostGameIndex, false);
+			GUIHandler::get().setVisible(m_joinGameIndex, false);
+			GUIHandler::get().setVisible(m_exitIndex, false);
+			m_nextSceneEnum = ScenesEnum::LOBBY;
+			m_swapScene = true;
+
 		}
 		if (guiElement->m_index == m_exitIndex)
 		{
@@ -438,15 +492,46 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			m_nextSceneEnum = ScenesEnum::MAINMENU;
 			m_swapScene = true;
 		}
+		if (guiElement->m_index == m_multiPlayerIndexTwo)
+		{
+			Server::get().setNrOfPlayers(1);
+			std::cout << "Nr of players set to 1" << std::endl;
+		}
+		if (guiElement->m_index == m_multiPlayerIndexThree)
+		{
+			Server::get().setNrOfPlayers(3);
+		}
+		if (guiElement->m_index == m_multiPlayerIndexFour)
+		{
+			Server::get().setNrOfPlayers(4);
+		}
 
 
-	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
-	for (int i = 0; i < 3; i++)
-	{
-		Engine::get().getServerPlayers()->at(i)->getPlayerEntity()->setPosition(m_currentScene->getEntryPosition());
+		static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
+		for (int i = 0; i < 3; i++)
+		{
+			Engine::get().getServerPlayers()->at(i)->getPlayerEntity()->setPosition(m_currentScene->getEntryPosition());
 
 
+		}
 	}
+
+	if (PacketHandler::get().getStarted())
+	{
+		std::cout << "trying to start game" << std::endl;
+		GUIHandler::get().setVisible(m_multiPlayerIndexTwo, false);
+		GUIHandler::get().setVisible(m_multiPlayerIndexThree, false);
+		GUIHandler::get().setVisible(m_multiPlayerIndexFour, false);
+
+		m_gameStarted = true;
+		GUIHandler::get().setVisible(m_singleplayerIndex, false);
+		GUIHandler::get().setVisible(m_hostGameIndex, false);
+		GUIHandler::get().setVisible(m_joinGameIndex, false);
+		GUIHandler::get().setVisible(m_exitIndex, false);
+		m_nextSceneEnum = ScenesEnum::START;
+		m_swapScene = true;
+	}
+
 }
 void SceneManager::hideScore()
 {
@@ -471,4 +556,6 @@ void SceneManager::showScore()
 	GUIHandler::get().setVisible(m_rankingScoreIndecTwo, true);
 	GUIHandler::get().setVisible(m_rankingScoreIndecThree, true);
 }
+
+
 

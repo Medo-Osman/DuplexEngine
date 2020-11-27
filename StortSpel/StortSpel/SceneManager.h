@@ -6,7 +6,7 @@
 #include <thread>
 #include <future>
 #include "Camera.h"
-
+#include "Server.h"
 
 class SceneManager : public InputObserver, public PhysicsObserver, public GUIObserver
 {
@@ -37,11 +37,18 @@ private:
 	int m_hostGameIndex = 0;
 	int m_backToLobbyIndex = 0;
 
+	//
+	int m_multiPlayerIndexTwo;
+	int m_multiPlayerIndexThree;
+	int m_multiPlayerIndexFour;
+
+
 	bool* m_nextSceneReady = new bool;
 	bool m_loadNextSceneWhenReady = false;
 	std::vector<std::pair<int, std::string>>* m_scores;
 	void hideScore();
 	void showScore(); 
+
 
 
 public:

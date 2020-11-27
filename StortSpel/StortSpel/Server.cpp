@@ -134,15 +134,11 @@ void Server::playerPacket(Packet* _packet)
 
 	state = _packet->ReadInt();
 	blend = _packet->ReadFloat();
-	score = _packet->ReadInt();
+	//score = _packet->ReadInt();
 
 	_outPacket.Write(state);
 	_outPacket.Write(blend);
-	if (playerID == 1)
-	{
-		std::cout << blend << std::endl;
-	}
-	_outPacket.Write(score);
+	//_outPacket.Write(score);
 
 	sendToAllExcept(&_outPacket);
 }
@@ -168,6 +164,11 @@ void Server::pickUpPacket(Packet* _packet)
 	_outPacket.Write(entityID);
 
 	sendToAllExcept(&_outPacket);
+}
+void Server::startGame()
+{
+	Packet _packet(1);
+	sendToAll(&_packet);
 }
 using namespace std;
 BSTR Server::getServerIP()
@@ -248,6 +249,11 @@ BSTR Server::getServerIP()
 	services->Release();
 	locator->Release();
 	CoUninitialize();
+}
+
+void Server::setNrOfPlayers(int x)
+{
+	this->nrOfPlayers = x;
 }
 
 void Server::update()
@@ -339,6 +345,14 @@ void Server::update()
 				{
 					pickUpPacket(&_packet);
 				}
+				else if (_packet.getID() == 1)
+				{
+					if (playersReady == -1)
+					{
+						playersReady++;
+					}
+					playersReady++;
+				}
 
 
 
@@ -346,6 +360,11 @@ void Server::update()
 				//Packet trash(0);
 				//SendToAll(&trash);
 
+			}
+			if (nrOfPlayers == playersReady)
+			{
+				Packet _packet(1);
+				sendToAll(&_packet);
 			}
 		}
 	}

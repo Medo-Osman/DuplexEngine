@@ -15,12 +15,12 @@ PacketHandler::PacketHandler()
 		serverPlayerData[i].blend = 0;
 	}
 
-	//ipAddress = "109.225.98.105";
+	ipAddress = "109.228.165.63";
 	ipAddress = "127.0.0.1";
-	port = 54000;
+	port = 80;
 
 	//Connect to server
-	isConnected = tryConnect();
+	//isConnected = tryConnect();
 }
 
 bool PacketHandler::tryConnect()
@@ -67,7 +67,9 @@ void PacketHandler::handlePacket(Packet* _packet)
 	int ID = _packet->getID();
 	switch (ID)
 	{
-
+	case 1:
+		startGame(_packet);
+		break;
 	case 2:
 		welcomeReceived(_packet);
 		break;
@@ -88,6 +90,11 @@ void PacketHandler::handlePacket(Packet* _packet)
 		playerPickUp(_packet);
 		break;
 	}
+}
+
+void PacketHandler::startGame(Packet* _packet)
+{
+	gameStarted = true;
 }
 
 void PacketHandler::welcomeReceived(Packet* _packet)
@@ -123,7 +130,7 @@ void PacketHandler::playerData(Packet* _packet)
 			serverPlayerData[i].rot = rotation;
 			serverPlayerData[i].state = state;
 			serverPlayerData[i].blend = blend;
-			serverPlayerData[i].score = score;
+			//serverPlayerData[i].score = score;
 			//Add a score component that shows the score of all current players
 			
 			//std::cout << "Player at ID " + std::to_string(ID) + " has moved" << std::endl;
@@ -193,8 +200,9 @@ void PacketHandler::sendPlayerData()
 
 	//Write Player Animation Blend
 	_packet.Write(serverPlayerData[0].blend);
+
 	//Write Player Score
-	_packet.Write(serverPlayerData[0].score);
+	//_packet.Write(serverPlayerData[0].score);
 
 
 	//Send Packet
@@ -218,6 +226,12 @@ void PacketHandler::sendScorePickup(std::string entityID)
 
 	int sendResult = send(sock, _packet.ToArray(), _packet.Lenght() + 1, 0);
 
+}
+
+void PacketHandler::sendReady()
+{
+	Packet _packet(1);
+	int sendResult = send(sock, _packet.ToArray(), _packet.Lenght() + 1, 0);
 }
 
 int PacketHandler::getIDAt(int i)
@@ -270,6 +284,17 @@ void PacketHandler::setPlayerScore(int score)
 	this->serverPlayerData[0].score = score;
 }
 
+
+bool PacketHandler::getStarted()
+{
+	if (gameStarted)
+	{
+		bool returnBool = true;
+		gameStarted = false;
+		return returnBool;
+	}
+	else return false;
+}
 
 std::vector<TrapData>& PacketHandler::getTrapData()
 {

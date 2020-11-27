@@ -437,15 +437,6 @@
     <ClInclude Include="GUIContext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Packet.h">
-      <Filter>Source Files\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketHandler.h">
-      <Filter>Source Files\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="Server.h">
-      <Filter>Source Files\Network</Filter>
-    </ClInclude>
     <ClInclude Include="DataHelper.h">
       <Filter>Source Files\Utilities</Filter>
     </ClInclude>
@@ -478,6 +469,15 @@
     </ClInclude>
     <ClInclude Include="Component.h">
       <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>Source Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketHandler.h">
+      <Filter>Source Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Server.h">
+      <Filter>Source Files\Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

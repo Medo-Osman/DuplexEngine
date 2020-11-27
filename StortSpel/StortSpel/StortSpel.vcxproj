@@ -228,6 +228,8 @@
     <ClCompile Include="GUIHandler.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
+    <ClCompile Include="Packet.cpp" />
+    <ClCompile Include="PacketHandler.cpp" />
     <ClCompile Include="Particles\Particle.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -242,6 +244,7 @@
     <ClCompile Include="ResourceHandler.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="Server.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="ShadowMap.cpp" />
     <ClCompile Include="Timer.cpp" />
@@ -282,6 +285,8 @@
     <ClInclude Include="MoveToAction.h" />
     <ClInclude Include="MoveOneInGridAction.h" />
     <ClInclude Include="MoveToTargetInGridAction.h" />
+    <ClInclude Include="Packet.h" />
+    <ClInclude Include="PacketHandler.h" />
     <ClInclude Include="Particles\Particle.h" />
     <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="Particles\PlayerLineParticle.h" />
@@ -309,6 +314,7 @@
     <ClInclude Include="RotateComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="Server.h" />
     <ClInclude Include="ShadowMap.h" />
     <ClInclude Include="ShootLaserXZAction.h" />
     <ClInclude Include="ShootProjectileAction.h" />

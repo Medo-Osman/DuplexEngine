@@ -18,6 +18,7 @@ private:
 	void playerPacket(Packet* _packet);
 	void trapPacket(Packet* _packet);
 	void pickUpPacket(Packet* _packet);
+	void startGame();
 public:
 	Server(const Server&) = delete;
 	void operator=(Server const&) = delete;
@@ -28,6 +29,7 @@ public:
 	}
 
 	BSTR getServerIP();
+	void setNrOfPlayers(int x);
 	void update();
 private:
 	SOCKET client;
@@ -37,6 +39,8 @@ private:
 	sockaddr_in hint;
 	WSADATA wsData;
 
+	int nrOfPlayers = 0;
+	int playersReady = -1;
 	PlayerInfo playerInfo[4];
 
 };

@@ -22,6 +22,7 @@ private:
 	bool tryConnect();
 	void handlePacket(Packet* _packet);
 
+	void startGame(Packet* _packet);
 	void welcomeReceived(Packet* _packet);
 	void playerData(Packet* _packet);
 	void newPlayerConnection(Packet* _packet);
@@ -54,6 +55,10 @@ public:
 
 	void sendTrapData(std::string entityID);
 	void sendScorePickup(std::string entityID);
+	void sendReady();
+
+	bool getReady() { return isReady; }
+	bool getStarted();
 	std::vector<TrapData>& getTrapData();
 	std::vector<std::string>& getEntitiesToBeRemoved();
 	void update();
@@ -65,7 +70,8 @@ private:
 	SOCKET sock;
 	sockaddr_in hint;
 	bool isConnected;
-
+	bool gameStarted = false;
+	bool isReady = false;
 	SimpleData serverPlayerData[4];
 	std::vector<TrapData> trapData;
 	std::vector<std::string> entitiesToBeRemoved;
