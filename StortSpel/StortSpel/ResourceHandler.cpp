@@ -46,28 +46,34 @@ void ResourceHandler::checkResources()
 	//===========================================
 
 	//=========================================== Textures
-	/*std::vector<std::wstring> textureIdsToRemove;
+	std::vector<std::wstring> textureIdsToRemove;
 	for (auto textureStruct : m_textureCache)
 	{
-		if (textureStruct.second->getRefCount() == 0)
+		if (textureStruct.second->getRefCount() == 0 && textureStruct.second->m_doReferenceCount)
 		{
 			textureIdsToRemove.push_back(std::wstring(textureStruct.first.begin(), textureStruct.first.end()));
 			std::cout << "delete texture: " << textureStruct.second->debugName << std::endl;
+
+			////delete textureStruct.second;
+			////textureStruct.second = nullptr;
 		}
 
 	}
 
+	std::cout << "\n\n Size of texture cache: " << m_textureCache.size() << ", things to remove: " << textureIdsToRemove.size() << std::endl;
 	for (int i = 0; i < textureIdsToRemove.size(); i++)
 	{
-		std::cout << "\t--> deleting texture: " << m_textureCache[textureIdsToRemove[i]]->debugName << std::endl;
+		std::string name = m_textureCache[textureIdsToRemove[i]]->debugName;
+		std::cout << "\t--> deleting texture: " << m_textureCache[textureIdsToRemove[i]]->debugName << ", refcount: " << m_textureCache[textureIdsToRemove[i]]->getRefCount() << std::endl;
 		delete m_textureCache[textureIdsToRemove[i]];
 		m_textureCache.erase(textureIdsToRemove[i]);
-	}*/
+	}
+	std::cout << "\n\n Size of texture cache after: " << m_textureCache.size() << std::endl;
 
 	//===========================================
 }
 
-ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isCubeMap)
+TextureResource* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isCubeMap, bool referenceBasedDelete)
 {
 	if (m_textureCache.count(texturePath))
 		return m_textureCache[texturePath];
@@ -78,6 +84,7 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath,
 		HRESULT hr;
 		ID3D11ShaderResourceView* srv = nullptr;
 		std::wstring path = m_TEXTURES_PATH + texturePath;
+		m_textureCache[texturePath] = new TextureResource();
 
 		size_t i = path.rfind('.', path.length());
 		std::wstring fileExtension = path.substr(i + 1, path.length() - i);
@@ -104,7 +111,7 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath,
 			else // Load error texture
 			{
 				path = m_TEXTURES_PATH + m_ERROR_TEXTURE_NAME;
-				hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &m_textureCache[m_ERROR_TEXTURE_NAME]);
+				hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &m_textureCache[m_ERROR_TEXTURE_NAME]->view);
 				if (SUCCEEDED(hr))
 					return m_textureCache[m_ERROR_TEXTURE_NAME];
 				else
@@ -117,14 +124,17 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath,
 		}
 		else
 		{
-			m_textureCache[texturePath] = srv;
-			return srv;
+			std::wstring wideString = texturePath;
+			m_textureCache[texturePath]->view = srv;
+			m_textureCache[texturePath]->m_doReferenceCount = referenceBasedDelete;
+			m_textureCache[texturePath]->debugName = std::string(wideString.begin(), wideString.end());
+			return m_textureCache[texturePath];
 		}
 	}
 	return nullptr;
 }
 
-ID3D11ShaderResourceView* ResourceHandler::loadErrorTexture()
+TextureResource* ResourceHandler::loadErrorTexture()
 {
 	return loadTexture(m_ERROR_TEXTURE_NAME.c_str());
 }
@@ -528,8 +538,8 @@ void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11Dev
 
 void ResourceHandler::Destroy()
 {
-	for (std::pair<std::wstring, ID3D11ShaderResourceView*> element : m_textureCache)
-		element.second->Release();
+	//for (std::pair<std::wstring, ID3D11ShaderResourceView*> element : m_textureCache)
+		//element.second->Release();
 		//delete element.second;
 	
 	

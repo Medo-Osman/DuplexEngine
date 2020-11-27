@@ -179,6 +179,16 @@ void SceneManager::inputUpdate(InputData& inputData)
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 		}
+		else if (inputData.actionData[i] == LOAD_ARENA)
+		{
+			m_nextScene = new Scene();
+			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+
+			m_gameStarted = true;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+		}
 	}
 }
 //Can't swap scenes when using onTrigger function due to it being triggered in physx simulations, ie it could result in a crash and is not best practice.

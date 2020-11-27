@@ -29,7 +29,7 @@ public:
 	MeshComponent(const char* filepath, Material material);
 	MeshComponent(char* paramData);
 
-	~MeshComponent() { m_resourcePointer->deleteRef(); }
+	~MeshComponent();
 
 	void setRenderId(const unsigned long int id) { m_renderId = id; }
 	const unsigned long int& getRenderId() { return m_renderId; }

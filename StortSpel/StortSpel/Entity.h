@@ -18,8 +18,24 @@ public:
 	Entity(std::string identifier) { m_identifier = identifier; }
 	~Entity()
 	{
+
+		std::vector<std::string> stringsToRemove;
+		std::cout << m_identifier << std::endl;
 		for (auto& component : m_components)
+		{
+			std::cout << "\t" << component.second->getIdentifier() << std::endl;
+
+			//stringsToRemove.push_back(component.first);
 			delete component.second;
+			component.second = nullptr;
+		}
+
+		/*for (int i = 0; i < stringsToRemove.size(); i++)
+		{
+			m_components.erase(stringsToRemove.at(i));
+			delete m_components[stringsToRemove.at(i)];
+		}*/
+		
 
 		m_components.clear();
 	}

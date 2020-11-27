@@ -31,6 +31,7 @@ Scene::~Scene()
 		{
 			delete entityElement.second;
 			entityElement.second = nullptr;
+			//m_entities[entityElement.first] = nullptr;
 		}
 		else
 		{
@@ -1212,7 +1213,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		Physics::get().Attach(sceneObject->m_boss, true, false);
 
 		//Generate a set of segments on the boss, primarily to display the interface.
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < 1; i++)
 		{
 			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
 			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("Boss_Bot.lrm", Material({ L"DarkGrayTexture.png" })));
@@ -1267,7 +1268,7 @@ void Scene::updateScene(const float& dt)
 			BossStructures::IntVec platformTargetIndex = m_boss->getNewPlatformTarget();
 			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
 			m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 2)); //Wait before moving again
-			m_boss->addAction(new ShootLaserAction(m_boss->m_bossSegments.at(0)->m_bossEntity, m_boss, 4));
+			//m_boss->addAction(new ShootLaserAction(m_boss->m_bossSegments.at(0)->m_bossEntity, m_boss, 4));
 		}
 
 		ShootProjectileAction* ptr = dynamic_cast<ShootProjectileAction*>(m_boss->getCurrentAction());

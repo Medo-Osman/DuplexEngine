@@ -15,6 +15,11 @@ MeshComponent::MeshComponent(const char* filepath, std::initializer_list<ShaderP
 		m_materials.push_back(mat);
 	}
 
+	for (int i = 0; i < m_materials.size(); i++)
+	{
+		m_materials[i].addMaterialRefs();
+	}
+
 	m_resourcePointer->addRef();
 }
 
@@ -41,8 +46,19 @@ MeshComponent::MeshComponent(char* paramData)
 	m_resourcePointer->addRef();
 
 	m_filePath = paramData;
-	m_materials.push_back(Material());
+	Material mat = Material();
+	mat.addMaterialRefs();
+	m_materials.push_back(mat);
 	m_shaderProgEnums.push_back(ShaderProgramsEnum::DEFAULT);
+}
+
+MeshComponent::~MeshComponent()
+{
+	m_resourcePointer->deleteRef();
+	for (int i = 0; i < m_materials.size(); i++)
+	{
+		m_materials[i].removeRefs();
+	}
 }
 
 ShaderProgramsEnum MeshComponent::getShaderProgEnum(int index)
@@ -83,5 +99,10 @@ MeshComponent::MeshComponent(std::initializer_list<ShaderProgramsEnum> shaderEnu
 	for (auto& se : shaderEnums)
 	{
 		m_shaderProgEnums.push_back(se);
+	}
+
+	for (int i = 0; i < m_materials.size(); i++)
+	{
+		m_materials[i].addMaterialRefs();
 	}
 }

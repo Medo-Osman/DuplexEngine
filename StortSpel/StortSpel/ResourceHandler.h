@@ -33,7 +33,7 @@ private:
 	void isResourceHandlerReady();
 
 	// Textures
-	std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_textureCache;
+	std::unordered_map<std::wstring, TextureResource*> m_textureCache;
 	const std::wstring m_TEXTURES_PATH = L"../res/textures/";
 	const std::wstring m_ERROR_TEXTURE_NAME = L"error_dun_gofed.jpg";
 	// Models
@@ -50,8 +50,8 @@ private:
 
 public:
 	void checkResources();
-	ID3D11ShaderResourceView* loadTexture(const WCHAR* texturePath, bool isCubeMap = false);
-	ID3D11ShaderResourceView* loadErrorTexture();
+	TextureResource* loadTexture(const WCHAR* texturePath, bool isCubeMap = false, bool referenceBasedDelete = false);
+	TextureResource* loadErrorTexture();
 	MeshResource* loadLRMMesh(const char* path);
 	MeshResource* loadLRSMMesh(const char* path);
 	AnimationResource* loadAnimation(std::string path);

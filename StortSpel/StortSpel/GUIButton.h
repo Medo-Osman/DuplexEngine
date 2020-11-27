@@ -79,7 +79,7 @@ public:
 
 	void setTexture(std::wstring texturePath)
 	{
-		texture = ResourceHandler::get().loadTexture(texturePath.data());
+		texture = ResourceHandler::get().loadTexture(texturePath.data())->view;
 
 		//Messy way to get the texture width and height
 		D3D11_TEXTURE2D_DESC desc;

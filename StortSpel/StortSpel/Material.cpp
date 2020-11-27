@@ -4,9 +4,9 @@
 Material::Material()
 	:m_materialId(0), isDefault(true)
 {
-	ID3D11ShaderResourceView* errorTexturePtr = ResourceHandler::get().loadErrorTexture();
+	TextureResource* errorTexturePtr = ResourceHandler::get().loadErrorTexture();
 	for (int i = 0; i < 5; i++)
-		this->m_textureArray.push_back(errorTexturePtr);
+		this->m_textureArray.push_back(errorTexturePtr->view);
 }
 
 Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData)
@@ -30,9 +30,22 @@ Material::Material(const Material& other)
 	this->m_materialConstData = other.m_materialConstData;
 
 	this->isDefault = other.isDefault;
+
+	this->m_referencedResources = other.m_referencedResources;
+
+	/*for (int i = 0; i < m_referencedResources.size(); i++)
+	{
+		m_referencedResources.at(i)->addRef();
+	}*/
 }
 
-Material::~Material() {}
+Material::~Material() 
+{
+	/*for (int i = 0; i < m_referencedResources.size(); i++)
+	{
+		m_referencedResources.at(i)->deleteRef();
+	}*/
+}
 
 void Material::setMaterial(ShaderProgram* shader, ID3D11DeviceContext* dContextPtr)
 {
@@ -89,7 +102,11 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 		isDefault = false;
 	}
 
-	this->m_textureArray.push_back(ResourceHandler::get().loadTexture(fileName, isCubeMap));
+	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, true);
+	//loadedTexResource->addRef();
+
+	this->m_textureArray.push_back(loadedTexResource->view);
+	this->m_referencedResources.push_back(loadedTexResource);
 }
 
 void Material::setUVScale(float scale)
@@ -150,6 +167,22 @@ void Material::setEmissiveStrength(float emissiveStrength)
 	}
 
 	this->m_materialConstData.emissiveStrength = emissiveStrength;
+}
+
+void Material::addMaterialRefs()
+{
+	for (int i = 0; i < m_referencedResources.size(); i++)
+	{
+		m_referencedResources.at(i)->addRef();
+	}
+}
+
+void Material::removeRefs()
+{
+	for (int i = 0; i < m_referencedResources.size(); i++)
+	{
+		m_referencedResources.at(i)->deleteRef();
+	}
 }
 
 unsigned int long Material::getMaterialId()
