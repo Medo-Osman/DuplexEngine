@@ -367,8 +367,20 @@ void Player::playerStateLogic(const float& dt)
 		{
 			Vector3 finalPos;
 			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector(), GRAVITY);
-			//m_pipe->rotate(9, 0, 0);
+			
+			/*            Set base rot (Y)              */
+			Quaternion q1 = m_cameraTransform->getRotation();
+			Quaternion q2(0, q1.y, 0, q1.w);
+			q2.Normalize();
+			Matrix matrix = XMMatrixRotationQuaternion(q2);
+			m_cannonEntity->setRotation(matrix);
 
+			/*           Set pipe rot (X)               */
+			q1 = m_cameraTransform->getRotation();
+			q2 = Quaternion(q1.x, 0, 0, q1.w);
+			q2.Normalize();
+			matrix = XMMatrixRotationQuaternion(q2);
+			m_pipe->setRotation(matrix);
 
 			return;
 		}
@@ -681,56 +693,13 @@ void Player::inputUpdate(InputData& inputData)
 {
 	if (m_state == PlayerState::CANNON)
 	{
-		if (m_doOnce == true)	// Set start rotation to be that of the camera
-		{
-			/*                Set base rot (Y)                  */
-			Matrix matrix = m_cameraTransform->getRotationMatrix();
-			/* old value */   matrix._12 = 0;   /* old value */
-			matrix._21 = 0;   matrix._22 = 1;   matrix._23 = 0;
-			/* old value */   matrix._32 = 0;   /* old value */
-			m_cannonEntity->setRotation(matrix);
-
-			/*               Set pipe rot (X)                   */
-			matrix = m_cameraTransform->getRotationMatrix();
-			matrix._11 = 1;   matrix._12 = 0;   matrix._13 = 0;
-			matrix._21 = 0;   /* old value */   /* old value */
-			matrix._31 = 0;   /* old value */   /* old value */
-			m_pipe->setRotation(matrix);
-
-			m_doOnce = false;
-		}
-
 		for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
 		{
 			if (inputData.actionData.at(i) == Action::USE)
 			{
 				m_shouldFire = true;
-				m_doOnce = true;
 			}
-		}
-		for (int i = 0; i < inputData.rangeData.size(); i++)
-		{
-			if (inputData.rangeData.at(i).rangeFlag == Range::RAW)
-			{
-				/*                Set base rot (Y)                  */
-				Matrix matrix = m_cameraTransform->getRotationMatrix();
-				/* old value */   matrix._12 = 0;   /* old value */
-				matrix._21 = 0;   matrix._22 = 1;   matrix._23 = 0;
-				/* old value */   matrix._32 = 0;   /* old value */
-				m_cannonEntity->setRotation(matrix);
-
-				/*               Set pipe rot (X)                   */
-				matrix = m_cameraTransform->getRotationMatrix();
-				matrix._11 = 1;   matrix._12 = 0;   matrix._13 = 0;
-				matrix._21 = 0;   /* old value */   /* old value */
-				matrix._31 = 0;   /* old value */   /* old value */
-				m_pipe->setRotation(matrix);
-				//m_cannonEntity->rotate(0, XMConvertToRadians(inputData.rangeData.at(i).pos.x), 0);
-				//m_pipe->rotate(XMConvertToRadians(inputData.rangeData.at(i).pos.y), 0, 0);
-			}
-
-		}
-		
+		}		
 	}
 
 

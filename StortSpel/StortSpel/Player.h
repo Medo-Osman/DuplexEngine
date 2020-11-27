@@ -123,7 +123,6 @@ private:
     //Cannon
     Entity* m_cannonEntity;
     bool m_shouldFire = false;
-    bool m_doOnce = true;
     Vector3 m_direction;
     Entity* m_3dMarker;
     Vector3 m_cameraOffset;
