@@ -16,7 +16,8 @@ enum Action
 	LOAD_TEST_SCENE,
 	CLOSEINTROGUI,
 	USE,
-	SELECT
+	SELECT,
+	RESPAWN
 };
 
 enum State
@@ -33,4 +34,5 @@ enum Range
 {
 	RAW,
 	REL,
+	WALK
 };

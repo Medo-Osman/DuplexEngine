@@ -66,38 +66,43 @@ class Player : public InputObserver, public PhysicsObserver, public GUIObserver,
 private:
     float m_playerScale = 2.0f;
 
-    //CONTROLLER CONFIG
-    const float CAPSULE_HEIGHT = 1.5f;
-    const float CAPSULE_RADIUS = 0.01f;
-
     //WALK CONFIG
-    const float PLAYER_SPEED = 10.f;
-    DirectX::XMVECTOR m_movementVector;
+    const float PLAYER_MAX_SPEED = 10.f;
+    const float PLAYER_ACCELERATION = 50.f; // times dt
+    const float PLAYER_DECELERATION = 30.f; // times dt
+    const float PLAYER_ROTATION_SPEED = 0.08f;
+    float m_verticalMultiplier;
+    float m_horizontalMultiplier;
+    Vector3 m_movementVector;
+    float m_timeCounter = 0.f;
 
     //JUMP CONFIG
-    const float FALL_MULTIPLIER = 1.1f;
-    //const float JUMP_DISTANCE = 30.f; //deprecated
-    const float JUMP_SPEED = 0.10f;
-    //const float JUMP_DISTANCE = 3.f;
+    const float JUMP_SPEED = 10.f;
+    const float PLAYER_AIR_ACCELERATION = 40.f;
+    const float PLAYER_AIR_DECELERATION = 30.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
 
-    float m_gravityScale = .0005f;
+    //FALLING / GRAVITY CONFIG
+    const float GRAVITY = 9.82f; // times dt
+    const float MAX_FALL_SPEED = 20.f;
+    float m_gravityScale = 4.f;
 
     //DASH CONFIG 
-    const float DASH_TRAVEL_DISTANCE = 7.f;
-    const float DASH_SPEED = 10.0f;
+    const float DASH_TRAVEL_DISTANCE = 10.f;
+    const float DASH_SPEED = 50.0f;
+    const float DASH_OUT_SPEED = 20.0f;
+    float m_beginDashSpeed = -1.f;
     bool m_hasDashed;
 
     //Roll CONFIG
-    const float ROLL_TRAVEL_DISTANCE = 10.f;
-    const float ROLL_SPEED = 15.0f;
-    PlayerState m_lastState;
-    const float GRAVITY = 9.82f;
-    //const float GRAVITY = 0.375f;
-    const float MAX_FALL_SPEED = 0.3f;
+    const float ROLL_TRAVEL_DISTANCE = 30.f;
+    const float ROLL_SPEED = 50.0f;
     const float ROLL_HEIGHT = 0.3f;
-    const float ROLL_RADIUS = 0.2f;
+    const float ROLL_RADIUS = 0.3f;
+    const float ROLL_TRANSITION_SPEED = 8.0f;
+    const float MAX_TRANSITION_TIME = 0.2f; // Sec
+    float m_transitionTime;
 
     float m_currentSpeedModifier;
     float m_goalSpeedModifier;
@@ -113,6 +118,7 @@ private:
     float m_currentDistance;
     Vector3 m_moveDirection;
     PlayerState m_state;
+    PlayerState m_lastState;
     Entity* m_playerEntity;
     AnimatedMeshComponent* m_animMesh;
     CharacterControllerComponent* m_controller;
@@ -133,6 +139,7 @@ private:
     TrapType m_activeTrap;
 
     Vector3 m_velocity = Vector3();
+    Vector3 m_lastDirectionalMovement = Vector3();
     Vector3 m_lastPosition = Vector3();
     float m_previousVerticalMovement = 0.f;
 
@@ -144,8 +151,8 @@ private:
     AudioComponent* m_audioComponent;
 
     //Checkpoint
-    Vector3 m_checkpointPos = Vector3(0, 9, 5);
-    int m_heightLimitBeforeRespawn = -25;
+    Vector3 m_checkpointPos = Vector3(0.f, 9.f, 5.f);
+    int m_heightLimitBeforeRespawn = -10.f;
 
     //trap
     Vector3 m_trapPos = Vector3(0, 9, 20);
@@ -158,7 +165,7 @@ private:
 
 
     //Private functions
-    void setStates(std::vector<State> states);
+    void setStates(InputData& inputData);
     void handleRotation(const float& dt);
     Vector3 trajectoryEquation(Vector3 pos, Vector3 vel, float t);
 	void trajectoryEquationOutFill(Vector3 pos, Vector3 vel, float t, XMFLOAT3& outPos, XMFLOAT3& outDir);

@@ -13,7 +13,7 @@ private:
 
 	PxController* m_controller;
 	float m_originalRadius;
-	float m_originalHalfHeight;
+	float m_originalHeight;
 	bool canUseController() const
 	{
 		bool canUse = true;
@@ -47,7 +47,7 @@ public:
 
 	void initController(Transform* transform, const float& height, const float &radius, std::string material = "default")
 	{
-		m_originalHalfHeight = height;
+		m_originalHeight = height;
 		m_originalRadius = radius;
 		m_transform = transform;
 		m_controller = m_physicsPtr->addCapsuleController(m_transform->getTranslation(), height, radius, material, this);
@@ -58,9 +58,9 @@ public:
 		return m_originalRadius;
 	}
 
-	const float& getOriginalHalfHeight()
+	const float& getOriginalHeight()
 	{
-		return m_originalHalfHeight;
+		return m_originalHeight;
 	}
 	void move(const XMFLOAT3 &moveTowards, const float &dt)
 	{
@@ -118,9 +118,9 @@ public:
 		//m_transform->setPosition(XMFLOAT3(position.x, position.y, position.z ));
 	}
 	
-	bool checkGround(const Vector3 &origin, const Vector3 &unitDirection, const float &distance) const
+	bool checkGround() const
 	{
-		return m_physicsPtr->castRay(origin, unitDirection, distance);
+		return m_physicsPtr->sphereIntersectionTest(m_controller->getPosition() + PxExtendedVec3(0.f, ((m_originalHeight / 2.f) + 0.2f) * -1.f, 0.f), m_originalRadius);
 	}
 
 	bool castRay(const Vector3& origin, const Vector3& unitDirection, const float& distance) const

@@ -192,7 +192,7 @@ void Engine::initialize(Input* input)
 	// - Physics Componenet
 	playerEntity->addComponent("CCC", new CharacterControllerComponent());
 	CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(playerEntity->getComponent("CCC"));
-	pc->initController(playerEntity, 1.75f, 0.5, "human");
+	pc->initController(playerEntity, PLAYER_CAPSULE_HEIGHT, PLAYER_CAPSULE_RADIUS, "human");
 
 	// - Camera Follow Transform ptr
 	m_player->setCameraTranformPtr(m_camera.getTransform());

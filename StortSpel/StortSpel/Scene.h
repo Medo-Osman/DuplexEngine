@@ -156,7 +156,7 @@ public:
 	static void loadBossTest(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
-
+	
 	void updateScene(const float &dt);
 	Vector3 getEntryPosition();
 	Entity* getEntity(std::string key);
