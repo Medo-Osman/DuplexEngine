@@ -15,7 +15,7 @@ enum class ScenesEnum
 	ENDSCENE,
 };
 
-class Scene : public PhysicsObserver, public BossObserver, public PlayerObserver
+
 
 enum PrefabType
 {
@@ -31,7 +31,7 @@ enum PrefabType
 	GOAL_TRIGGER
 };
 
-class Scene : public PhysicsObserver, public BossObserver
+class Scene : public PhysicsObserver, public BossObserver, public PlayerObserver
 {
 private:
 	int m_sceneID = -1;

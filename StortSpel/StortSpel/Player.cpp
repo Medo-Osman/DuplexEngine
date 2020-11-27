@@ -92,6 +92,7 @@ void Player::setCannonEntity(Entity* entity, MeshComponent* pipe)
 {
 	m_cannonEntity = entity;
 	m_pipe = pipe;
+	m_shouldDrawLine = true;
 
 	if (!m_3dMarker)
 	{
