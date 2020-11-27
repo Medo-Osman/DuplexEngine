@@ -362,6 +362,17 @@ void Player::playerStateLogic(const float& dt)
 			m_cameraOffset = Vector3(0.f, 0.f, 0.f);
 			m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
+
+			PlayerMessageData data;
+			data.playerActionType = PlayerActions::ON_FIRE_CANNON;
+			data.playerPtr = this;
+
+			static_cast<CannonPickup*>(m_pickupPointer)->geFyr();
+
+			for (int i = 0; i < m_playerObservers.size(); i++)
+			{
+				m_playerObservers.at(i)->reactOnPlayer(data);
+			}
 		}
 		else //Draw marker
 		{
@@ -379,16 +390,8 @@ void Player::playerStateLogic(const float& dt)
 
 		m_velocity.x = m_direction.x;
 		m_velocity.z = m_direction.z;
-		if (m_controller->checkGround(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_velocity), 1.f))
+		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_velocity), 1.f) || m_controller->castRay(m_controller->getFootPosition(), DirectX::XMVector3Normalize(m_playerEntity->getDownVector()), 0.2f))
 		{
-			PlayerMessageData data;
-			data.playerActionType = PlayerActions::ON_FIRE_CANNON;
-			data.playerPtr = this;
-
-			for (int i = 0; i < m_playerObservers.size(); i++)
-			{
-				m_playerObservers.at(i)->reactOnPlayer(data);
-			}
 
 			m_state = PlayerState::JUMPING;
 			m_lastState = PlayerState::FLYINGBALL;

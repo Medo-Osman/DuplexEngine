@@ -123,6 +123,11 @@ public:
 		return m_physicsPtr->castRay(origin, unitDirection, distance);
 	}
 
+	bool castRay(const Vector3& origin, const Vector3& unitDirection, const float& distance) const
+	{
+		return m_physicsPtr->castRay(origin, unitDirection, distance);
+	}
+
 	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxShape& shape, const PxActor& actor) //Controller colides with shapes
 	{
 		return static_cast<PhysicsComponent*>(actor.userData)->getBehaviorFlag();
