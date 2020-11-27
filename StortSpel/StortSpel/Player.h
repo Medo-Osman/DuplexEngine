@@ -97,8 +97,8 @@ private:
     //Roll CONFIG
     const float ROLL_TRAVEL_DISTANCE = 30.f;
     const float ROLL_SPEED = 50.0f;
-    const float ROLL_HEIGHT = 0.3f;
-    const float ROLL_RADIUS = 0.3f;
+    const float ROLL_HEIGHT = 0.4f;
+    const float ROLL_RADIUS = 0.4f;
     const float ROLL_TRANSITION_SPEED = 8.0f;
     const float MAX_TRANSITION_TIME = 0.2f; // Sec
     float m_transitionTime;
@@ -213,6 +213,9 @@ public:
 
     Vector3 getCheckpointPos();
     Vector3 getVelocity();
+    PlayerState getState();
+    PlayerState getLastState();
+    Vector3 getFeetPosition();
     void setCheckpoint(Vector3 newPosition);
 
     void setCameraTranformPtr(Transform* transform);

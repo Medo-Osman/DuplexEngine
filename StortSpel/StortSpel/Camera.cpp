@@ -119,7 +119,7 @@ void Camera::update(const float &dt)
 	//	m_newIncrements = false;
 	//}
 	Player* ply = Engine::get().getPlayerPtr();
-	m_position = ply->getPlayerEntity()->getTranslation() + ply->getCameraOffset() + Vector3(0, 2, -5);
+	m_position = ply->getPlayerEntity()->getTranslation() + ply->getCameraOffset() + Vector3(0.f, 2.f, -5.f);
 	m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
 	
 	this->updateViewMatrix();

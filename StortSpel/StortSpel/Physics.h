@@ -596,7 +596,7 @@ public:
 	void setCapsuleRadius(PxController* controller, const float &radius)
 	{
 		PxCapsuleController* capsule = static_cast<PxCapsuleController*>(controller);
-		capsule->setRadius(radius);
+		capsule->resize(radius);
 
 	}
 

@@ -135,8 +135,6 @@ void Player::setStates(InputData& inputData)
 				Vector3 analogWalkW(range[i].pos.x, 0.f, range[i].pos.y);
 				Quaternion cameraRot = m_cameraTransform->getRotation();
 				m_movementVector += XMVector3Rotate(analogWalkW, Vector4(0.f , cameraRot.y, 0.f, cameraRot.w));
-				//if (m_timeCounter > 0.1f)
-					std::cout << range[i].pos.x << ", " << range[i].pos.y << "\n";
 			}
 		}
 	}
@@ -235,20 +233,8 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 
 void Player::playerStateLogic(const float& dt)
 {
-	Vector3 directionalMovement;
-	//if (m_lastDirectionalMovement.LengthSquared() == 0.f || m_lastDirectionalMovement.LengthSquared() < 0.1f)
-	//{
-		directionalMovement = Vector3(m_movementVector.x, 0, m_movementVector.z);
-	//}
-	//else
-	//{
-	//	//float directionDifference = XMVectorGetX(XMVector3Dot(m_lastDirectionalMovement, m_movementVector));
-	//	Vector3 velocityDirection = Vector3(m_velocity.x, 0.f, m_velocity.z);
-	//	velocityDirection.Normalize();
-	//	directionalMovement = XMVectorLerp(velocityDirection, m_movementVector, 0.5f);
-	//}
-
-		//directionalMovement = Vector3(m_lastDirectionalMovement.x + (m_movementVector.x * directionDifference), 0, m_lastDirectionalMovement.z + (m_movementVector.z * directionDifference));
+	Vector3 directionalMovement = Vector3(m_movementVector.x, 0, m_movementVector.z);
+	
 	switch (m_state)
 	{
 	case PlayerState::ROLL:
@@ -268,19 +254,13 @@ void Player::playerStateLogic(const float& dt)
 			else
 			{
 				if (m_controller->checkGround())
-				{
 					m_state = PlayerState::IDLE;
-					std::cout << "-------------ROLL CHANGED TO IDLE!!!\n";
-				}
 				else
-				{
 					m_state = PlayerState::FALLING;
-					std::cout << "-------------ROLL CHANGED TO FALLING!!!\n";
-				}
 			}
 			
 			m_controller->setControllerSize(m_controller->getOriginalHeight());
-			m_controller->setControllerRadius(m_controller->getOriginalRadius());
+			m_cameraOffset = Vector3(0.f, 0.f, 0.f);
 			idleAnimation();
 		}
 		else
@@ -312,17 +292,11 @@ void Player::playerStateLogic(const float& dt)
 			m_velocity += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE;*/
 
 			float t = m_currentDistance / DASH_TRAVEL_DISTANCE;
-			/*float sqt = t * t;
-			float parametricBlend = sqt / (2.0f * (sqt - t) + 1.0f);*/
-			//m_dashEndPosition - m_dashStartPosition;
-			float speedValue = lerp(DASH_SPEED * m_currentSpeedModifier, DASH_OUT_SPEED, t); // m_beginDashSpeed is set in dash() function
-			//float speedValue = lerp(m_beginDashSpeed * dt, DASH_TRAVEL_DISTANCE * m_currentSpeedModifier, parametricBlend); // m_beginDashSpeed is set in dash() function
+			float speedValue = lerp(DASH_SPEED * m_currentSpeedModifier, DASH_OUT_SPEED, t);
 			m_horizontalMultiplier = speedValue + 0.1f;
 			m_currentDistance += (speedValue + 0.1f) * dt;
-			std::cout << t << " \n";
 
 			directionalMovement = m_moveDirection;
-			//m_horizontalMultiplier += m_currentDistance * DASH_SPEED * dt;
 			m_verticalMultiplier = 0.f;
 		}
 		break;
@@ -482,9 +456,14 @@ void Player::playerStateLogic(const float& dt)
 		m_timeCounter -= 0.1f;
 	}
 
+	
 	// Final frame velocity
-	if (directionalMovement.LengthSquared() > 0.f)
+	if (directionalMovement.LengthSquared() > 0.f) 
+	{
+		// Compensate for larger directional change
+		m_horizontalMultiplier = m_horizontalMultiplier * max(directionalMovement.Dot(m_lastDirectionalMovement), 0.2f);
 		m_lastDirectionalMovement = directionalMovement;
+	}
 
 	m_velocity = ((m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier)) * dt;
 
@@ -646,6 +625,21 @@ Vector3 Player::getCheckpointPos()
 Vector3 Player::getVelocity()
 {
 	return m_velocity;
+}
+
+PlayerState Player::getState()
+{
+	return m_state;
+}
+
+PlayerState Player::getLastState()
+{
+	return m_lastState;
+}
+
+Vector3 Player::getFeetPosition()
+{
+	return m_controller->getFootPosition();
 }
 
 void Player::setCheckpoint(Vector3 newPosition)
@@ -1044,10 +1038,8 @@ void Player::roll()
 {
 	prepDistVariables();
 	m_controller->setControllerSize(ROLL_HEIGHT);
-	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
 	m_verticalMultiplier = 0.f;
-	std::cout << "ROLL PRESSED!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	rollAnimation();
 }
 
