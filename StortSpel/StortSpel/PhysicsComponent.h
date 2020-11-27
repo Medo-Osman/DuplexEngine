@@ -18,6 +18,7 @@ private:
 	bool m_controllRotation;
 	bool m_kinematic;
 	bool m_slide;
+	bool m_hasMirrored;
 
 	Vector3 m_centerOffset = {0.f, 0.f, 0.f};
 	Vector3 m_meshOffset = {0.f, 0.f, 0.f};
@@ -334,10 +335,15 @@ public:
 	void update(float dt) override 
 	{
 		//IF we check if it is static, We don't mirror the transform in the first place.
-
+		if (m_dynamic || !m_hasMirrored)
+		{
 			m_transform->setPosition(this->getActorPosition() - m_centerOffset - m_meshOffset);
 			if (m_controllRotation)
 				m_transform->setRotationQuat(this->getActorQuaternion());
+
+			m_hasMirrored = true;
+		}
+
 		
 	}
 
