@@ -88,9 +88,10 @@ Player::~Player()
 	Pickup::clearStaticPickupArrayPlz();
 }
 
-void Player::setCannonEntity(Entity* entity)
+void Player::setCannonEntity(Entity* entity, MeshComponent* pipe)
 {
 	m_cannonEntity = entity;
+	m_pipe = pipe;
 
 	if (!m_3dMarker)
 	{
@@ -366,7 +367,9 @@ void Player::playerStateLogic(const float& dt)
 		{
 			Vector3 finalPos;
 			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector(), GRAVITY);
-			
+			//m_pipe->rotate(9, 0, 0);
+
+
 			return;
 		}
 		break;
@@ -547,6 +550,8 @@ void Player::setPlayerEntity(Entity* entity)
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
+	m_pickupPointer = new CannonPickup();
+	m_pickupPointer->onPickup(m_playerEntity);
 }
 
 Vector3 Player::getCheckpointPos()
@@ -674,17 +679,58 @@ void Player::handlePickupOnUse()
 
 void Player::inputUpdate(InputData& inputData)
 {
-
 	if (m_state == PlayerState::CANNON)
 	{
+		if (m_doOnce == true)	// Set start rotation to be that of the camera
+		{
+			/*                Set base rot (Y)                  */
+			Matrix matrix = m_cameraTransform->getRotationMatrix();
+			/* old value */   matrix._12 = 0;   /* old value */
+			matrix._21 = 0;   matrix._22 = 1;   matrix._23 = 0;
+			/* old value */   matrix._32 = 0;   /* old value */
+			m_cannonEntity->setRotation(matrix);
+
+			/*               Set pipe rot (X)                   */
+			matrix = m_cameraTransform->getRotationMatrix();
+			matrix._11 = 1;   matrix._12 = 0;   matrix._13 = 0;
+			matrix._21 = 0;   /* old value */   /* old value */
+			matrix._31 = 0;   /* old value */   /* old value */
+			m_pipe->setRotation(matrix);
+
+			m_doOnce = false;
+		}
+
 		for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
 		{
 			if (inputData.actionData.at(i) == Action::USE)
 			{
 				m_shouldFire = true;
+				m_doOnce = true;
+			}
+		}
+		for (int i = 0; i < inputData.rangeData.size(); i++)
+		{
+			if (inputData.rangeData.at(i).rangeFlag == Range::RAW)
+			{
+				/*                Set base rot (Y)                  */
+				Matrix matrix = m_cameraTransform->getRotationMatrix();
+				/* old value */   matrix._12 = 0;   /* old value */
+				matrix._21 = 0;   matrix._22 = 1;   matrix._23 = 0;
+				/* old value */   matrix._32 = 0;   /* old value */
+				m_cannonEntity->setRotation(matrix);
+
+				/*               Set pipe rot (X)                   */
+				matrix = m_cameraTransform->getRotationMatrix();
+				matrix._11 = 1;   matrix._12 = 0;   matrix._13 = 0;
+				matrix._21 = 0;   /* old value */   /* old value */
+				matrix._31 = 0;   /* old value */   /* old value */
+				m_pipe->setRotation(matrix);
+				//m_cannonEntity->rotate(0, XMConvertToRadians(inputData.rangeData.at(i).pos.x), 0);
+				//m_pipe->rotate(XMConvertToRadians(inputData.rangeData.at(i).pos.y), 0, 0);
 			}
 
 		}
+		
 	}
 
 

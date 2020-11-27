@@ -1581,12 +1581,16 @@ void Scene::reactOnPlayer(PlayerMessageData& msg)
 
 		if ((PickupType)msg.intEnum == PickupType::CANNON)
 		{
-			Vector3 playerPos = m_player->getPlayerEntity()->getTranslation();
-			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
-			cannon->setPosition(playerPos);
-			addComponent(cannon, "mesh1", new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", Material({ L"DarkGrayTexture.png" }));
+			pipe->setPosition(Vector3(0, 1, 0));
 
-			static_cast<Player*>(msg.playerPtr)->setCannonEntity(cannon);
+			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
+			addComponent(cannon, "mesh1", new MeshComponent("Canon_Base.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(cannon, "mesh2", pipe);
+			cannon->setPosition(m_player->getPlayerEntity()->getTranslation());
+			//cannon->setRotationQuat(m_input);
+
+			static_cast<Player*>(msg.playerPtr)->setCannonEntity(cannon, pipe);
 		}
 	}
 	else if (msg.playerActionType == PlayerActions::ON_FIRE_CANNON)

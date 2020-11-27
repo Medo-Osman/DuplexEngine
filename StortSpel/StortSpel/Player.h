@@ -120,14 +120,15 @@ private:
     Pickup* m_pickupPointer;
     Pickup* m_environmentPickup;
    
-    //CAnnon
+    //Cannon
     Entity* m_cannonEntity;
     bool m_shouldFire = false;
+    bool m_doOnce = true;
     Vector3 m_direction;
     Entity* m_3dMarker;
     Vector3 m_cameraOffset;
     LineData m_lineData[10];
-
+    MeshComponent* m_pipe;
 
     //
     TrapType m_activeTrap;
@@ -200,7 +201,7 @@ public:
             m_playerObservers.erase(m_playerObservers.begin() + index);
     }
 
-    void setCannonEntity(Entity* entity);
+    void setCannonEntity(Entity* entity, MeshComponent* pipe);
     Entity* get3DMarkerEntity();
     Entity* getCannonEntity() { return m_cannonEntity; }
     int m_cannonCrosshairID;
