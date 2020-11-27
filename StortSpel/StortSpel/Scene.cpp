@@ -578,12 +578,28 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 		if (needsDynamicPhys)
 			isDynamic = true;
 
+		std::vector<Component*> tempComponentVector;
+		newEntity->getComponentsOfType(tempComponentVector, ComponentType::MESH);
+
+		for (int m = 0; m < tempComponentVector.size(); m++)
+		{
+			if (hasPhysics && (newEntity->hasComponentsOfType(ComponentType::MESH) || newEntity->hasComponentsOfType(ComponentType::ANIM_MESH)))
+			{
+				MeshComponent* mPtr = (MeshComponent*)tempComponentVector.at(m);
+				sceneObject->createNewPhysicsComponent(newEntity, isDynamic, mPtr->getFilePath(), geoType, physMatName);
+				if (needsKinematics)
+					static_cast<PhysicsComponent*>(newEntity->getComponent("physics"))->makeKinematic();
+			}
+		}
+
+		/*
 		if (hasPhysics && (newEntity->hasComponentsOfType(ComponentType::MESH) || newEntity->hasComponentsOfType(ComponentType::ANIM_MESH)) )
 		{
 			sceneObject->createNewPhysicsComponent(newEntity, isDynamic, "", geoType, physMatName);
 			if(needsKinematics)
 				static_cast<PhysicsComponent*>(newEntity->getComponent("physics"))->makeKinematic();
 		}
+		*/
 	}
 
 	int nrOfPrefabs = 0;
