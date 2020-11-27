@@ -77,7 +77,8 @@ void AudioHandler::setListenerTransformPtr(Transform* listenerTransform)
 
 int AudioHandler::addSoundInstance(const WCHAR* name, bool isLooping, float volume, float pitch, bool isPositional, Vector3 emitterPosition)
 {
-	SoundEffect* soundEffect = ResourceHandler::get().loadSound(name, m_audioEngine.get());
+	AudioResource* resource = ResourceHandler::get().loadSound(name, m_audioEngine.get());
+	SoundEffect* soundEffect = resource->audio;
 	SOUND_EFFECT_INSTANCE_FLAGS soundflags = SoundEffectInstance_Default;
 	int index = (int)m_idNum++;
 

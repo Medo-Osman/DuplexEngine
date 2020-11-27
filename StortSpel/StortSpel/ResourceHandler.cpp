@@ -494,14 +494,17 @@ AnimationResource* ResourceHandler::loadAnimation(std::string path)
 	return animation;
 }
 
-SoundEffect* ResourceHandler::loadSound(std::wstring soundPath, AudioEngine* audioEngine)
+AudioResource* ResourceHandler::loadSound(std::wstring soundPath, AudioEngine* audioEngine)
 {
 	if (!m_soundCache.count(soundPath))
 	{
 		std::wstring path = m_SOUNDS_PATH + soundPath;
 		try
 		{
-			m_soundCache[soundPath] = new SoundEffect(audioEngine, path.c_str());
+			SoundEffect* audio = new SoundEffect(audioEngine, path.c_str());
+			m_soundCache[soundPath] = new AudioResource;
+			m_soundCache[soundPath]->audio = audio;
+			m_soundCache[soundPath]->debugName = std::string(soundPath.begin(), soundPath.end());
 		}
 		catch (std::exception e) // Error, could not load sound file
 		{
@@ -514,7 +517,10 @@ SoundEffect* ResourceHandler::loadSound(std::wstring soundPath, AudioEngine* aud
 				path = m_SOUNDS_PATH + m_ERROR_SOUND_NAME;
 				try
 				{
-					m_soundCache[m_ERROR_SOUND_NAME] = new SoundEffect(audioEngine, path.c_str());
+					SoundEffect* audio = new SoundEffect(audioEngine, path.c_str());
+					m_soundCache[m_ERROR_SOUND_NAME] = new AudioResource;
+					m_soundCache[m_ERROR_SOUND_NAME]->audio = audio;
+					m_soundCache[m_ERROR_SOUND_NAME]->debugName = std::string(m_ERROR_SOUND_NAME.begin(), m_ERROR_SOUND_NAME.end());
 				}
 				catch (std::exception e) // Fatal Error, error sound file does not exist
 				{
@@ -556,7 +562,7 @@ void ResourceHandler::Destroy()
 	{
 		delete element.second;
 	}
-	for (std::pair<std::wstring, SoundEffect*> element : m_soundCache)
+	for (std::pair<std::wstring, AudioResource*> element : m_soundCache)
 	{
 		delete element.second;
 	}

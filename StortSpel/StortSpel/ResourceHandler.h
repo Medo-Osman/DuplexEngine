@@ -7,6 +7,7 @@
 #include "TextureResource.h"
 #include "SkeletalMeshResource.h"
 #include "AnimationResource.h"
+#include "AudioResource.h"
 #include "ConstantBufferTypes.h"
 
 class ResourceHandler
@@ -44,7 +45,7 @@ private:
 	std::unordered_map<std::string, AnimationResource*> m_animationCache;
 	const std::string m_ANIMATION_PATH = "../res/animations/";
 	// Audio
-	std::unordered_map<std::wstring, SoundEffect*> m_soundCache;
+	std::unordered_map<std::wstring, AudioResource*> m_soundCache;
 	const std::wstring m_SOUNDS_PATH = L"../res/audio/";
 	const std::wstring m_ERROR_SOUND_NAME = L"ErrorSound.wav";
 
@@ -55,7 +56,7 @@ public:
 	MeshResource* loadLRMMesh(const char* path);
 	MeshResource* loadLRSMMesh(const char* path);
 	AnimationResource* loadAnimation(std::string path);
-	SoundEffect* loadSound(std::wstring soundPath, AudioEngine* audioEngine);
+	AudioResource* loadSound(std::wstring soundPath, AudioEngine* audioEngine);
 
 	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
 	void Destroy();

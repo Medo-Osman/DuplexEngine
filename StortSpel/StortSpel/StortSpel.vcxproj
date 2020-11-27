@@ -313,6 +313,7 @@
     <ClInclude Include="ShootLaserXZAction.h" />
     <ClInclude Include="ShootProjectileAction.h" />
     <ClInclude Include="ShrinkingComponent.h" />
+    <ClInclude Include="AudioResource.h" />
     <ClInclude Include="SpeedPickup.h" />
     <ClInclude Include="SweepingComponent.h" />
     <ClInclude Include="PhysicsComponent.h" />
