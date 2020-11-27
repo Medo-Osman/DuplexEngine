@@ -1883,7 +1883,7 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 			new MeshComponent("Hammer_pCylinder3.lrm", Material({ L"DarkGrayTexture.png" })));
 
 
-		hammer->setPosition({ position.x, position.y + 6.5f, position.z });
+		hammer->setPosition({ position.x, position.y + 3.f, position.z });
 		hammer->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 
 		createNewPhysicsComponent(hammer, true, "", PxGeometryType::eTRIANGLEMESH);

@@ -20,6 +20,7 @@ private:
 	bool m_slide;
 
 	Vector3 m_centerOffset = {0.f, 0.f, 0.f};
+	Vector3 m_meshOffset = {0.f, 0.f, 0.f};
 
 	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, MeshResource* meshResource, Vector3 scale = {1, 1, 1 })
 	{
@@ -124,8 +125,16 @@ public:
 		std::string name = meshComponent->getFilePath() + std::to_string(geometryType);
 		PxGeometry* geometry; 
 		XMFLOAT3 boundsCenter;
-		meshComponent->getMeshResourcePtr()->getBoundsCenter(boundsCenter);
-		boundsCenter = boundsCenter * scale;
+		m_meshOffset = meshComponent->getTranslation();
+		if (geometryType == PxGeometryType::eTRIANGLEMESH)
+		{
+			boundsCenter = { 0, 0, 0 };
+		}
+		else
+		{
+			meshComponent->getMeshResourcePtr()->getBoundsCenter(boundsCenter);
+			boundsCenter = boundsCenter * scale;
+		}
 		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshComponent->getTranslation() + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this, sceneID, forceMakeKinematic);
 		bool addGeom = true;
 		m_centerOffset = boundsCenter;
@@ -324,14 +333,11 @@ public:
 	// Update
 	void update(float dt) override 
 	{
-		//IF we check if it is static, anytime anyone moves a static physics object's entity transform it will be in the wrong position. We also don't mirror the transform in the first place.
-		if (m_dynamic)
-		{
-			m_transform->setPosition(this->getActorPosition());
+		//IF we check if it is static, We don't mirror the transform in the first place.
+
+			m_transform->setPosition(this->getActorPosition() - m_centerOffset - m_meshOffset);
 			if (m_controllRotation)
 				m_transform->setRotationQuat(this->getActorQuaternion());
-		}
-		
 		
 	}
 
