@@ -226,18 +226,18 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 	Vector3 pos = position;
 	Vector3 vel = velocity;
 
-	while (!foundEnd && t < 200)
+	while (!foundEnd && t < 120)
 	{
-		Vector3 curPos;
-		curPos = trajectoryEquation(pos, vel, t);
+		pos = trajectoryEquation(position, vel, t);
+
 
 		t += 0.5f;
-		bool hit = Physics::get().hitSomething(curPos, m_controller->getOriginalRadius(), m_controller->getOriginalHalfHeight());
+		bool hit = Physics::get().hitSomething(pos, m_controller->getOriginalRadius(), m_controller->getOriginalHalfHeight());
 		if (hit)
 		{
 			m_shouldDrawLine = true;
 			foundEnd = true;
-			returnPosition = curPos;
+			returnPosition = pos;
 			m_3dMarker->setPosition(returnPosition);
 			float tDist = t / 10;
 			for (int i = 0; i < 10; i++)
@@ -245,16 +245,29 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 				Vector3 lineDataPos;
 				Vector3 lineDataDir;
 				float tempT = tDist * i;
-				trajectoryEquationOutFill(pos, vel, tempT, m_lineData[i].position, this->m_lineData[i].direction);
+				trajectoryEquationOutFill(position, vel, tempT, m_lineData[i].position, this->m_lineData[i].direction);
 			}
 
 		}
 		else
 		{
-			m_shouldDrawLine = false;
 			m_3dMarker->setPosition(m_playerEntity->getTranslation());
 		}
 	}
+
+	if (!foundEnd)
+	{
+		m_3dMarker->setPosition(pos);
+		float tDist = t / 10;
+		for (int i = 0; i < 10; i++)
+		{
+			Vector3 lineDataPos;
+			Vector3 lineDataDir;
+			float tempT = tDist * i;
+			trajectoryEquationOutFill(position, vel, tempT, m_lineData[i].position, this->m_lineData[i].direction);
+		}
+	}
+
 
 	return returnPosition;
 }
@@ -362,6 +375,7 @@ void Player::playerStateLogic(const float& dt)
 			m_cameraOffset = Vector3(0.f, 0.f, 0.f);
 			m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
+			m_shouldDrawLine = false;
 
 			PlayerMessageData data;
 			data.playerActionType = PlayerActions::ON_FIRE_CANNON;
@@ -680,8 +694,9 @@ void Player::handlePickupOnUse()
 		break;
 	case PickupType::CANNON:
 		m_state = PlayerState::CANNON;
-		m_cameraOffset = Vector3(1.f, 2.5f, 0.f);
+		m_cameraOffset = Vector3(1.5f, 4.0f, 0.f);
 		//Cannon on use
+		break;
 	default:
 		break;
 	}
