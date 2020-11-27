@@ -55,7 +55,10 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	if (SUCCEEDED(hr))
 	{
 		initOK = true;
-		ShowWindow(m_window, showCmd);
+		if (m_height >= 1080)
+			ShowWindow(m_window, SW_MAXIMIZE);
+		else
+			ShowWindow(m_window, showCmd);
 	}
 	// Audio
 	AudioHandler::get().initialize(m_window);
