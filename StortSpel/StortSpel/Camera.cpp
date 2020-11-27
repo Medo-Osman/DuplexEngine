@@ -45,6 +45,7 @@ void Camera::setRotation(const XMVECTOR& rot)
 	m_rotation = rot;
 	this->updateViewMatrix();
 }
+
 Transform* Camera::getTransform()
 {
 	return &m_transform;
@@ -112,7 +113,6 @@ void Camera::inputUpdate(InputData& inputData)
 
 void Camera::update(const float &dt)
 {
-
 	//if (m_newIncrements)
 	//{
 	//	this->m_rotation += m_incrementRotation * dt * 2;
@@ -122,11 +122,19 @@ void Camera::update(const float &dt)
 	Player* ply = Engine::get().getPlayerPtr();
 	m_position = ply->getPlayerEntity()->getTranslation() + ply->getCameraOffset() + Vector3(0, 2, -5);
 	m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
-	
-	this->updateViewMatrix();
+
+	//endscene fixed camera position
+	if (endSceneCamera)
+	{
+		frustumCullingOn = false;
+		this->updateViewMatrixEndScene();
+	}
+	else
+	{
+		frustumCullingOn = true;
+		this->updateViewMatrix();
+	}
 }
-
-
 
 BoundingFrustum Camera::getFrustum()
 {
@@ -134,7 +142,6 @@ BoundingFrustum Camera::getFrustum()
 	BoundingFrustum::CreateFromMatrix(frust, m_projectionMatrix);
 	return frust;
 }
-
 
 //Private
 void Camera::updateViewMatrix()
@@ -161,4 +168,20 @@ void Camera::updateViewMatrix()
 	// = XMVector3TransformCoord(this->forwardVector, cameraRotation);
 	//m_curUp = XMVector3TransformCoord(this->upVector, cameraRotation);
 	//m_curRight = XMVector3TransformCoord(this->rightVector, cameraRotation);
+}
+
+void Camera::updateViewMatrixEndScene()
+{
+
+	float currentRotationAngleY = 0;
+	float currentRotationAngleX = 0;
+
+	XMVECTOR camPos = Vector3(5, 1, 7);
+	m_position = camPos;
+	XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(XMVECTOR{ 0,1,0 });
+	m_rotation = Vector3(0,XMConvertToRadians(0),0);
+	XMVECTOR up = XMVector3TransformCoord(this->upVector, cameraRotation);
+	m_viewMatrix = XMMatrixLookAtLH(m_position, Vector3(5,1,0), up);
+
+	
 }

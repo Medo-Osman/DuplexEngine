@@ -22,8 +22,7 @@ private:
 		return sqt / (2.0f * (sqt - t) + 1.0f);
 	}
 
-public:
-	SweepingComponent(Transform* transform, Vector3 startPos, Vector3 endPos, float travelTime, bool singleSweeps = false)
+	void init(Transform* transform, Vector3 startPos, Vector3 endPos, float travelTime, bool singleSweeps)
 	{
 		m_type = ComponentType::SWEEPING;
 		this->m_transform = transform;
@@ -31,7 +30,25 @@ public:
 		this->m_endPos = endPos;
 		this->m_travelTime = travelTime;
 		this->m_singleSweeps = singleSweeps;
+	}
 
+public:
+	SweepingComponent(Transform* transform, Vector3 startPos, Vector3 endPos, float travelTime, bool singleSweeps = false)
+	{
+		init(transform, startPos, endPos, travelTime, singleSweeps);
+	}
+
+	SweepingComponent(char* paramData, Transform* transform)
+	{
+		// Read data from package
+		int offset = 0;
+
+		Vector3 startPos = readDataFromChar<Vector3>(paramData, offset);
+		Vector3 endPos = readDataFromChar<Vector3>(paramData, offset);
+		float travelTime = readDataFromChar<float>(paramData, offset);
+		bool singleSweeps = readDataFromChar<bool>(paramData, offset);
+
+		init(transform, startPos, endPos, travelTime, singleSweeps);
 	}
 
 	void activate()
@@ -39,9 +56,8 @@ public:
 		m_isMoving = true;
 	}
 
-	void setComponentMapPointer(std::unordered_map<std::string, Component*>* componentMap)
+	virtual void onSceneLoad() override
 	{
-		Component::setComponentMapPointer(componentMap);
 		m_physicsComponent = dynamic_cast<PhysicsComponent*>(this->findSiblingComponentOfType(ComponentType::PHYSICS));
 		if (m_physicsComponent)
 		{

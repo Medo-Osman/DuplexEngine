@@ -10,10 +10,11 @@ private:
 
 	float m_angle = 0.f;
 	float m_rotationSpeed = 20.f;
+	PhysicsComponent* m_physicsComponent;
 
 	Vector3 m_rotateVector;
-public:
-	RotateComponent(Transform* origin, Vector3 rotateVector, float rotationSpeed = 5.f)
+
+	void init(Transform* origin, Vector3 rotateVector, float rotationSpeed = 5.f)
 	{
 		m_type = ComponentType::ROTATE;
 		this->m_transform = origin;
@@ -21,6 +22,28 @@ public:
 		this->m_angle = 0.f;
 		this->m_rotationSpeed = rotationSpeed;
 		m_rotateVector = rotateVector;
+	}
+
+public:
+	RotateComponent(Transform* origin, Vector3 rotateVector, float rotationSpeed = 5.f)
+	{
+		init(origin, rotateVector, rotationSpeed);
+	}
+
+	RotateComponent(Transform* origin, char* paramData)
+	{
+		int offset = 0;
+		Vector3 rotateVector = readDataFromChar<Vector3>(paramData, offset);
+		float rotationSpeed = readDataFromChar<float>(paramData, offset);
+
+		init(origin, rotateVector, rotationSpeed);
+	}
+
+	virtual void onSceneLoad() override
+	{
+		m_physicsComponent = dynamic_cast<PhysicsComponent*>(this->findSiblingComponentOfType(ComponentType::PHYSICS));
+		if (m_physicsComponent)
+			m_physicsComponent->setSlide(false);
 	}
 
 	~RotateComponent() {}
@@ -32,9 +55,19 @@ public:
 		{
 			m_angle = 360.f;
 		}
-		XMMATRIX rotMatrix = XMMatrixRotationRollPitchYawFromVector(m_rotateVector * m_angle);
+		//XMMATRIX rotMatrix = XMMatrixRotationRollPitchYawFromVector(m_rotateVector * m_angle);
 
-		m_transform->setRotation(rotMatrix);
+		//m_transform->setRotation(rotMatrix);
+		Quaternion quat = XMQuaternionRotationAxis(m_rotateVector, m_angle);
 
+		//m_transform->setRotation(m_rotateVector, m_angle);
+
+		//m_physicsComponent ? m_physicsComponent->kinematicMove(m_transform->getTranslation(), quat) :
+		//	m_transform->setRotationQuat(quat);
+
+		if (m_physicsComponent)
+			m_physicsComponent->kinematicMove(m_transform->getTranslation(), quat);
+
+		m_transform->setRotationQuat(quat);
 	}
 };

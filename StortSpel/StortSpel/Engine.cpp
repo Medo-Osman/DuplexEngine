@@ -52,94 +52,7 @@ void Engine::update(const float& dt)
 	updateLightData();
 
 }
-void Engine::readMaterials()
-{
-	std::unordered_map<std::string, std::vector<std::string>> materials;
-	std::vector<std::string> textureNames;
 
-	for (const auto& file : std::filesystem::directory_iterator(m_TEXTURES_PATH))
-	{
-		std::string filePath = file.path().generic_string();
-		std::string fileName = filePath.substr(filePath.find_last_of("/") + 1);
-		std::string rawFileName = "";
-		std::string textureName = "";
-		if (fileName.rfind("T_", 0) == 0)
-		{
-			rawFileName = fileName.substr(0, fileName.size() - 4);
-			textureName = rawFileName.substr(2);						// Remove start "T_"
-			textureName = textureName.substr(0, textureName.find("_")); // Remove ending "_D"
-			bool isTextrue = false;
-
-			// ---------------------------------------------------------------------------- Add diffuse to mat
-			if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_D")
-			{
-				materials[textureName].push_back(rawFileName);
-				isTextrue = true;
-			}
-			// ---------------------------------------------------------------------------- Add emissive to mat
-			if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_E")
-			{
-				materials[textureName].push_back(rawFileName);
-				isTextrue = true;
-			}
-			// ---------------------------------------------------------------------------- Add normal to mat
-			if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_N")
-			{
-				materials[textureName].push_back(rawFileName);
-				isTextrue = true;
-			}
-			// ---------------------------------------------------------------------------- Add ORM to mat
-			if (rawFileName.substr(rawFileName.size() - 4, std::string::npos) == "_ORM")
-			{
-				materials[textureName].push_back(rawFileName);
-				isTextrue = true;
-			}
-			// ---------------------------------------------------------------------------- 
-			if (std::find(textureNames.begin(), textureNames.end(), textureName) == textureNames.end() && isTextrue == true) // If unique textureName
-			{
-				textureNames.push_back(textureName);
-			}
-		}
-	}
-
-	for (int i = 0; i < materials.size(); i++)
-	{
-		Material mat;
-
-		for (int j = 0; j < 4 - materials[textureNames[i]].size(); j++)
-		{
-			materials[textureNames[i]].push_back("?");
-		}
-
-		if (materials[textureNames[i]].at(0) != "T_" + textureNames[i] + "_D")
-		{
-			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 0, "T_Missing_D");
-		}
-		if (materials[textureNames[i]].at(1) != "T_" + textureNames[i] + "_E")
-		{
-			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 1, "T_Missing_E");
-		}
-		if (materials[textureNames[i]].at(2) != "T_" + textureNames[i] + "_N")
-		{
-			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 2, "T_Missing_N");
-		}
-		if (materials[textureNames[i]].at(3) != "T_" + textureNames[i] + "_ORM")
-		{
-			materials[textureNames[i]].insert(materials[textureNames[i]].begin() + 3, "T_Missing_ORM");
-		}
-
-		for (int j = 0; j < 4; j++)
-		{
-			std::string name = materials[textureNames[i]].at(j) + ".png";
-			mat.addTexture(std::wstring(name.begin(), name.end()).c_str());
-		}
-		m_MaterialCache[textureNames[i]] = mat;
-	}
-}
-
-void Engine::updatePlayerAndCamera(const float& dt)
-{
-}
 void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities)
 {
 	m_entities = entities;
@@ -186,18 +99,6 @@ bool Engine::addComponentToPlayer(std::string componentIdentifier, Component* co
 	return true;
 }
 
-void Engine::removeLightComponentFromPlayer(LightComponent* component)
-{
-	//m_player->getPlayerEntity()->removeComponent(component);
-
-	//int nrOfErased = m_lightComponentMap->erase(component->getIdentifier());
-	//if (nrOfErased > 0) //if it deleted more than 0 elements
-	//{
-	//	m_lightCount -= nrOfErased;
-	//}
-	//m_currentScene->removeLightComponentFromMap(component);
-
-}
 
 std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 {
@@ -242,9 +143,6 @@ Player* Engine::getPlayerPtr()
 	return m_player;
 }
 
-
-
-
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
 	m_devicePtr = devicePtr;
@@ -268,30 +166,29 @@ void Engine::initialize(Input* input)
 
 	// Audio Handler Listener setup
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
-	
+
 	// Player
 	m_player = new Player();
+
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
 
 	// - Entity
 	Entity* playerEntity = new Entity(PLAYER_ENTITY_NAME);
 	playerEntity->setPosition({ 0, 0, 0 });
+
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
 	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
 	playerEntity->addComponent("mesh", animMeshComp);
 
-
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
-	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true);
-
+	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true, true);
 
 	m_player->setAnimMeshPtr(animMeshComp);
 
 	//a4->setAnimationSpeed(0.05f);
-
 	// - Physics Componenet
 	playerEntity->addComponent("CCC", new CharacterControllerComponent());
 	CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(playerEntity->getComponent("CCC"));
@@ -299,14 +196,14 @@ void Engine::initialize(Input* input)
 
 	// - Camera Follow Transform ptr
 	m_player->setCameraTranformPtr(m_camera.getTransform());
-	
+
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
 	//GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
 
 	// Audio Handler needs Camera Transform ptr for 3D positional audio
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
-	readMaterials();
+	Material::readMaterials();
 }
 
 void Engine::updateLightData()
