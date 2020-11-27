@@ -63,6 +63,7 @@ public:
 	std::vector<std::string>& getEntitiesToBeRemoved();
 	void update();
 	
+	std::string convert(BSTR source);
 private:
 	WSAData data;
 	std::string ipAddress;

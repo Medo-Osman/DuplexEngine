@@ -2,6 +2,9 @@
 #include "PacketHandler.h"
 #include "Engine.h"
 #include "Traps.h"
+#include "Server.h"
+#include <comutil.h>
+#pragma comment(lib,"comsuppw.lib")
 PacketHandler::PacketHandler()
 {
 	isConnected = false;
@@ -15,9 +18,11 @@ PacketHandler::PacketHandler()
 		serverPlayerData[i].blend = 0;
 	}
 
-	ipAddress = "109.228.165.63";
-	ipAddress = "127.0.0.1";
-	port = 80;
+	//ipAddress = "192.168.0.108";
+	ipAddress = convert(Server::get().getServerIP());
+	std::cout << "this is the IP to connect to " << ipAddress << std::endl;
+	//ipAddress = "127.0.0.1";
+	port = 54000;
 
 	//Connect to server
 	//isConnected = tryConnect();
@@ -327,4 +332,15 @@ void PacketHandler::update()
 
 	//Send our packet to server
 	sendPlayerData();
+}
+
+std::string PacketHandler::convert(BSTR source)
+{
+		//source = L"lol2inside";
+		_bstr_t wrapped_bstr = _bstr_t(source);
+		int length = wrapped_bstr.length();
+		char* char_array = new char[length];
+		strcpy_s(char_array, length + 1, wrapped_bstr);
+		return char_array;
+	
 }

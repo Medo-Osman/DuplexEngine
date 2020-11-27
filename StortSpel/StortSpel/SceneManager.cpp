@@ -494,8 +494,8 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		}
 		if (guiElement->m_index == m_multiPlayerIndexTwo)
 		{
-			Server::get().setNrOfPlayers(1);
-			std::cout << "Nr of players set to 1" << std::endl;
+			Server::get().setNrOfPlayers(2);
+			std::cout << "Nr of players set to 2" << std::endl;
 		}
 		if (guiElement->m_index == m_multiPlayerIndexThree)
 		{
