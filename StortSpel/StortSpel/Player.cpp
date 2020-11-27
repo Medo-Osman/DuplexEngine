@@ -161,13 +161,15 @@ void Player::handleRotation(const float &dt)
 		currentRotation.Normalize();
 
 		auto cameraRot = m_cameraTransform->getRotation();
-
-		auto cameraForward = XMVector3Rotate(Vector3(0.f, 0.f, 1.f), Quaternion(0.f, cameraRot.y, 0.f, cameraRot.w));
-
-		auto offset = Vector4(XMVector3AngleBetweenNormals(XMVector3Normalize(m_movementVector), m_cameraTransform->getForwardVector()));
+		
+		Quaternion cameraRotationY = Quaternion(0.f, cameraRot.y, 0.f, cameraRot.w);
+		cameraRotationY.Normalize();
+		Vector3 cameraForward = XMVector3Rotate(Vector4(0.f, 0.f, 1.f, 0.f), cameraRotationY);
+		
+		auto offset = Vector4(XMVector3AngleBetweenNormals(XMVector3Normalize(m_movementVector), cameraForward));
 
 		//if this vector has posisitv value the character is facing the positiv x axis, checks movementVec against cameraForward
-		if (XMVectorGetY(XMVector3Cross(m_movementVector, m_cameraTransform->getForwardVector())) > 0.0f)
+		if (XMVectorGetY(XMVector3Cross(m_movementVector, cameraForward)) > 0.0f)
 		{
 			//m_angleY = -m_angleY;
 			offset.y = -offset.y;
@@ -509,9 +511,9 @@ void Player::playerStateLogic(const float& dt)
 
 	// Deceleration
 	if (m_state == PlayerState::FALLING)
-		m_horizontalMultiplier -= PLAYER_AIR_DECELERATION * dt;
+		m_horizontalMultiplier -= PLAYER_AIR_DECELERATION * m_currentSpeedModifier * dt;
 	else
-		m_horizontalMultiplier -= PLAYER_DECELERATION * dt;
+		m_horizontalMultiplier -= PLAYER_DECELERATION * m_currentSpeedModifier * dt;
 
 	if (m_horizontalMultiplier < 0.f)
 		m_horizontalMultiplier = 0.f;
