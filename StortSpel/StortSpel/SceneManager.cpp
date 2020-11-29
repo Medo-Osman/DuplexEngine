@@ -254,13 +254,13 @@ void SceneManager::swapScenes()
 	if (*m_nextSceneReady == true && m_loadNextSceneWhenReady)
 	{
 
-		double ramBefore = PerformanceTester::get().checkRam();
-		double vramBefore = PerformanceTester::get().checkVram();
+		/*double ramBefore = PerformanceTester::get().checkRam();
+		double vramBefore = PerformanceTester::get().checkVram();*/
 
-		system("CLS");
-		std::cout << "\nSwapping scenes, memory stats before: " << std::endl;
-		PerformanceTester::get().runPerformanceTestPrint();
-		std::cout << "===========================" << std::endl;
+		//system("CLS");
+		//std::cout << "\nSwapping scenes, memory stats before: " << std::endl;
+		//PerformanceTester::get().runPerformanceTestPrint();
+		//std::cout << "===========================" << std::endl;
 
 		*m_nextSceneReady = false;
 		m_loadNextSceneWhenReady = false;
@@ -290,17 +290,17 @@ void SceneManager::swapScenes()
 
 		ResourceHandler::get().checkResources();
 
-		std::cout << "===========================" << std::endl;
-		std::cout << "\nSwapping scenes, memory stats after: " << std::endl;
-		PerformanceTester::get().runPerformanceTestPrint();
+		//std::cout << "===========================" << std::endl;
+		//std::cout << "\nSwapping scenes, memory stats after: " << std::endl;
+		//PerformanceTester::get().runPerformanceTestPrint();
 
 		double ramAfter = PerformanceTester::get().checkRam();
 		double vramAfter = PerformanceTester::get().checkVram();
 
-		std::cout << std::endl;
+		/*std::cout << std::endl;
 		std::cout << "===========================" << std::endl;
 		std::cout << "RAM Change: " << ramAfter - ramBefore << std::endl;
-		std::cout << "VRAM Change: " << vramAfter - vramBefore << std::endl;
+		std::cout << "VRAM Change: " << vramAfter - vramBefore << std::endl;*/
 	}
 }
 

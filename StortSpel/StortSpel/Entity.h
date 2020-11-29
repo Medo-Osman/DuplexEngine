@@ -19,11 +19,11 @@ public:
 	~Entity()
 	{
 
-		std::vector<std::string> stringsToRemove;
-		std::cout << m_identifier << std::endl;
+		//std::vector<std::string> stringsToRemove;
+		//std::cout << m_identifier << std::endl;
 		for (auto& component : m_components)
 		{
-			std::cout << "\t" << component.second->getIdentifier() << std::endl;
+			//std::cout << "\t" << component.second->getIdentifier() << std::endl;
 
 			//stringsToRemove.push_back(component.first);
 			delete component.second;

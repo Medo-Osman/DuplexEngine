@@ -26,9 +26,11 @@ public:
 			emitterPosition = Vector3(0.f);
 		
 		m_audioIndex = AudioHandler::get().addSoundInstance(soundName.c_str(), loop, volume, pitch, isPositional, emitterPosition);
+		AudioHandler::get().addReference(m_audioIndex);
 	}
 	virtual ~AudioComponent() override 
 	{
+		AudioHandler::get().removeReference(m_audioIndex);
 		AudioHandler::get().deleteSound(m_audioIndex, m_isLooping);
 	}
 

@@ -105,7 +105,7 @@ public:
 		{
 			//m_bufferPtr.ReleaseAndGetAddressOf();
 			int nr = m_bufferPtr->Release();
-			std::cout << "refcount: " << nr << std::endl;
+			//std::cout << "refcount: " << nr << std::endl;
 			m_bufferPtr = nullptr;
 			int te = 1;
 		}

@@ -27,7 +27,7 @@ void ResourceHandler::checkResources()
 		if (meshStruct.second->getRefCount() == 0)
 		{
 			idsForMeshesToRemove.push_back(meshStruct.first);
-			std::cout << "delete: " << meshStruct.second->debugName << std::endl;
+			//std::cout << "delete: " << meshStruct.second->debugName << std::endl;
 		}
 
 	}
@@ -36,7 +36,7 @@ void ResourceHandler::checkResources()
 	//PerformanceTester::get().runPerformanceTestPrint();
 	for (int i = 0; i < idsForMeshesToRemove.size(); i++)
 	{
-		std::cout << "\t--> deleting: " << m_meshCache[idsForMeshesToRemove[i]]->debugName << std::endl;
+		//std::cout << "\t--> deleting: " << m_meshCache[idsForMeshesToRemove[i]]->debugName << std::endl;
 		delete m_meshCache[idsForMeshesToRemove[i]];
 		m_meshCache.erase(idsForMeshesToRemove[i]);
 	}
@@ -52,7 +52,7 @@ void ResourceHandler::checkResources()
 		if (textureStruct.second->getRefCount() == 0 && textureStruct.second->m_doReferenceCount)
 		{
 			textureIdsToRemove.push_back(std::wstring(textureStruct.first.begin(), textureStruct.first.end()));
-			std::cout << "delete texture: " << textureStruct.second->debugName << std::endl;
+			//std::cout << "delete texture: " << textureStruct.second->debugName << std::endl;
 
 			////delete textureStruct.second;
 			////textureStruct.second = nullptr;
@@ -60,17 +60,35 @@ void ResourceHandler::checkResources()
 
 	}
 
-	std::cout << "\n\n Size of texture cache: " << m_textureCache.size() << ", things to remove: " << textureIdsToRemove.size() << std::endl;
+	//std::cout << "\n\n Size of texture cache: " << m_textureCache.size() << ", things to remove: " << textureIdsToRemove.size() << std::endl;
 	for (int i = 0; i < textureIdsToRemove.size(); i++)
 	{
 		std::string name = m_textureCache[textureIdsToRemove[i]]->debugName;
-		std::cout << "\t--> deleting texture: " << m_textureCache[textureIdsToRemove[i]]->debugName << ", refcount: " << m_textureCache[textureIdsToRemove[i]]->getRefCount() << std::endl;
+		//std::cout << "\t--> deleting texture: " << m_textureCache[textureIdsToRemove[i]]->debugName << ", refcount: " << m_textureCache[textureIdsToRemove[i]]->getRefCount() << std::endl;
 		delete m_textureCache[textureIdsToRemove[i]];
 		m_textureCache.erase(textureIdsToRemove[i]);
 	}
-	std::cout << "\n\n Size of texture cache after: " << m_textureCache.size() << std::endl;
+	//std::cout << "\n\n Size of texture cache after: " << m_textureCache.size() << std::endl;
 
-	//===========================================
+	//=========================================== 
+
+	//=========================================== Audio
+	for (auto audioStruct : m_soundCache)
+	{
+		if (audioStruct.second->getRefCount() == 0)
+		{
+			std::cout << "Deleting sound " << audioStruct.second->debugName << std::endl;
+
+			delete audioStruct.second;
+			audioStruct.second = nullptr;
+			//std::cout << "delete texture: " << textureStruct.second->debugName << std::endl;
+
+			////delete textureStruct.second;
+			////textureStruct.second = nullptr;
+		}
+
+	}
+	//=========================================== 
 }
 
 TextureResource* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isCubeMap, bool referenceBasedDelete)
@@ -544,9 +562,9 @@ void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11Dev
 
 void ResourceHandler::Destroy()
 {
-	//for (std::pair<std::wstring, ID3D11ShaderResourceView*> element : m_textureCache)
+	for (std::pair<std::wstring, TextureResource*> element : m_textureCache)
+		delete element.second;
 		//element.second->Release();
-		//delete element.second;
 	
 	
 	/*for (auto it = m_meshCache.cbegin(); it != m_meshCache.cend();)
