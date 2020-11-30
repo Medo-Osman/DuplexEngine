@@ -361,10 +361,11 @@ void Server::update()
 				//SendToAll(&trash);
 
 			}
-			if (nrOfPlayers == playersReady)
+			if (nrOfPlayers == playersReady && !gameRunning)
 			{
 				Packet _packet(1);
 				sendToAll(&_packet);
+				gameRunning = true;
 			}
 		}
 	}

@@ -11,7 +11,6 @@
 class SceneManager : public InputObserver, public PhysicsObserver, public GUIObserver
 {
 private:
-	Scene* m_currentScene;
 	Scene* m_nextScene;
 	Input* inputPtr;
 	ScenesEnum m_nextSceneEnum;
@@ -49,9 +48,10 @@ private:
 	void hideScore();
 	void showScore(); 
 
-
+	void startBarrelDrop(std::string entity);
 
 public:
+	Scene* m_currentScene;
 	SceneManager();
 	~SceneManager();
 

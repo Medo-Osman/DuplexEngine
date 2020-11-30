@@ -39,6 +39,7 @@ private:
 	sockaddr_in hint;
 	WSADATA wsData;
 
+	bool gameRunning = false;
 	int nrOfPlayers = 0;
 	int playersReady = -1;
 	PlayerInfo playerInfo[4];

@@ -275,10 +275,14 @@ void SceneManager::inputUpdate(InputData& inputData)
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 		}
-		else if (inputData.actionData[i] == READY_UP && !PacketHandler::get().getReady())
+		else if (inputData.actionData[i] == READY_UP)
 		{
-			std::cout << "sending rdy package" << std::endl;
-			PacketHandler::get().sendReady();
+			if (!PacketHandler::get().getClientReady())
+			{
+				std::cout << "sending rdy package" << std::endl;
+				PacketHandler::get().sendReady();
+			}
+
 		}
 	}
 }
@@ -315,7 +319,7 @@ void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEnt
 			if (barrelTriggerPtr->m_triggerTimer.timeElapsed() >= 3)
 			{
 				//Send activation message to server
-				//PacketHandler::get().setTrapActive(physicsData.entityIdentifier);
+				PacketHandler::get().sendTrapData(static_cast<BarrelTriggerComponent*>(physicsData.pointer)->getParentEntityIdentifier());
 
 				m_currentScene->addBarrelDrop(Vector3(-30, 50, 130));
 				barrelTriggerPtr->m_triggerTimer.restart();
@@ -458,7 +462,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			//do stuff
 			Engine::get().setClient(true);
-			m_gameStarted = true;
+			//m_gameStarted = true;
 			GUIHandler::get().setVisible(m_singleplayerIndex, false);
 			GUIHandler::get().setVisible(m_hostGameIndex, false);
 			GUIHandler::get().setVisible(m_joinGameIndex, false);
@@ -470,7 +474,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			//do stuff
 			Engine::get().setHost(true);
-			m_gameStarted = true;
+			//m_gameStarted = true;
 			GUIHandler::get().setVisible(m_singleplayerIndex, false);
 			GUIHandler::get().setVisible(m_hostGameIndex, false);
 			GUIHandler::get().setVisible(m_joinGameIndex, false);
@@ -503,7 +507,8 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		}
 		if (guiElement->m_index == m_multiPlayerIndexFour)
 		{
-			Server::get().setNrOfPlayers(4);
+			std::cout << "Nr of players set to 1" << std::endl;
+			Server::get().setNrOfPlayers(1);
 		}
 
 
@@ -555,6 +560,25 @@ void SceneManager::showScore()
 	GUIHandler::get().setVisible(m_rankingScoreIndecOne, true);
 	GUIHandler::get().setVisible(m_rankingScoreIndecTwo, true);
 	GUIHandler::get().setVisible(m_rankingScoreIndecThree, true);
+}
+
+void SceneManager::startBarrelDrop(std::string entity)
+{
+	Entity *temp = Engine::get().getEntityMap()->at(entity);
+	std::vector<Component*> tempVec;
+	temp->getComponentsOfType(tempVec, ComponentType::TRIGGER);
+
+	for (int i = 0; i < tempVec.size(); i++)
+	{
+		BarrelTriggerComponent* test = dynamic_cast<BarrelTriggerComponent*>(tempVec[i]);
+		if (test != nullptr)
+		{
+			m_currentScene->addBarrelDrop(Vector3(-30, 50, 130));
+			test->m_triggerTimer.restart();
+			m_currentScene->addedBarrel = true;
+		}
+	}
+	
 }
 
 

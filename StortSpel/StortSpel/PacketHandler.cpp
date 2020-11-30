@@ -4,6 +4,7 @@
 #include "Traps.h"
 #include "Server.h"
 #include <comutil.h>
+#include "ApplicationLayer.h"
 #pragma comment(lib,"comsuppw.lib")
 PacketHandler::PacketHandler()
 {
@@ -19,9 +20,9 @@ PacketHandler::PacketHandler()
 	}
 
 	//ipAddress = "192.168.0.108";
-	ipAddress = convert(Server::get().getServerIP());
-	std::cout << "this is the IP to connect to " << ipAddress << std::endl;
-	//ipAddress = "127.0.0.1";
+	//ipAddress = convert(Server::get().getServerIP());
+	//std::cout << "this is the IP to connect to " << ipAddress << std::endl;
+	ipAddress = "127.0.0.1";
 	port = 54000;
 
 	//Connect to server
@@ -99,7 +100,8 @@ void PacketHandler::handlePacket(Packet* _packet)
 
 void PacketHandler::startGame(Packet* _packet)
 {
-	gameStarted = true;
+	std::cout << "reached game started boolean" << std::endl;
+	serverReady = true;
 }
 
 void PacketHandler::welcomeReceived(Packet* _packet)
@@ -171,8 +173,29 @@ void PacketHandler::trapActivation(Packet* _packet)
 
 	std::vector<Component*> pushTraps;
 	Engine::get().getEntityMap()->at(entityID)->getComponentsOfType(pushTraps, ComponentType::TRIGGER);
+	//if (pushTraps.size() > 0)
+	//{
+		static_cast<PushTrapComponent*>(pushTraps[0])->push();
+	//}
+	//else
+	//{
+	//	Entity* temp = Engine::get().getEntityMap()->at(entityID);
+	//	std::vector<Component*> tempVec;
+	//	temp->getComponentsOfType(tempVec, ComponentType::TRIGGER);
 
-	static_cast<PushTrapComponent*>(pushTraps[0])->push();
+	//	for (int i = 0; i < tempVec.size(); i++)
+	//	{
+	//		BarrelTriggerComponent* test = dynamic_cast<BarrelTriggerComponent*>(tempVec[i]);
+	//		if (test != nullptr)
+	//		{
+
+	//			
+	//			ApplicationLayer::getInstance().m_scenemanager.m_currentScene->addBarrelDrop(Vector3(-30, 50, 130));
+	//			test->m_triggerTimer.restart();
+	//			ApplicationLayer::getInstance().m_scenemanager.m_currentScene->addedBarrel = true;
+	//		}
+	//	}
+	//}
 
 }
 
@@ -235,6 +258,7 @@ void PacketHandler::sendScorePickup(std::string entityID)
 
 void PacketHandler::sendReady()
 {
+	clientReady = true;
 	Packet _packet(1);
 	int sendResult = send(sock, _packet.ToArray(), _packet.Lenght() + 1, 0);
 }
@@ -292,13 +316,8 @@ void PacketHandler::setPlayerScore(int score)
 
 bool PacketHandler::getStarted()
 {
-	if (gameStarted)
-	{
-		bool returnBool = true;
-		gameStarted = false;
-		return returnBool;
-	}
-	else return false;
+	std::cout << "getting boolean" << std::endl;
+	return serverReady;
 }
 
 std::vector<TrapData>& PacketHandler::getTrapData()

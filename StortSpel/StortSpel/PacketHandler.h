@@ -57,7 +57,9 @@ public:
 	void sendScorePickup(std::string entityID);
 	void sendReady();
 
-	bool getReady() { return isReady; }
+
+	bool getServerReady() { return serverReady; }
+	bool getClientReady() { return clientReady; }
 	bool getStarted();
 	std::vector<TrapData>& getTrapData();
 	std::vector<std::string>& getEntitiesToBeRemoved();
@@ -71,8 +73,9 @@ private:
 	SOCKET sock;
 	sockaddr_in hint;
 	bool isConnected;
-	bool gameStarted = false;
-	bool isReady = false;
+	//bool gameStarted = false;
+	bool serverReady = false;
+	bool clientReady = false;
 	SimpleData serverPlayerData[4];
 	std::vector<TrapData> trapData;
 	std::vector<std::string> entitiesToBeRemoved;
