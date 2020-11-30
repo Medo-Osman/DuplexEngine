@@ -15,7 +15,7 @@ public:
 	{
 		//m_onPickupSound = L"";
 		m_whileActiveSound = L"SpeedSound.wav";
-		m_activateOnPickup = true;
+		m_activateOnPickup = false;
 		m_duration = SPEEDDURATION;
 		m_isTimeBased = true;
 		m_pickupIcon = L"adrenaline.png";

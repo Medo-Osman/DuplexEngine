@@ -1,5 +1,7 @@
 #include"3DPCH.h"
 #include"ApplicationLayer.h"
+#include <cstdlib>
+#include<ctime>
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -75,8 +77,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	m_scenemanager.initalize();
 	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 
-	srand(time(0));
-
+	srand(static_cast<unsigned>(std::time(0)));
 	return initOK;
 }
 

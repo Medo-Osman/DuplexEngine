@@ -101,6 +101,8 @@ protected:
 	float m_removeTime;
 
 	AudioComponent* m_whileAudio;
+	float m_strobeTimer;
+	const float STROBE_TIME = 0.2f;
 
 
 	AudioComponent* addAudioComponent(const std::wstring& sound, const bool& loop = false, float volume = 1.0f)
@@ -180,6 +182,15 @@ public:
 	{
 		if (m_active)
 		{
+			if (!m_isEnvironmental)
+			{
+				m_strobeTimer += dt;
+				if (m_strobeTimer > STROBE_TIME)
+				{
+					GUIHandler::get().setVisible(ICON_ID, !GUIHandler::get().getVisible(ICON_ID));
+					m_strobeTimer = 0;
+				}
+			}
 			if (m_isTimeBased)
 			{
 				m_timer += dt;
