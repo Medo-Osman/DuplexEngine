@@ -327,6 +327,10 @@ void Player::playerStateLogic(const float& dt)
 		// On Ground Check
 		if (m_controller->checkGround())
 		{
+			if (m_jumps == 1)
+				endJump_First();
+			else
+				endJump_Second();
 			m_lastState = PlayerState::FALLING;
 			m_state = PlayerState::IDLE;
 			m_jumps = 0;
@@ -499,8 +503,10 @@ void Player::playerStateLogic(const float& dt)
 		
 		if ((PLAYER_MAX_SPEED * dt) <= 0.0f)
 			blend = 0.0f;
-		
-		m_animMesh->setCurrentBlend( std::fmin(blend, 1.4f) );
+
+		std::cout << sizeof(float) << std::endl;
+
+		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
 		//// analog animation:
 		//if (vectorLen > 0)
 		//	m_animMesh->setCurrentBlend(1.f);
@@ -1086,17 +1092,43 @@ void Player::prepDistVariables()
 
 void Player::rollAnimation()
 {
-	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
-	m_animMesh->setAnimationSpeed(1.5f);
+	m_animMesh->playSingleAnimation("Slide", 0.2f, false, false);
+	m_animMesh->setAnimationSpeed(1.2f);
 }
 
 void Player::dashAnimation()
 {
-	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.2f, true);
+	m_animMesh->playSingleAnimation("Dash", 0.1f, false, true);
+	m_animMesh->setAnimationSpeed(1.f);
 }
 
 void Player::idleAnimation()
 {
 	m_animMesh->playBlendState("runOrIdle", 0.3f);
 	m_animMesh->setAnimationSpeed(1.0f);
+}
+
+void Player::startJump_First()
+{
+	m_animMesh->playSingleAnimation("JumpStart_First", 0.1f, true, false);
+	m_animMesh->queueSingleAnimation("JumpLoop_First", 0.f, true, false);
+}
+
+void Player::endJump_First()
+{
+	m_animMesh->playSingleAnimation("JumpEnd_First", 0.02f, false, false);
+	//m_animMesh->setAnimationSpeed(0.1f);
+	m_animMesh->queueBlendState("runOrIdle", 0.3f);
+}
+
+void Player::startJump_Second()
+{
+	m_animMesh->playSingleAnimation("JumpStart_Second", 0.1f, true, false);
+	m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.1f, true, false);
+}
+
+void Player::endJump_Second()
+{
+	m_animMesh->playSingleAnimation("JumpEnd_Second", 0.1f, false, false);
+	m_animMesh->queueBlendState("runOrIdle", 0.3f);
 }

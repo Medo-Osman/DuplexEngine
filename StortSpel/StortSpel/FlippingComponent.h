@@ -23,15 +23,13 @@ private:
 	PhysicsComponent* m_physicsComponent;
 	Quaternion slerpedRotation;
 	
-
 	float ParametricBlend(float t)
 	{
 		float sqt = t * t;
 		return sqt / (2.0f * (sqt - t) + 1.0f);
 	}
 
-public:
-	FlippingComponent(Transform* transform, float upTime, float downTime, float flipSpeed = 0.5f)
+	void init(Transform* transform, float upTime, float downTime, float flipSpeed)
 	{
 		m_type = ComponentType::FLIPPING;
 		this->m_transform = transform;
@@ -39,12 +37,28 @@ public:
 		this->m_downTime = downTime;
 		this->m_flipSpeed = flipSpeed;
 		m_physicsComponent = nullptr;
-
 	}
 
-	void setComponentMapPointer(std::unordered_map<std::string, Component*>* componentMap)
+public:
+	FlippingComponent(Transform* transform, float upTime, float downTime, float flipSpeed = 0.5f)
 	{
-		Component::setComponentMapPointer(componentMap);
+		init(transform, upTime, downTime, flipSpeed);
+	}
+
+	FlippingComponent(char* paramData, Transform* transform)
+	{
+		// Read data from package
+		int offset = 0;
+
+		float upTime = readDataFromChar<float>(paramData, offset);
+		float downTime = readDataFromChar<float>(paramData, offset);
+		float flipSpeed = readDataFromChar<float>(paramData, offset);
+
+		init(transform, upTime, downTime, flipSpeed);
+	}
+
+	virtual void onSceneLoad() override
+	{
 		m_physicsComponent = dynamic_cast<PhysicsComponent*>(this->findSiblingComponentOfType(ComponentType::PHYSICS));
 		if (m_physicsComponent)
 			m_physicsComponent->setSlide(true);

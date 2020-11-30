@@ -1,6 +1,7 @@
 #pragma once
 #include "ResourceHandler.h"
 #include "ShaderProgram.h"
+#include <filesystem>
 
 static unsigned int long totalMaterialCount;
 
@@ -21,12 +22,13 @@ private:
 	std::vector< ID3D11ShaderResourceView* > m_textureArray;
 	MATERIAL_CONST_BUFFER m_materialConstData;
 	unsigned int long m_materialId;
-	bool isDefault;
+	bool m_isDefault;
 
 public:
 
 	Material();
 	Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData = MATERIAL_CONST_BUFFER());
+	Material(std::string materialName);
 	Material(const Material& other);
 	~Material();
 
@@ -43,5 +45,11 @@ public:
 
 	unsigned int long getMaterialId();
 	MATERIAL_CONST_BUFFER getMaterialParameters();
+
+	static void readMaterials();
 };
+
+static std::unordered_map<std::string, Material> m_MaterialCache;
+static const std::wstring m_TEXTURES_PATH = L"../res/textures/";
+
 

@@ -192,6 +192,10 @@ private:
     void rollAnimation();
     void dashAnimation();
     void idleAnimation();
+    void startJump_First();
+    void endJump_First();
+    void startJump_Second();
+    void endJump_Second();
   
 public:
     Player();

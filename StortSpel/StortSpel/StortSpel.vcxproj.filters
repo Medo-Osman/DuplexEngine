@@ -96,17 +96,11 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="Component.h">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="ResourceHandler.cpp">
       <Filter>Source Files\Application</Filter>
     </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Entity.h">
-      <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="3DPCH.cpp">
       <Filter>Header Files</Filter>
@@ -431,6 +425,12 @@
     <ClInclude Include="MoveToAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
     </ClInclude>
+    <ClInclude Include="DataHelper.h">
+      <Filter>Source Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Source Files\Game</Filter>
+    </ClInclude>
     <ClInclude Include="BossSegment.h">
       <Filter>Source Files\Game\Boss</Filter>
     </ClInclude>
@@ -457,6 +457,12 @@
     </ClInclude>
     <ClInclude Include="CannonPickup.h">
       <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
+    <ClInclude Include="SwingComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>Source Files\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

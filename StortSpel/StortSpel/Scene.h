@@ -15,6 +15,20 @@ enum class ScenesEnum
 	ENDSCENE,
 };
 
+enum PrefabType
+{
+	PARIS_WHEEL,
+	FLIPPING_PLATFORM,
+	SWEEPING_PLATFORM,
+	PICKUP,
+	SCORE,
+	pfCHECKPOINT,
+	SLOWTRAP,
+	PUSHTRAP,
+	BARRELDROP,
+	GOAL_TRIGGER
+};
+
 class Scene : public PhysicsObserver, public BossObserver, public PlayerObserver
 {
 private:
@@ -35,6 +49,8 @@ private:
 	void createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity);
 	int m_nrOfPointLight = 0;
 	void createPointLight(Vector3 position, Vector3 color, float intensity);
+	int m_nrSwingningHammers = 0;
+	void createSwingingHammer(Vector3 position, Vector3 rotation, float swingSpeed);
 	
 	//---------------------------------------------------------------Boss sstuff
 	UINT m_nrOfProjectiles = 0;
@@ -99,8 +115,11 @@ private:
 	void addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox);
 	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 
-
-	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData);
+	//void addSlowTrap(const Vector3& position, Vector3 scale);
+	//void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
+	
+	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData, bool& needsDynamicPhys, bool& needsKinematicPhys);
+	void addPrefabFromFile(char* params);
 
 	const std::string m_LEVELS_PATH = "../res/levels/";
 
@@ -124,6 +143,8 @@ public:
 	static void loadArena(Scene* sceneObject, bool* finished);
 	static void loadMaterialTest(Scene* sceneObject, bool* finished);
 	static void loadBossTest(Scene* sceneObject, bool* finished);
+
+	void onSceneLoaded();
 
 	void updateScene(const float &dt);
 	Vector3 getEntryPosition();
