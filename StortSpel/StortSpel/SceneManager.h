@@ -35,7 +35,7 @@ private:
 	int m_joinGameIndex = 0;
 	int m_hostGameIndex = 0;
 	int m_backToLobbyIndex = 0;
-
+	bool checking;
 	//
 	int m_multiPlayerIndexTwo;
 	int m_multiPlayerIndexThree;

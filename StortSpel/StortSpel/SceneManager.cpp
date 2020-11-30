@@ -156,6 +156,8 @@ void SceneManager::initalize()
 
 void SceneManager::updateScene(const float &dt)
 {
+	//checking = PacketHandler::get().getStarted();
+	//std::cout << checking << std::endl;
 	if (m_swapScene && !m_loadNextSceneWhenReady)
 	{
 
@@ -234,8 +236,16 @@ void SceneManager::updateScene(const float &dt)
 		default:
 			break;
 		}
+		
 	}
 	swapScenes();
+	if (PacketHandler::get().getServerReady() && !PacketHandler::get().gameStarted)
+	{
+		m_nextSceneEnum = ScenesEnum::START;
+		m_swapScene = true;
+		PacketHandler::get().gameStarted = true;
+	}
+	
 	m_currentScene->updateScene(dt);
 }
 
@@ -275,13 +285,13 @@ void SceneManager::inputUpdate(InputData& inputData)
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 		}
+
 		else if (inputData.actionData[i] == READY_UP)
 		{
-			if (!PacketHandler::get().getClientReady())
-			{
+			
 				std::cout << "sending rdy package" << std::endl;
 				PacketHandler::get().sendReady();
-			}
+			
 
 		}
 	}
@@ -444,6 +454,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		}
 	}
 
+
 	//Checks which button is being clicked
 	if (type == GUIUpdateType::CLICKED)
 	{
@@ -521,21 +532,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		}
 	}
 
-	if (PacketHandler::get().getStarted())
-	{
-		std::cout << "trying to start game" << std::endl;
-		GUIHandler::get().setVisible(m_multiPlayerIndexTwo, false);
-		GUIHandler::get().setVisible(m_multiPlayerIndexThree, false);
-		GUIHandler::get().setVisible(m_multiPlayerIndexFour, false);
 
-		m_gameStarted = true;
-		GUIHandler::get().setVisible(m_singleplayerIndex, false);
-		GUIHandler::get().setVisible(m_hostGameIndex, false);
-		GUIHandler::get().setVisible(m_joinGameIndex, false);
-		GUIHandler::get().setVisible(m_exitIndex, false);
-		m_nextSceneEnum = ScenesEnum::START;
-		m_swapScene = true;
-	}
 
 }
 void SceneManager::hideScore()

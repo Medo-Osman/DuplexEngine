@@ -316,7 +316,7 @@ void PacketHandler::setPlayerScore(int score)
 
 bool PacketHandler::getStarted()
 {
-	std::cout << "getting boolean" << std::endl;
+	//std::cout << "getting boolean" << std::endl;
 	return serverReady;
 }
 

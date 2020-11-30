@@ -65,6 +65,7 @@ public:
 	std::vector<std::string>& getEntitiesToBeRemoved();
 	void update();
 	
+	bool gameStarted = false;
 	std::string convert(BSTR source);
 private:
 	WSAData data;
@@ -73,7 +74,6 @@ private:
 	SOCKET sock;
 	sockaddr_in hint;
 	bool isConnected;
-	//bool gameStarted = false;
 	bool serverReady = false;
 	bool clientReady = false;
 	SimpleData serverPlayerData[4];
