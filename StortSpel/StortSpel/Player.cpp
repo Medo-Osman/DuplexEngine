@@ -701,7 +701,7 @@ void Player::rollAnimation()
 void Player::dashAnimation()
 {
 	m_animMesh->playSingleAnimation("Dash", 0.1f, false, true);
-	m_animMesh->setAnimationSpeed(100.f);
+	m_animMesh->setAnimationSpeed(1.f);
 }
 
 void Player::idleAnimation()
@@ -718,8 +718,8 @@ void Player::startJump_First()
 void Player::endJump_First()
 {
 	m_animMesh->playSingleAnimation("JumpEnd_First", 0.02f, false, false);
-	m_animMesh->setAnimationSpeed(0.1f);
-	m_animMesh->queueBlendState("runOrIdle", 3.3f);
+	//m_animMesh->setAnimationSpeed(0.1f);
+	m_animMesh->queueBlendState("runOrIdle", 0.3f);
 }
 
 void Player::startJump_Second()
