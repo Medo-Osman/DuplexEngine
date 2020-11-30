@@ -77,6 +77,8 @@ MeshComponent::MeshComponent(char* paramData)
 		this->setRotationQuat(rotQuat);
 		this->setScale(scale);
 	}
+
+	m_visible = readDataFromChar<bool>(paramData, offset);
 }
 
 ShaderProgramsEnum MeshComponent::getShaderProgEnum(int index)

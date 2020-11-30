@@ -548,6 +548,7 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 		bool needsKinematics = false;
 		bool needsDynamicPhys = false;
 		bool hasPhysics = readDataFromChar<bool>(levelData, offset);
+		bool allMeshesHavePhys = false;
 		if (hasPhysics)
 		{
 			isDynamic = readDataFromChar<bool>(levelData, offset);
@@ -555,6 +556,7 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 			physMatName = readStringFromChar(levelData, offset);
 			if (physMatName == "")
 				physMatName = "default";
+			allMeshesHavePhys = readDataFromChar<bool>(levelData, offset);
 		}
 
 		// An int with the number of components
@@ -578,15 +580,28 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 		if (needsDynamicPhys)
 			isDynamic = true;
 
-		std::vector<Component*> tempComponentVector;
-		newEntity->getComponentsOfType(tempComponentVector, ComponentType::MESH);
+		if (allMeshesHavePhys)
+		{
+			std::vector<Component*> tempComponentVector;
+			newEntity->getComponentsOfType(tempComponentVector, ComponentType::MESH);
+			newEntity->getComponentsOfType(tempComponentVector, ComponentType::ANIM_MESH);
 
-		for (int m = 0; m < tempComponentVector.size(); m++)
+			for (int m = 0; m < tempComponentVector.size(); m++)
+			{
+				if (hasPhysics)
+				{
+					MeshComponent* mPtr = (MeshComponent*)tempComponentVector.at(m);
+					sceneObject->createNewPhysicsComponent(newEntity, isDynamic, mPtr->getFilePath(), geoType, physMatName);
+					if (needsKinematics)
+						static_cast<PhysicsComponent*>(newEntity->getComponent("physics"))->makeKinematic();
+				}
+			}
+		}
+		else
 		{
 			if (hasPhysics && (newEntity->hasComponentsOfType(ComponentType::MESH) || newEntity->hasComponentsOfType(ComponentType::ANIM_MESH)))
 			{
-				MeshComponent* mPtr = (MeshComponent*)tempComponentVector.at(m);
-				sceneObject->createNewPhysicsComponent(newEntity, isDynamic, mPtr->getFilePath(), geoType, physMatName);
+				sceneObject->createNewPhysicsComponent(newEntity, isDynamic,"", geoType, physMatName);
 				if (needsKinematics)
 					static_cast<PhysicsComponent*>(newEntity->getComponent("physics"))->makeKinematic();
 			}
