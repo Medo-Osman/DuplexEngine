@@ -33,8 +33,6 @@ Material::Material(const Material& other)
 
 	this->m_materialConstData = other.m_materialConstData;
 
-	this->isDefault = other.isDefault;
-
 	this->m_referencedResources = other.m_referencedResources;
 
 	this->m_isDefault = other.m_isDefault;
@@ -182,7 +180,8 @@ void Material::removeRefs()
 {
 	for (int i = 0; i < m_referencedResources.size(); i++)
 	{
-		m_referencedResources.at(i)->deleteRef();
+		if (!ResourceHandler::get().m_unloaded)
+			m_referencedResources.at(i)->deleteRef();
 	}
 }
 

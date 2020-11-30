@@ -164,7 +164,7 @@ void SceneManager::updateScene(const float &dt)
 			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::ARENA:
-			sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
@@ -228,7 +228,10 @@ void SceneManager::inputUpdate(InputData& inputData)
 		{
 			m_nextScene = new Scene();
 			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest1", m_nextSceneReady);
+			//std::thread sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
+
+			//Scene::loadLobby(m_nextScene, m_nextSceneReady);
 
 			m_gameStarted = false;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
@@ -253,6 +256,17 @@ void SceneManager::inputUpdate(InputData& inputData)
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 		}
+		else if (inputData.actionData[i] == LOAD_EMPTY)
+		{
+			m_nextScene = new Scene();
+			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadEmpty, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+
+			m_gameStarted = true;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+		}
+
 	}
 }
 //Can't swap scenes when using onTrigger function due to it being triggered in physx simulations, ie it could result in a crash and is not best practice.
@@ -327,6 +341,8 @@ void SceneManager::swapScenes()
 	m_swapScene = false;
 	if (*m_nextSceneReady == true && m_loadNextSceneWhenReady)
 	{
+		system("CLS");
+
 		*m_nextSceneReady = false;
 		m_loadNextSceneWhenReady = false;
 		Physics::get().Detach(m_currentScene, false, true);
@@ -352,8 +368,8 @@ void SceneManager::swapScenes()
 		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), 1.75f, 0.5f, "human");
 		ccc->setPosition(m_currentScene->getEntryPosition());
 
-		ResourceHandler::get().checkResources();
 		m_currentScene->onSceneLoaded();
+		ResourceHandler::get().checkResources();
 	}
 }
 

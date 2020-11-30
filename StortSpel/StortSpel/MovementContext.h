@@ -16,6 +16,7 @@ public:
 		m_actionMapping['0'] = Action::LOAD_SCENE;
 		m_actionMapping['9'] = Action::LOAD_TEST_SCENE;
 		m_actionMapping['8'] = Action::LOAD_ARENA;
+		m_actionMapping['7'] = Action::LOAD_EMPTY;
 		m_actionMapping['\x10'] = Action::DASH; // Shift: '\x10'
 		m_actionMapping[(char)'\x0D'] = Action::CLOSEINTROGUI; //Enter 
 		m_actionMapping['F'] = Action::USEPICKUP;

@@ -1,5 +1,6 @@
 #pragma once
 #include"3DPCH.h"
+#include <mutex>
 
 template <typename T>
 class Buffer
@@ -9,6 +10,8 @@ private:
 	UINT m_stride;
 	bool m_dynamic;
 	ID3D11Buffer* m_bufferPtr;
+
+	std::mutex m_lock;
 public:
 	Buffer()
 	{
@@ -78,6 +81,7 @@ public:
 	}
 	HRESULT updateBuffer(ID3D11DeviceContext* dContext, T* data, int nrOf = 1)
 	{
+
 		HRESULT hr;
 		if (m_dynamic)
 		{

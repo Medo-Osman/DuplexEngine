@@ -9,13 +9,16 @@
 #include "AnimationResource.h"
 #include "AudioResource.h"
 #include "ConstantBufferTypes.h"
+#include <mutex>
 
 class ResourceHandler
 {
 private:
 	ResourceHandler() {}
+	std::mutex m_lock;
 
 public:
+	bool m_unloaded = false;
 	ResourceHandler(const ResourceHandler&) = delete;
 	void operator=(ResourceHandler const&) = delete;
 	static ResourceHandler& get()
@@ -29,6 +32,7 @@ private:
 
 	ID3D11Device* m_devicePtr = NULL;
 	ID3D11DeviceContext* m_dContextPtr = NULL;
+	ID3D11DeviceContext* m_deferredDContextPtr = NULL;
 
 	bool DeviceAndContextPtrsAreSet = false; //This bool just ensures that no one tries to use the resourcehandler before Renderer::initialize has been called
 	void isResourceHandlerReady();
@@ -50,6 +54,8 @@ private:
 	const std::wstring m_ERROR_SOUND_NAME = L"ErrorSound.wav";
 
 public:
+	ID3D11CommandList* m_commandList = nullptr;
+
 	void checkResources();
 	TextureResource* loadTexture(const WCHAR* texturePath, bool isCubeMap = false, bool referenceBasedDelete = false);
 	TextureResource* loadErrorTexture();
@@ -58,6 +64,6 @@ public:
 	AnimationResource* loadAnimation(std::string path);
 	AudioResource* loadSound(std::wstring soundPath, AudioEngine* audioEngine);
 
-	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr);
+	void setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr, ID3D11DeviceContext* deferredDContextPtr);
 	void Destroy();
 };

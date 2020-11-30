@@ -83,7 +83,6 @@ void AudioHandler::setListenerTransformPtr(Transform* listenerTransform)
 void AudioHandler::addReference(int index)
 {
 	m_referencedSources[index]->addRef();
-	std::cout << "Add ref to: " << m_referencedSources[index]->debugName << std::endl;
 }
 
 void AudioHandler::removeReference(int index)
@@ -91,7 +90,6 @@ void AudioHandler::removeReference(int index)
 	if (!m_isReleased) //Because release is called before all the components are cleaned up.
 	{
 		AudioResource* res = m_referencedSources[index];
-		std::cout << "Release ref to: " << res->debugName << std::endl;
 		m_referencedSources[index]->deleteRef();
 		m_referencedSources.erase(index);
 	}

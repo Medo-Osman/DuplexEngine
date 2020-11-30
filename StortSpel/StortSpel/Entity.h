@@ -42,7 +42,7 @@ public:
 
 	void onSceneLoad()
 	{
-		for (auto& component : m_components)
+		for (auto component : m_components)
 			component.second->onSceneLoad();
 	}
 

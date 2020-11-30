@@ -10,6 +10,7 @@ public:
 	std::string debugName = "";
 	void addRef()
 	{
+		//std::cout << "Addedref to: " << debugName << ", " << refCount <<  std::endl;
 		refCount++;
 	}
 
@@ -18,6 +19,7 @@ public:
 
 		if (this)
 		{
+			//std::cout << "Removed ref to: " << debugName << ", " << refCount << std::endl;
 			refCount--;
 		}
 

@@ -11,6 +11,5 @@ public:
 	~AudioResource()
 	{
 		delete audio;
-		std::cout << "Destroy audio" << std::endl;
 	}
 };

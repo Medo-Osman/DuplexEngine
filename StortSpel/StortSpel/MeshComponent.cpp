@@ -13,10 +13,10 @@ MeshComponent::MeshComponent(const char* filepath, std::initializer_list<ShaderP
 	for (auto& mat : materials)
 	{
 		m_materials.push_back(mat);
-		m_materials[m_materials.size()-1].addMaterialRefs();
+		
 	}
 
-	m_resourcePointer->addRef();
+	//m_resourcePointer->addRef();
 	init(filepath, shaderEnums, materials);
 }
 
@@ -40,12 +40,12 @@ MeshComponent::MeshComponent(char* paramData)
 {
 	m_type = ComponentType::MESH;
 	m_resourcePointer = ResourceHandler::get().loadLRMMesh(paramData);
-	m_resourcePointer->addRef();
+	//m_resourcePointer->addRef();
 
 	m_filePath = paramData;
 	Material mat = Material();
-	mat.addMaterialRefs();
 	m_materials.push_back(mat);
+	mat.addMaterialRefs();
 	m_shaderProgEnums.push_back(ShaderProgramsEnum::DEFAULT);
 	// Read data from package
 	int offset = 0;
@@ -103,10 +103,13 @@ MeshComponent::MeshComponent(char* paramData)
 
 MeshComponent::~MeshComponent()
 {
-	m_resourcePointer->deleteRef();
-	for (int i = 0; i < m_materials.size(); i++)
+	if (!ResourceHandler::get().m_unloaded)
 	{
-		m_materials[i].removeRefs();
+		m_resourcePointer->deleteRef();
+		for (int i = 0; i < m_materials.size(); i++)
+		{
+			m_materials[i].removeRefs();
+		}
 	}
 }
 
@@ -174,4 +177,10 @@ void MeshComponent::init(const char* filepath, std::initializer_list<ShaderProgr
 	{
 		m_shaderProgEnums.push_back(se);
 	}
+	/*for (int i = 0; i < m_materials.size(); i++)
+	{
+		m_materials[i].addMaterialRefs();
+	}
+
+	m_resourcePointer->addRef();*/
 }

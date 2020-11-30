@@ -215,7 +215,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_dContextPtr->PSSetConstantBuffers(3, 1, m_currentMaterialConstantBuffer.GetAddressOf());
 
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
-	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
+	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get(), m_deferredContext.Get());
 	m_camera = Engine::get().getCameraPtr();
 
 
@@ -291,7 +291,9 @@ HRESULT Renderer::createDeviceAndSwapChain()
 		&m_fLevel, //Feature Level
 		m_dContextPtr.GetAddressOf() //Device COntext Pointer
 	);
+	assert(SUCCEEDED(hr));
 
+	hr = m_devicePtr->CreateDeferredContext(0, m_deferredContext.GetAddressOf());
 	assert(SUCCEEDED(hr));
 
 	return hr;
@@ -759,7 +761,9 @@ void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* h
 
 void Renderer::render()
 {
-	
+	//m_deferredContext->ExecuteCommandList();
+	m_dContextPtr->ExecuteCommandList(ResourceHandler::get().m_commandList, TRUE);
+
 	//Update camera position for pixel shader buffer
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
@@ -876,6 +880,11 @@ ID3D11Device* Renderer::getDevice()
 ID3D11DeviceContext* Renderer::getDContext()
 {
 	return m_dContextPtr.Get();
+}
+
+ID3D11DeviceContext* Renderer::getDeferredDContext()
+{
+	return m_deferredContext.Get();
 }
 
 ID3D11DepthStencilView* Renderer::getDepthStencilView()

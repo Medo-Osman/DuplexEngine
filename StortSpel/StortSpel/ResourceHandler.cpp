@@ -3,6 +3,7 @@
 
 ResourceHandler::~ResourceHandler()
 {
+	m_unloaded = true;
 }
 
 void ResourceHandler::isResourceHandlerReady()
@@ -31,8 +32,9 @@ void ResourceHandler::checkResources()
 
 	for (int i = 0; i < idsForMeshesToRemove.size(); i++)
 	{
-		delete m_meshCache[idsForMeshesToRemove[i]];
-		m_meshCache.erase(idsForMeshesToRemove[i]);
+		std::cout << "Removing mesh: " << m_meshCache[idsForMeshesToRemove[i]]->debugName << std::endl;
+		//delete m_meshCache[idsForMeshesToRemove[i]];
+		//m_meshCache.erase(idsForMeshesToRemove[i]);
 	}
 
 	idsForMeshesToRemove.clear();
@@ -53,8 +55,9 @@ void ResourceHandler::checkResources()
 	for (int i = 0; i < textureIdsToRemove.size(); i++)
 	{
 		std::string name = m_textureCache[textureIdsToRemove[i]]->debugName;
-		delete m_textureCache[textureIdsToRemove[i]];
-		m_textureCache.erase(textureIdsToRemove[i]);
+		std::cout << "Deleting texture " << name << std::endl;
+		//delete m_textureCache[textureIdsToRemove[i]];
+		//m_textureCache.erase(textureIdsToRemove[i]);
 	}
 
 	//=========================================== 
@@ -71,10 +74,14 @@ void ResourceHandler::checkResources()
 
 	for (int i = 0; i < audioIdsToRemove.size(); i++)
 	{
-		delete m_soundCache[audioIdsToRemove[i]];
-		m_soundCache.erase(audioIdsToRemove[i]);
+		//delete m_soundCache[audioIdsToRemove[i]];
+		//m_soundCache.erase(audioIdsToRemove[i]);
 	}
 	//=========================================== 
+
+	std::cout << "mesh: " << m_meshCache.size() << std::endl;
+	std::cout << "texture: " << m_textureCache.size() << std::endl;
+	std::cout << "audio: " << m_soundCache.size() << std::endl;
 }
 
 TextureResource* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isCubeMap, bool referenceBasedDelete)
@@ -85,6 +92,7 @@ TextureResource* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isC
 	{
 		isResourceHandlerReady();
 
+		std::lock_guard<std::mutex> lock(m_lock);
 		HRESULT hr;
 		ID3D11ShaderResourceView* srv = nullptr;
 		std::wstring path = m_TEXTURES_PATH + texturePath;
@@ -97,7 +105,8 @@ TextureResource* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isC
 			if (isCubeMap == true)
 			{
 				//hr = CreateDDSTextureFromFileEx(m_devicePtr, path.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
-				hr = CreateDDSTextureFromFileEx(m_devicePtr, m_dContextPtr, path.c_str(), 5, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
+				hr = CreateDDSTextureFromFileEx(m_devicePtr, m_deferredDContextPtr, path.c_str(), 5, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
+				m_deferredDContextPtr->FinishCommandList(TRUE, &m_commandList);
 			}
 			else
 			{
@@ -564,10 +573,11 @@ AudioResource* ResourceHandler::loadSound(std::wstring soundPath, AudioEngine* a
 	return m_soundCache[soundPath];
 }
 
-void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
+void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr, ID3D11DeviceContext* deferredDContextPtr)
 {
 	m_devicePtr = devicePtr;
 	m_dContextPtr = dContextPtr;
+	m_deferredDContextPtr = deferredDContextPtr;
 
 	DeviceAndContextPtrsAreSet = true;
 }

@@ -542,7 +542,7 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 		newEntity->setRotationQuat(rotQuat);
 		newEntity->setScale(scale);
 
-		bool isDynamic ;
+		bool isDynamic;
 		PxGeometryType::Enum geoType;
 		std::string physMatName;
 		bool needsKinematics = false;
@@ -1484,6 +1484,21 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
+
+	*finished = true;
+}
+
+void Scene::loadEmpty(Scene* sceneObject, bool* finished)
+{
+	/*Entity* skybox = sceneObject->addEntity("SkyBox");
+	skybox->m_canCull = false;
+	if (skybox)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+	}*/
+
 
 	*finished = true;
 }
