@@ -32,6 +32,11 @@ void AudioHandler::release()
 	m_soundInstances.clear();
 }
 
+bool AudioHandler::getAudioChanged()
+{
+	return m_hasAudioChanged;
+}
+
 void AudioHandler::initialize(HWND& handle)
 {
 	// Audio Engine Setup
@@ -159,8 +164,44 @@ void AudioHandler::setEmitterPosition(int index, Vector3 position, bool isLoopin
 		m_loopingSoundInstances[index]->Apply3D(m_listener, m_emitter, false);
 }
 
+float AudioHandler::increaseVolume()
+{	
+	m_hasAudioChanged = true;
+	m_volumeAmount += 5.f;
+	return m_volumeAmount;
+	
+}
+
+float AudioHandler::decreaseVolume()
+{
+	m_hasAudioChanged = true;
+	m_volumeAmount -= 5.f;
+	return m_volumeAmount;
+}
+
+float AudioHandler::getVolumeAmount()
+{
+	return m_volumeAmount;
+}
+
 void AudioHandler::update(float dt)
 {
+	for (int i = 0; i < m_soundInstances.size(); i++)
+	{
+		m_soundInstances[i]->SetVolume(m_volumeAmount);
+		if (m_volumeAmount == 0.0f)
+		{
+			m_soundInstances[i]->Stop();
+		}
+	}
+	for (int i = 0; i < m_loopingSoundInstances.size(); i++)
+	{
+		m_loopingSoundInstances[i]->SetVolume(m_volumeAmount);
+		if (m_volumeAmount == 0.0f)
+		{
+			m_loopingSoundInstances[i]->Stop();
+		}
+	}
 	if (m_listenerTransformPtr)
 	{
 		m_listener.SetPosition(m_listenerTransformPtr->getTranslation());
@@ -181,6 +222,7 @@ void AudioHandler::update(float dt)
 		}
 		m_retryAudio = false;
 	}
+	
 	else if (!m_audioEngine->Update())
 	{
 		if (m_audioEngine->IsCriticalError())
@@ -189,6 +231,7 @@ void AudioHandler::update(float dt)
 			m_retryAudio = true;
 		}
 	}
+	
 }
 
 void AudioHandler::suspend()

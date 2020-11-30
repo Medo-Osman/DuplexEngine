@@ -26,7 +26,7 @@ Engine::~Engine()
 
 	//for (std::pair<std::string, Entity*> entity : m_entities)
 	//	delete entity.second;
-
+	
 	//m_entities->clear();
 	//m_entities->clear();
 }
@@ -46,6 +46,11 @@ void Engine::update(const float& dt)
 
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
+
+	if (AudioHandler::get().getAudioChanged())
+	{
+		AudioHandler::get().update(dt);
+	}
 
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
@@ -162,10 +167,11 @@ void Engine::initialize(Input* input)
 		assert(false);
 	}
 
-	m_camera.initialize(80.f, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
+	m_camera.initialize(120.f, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 
 	// Audio Handler Listener setup
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
+
 
 	// Player
 	m_player = new Player();

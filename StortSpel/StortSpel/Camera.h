@@ -38,6 +38,10 @@ public:
 
 	Transform* getTransform();
 
+	void increaseSensitivity();
+	void DecreaseSensitivity();
+	float getSensitivity();
+
 	const XMVECTOR& getPosition() const;
 	const XMFLOAT3 getFloat3Position() const;
 	const XMVECTOR& getRotation() const;

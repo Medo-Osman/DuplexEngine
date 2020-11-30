@@ -50,6 +50,19 @@ Transform* Camera::getTransform()
 {
 	return &m_transform;
 }
+void Camera::increaseSensitivity()
+{
+	m_sensitivity += 0.1f;
+}
+void Camera::DecreaseSensitivity()
+{
+	m_sensitivity -= 0.1f;
+}
+float Camera::getSensitivity()
+{
+	
+	return m_sensitivity * 10;
+}
 const XMVECTOR& Camera::getRotation() const
 {
 	return m_rotation;

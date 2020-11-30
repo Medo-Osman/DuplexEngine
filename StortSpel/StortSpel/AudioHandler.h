@@ -2,12 +2,13 @@
 #include "ResourceHandler.h"
 #include "Input.h"
 #include "Transform.h"
+
 class AudioHandler
 {
 private:
 	AudioHandler();
 	std::shared_ptr<AudioEngine> m_audioEngine;
-
+	bool m_hasAudioChanged;
 	bool m_retryAudio;
 	HDEVNOTIFY m_newAudio = nullptr;
 
@@ -18,10 +19,13 @@ private:
 	
 	// 3D Positional Audio
 	AudioEmitter m_emitter;
-
+	//bool hasAudioChanged true om ökat eller sänkt volym
+	//getfunction bool hasAudioChanged 
+	//engine update if hasAudioChanged så getaudiocompent updatefunction audiocomp
 	AudioListener m_listener;
 	Transform* m_listenerTransformPtr;
-
+	float m_volumeAmount = 5.0f;
+	//volume /10
 public:
 	AudioHandler(const AudioHandler&) = delete;
 	void operator=(AudioHandler const&) = delete;
@@ -33,6 +37,8 @@ public:
 	~AudioHandler();
 
 	void release();
+	
+	bool getAudioChanged();
 
 	void initialize(HWND &handle);
 	void setListenerTransformPtr(Transform* listenerTransform);
@@ -44,6 +50,11 @@ public:
 	void setVolume(int index, float volume, bool isLooping);
 	void setPitch(int index, float pitch, bool isLooping);
 	void setEmitterPosition(int index, Vector3 position, bool isLooping);
+
+	float increaseVolume();
+	float decreaseVolume();
+	float getVolumeAmount();
+
 	void update(float dt);
 	void suspend();
 	void resume();

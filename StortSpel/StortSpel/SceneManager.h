@@ -8,6 +8,7 @@
 #include "Camera.h"
 
 
+
 class SceneManager : public InputObserver, public PhysicsObserver, public GUIObserver
 {
 private:
@@ -16,7 +17,7 @@ private:
 	Input* inputPtr;
 	ScenesEnum m_nextSceneEnum;
 	Camera* m_camera;
-
+	GUITextStyle style;
 	bool m_swapScene;
 
 	//GUI score
@@ -28,14 +29,25 @@ private:
 	int m_rankingScoreIndecOne;
 	int m_rankingScoreIndecTwo;
 	int m_rankingScoreIndecThree;
-	//
+
+	int m_sensitivityIndex;
+	
+	float m_cameraSense;
+	float m_volumeAmount;
 	std::vector<iContext*>* m_contexts;
+	
 
 	int m_singleplayerIndex = 0;
 	int m_exitIndex = 0;
 	int m_joinGameIndex = 0;
 	int m_hostGameIndex = 0;
 	int m_backToLobbyIndex = 0;
+	int m_settingsIndex = 0;
+	int m_senseIncreaseIndex = 0;
+	int m_senseDecreaseIndex = 0;
+	int m_volumeIncreaseIndex = 0;
+	int m_volumeDecreaseIndex = 0;
+	int m_volumeAmountIndex = 0;
 
 	bool* m_nextSceneReady = new bool;
 	bool m_loadNextSceneWhenReady = false;
@@ -47,6 +59,8 @@ private:
 public:
 	SceneManager();
 	~SceneManager();
+	float volumeIncrease = 1;
+	float volumeDecrease = 0.1;
 
 	bool m_gameStarted = false;
 	bool endGame = false;
