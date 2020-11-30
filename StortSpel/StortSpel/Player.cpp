@@ -73,8 +73,6 @@ Player::Player()
 	GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 
 
-
-
 }
 
 Player::~Player()
@@ -122,7 +120,7 @@ void Player::setStates(InputData& inputData)
 	std::vector<State>& states = inputData.stateData;
 	std::vector<RangeData>& range = inputData.rangeData; // Used for Gamepad left stick walking/Running
 	m_movementVector = Vector3();
-	if (m_state != PlayerState::DASH && m_state != PlayerState::ROLL)
+	if (m_state != PlayerState::DASH && m_state != PlayerState::ROLL && m_state != PlayerState::CANNON && m_state != PlayerState::FLYINGBALL)
 	{
 		Quaternion cameraRot = m_cameraTransform->getRotation();
 		for (size_t i = 0; i < states.size(); i++)
@@ -203,49 +201,35 @@ float lerp(const float& a, const float &b, const float &t)
 	return a + (t * (b - a));
 }
 
-Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 vel, float t)
+Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 dir, float t, float horizonalMultiplier, float vertMulti)
 {
 	Vector3 curPos = pos;
-	Vector3 curVel = vel;
-
-	curVel.y -= GRAVITY * m_gravityScale * t;
-	if (curVel.y <= -MAX_FALL_SPEED)
-		curVel.y = -MAX_FALL_SPEED;
-	curPos = curVel * t + pos;
+	Vector3 curDir = dir;
 
 	return curPos;
 }
 
-void Player::trajectoryEquationOutFill(Vector3 pos, Vector3 vel, float t, XMFLOAT3& outPos, XMFLOAT3& outDir)
+void Player::trajectoryEquationOutFill(Vector3 pos, Vector3 dir, float t, float horizonalMultiplier, float vertMulti, XMFLOAT3& outPos, XMFLOAT3& outDir)
 {
-	Vector3 curPos = pos;
-	Vector3 curVel = vel;
 
-	curVel.y -= GRAVITY * m_gravityScale * t;
-	if (curVel.y <= -MAX_FALL_SPEED)
-		curVel.y = -MAX_FALL_SPEED;
-	curPos = curVel * t + pos;
-
-	outPos = curPos;
-	outDir = curVel;
 }
-
-Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY)
+bool hasPrinted = false;
+																	//m_horizontalMultiplier, m_verticalMultiplier
+Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizonalMultiplier, float vertMulti)
 {
 	Vector3 returnPosition;
 
 	bool foundEnd = false;
-	float t = 0.5f;
+	float t = 5.0f;
 	Vector3 pos = position;
-	Vector3 vel = velocity;
+	Vector3 dir = direction;
 
-	while (!foundEnd && t < 120)
+	while (!foundEnd && t < 5)
 	{
-		pos = trajectoryEquation(position, vel, t);
+		pos = trajectoryEquation(position, dir, t, horizonalMultiplier, vertMulti);
 
-
-		t += 0.5f;
-		bool hit = Physics::get().hitSomething(pos, m_controller->getOriginalRadius(), m_controller->getOriginalHalfHeight());
+		t += 0.01f;
+		bool hit = Physics::get().hitSomething(pos, m_controller->getOriginalRadius(), m_controller->getOriginalHeight());
 
 		if (hit)
 		{
@@ -259,7 +243,7 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 				Vector3 lineDataPos;
 				Vector3 lineDataDir;
 				float tempT = tDist * i;
-				trajectoryEquationOutFill(position, vel, tempT, m_lineData[i].position, this->m_lineData[i].direction);
+				trajectoryEquationOutFill(position, dir, tempT, horizonalMultiplier, vertMulti, m_lineData[i].position, this->m_lineData[i].direction);
 			}
 
 		}
@@ -278,11 +262,11 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 			Vector3 lineDataPos;
 			Vector3 lineDataDir;
 			float tempT = tDist * i;
-			trajectoryEquationOutFill(position, vel, tempT, m_lineData[i].position, this->m_lineData[i].direction);
+			trajectoryEquationOutFill(position, dir, tempT, horizonalMultiplier, vertMulti, m_lineData[i].position, this->m_lineData[i].direction);
 		}
 	}
 
-
+	hasPrinted = true;
 	return returnPosition;
 }
 
@@ -458,11 +442,14 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::FLYINGBALL;
 			m_lastState = PlayerState::CANNON;
 			m_direction = m_cameraTransform->getForwardVector();
-			m_velocity = m_direction;
 			m_cameraOffset = Vector3(0.f, 0.f, 0.f);
 			m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
 			m_shouldDrawLine = false;
+			m_verticalMultiplier = 1;
+			m_horizontalMultiplier = CANNON_POWER;
+
+			directionalMovement = m_cameraTransform->getForwardVector();
 
 			PlayerMessageData data;
 			data.playerActionType = PlayerActions::ON_FIRE_CANNON;
@@ -478,7 +465,7 @@ void Player::playerStateLogic(const float& dt)
 		else //Draw marker
 		{
 			Vector3 finalPos;
-			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector(), GRAVITY);
+			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector() * 10, CANNON_POWER, 1);
 			
 			/*            Set base rot (Y)              */
 			Quaternion q1 = m_cameraTransform->getRotation();
@@ -499,13 +486,11 @@ void Player::playerStateLogic(const float& dt)
 		break;
 	case PlayerState::FLYINGBALL:
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
-
-
-		m_velocity.x = m_direction.x;
-		m_velocity.z = m_direction.z;
-		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_velocity), 1.f) || m_controller->checkGround()))
+		
+		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || m_controller->checkGround() || m_horizontalMultiplier < 0.1f)
 		{
-
+			m_horizontalMultiplier = 0;
+			m_verticalMultiplier = 0;
 			m_state = PlayerState::JUMPING;
 			m_lastState = PlayerState::FLYINGBALL;
 			m_pickupPointer->onDepleted();
@@ -645,6 +630,7 @@ bool Player::pickupUpdate(Pickup* pickupPtr, const float& dt)
 				break;
 			case PickupType::CANNON:
 				//Cannon Update
+				break;
 			default:
 				break;
 			}
@@ -706,7 +692,7 @@ void Player::setPlayerEntity(Entity* entity)
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
 	m_pickupPointer = new CannonPickup();
-	m_pickupPointer->onPickup(m_playerEntity);
+	m_pickupPointer->onPickup(m_playerEntity, false);
 }
 
 Vector3 Player::getCheckpointPos()
@@ -999,14 +985,14 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 							delete m_environmentPickup;
 							m_environmentPickup = nullptr;
 						}
-						pickupPtr->onPickup(m_playerEntity);
+						pickupPtr->onPickup(m_playerEntity, true);
 						pickupPtr->onUse();
 						m_environmentPickup = pickupPtr;
 					}
 					else
 					{
 						m_pickupPointer = pickupPtr;
-						pickupPtr->onPickup(m_playerEntity);
+						pickupPtr->onPickup(m_playerEntity, false);
 						if (pickupPtr->shouldActivateOnPickup())
 							pickupPtr->onUse();
 					}
@@ -1105,7 +1091,7 @@ void Player::jump(const bool& incrementCounter, const float& multiplier)
 {
 	m_currentDistance = 0;
 	m_state = PlayerState::JUMPING;
-	m_verticalMultiplier = JUMP_SPEED * m_playerScale;
+	m_verticalMultiplier = JUMP_SPEED * m_playerScale * multiplier;
 	if(incrementCounter)
 		m_jumps++;
 }
@@ -1148,13 +1134,13 @@ void Player::prepDistVariables()
 
 void Player::rollAnimation()
 {
-	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false);
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false, true);
 	m_animMesh->setAnimationSpeed(1.5f);
 }
 
 void Player::dashAnimation()
 {
-	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.2f, true);
+	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.2f, true, true);
 }
 
 void Player::idleAnimation()

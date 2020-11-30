@@ -21,7 +21,6 @@ Scene::Scene()
 	addMeshComponent(meshComponent);
 	setScoreVec();
 	sortScore();
-
 }
 
 Scene::~Scene()
@@ -297,6 +296,7 @@ void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 tr
 
 void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 {
+	srand(time(0));
 	int nrOfPickups = (int)PickupType::COUNT - 1; //-1 due to Score being in pickupTypes
 	int pickupEnum = rand() % nrOfPickups;
 

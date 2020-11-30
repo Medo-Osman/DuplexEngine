@@ -22,6 +22,7 @@ public:
 		m_isTimeBased = false;
 		m_shootAudioComponent = nullptr;
 		m_particleEffect = nullptr;
+		m_pickupIcon = L"Cannon.png";
 	}
 	virtual void update(const float& dt)
 	{
@@ -42,9 +43,9 @@ public:
 			}
 		}
 	}
-	virtual void onPickup(Entity* entityToDoEffectsOn)
+	virtual void onPickup(Entity* entityToDoEffectsOn, bool isEnvironmental)
 	{
-		Pickup::onPickup(entityToDoEffectsOn);
+		Pickup::onPickup(entityToDoEffectsOn, isEnvironmental);
 		addAudioComponent(m_loadSound, false);
 	}
 

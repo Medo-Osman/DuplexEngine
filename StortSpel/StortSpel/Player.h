@@ -104,6 +104,10 @@ private:
     const float MAX_TRANSITION_TIME = 0.2f; // Sec
     float m_transitionTime;
 
+    //Cannon Config
+    const float CANNON_POWER = 100;
+
+
     float m_currentSpeedModifier;
     float m_goalSpeedModifier;
     int m_speedModifierDuration;
@@ -167,9 +171,9 @@ private:
     //Private functions
     void setStates(InputData& inputData);
     void handleRotation(const float& dt);
-    Vector3 trajectoryEquation(Vector3 pos, Vector3 vel, float t);
-	void trajectoryEquationOutFill(Vector3 pos, Vector3 vel, float t, XMFLOAT3& outPos, XMFLOAT3& outDir);
-    Vector3 calculatePath(Vector3 position, Vector3 velocity, float gravityY);
+    Vector3 trajectoryEquation(Vector3 position, Vector3 direction, float t, float horizonalMultiplier, float vertMulti);
+	void trajectoryEquationOutFill(Vector3 position, Vector3 direction, float t, float horizonalMultiplier, float vertMulti, XMFLOAT3& outPos, XMFLOAT3& outDir);
+    Vector3 calculatePath(Vector3 position, Vector3 direction, float horizonalMultiplier, float vertMulti);
     void playerStateLogic(const float& dt);
 
     bool pickupUpdate(Pickup* pickupPtr, const float& dt);

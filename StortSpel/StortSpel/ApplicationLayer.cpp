@@ -63,7 +63,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	// PhysX
 	m_physics = &Physics::get();
 	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
-	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input, &m_window);
+	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input, &m_window, this->getWindowSize());
 
 	// Engine
 	Engine::get().initialize(&m_input);
@@ -75,7 +75,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	m_scenemanager.initalize();
 	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 
-	srand(static_cast <unsigned> (time(0)));
+	srand(time(0));
 
 	return initOK;
 }
