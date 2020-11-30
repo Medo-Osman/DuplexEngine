@@ -15,8 +15,11 @@ struct vs_out
 	float4 pos : SV_POSITION;
 	float2 uv : TEXCOORD;
 	float3 normal : NORMAL;
+    float3 vNormal : VNORMAL;
+    float depth : DEPTH;
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
+	
 };
 
 cbuffer perModel : register(b0)
@@ -54,11 +57,15 @@ vs_out main(vs_in input, in uint vID : SV_VertexID)
     
     //output.normal = mul(input.normal, (float3x3) inverseTransposeWorldMatrix);
 	output.normal = blendedNormal;
+    float4 worldPos = mul(float4(input.pos, 1), worldMatrix);
+    float4 vPos = mul(worldPos, viewMatrix);
+    output.vNormal = normalize(mul(float4(output.normal, 0), viewMatrix));
 	output.tangent = blendedTangent;
 	output.bitangent = blendedBitangent;
 	output.uv = input.uv;
     output.pos = mul(localPosition, wvpMatrix);
-	
+    output.depth = 1 - output.pos.z;
+
 	//output.wsPos = mul(localPosition, worldMatrix);
     //output.wsTangent = mul(input.tangent, (float3x3) worldMatrix);
     

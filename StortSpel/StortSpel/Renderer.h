@@ -30,10 +30,22 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
 
 	// SSAO stuff
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_normalsNDepthSRV = NULL;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_normalsNDepthRenderTargetViewPtr = NULL;
 
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_randomVectorsSRV = NULL;
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_SSAOShaderResourceViewPtr = NULL;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_SSAORenderTargetViewPtr = NULL;
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_SSAOUnorderedAccessViewPtr = NULL;
+
+	Microsoft::WRL::ComPtr <ID3D11Texture2D> m_randomTexture = NULL;
+	XMFLOAT4* m_randomColors;
+	Vector4* m_offsetVectors;
+	Vector4 m_frustumFarCorners[4];
 
 	// Bloom stuff
-	ID3D11RenderTargetView* m_geometryPassRTVs[2];
+	ID3D11RenderTargetView* m_geometryPassRTVs[3];
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_glowMapRenderTargetViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_glowMapShaderResourceView = NULL;
 
@@ -99,7 +111,6 @@ private:
 	
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 	float m_blackClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
-
 	//FrustumCulling
 	bool m_frustumCullingOn = true;
 	
@@ -107,13 +118,29 @@ private:
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
 	unsigned int long m_currentSetMaterialId = 1000;
 
+	// Blendstate
+	ID3D11BlendState* g_pBlendStateNoBlend = NULL;
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	UINT sampleMask = 0xffffffff;
+
 	//Functions
 	HRESULT createDeviceAndSwapChain();
 	HRESULT createDepthStencil();
 	void rasterizerSetup();
 	
 	void createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const int& height) const;
-	HRESULT initializeSSAO();
+
+	HRESULT buildRandomVectorTexture();
+	void buildOffsetVectors();
+	void buildFrustumFarCorners(float fovY, float farZ);
+	void computeSSAO();
+
+	float randomFloat()
+	{
+		float r = (float)rand() / RAND_MAX;
+		return r;
+	}
+
 	HRESULT initializeBloomFilter();
 	void calculateBloomWeights();
 	void downSamplePass();

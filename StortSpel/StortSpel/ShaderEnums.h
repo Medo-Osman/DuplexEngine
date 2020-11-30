@@ -14,6 +14,7 @@ enum ShaderProgramsEnum
 	DEFAULT_SHADOW,
 	SHADOW_DEPTH_ANIM,
 	EMISSIVE,
+	SSAO_MAP,
 	NONE
 };
 
@@ -100,6 +101,14 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 		{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"ShadowPixel.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::SSAO_MAP] = new ShaderProgram
+	(
+		{ L"SSAOVertex.hlsl",L"null",L"null",L"null",L"SSAOPixel.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 }

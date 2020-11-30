@@ -20,6 +20,7 @@ void Renderer::release()
 {
 	delete m_shadowMap;
 	skyboxDSSPtr->Release();
+	g_pBlendStateNoBlend->Release();
 
 	for (std::pair<ShaderProgramsEnum, ShaderProgram*> element : m_compiledShaders)
 	{
@@ -146,8 +147,9 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	geometryTexture->Release();
 
-	initializeBloomFilter();
+	buildRandomVectorTexture();
 
+	initializeBloomFilter();
 	compileAllShaders(&m_compiledShaders, m_devicePtr.Get(), m_dContextPtr.Get(), m_depthStencilViewPtr.Get());
 
 	createViewPort(m_defaultViewport, m_settings.width, m_settings.height);
@@ -167,8 +169,32 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	glowTexture->Release();
 
+	ID3D11Texture2D* normalsNDepthTexture;
+
+	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	srvDesc.Format = textureDesc.Format;
+
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &normalsNDepthTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateRenderTargetView(normalsNDepthTexture, 0, m_normalsNDepthRenderTargetViewPtr.GetAddressOf());
+	if (!SUCCEEDED(hr)) return hr;
+
+
+	hr = m_devicePtr->CreateShaderResourceView(normalsNDepthTexture, &srvDesc, &m_normalsNDepthSRV);
+	if (!SUCCEEDED(hr)) return hr;
+
 	m_geometryPassRTVs[0] = m_geometryRenderTargetViewPtr.Get();
 	m_geometryPassRTVs[1] = m_glowMapRenderTargetViewPtr.Get();
+	m_geometryPassRTVs[2] = m_normalsNDepthRenderTargetViewPtr.Get();
+
+	
+
+	D3D11_BLEND_DESC BlendState;
+	ZeroMemory(&BlendState, sizeof(D3D11_BLEND_DESC));
+	BlendState.RenderTarget[0].BlendEnable = FALSE;
+	BlendState.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	m_devicePtr->CreateBlendState(&BlendState, &g_pBlendStateNoBlend);
 
 	//Setup samplerstate
 	D3D11_SAMPLER_DESC samplerStateDesc;
@@ -343,23 +369,127 @@ void Renderer::createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const 
 	viewPort.MaxDepth = 1.0f;
 }
 
-HRESULT Renderer::initializeSSAO()
+HRESULT Renderer::buildRandomVectorTexture()
 {
-	D3D11_TEXTURE2D_DESC textureDesc = { 0 };
-	ID3D11Texture2D* normalsNDepthTexture;
 	HRESULT hr;
+	D3D11_TEXTURE2D_DESC texDesc;
+	texDesc.Width = 256;
+	texDesc.Height = 256;
+	texDesc.MipLevels = 1;
+	texDesc.ArraySize = 1;
+	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	texDesc.SampleDesc.Count = 1;
+	texDesc.SampleDesc.Quality = 0;
+	texDesc.Usage = D3D11_USAGE_DYNAMIC;
+	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	texDesc.MiscFlags = 0;
+	int number = 256 * 256;
+	m_randomColors = new XMFLOAT4[256 * 256];
+	for (int i = 0; i < number; i++)
+	{
+		XMFLOAT4 v = XMFLOAT4(randomFloat(), randomFloat(), randomFloat(), randomFloat());
+		m_randomColors[i] = v;
+	}
 
-	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	textureDesc.MipLevels = 1;
-	textureDesc.ArraySize = 1;
-	textureDesc.Usage = D3D11_USAGE_DEFAULT;
-	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-	textureDesc.Width = m_settings.width;
-	textureDesc.Height = m_settings.height;
-	textureDesc.SampleDesc.Count = 1;
+	D3D11_SUBRESOURCE_DATA subData;
+	subData.pSysMem = m_randomColors;
+	subData.SysMemPitch = texDesc.Width * sizeof(float) * 4;
+	subData.SysMemSlicePitch = texDesc.Width * texDesc.Height * sizeof(float) * 4;
 
-	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &normalsNDepthTexture);
+	hr = m_devicePtr->CreateTexture2D(&texDesc, &subData, &m_randomTexture);
 	if (!SUCCEEDED(hr)) return hr;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = texDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	hr = m_devicePtr->CreateShaderResourceView(m_randomTexture.Get(), &srvDesc, &m_randomVectorsSRV);
+	if (!SUCCEEDED(hr)) return hr;
+
+	
+}
+
+void Renderer::buildOffsetVectors()
+{
+	m_offsetVectors = new Vector4[14];
+
+	m_offsetVectors[0] = Vector4(+1, +1, +1, 0);
+	m_offsetVectors[1] = Vector4(-1, -1, -1, 0);
+
+	m_offsetVectors[2] = Vector4(-1, +1, +1, 0);
+	m_offsetVectors[3] = Vector4(+1, -1, -1, 0);
+
+	m_offsetVectors[4] = Vector4(+1, +1, -1, 0);
+	m_offsetVectors[5] = Vector4(-1, -1, +1, 0);
+
+	m_offsetVectors[6] = Vector4(-1, +1, -1, 0);
+	m_offsetVectors[7] = Vector4(+1, -1, +1, 0);
+
+	// cube face centers
+	m_offsetVectors[8] = Vector4(-1, 0, 0, 0);
+	m_offsetVectors[9] = Vector4(+1, 0, 0, 0);
+
+	m_offsetVectors[10] = Vector4(0, -1, 0, 0);
+	m_offsetVectors[11] = Vector4(0, +1, 0, 0);
+
+	m_offsetVectors[12] = Vector4(0, 0, -1, 0);
+	m_offsetVectors[13] = Vector4(0, 0, +1, 0);
+
+	
+	for (int i = 0; i < 14; i++) {
+		float s = randomFloat();
+		m_offsetVectors[i].Normalize();
+		Vector4 v = s * m_offsetVectors[i];
+		m_offsetVectors[i] = v;
+	}
+}
+
+void Renderer::buildFrustumFarCorners(float fovY, float farZ)
+{
+	float aspect = (float)(m_settings.width / m_settings.height);
+
+	float halfHeight = farZ * tan(0.5f * fovY);
+	float halfWidth = aspect * halfHeight;
+
+	m_frustumFarCorners[0] = Vector4(-halfWidth, -halfHeight, farZ, 0);
+	m_frustumFarCorners[1] = Vector4(-halfWidth, +halfHeight, farZ, 0);
+	m_frustumFarCorners[2] = Vector4(+halfWidth, +halfHeight, farZ, 0);
+	m_frustumFarCorners[3] = Vector4(+halfWidth, -halfHeight, farZ, 0);
+}
+
+void Renderer::computeSSAO()
+{
+	UINT offset = 0;
+	int vertexCount = 6;
+
+	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
+
+	Matrix T = Matrix::Identity;
+	T._11 = 0.5f;
+	T._22 = -0.5f;
+	T._41 = 0.5f;
+	T._42 = 0.5f;
+
+	Matrix P = m_camera->getProjectionMatrix();
+	Matrix pt = P * T;
+
+	buildOffsetVectors();
+	buildFrustumFarCorners(80.f, 1000.0f); // Change this to whatever global constants that get available later xD
+
+	m_dContextPtr->IASetVertexBuffers(0, 1, m_renderQuadBuffer.GetAddressOf(), m_renderQuadBuffer.getStridePointer(), &offset);
+	m_compiledShaders[ShaderProgramsEnum::SSAO_MAP]->setShaders();
+	m_currentSetShaderProg = ShaderProgramsEnum::SSAO_MAP;
+	m_dContextPtr->PSSetShaderResources(0, 1, &m_normalsNDepthSRV);
+	m_dContextPtr->PSSetShaderResources(1, 1, &m_randomVectorsSRV);
+	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
+
+	m_dContextPtr->Draw(vertexCount, 0);
+	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
 
 }
 
@@ -552,6 +682,26 @@ void Renderer::blurPass()
 	m_dContextPtr->OMSetRenderTargets(1, m_finalRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
 	m_dContextPtr->PSSetShaderResources(0, 1, m_geometryShaderResourceView.GetAddressOf());
 	m_dContextPtr->PSSetShaderResources(1, 1, m_downSampledShaderResourceView.GetAddressOf());
+	m_dContextPtr->PSSetShaderResources(2, 1, m_randomVectorsSRV.GetAddressOf()); // TEMPORARY
+
+	ImGui::Begin("someWindow");
+	ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(256, 256));
+
+	ImGui::End();
+
+	int number = 256 * 256;
+	for (int i = 0; i < number; i++)
+	{
+		XMFLOAT4 v = XMFLOAT4(randomFloat(), randomFloat(), randomFloat(), randomFloat());
+		m_randomColors[i] = v;
+	}
+
+	D3D11_MAPPED_SUBRESOURCE mappedSubResource;
+	ZeroMemory(&mappedSubResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	m_dContextPtr->Map(m_randomTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubResource);
+	memcpy(mappedSubResource.pData, m_randomColors, number * 4);
+	m_dContextPtr->Unmap(m_randomTexture.Get(), 0);
+
 	m_dContextPtr->Draw(vertexCount, 0);
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
 	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
@@ -779,11 +929,12 @@ void Renderer::render()
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
 
-	
+	m_dContextPtr->OMSetBlendState(g_pBlendStateNoBlend, blendFactor, sampleMask);
 
 	m_dContextPtr->ClearRenderTargetView(m_geometryRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_finalRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_glowMapRenderTargetViewPtr.Get(), m_blackClearColor);
+	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_clearColor);
 
 	if (m_depthStencilViewPtr)
 	{
@@ -836,7 +987,7 @@ void Renderer::render()
 	
 
 	//Run ordinary pass
-	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
+	m_dContextPtr->OMSetRenderTargets(3, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	renderScene(&frust, &wvp, &V, &P);
@@ -872,6 +1023,8 @@ void Renderer::render()
 	downSamplePass();
 	blurPass();
 
+	// SSAO
+	computeSSAO();
 
 	// GUI
 	GUIHandler::get().render();

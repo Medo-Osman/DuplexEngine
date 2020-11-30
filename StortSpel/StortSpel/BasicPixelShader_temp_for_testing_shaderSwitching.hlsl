@@ -5,6 +5,8 @@ struct ps_in
 	float4 pos : SV_POSITION;
 	float2 uv : TEXCOORD;
 	float3 normal : NORMAL;
+    float3 vNormal : VNORMAL;
+    float depth : DEPTH;
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
 };
@@ -13,6 +15,7 @@ struct ps_out
 {
     float4 diffuse : SV_Target0;
     float4 glow : SV_Target1;
+    float4 normalsNDepth : SV_Target2; 
 };
 
 cbuffer MaterialBuffer : register(b3)
@@ -34,6 +37,11 @@ ps_out main(ps_in input) : SV_TARGET
     
     // Diffuse color
     output.diffuse = float4(input.uv, 0.5f, 1.f);
+    
+    // Normals & depth
+    output.normalsNDepth.rgb = normalize(input.vNormal);
+    output.normalsNDepth.a = input.depth;
+    
     
     return output;
 }
