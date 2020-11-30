@@ -253,15 +253,6 @@ void SceneManager::swapScenes()
 	m_swapScene = false;
 	if (*m_nextSceneReady == true && m_loadNextSceneWhenReady)
 	{
-
-		/*double ramBefore = PerformanceTester::get().checkRam();
-		double vramBefore = PerformanceTester::get().checkVram();*/
-
-		//system("CLS");
-		//std::cout << "\nSwapping scenes, memory stats before: " << std::endl;
-		//PerformanceTester::get().runPerformanceTestPrint();
-		//std::cout << "===========================" << std::endl;
-
 		*m_nextSceneReady = false;
 		m_loadNextSceneWhenReady = false;
 		Physics::get().Detach(m_currentScene, false, true);
@@ -287,20 +278,7 @@ void SceneManager::swapScenes()
 		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), 1.75f, 0.5f, "human");
 		ccc->setPosition(m_currentScene->getEntryPosition());
 
-
 		ResourceHandler::get().checkResources();
-
-		//std::cout << "===========================" << std::endl;
-		//std::cout << "\nSwapping scenes, memory stats after: " << std::endl;
-		//PerformanceTester::get().runPerformanceTestPrint();
-
-		double ramAfter = PerformanceTester::get().checkRam();
-		double vramAfter = PerformanceTester::get().checkVram();
-
-		/*std::cout << std::endl;
-		std::cout << "===========================" << std::endl;
-		std::cout << "RAM Change: " << ramAfter - ramBefore << std::endl;
-		std::cout << "VRAM Change: " << vramAfter - vramBefore << std::endl;*/
 	}
 }
 

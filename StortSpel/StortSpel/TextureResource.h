@@ -14,7 +14,6 @@ public:
 		{
 			int nr = view->Release();
 			view = nullptr;
-			//std::cout << "refcount " << nr << std::endl;
 		}
 	}
 };

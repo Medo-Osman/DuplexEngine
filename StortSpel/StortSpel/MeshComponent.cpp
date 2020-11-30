@@ -13,11 +13,7 @@ MeshComponent::MeshComponent(const char* filepath, std::initializer_list<ShaderP
 	for (auto& mat : materials)
 	{
 		m_materials.push_back(mat);
-	}
-
-	for (int i = 0; i < m_materials.size(); i++)
-	{
-		m_materials[i].addMaterialRefs();
+		m_materials[m_materials.size()-1].addMaterialRefs();
 	}
 
 	m_resourcePointer->addRef();
