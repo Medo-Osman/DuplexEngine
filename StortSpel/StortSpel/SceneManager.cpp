@@ -291,7 +291,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 			
 				std::cout << "sending rdy package" << std::endl;
 				PacketHandler::get().sendReady();
-			
+
 
 		}
 	}
@@ -478,6 +478,9 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_hostGameIndex, false);
 			GUIHandler::get().setVisible(m_joinGameIndex, false);
 			GUIHandler::get().setVisible(m_exitIndex, false);
+			GUIHandler::get().setVisible(m_multiPlayerIndexTwo, false);
+			GUIHandler::get().setVisible(m_multiPlayerIndexThree, false);
+			GUIHandler::get().setVisible(m_multiPlayerIndexFour, false);
 			m_nextSceneEnum = ScenesEnum::LOBBY;
 			m_swapScene = true;
 		}
@@ -510,14 +513,23 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_multiPlayerIndexTwo)
 		{
 			Server::get().setNrOfPlayers(2);
+			GUIHandler::get().setVisible(m_multiPlayerIndexTwo, false);
+			GUIHandler::get().setVisible(m_multiPlayerIndexThree, false);
+			GUIHandler::get().setVisible(m_multiPlayerIndexFour, false);
 			std::cout << "Nr of players set to 2" << std::endl;
 		}
 		if (guiElement->m_index == m_multiPlayerIndexThree)
 		{
+			GUIHandler::get().setVisible(m_multiPlayerIndexTwo, false);
+			GUIHandler::get().setVisible(m_multiPlayerIndexThree, false);
+			GUIHandler::get().setVisible(m_multiPlayerIndexFour, false);
 			Server::get().setNrOfPlayers(3);
 		}
 		if (guiElement->m_index == m_multiPlayerIndexFour)
 		{
+			GUIHandler::get().setVisible(m_multiPlayerIndexTwo, false);
+			GUIHandler::get().setVisible(m_multiPlayerIndexThree, false);
+			GUIHandler::get().setVisible(m_multiPlayerIndexFour, false);
 			std::cout << "Nr of players set to 1" << std::endl;
 			Server::get().setNrOfPlayers(1);
 		}

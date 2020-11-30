@@ -173,10 +173,20 @@ void PacketHandler::trapActivation(Packet* _packet)
 
 	std::vector<Component*> pushTraps;
 	Engine::get().getEntityMap()->at(entityID)->getComponentsOfType(pushTraps, ComponentType::TRIGGER);
-	//if (pushTraps.size() > 0)
-	//{
-		static_cast<PushTrapComponent*>(pushTraps[0])->push();
-	//}
+	if (pushTraps.size() > 0)
+	{
+		if ((TrapType)(static_cast<TriggerComponent*>(pushTraps[0])->getAssociatedTriggerEnum()) == TrapType::PUSH)
+		{
+			static_cast<PushTrapComponent*>(pushTraps[0])->push();
+		}
+		else
+		{
+			ApplicationLayer::getInstance().m_scenemanager.m_currentScene->addBarrelDrop(Vector3(-30, 50, 130));
+			static_cast<BarrelTriggerComponent*>(pushTraps[0])->m_triggerTimer.restart();
+			ApplicationLayer::getInstance().m_scenemanager.m_currentScene->addedBarrel = true;
+		}
+		
+	}
 	//else
 	//{
 	//	Entity* temp = Engine::get().getEntityMap()->at(entityID);
