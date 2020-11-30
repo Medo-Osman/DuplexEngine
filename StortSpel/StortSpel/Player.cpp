@@ -16,7 +16,6 @@ Player::Player()
 	m_currentDistance = 0;
 	m_hasDashed = false;
 	m_transitionTime = MAX_TRANSITION_TIME;
-	m_angleY = 0;
 	m_playerEntity = nullptr;
 	m_animMesh = nullptr;
 	m_cameraTransform = nullptr;
@@ -116,6 +115,7 @@ void Player::setStates(InputData& inputData)
 	m_movementVector = Vector3();
 	if (m_state != PlayerState::DASH && m_state != PlayerState::ROLL)
 	{
+		bool hasJumped = false;
 		Quaternion cameraRot = m_cameraTransform->getRotation();
 		for (size_t i = 0; i < states.size(); i++)
 		{
@@ -125,9 +125,20 @@ void Player::setStates(InputData& inputData)
 			case WALK_RIGHT:	m_movementVector += XMVector3Rotate(Vector3(1.f, 0.f, 0.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
 			case WALK_FORWARD:	m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, 1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
 			case WALK_BACKWARD: m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, -1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
+			case JUMPING:
+				hasJumped = true;
+				m_lastJumpPressed = m_jumpPressed;
+				m_jumpPressed = true;
+				break;
 			default: break;
 			}
 		}
+		if (!hasJumped)
+		{
+			m_lastJumpPressed = m_jumpPressed;
+			m_jumpPressed = false;
+		}
+
 		for (size_t i = 0; i < range.size(); i++) // Get Analog input for walking/running
 		{
 			if (range[i].rangeFlag == Range::WALK)
@@ -149,9 +160,6 @@ void Player::handleRotation(const float &dt)
 
 	m_movementVector = XMVector3Normalize(m_movementVector);
 
-	if (Vector3(m_movementVector).LengthSquared() > 0.f) //Only update when moving
-		m_angleY = XMVectorGetY(XMVector3AngleBetweenNormals(XMVectorSet(0, 0, 1, 0), m_movementVector));
-
 	if (Vector3(m_movementVector).LengthSquared() > 0.f)
 	{
 		//This is the current rotation in quaternions
@@ -168,13 +176,10 @@ void Player::handleRotation(const float &dt)
 
 		//if this vector has posisitv value the character is facing the positiv x axis, checks movementVec against cameraForward
 		if (XMVectorGetY(XMVector3Cross(m_movementVector, cameraForward)) > 0.0f)
-		{
-			//m_angleY = -m_angleY;
 			offset.y = -offset.y;
-		}
 
 		//This is the angleY target quaternion
-		targetRot = Quaternion(0, cameraRot.y, 0, cameraRot.w) * Quaternion::CreateFromYawPitchRoll(offset.y, 0, 0);//Quaternion::CreateFromYawPitchRoll(m_angleY, 0, 0);
+		targetRot = Quaternion(0, cameraRot.y, 0, cameraRot.w) * Quaternion::CreateFromYawPitchRoll(offset.y, 0, 0);
 		targetRot.Normalize();
 
 		//Land somewhere in between target and current
@@ -234,7 +239,9 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 velocity, float gravityY
 void Player::playerStateLogic(const float& dt)
 {
 	Vector3 directionalMovement = Vector3(m_movementVector.x, 0, m_movementVector.z);
-	
+
+	float currentY = m_playerEntity->getTranslation().y;
+
 	switch (m_state)
 	{
 	case PlayerState::ROLL:
@@ -325,9 +332,17 @@ void Player::playerStateLogic(const float& dt)
 			m_jumps = 0;
 			m_hasDashed = false;
 		}
+		else if (m_jumpPressed && !m_lastJumpPressed && m_jumps < ALLOWED_NR_OF_JUMPS)
+			jump(dt);
+		
 		break;
 
 	case PlayerState::JUMPING:
+
+		if (m_jumpPressed && (currentY - m_jumpStartY < JUMP_HEIGHT_FORCE_LIMIT)) // Jump Limit Not Reached
+		{
+			m_verticalMultiplier += JUMP_SPEED * m_playerScale * dt; // Apply Jump Force
+		}
 
 		if (directionalMovement.LengthSquared() > 0)
 		{
@@ -345,6 +360,8 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::JUMPING;
 			m_state = PlayerState::FALLING;
 		}
+		else if (m_jumpPressed && !m_lastJumpPressed && m_jumps < ALLOWED_NR_OF_JUMPS)
+			jump();
 
 		break;
 
@@ -366,6 +383,9 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::FALLING;
 			m_verticalMultiplier = 0.f;
 		}
+		else if (m_jumpPressed && !m_lastJumpPressed)
+			jump();
+
 		break;
 	case PlayerState::CANNON:
 		m_controller->setPosition(m_cannonEntity->getTranslation());
@@ -441,6 +461,7 @@ void Player::playerStateLogic(const float& dt)
 		//std::cout << m_verticalMultiplier << "\n";
 		//std::cout << m_currentSpeedModifier << "\n";
 
+
 		/*switch (m_state)
 		{
 		case PlayerState::DASH:		std::cout << "DASH\n"; break;
@@ -449,9 +470,8 @@ void Player::playerStateLogic(const float& dt)
 		case PlayerState::FALLING:	std::cout << "FALLING\n"; break;
 		case PlayerState::IDLE:		std::cout << "IDLE\n"; break;
 		default: break;
-		}*/
-
-		//std::cout << "\n";
+		}
+		std::cout << "\n";*/
 
 		m_timeCounter -= 0.1f;
 	}
@@ -743,6 +763,7 @@ void Player::handlePickupOnUse()
 		m_state = PlayerState::CANNON;
 		m_cameraOffset = Vector3(1.f, 2.5f, 0.f);
 		//Cannon on use
+		break;
 	default:
 		break;
 	}
@@ -755,7 +776,6 @@ void Player::handlePickupOnUse()
 
 void Player::inputUpdate(InputData& inputData)
 {
-
 	if (m_state == PlayerState::CANNON)
 	{
 		for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
@@ -768,18 +788,12 @@ void Player::inputUpdate(InputData& inputData)
 		}
 	}
 
-
 	this->setStates(inputData);
 
 	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
 	{
 		switch (inputData.actionData[i])
 		{
-		case JUMP:
-			if (m_state == PlayerState::IDLE || ((m_state == PlayerState::JUMPING || m_state == PlayerState::FALLING) && m_jumps < ALLOWED_NR_OF_JUMPS))
-				jump();
-			break;
-
 		case DASH:
 			if (m_state == PlayerState::IDLE)
 			{
@@ -839,7 +853,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 			direction.Normalize();
 			m_playerEntity->translate(direction);*/
 
-			jump();
+			jump(false);
 		}
 
 		//Checkpoints
@@ -1022,11 +1036,18 @@ void Player::serverPlayerAnimationChange(PlayerState currentState, float current
 
 void Player::jump(const bool& incrementCounter, const float& multiplier)
 {
-	m_currentDistance = 0;
-	m_state = PlayerState::JUMPING;
-	m_verticalMultiplier = JUMP_SPEED * m_playerScale;
-	if(incrementCounter)
+	if (incrementCounter)
+	{
+		m_state = PlayerState::JUMPING;
+		m_jumpStartY = m_playerEntity->getTranslation().y;
 		m_jumps++;
+	}
+	else
+		m_state = PlayerState::JUMPING;
+	
+	m_verticalMultiplier = 0;
+	m_currentDistance = 0;
+	m_verticalMultiplier += JUMP_START_SPEED * m_playerScale * multiplier; // Apply Jump Force
 }
 
 bool Player::canRoll() const

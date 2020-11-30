@@ -10,7 +10,7 @@ public:
 	MovementContext()
 	{
 		//Actions
-		m_actionMapping[' '] = Action::JUMP;
+		//m_actionMapping[' '] = Action::JUMP;
 		m_actionMapping['O'] = Action::PLAYSOUND;
 		m_actionMapping['P'] = Action::TEST_SCENE;
 		m_actionMapping['0'] = Action::LOAD_SCENE;
@@ -25,6 +25,7 @@ public:
 		m_stateMapping['S'] = State::WALK_BACKWARD;
 		m_stateMapping['D'] = State::WALK_RIGHT;
 		m_stateMapping['A'] = State::WALK_LEFT;
+		m_stateMapping[' '] = State::JUMPING;
 
 		//Range
 		m_rangeMapping[(char)'move'] = Range::REL; //Mouse position, can be used for UI and such. Leave it in here for example.

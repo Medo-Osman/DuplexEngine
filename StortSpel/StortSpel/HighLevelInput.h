@@ -27,7 +27,8 @@ enum State
 	WALK_FORWARD,
 	WALK_BACKWARD,
 	MENU_UP,
-	MENU_DOWN
+	MENU_DOWN,
+	JUMPING
 };
 
 enum Range

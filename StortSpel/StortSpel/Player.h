@@ -70,15 +70,22 @@ private:
     const float PLAYER_ACCELERATION = 50.f; // times dt
     const float PLAYER_DECELERATION = 30.f; // times dt
     const float PLAYER_ROTATION_SPEED = 0.08f;
-    float m_verticalMultiplier;
-    float m_horizontalMultiplier;
+    float m_verticalMultiplier = 0.f;
+    float m_horizontalMultiplier = 0.f;
     Vector3 m_movementVector;
     float m_timeCounter = 0.f;
 
     //JUMP CONFIG
-    const float JUMP_SPEED = 10.f;
+    const float JUMP_SPEED = 70.f;
+    const float JUMP_START_SPEED = 1.f;
+    //const float JUMP_SPEED = 10.f;
     const float PLAYER_AIR_ACCELERATION = 40.f;
     const float PLAYER_AIR_DECELERATION = 30.f;
+    float JUMP_HEIGHT_FORCE_LIMIT = 1.3f;
+
+    bool m_jumpPressed = false;
+    bool m_lastJumpPressed = false;
+    float m_jumpStartY = 0.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
 
@@ -103,42 +110,48 @@ private:
     const float MAX_TRANSITION_TIME = 0.2f; // Sec
     float m_transitionTime;
 
+    // Speed Powerup
     float m_currentSpeedModifier;
     float m_goalSpeedModifier;
     int m_speedModifierDuration;
     float m_speedModifierTime;
     const float FOR_FULL_EFFECT_TIME = 2.f;
 
-    int m_instructionGuiIndex = 0;
+    // Pickup
+    Pickup* m_pickupPointer;
+    Pickup* m_environmentPickup;
 
+    // UI
+    int m_instructionGuiIndex = 0;
     int closeInstructionsBtnIndex = 0;
 
-    float m_angleY;
+    // Movement
     float m_currentDistance;
     Vector3 m_moveDirection;
+    Vector3 m_velocity = Vector3();
+    Vector3 m_lastDirectionalMovement = Vector3();
+    Vector3 m_lastPosition = Vector3();
+    float m_previousVerticalMovement = 0.f;
+
+    // States
     PlayerState m_state;
     PlayerState m_lastState;
+
+    // Entity and Components
     Entity* m_playerEntity;
     AnimatedMeshComponent* m_animMesh;
     CharacterControllerComponent* m_controller;
     Transform* m_cameraTransform;
-    Pickup* m_pickupPointer;
-    Pickup* m_environmentPickup;
    
-    //CAnnon
+    //Cannon
     Entity* m_cannonEntity;
     bool m_shouldFire = false;
     Vector3 m_direction;
     Entity* m_3dMarker;
     Vector3 m_cameraOffset;
 
-    //
+    // Trap
     TrapType m_activeTrap;
-
-    Vector3 m_velocity = Vector3();
-    Vector3 m_lastDirectionalMovement = Vector3();
-    Vector3 m_lastPosition = Vector3();
-    float m_previousVerticalMovement = 0.f;
 
     // Score
     int m_score;
