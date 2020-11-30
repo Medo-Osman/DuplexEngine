@@ -73,6 +73,7 @@ void ResourceHandler::checkResources()
 	//=========================================== 
 
 	//=========================================== Audio
+	std::vector<std::wstring> audioIdsToRemove;
 	for (auto audioStruct : m_soundCache)
 	{
 		if (audioStruct.second->getRefCount() == 0)
@@ -81,12 +82,18 @@ void ResourceHandler::checkResources()
 
 			delete audioStruct.second;
 			audioStruct.second = nullptr;
+
+			audioIdsToRemove.push_back(audioStruct.first);
 			//std::cout << "delete texture: " << textureStruct.second->debugName << std::endl;
 
 			////delete textureStruct.second;
 			////textureStruct.second = nullptr;
 		}
+	}
 
+	for (int i = 0; i < audioIdsToRemove.size(); i++)
+	{
+		m_soundCache.erase(audioIdsToRemove[i]);
 	}
 	//=========================================== 
 }
@@ -580,10 +587,10 @@ void ResourceHandler::Destroy()
 	{
 		delete element.second;
 	}
-	for (std::pair<std::wstring, AudioResource*> element : m_soundCache)
+	/*for (std::pair<std::wstring, AudioResource*> element : m_soundCache)
 	{
 		delete element.second;
-	}
+	}*/
 
 	m_textureCache.clear();
 	m_meshCache.clear();
