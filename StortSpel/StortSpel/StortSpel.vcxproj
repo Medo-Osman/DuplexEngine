@@ -336,6 +336,7 @@
     <ClInclude Include="SpotLightComponent.h" />
     <ClInclude Include="SwingComponent.h" />
     <ClInclude Include="TestComponent.h" />
+    <ClInclude Include="ThunderAction.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="SlowTrapComponent.h" />

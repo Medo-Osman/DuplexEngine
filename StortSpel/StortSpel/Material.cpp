@@ -96,6 +96,11 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 	this->m_textureArray.push_back(ResourceHandler::get().loadTexture(fileName, isCubeMap));
 }
 
+void Material::swapTexture(const WCHAR* fileName, int index, bool isCubeMap)
+{
+	this->m_textureArray.at(index) = ResourceHandler::get().loadTexture(fileName, isCubeMap);
+}
+
 void Material::setUVScale(float scale)
 {
 	if (m_isDefault)

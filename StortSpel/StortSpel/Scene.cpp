@@ -1420,17 +1420,30 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 				if (platform)
 				{
 					platform->setPosition(Vector3(((float)x) * scaling + (x)*0.05f, 2, (float)(y) * scaling + (y)*0.05f) + platformPos);
-					platform->scale(scaling, 0.5f, scaling);
+					platform->scale(scaling, 9.f, scaling);
 					platform->addComponent("grow", new GrowingComponent(platform, platform->getScaling(), 8.f));
 					static_cast<GrowingComponent*>(platform->getComponent("grow"))->setDone(true);
 					platform->addComponent("shrink", new ShrinkingComponent(platform, Vector3(0.01, 0.01, 0.01), 8.f));
 					static_cast<ShrinkingComponent*>(platform->getComponent("shrink"))->setDone(true);
 
+					Material emissiveMat({ L"DarkGrayTexture.png", L"BlueEmissive.png" });
+					emissiveMat.setEmissiveStrength(40);
+					sceneObject->addComponent(platform, "mesh", new MeshComponent("BossPlatform.lrm", 
+						{
+							EMISSIVE,
+							DEFAULT,
+							DEFAULT
+						},
+						{
+							emissiveMat,
+							Material({ L"DarkGrayTexture.png" }),
+							Material({ L"DarkGrayTexture.png" })
+						}));
 
-					sceneObject->addComponent(platform, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
 					sceneObject->createNewPhysicsComponent(platform);
 
 					(*platformArray)[x][y] = platform;
+
 				}
 
 			}
@@ -1502,9 +1515,12 @@ void Scene::updateScene(const float& dt)
 		if (m_boss->getActionQueue()->size() == 0)
 		{
 			BossStructures::IntVec platformTargetIndex = m_boss->getNewPlatformTarget();
-			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
-			m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 2)); //Wait before moving again
-			m_boss->addAction(new ShootLaserAction(m_boss->m_bossSegments.at(0)->m_bossEntity, m_boss, 4));
+			//m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
+			//m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 2)); //Wait before moving again
+			//m_boss->addAction(new ShootLaserAction(m_boss->m_bossSegments.at(0)->m_bossEntity, m_boss, 4));
+			//m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
+			m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 5)); //Wait before moving again
+			m_boss->addAction(new ThunderAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, &m_displacedPlatforms));
 		}
 
 		ShootProjectileAction* ptr = dynamic_cast<ShootProjectileAction*>(m_boss->getCurrentAction());
@@ -1819,7 +1835,15 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 	}
 
+	if (type == BossMovementType::SpawnParticlesOnPlatform)
+	{
+		Entity* platformEntity = static_cast<Entity*>(data.pointer0);
+		MeshComponent* platformMeshComponent = (MeshComponent*)(platformEntity->getComponent("mesh"));
+		Material* platformMaterial = platformMeshComponent->getMaterialPtr(0);
 
+		platformMaterial->swapTexture(L"RedEmissive.png", 1);
+	}
+	
 }
 
 void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)
@@ -2032,6 +2056,12 @@ void Scene::checkPlatforms(float dt)
 
 		if (currTime > lifeTime && displacedPlatformStruct.second->displaced)
 		{
+			Entity* platformEntity = displacedPlatformStruct.second->entity;
+			MeshComponent* platformMeshComponent = (MeshComponent*)(platformEntity->getComponent("mesh"));
+			Material* platformMaterial = platformMeshComponent->getMaterialPtr(0);
+
+			platformMaterial->swapTexture(L"BlueEmissive.png", 1);
+
 			PhysicsComponent* comp = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
 			Vector3 currPos = comp->getActorPosition();
 			comp->setPosition(currPos - displacedPlatformStruct.second->offsetBy);
