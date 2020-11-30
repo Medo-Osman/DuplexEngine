@@ -40,6 +40,12 @@ public:
 		m_components.clear();
 	}
 
+	void onSceneLoad()
+	{
+		for (auto& component : m_components)
+			component.second->onSceneLoad();
+	}
+
 	void update(const float &dt)
 	{
 		for (auto& component : m_components)
@@ -58,7 +64,6 @@ public:
 		newComponent->setParentEntityIdentifier(m_identifier);
 		m_components[newComponentName] = newComponent;
 		m_components[newComponentName]->setComponentMapPointer(&m_components);
-
 	}
 	
 	void removeComponent(Component* component)
@@ -88,6 +93,20 @@ public:
 				compVec.push_back(component.second);
 			}
 		}
+	}
+
+	bool hasComponentsOfType(ComponentType type)
+	{
+		bool hasType = false;
+
+		for (std::pair<std::string, Component*> component : m_components)
+			if (component.second->getType() == type)
+			{
+				hasType = true;
+				break;
+			}
+
+		return hasType;
 	}
 
 	bool m_canCull = true;

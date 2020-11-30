@@ -2,8 +2,7 @@
 #include "3DPCH.h"
 #include <string>
 
-
-enum class ComponentType { MESH, AUDIO, PHYSICS, CHARACTERCONTROLLER, TRIGGER, TEST, INVALID, UNASSIGNED, ROTATEAROUND, ROTATE, LIGHT, SWEEPING, FLIPPING, CHECKPOINT, TRAP, PARTICLE, PROJECTILE, GROW, SHRINK };
+enum class ComponentType { MESH, ANIM_MESH, AUDIO, PHYSICS, CHARACTERCONTROLLER, TRIGGER, TEST, INVALID, UNASSIGNED, ROTATEAROUND, ROTATE, LIGHT, SWEEPING, FLIPPING, CHECKPOINT, TRAP, PARTICLE, PROJECTILE, GROW, SHRINK, SWING};
 
 class Component
 {
@@ -71,6 +70,8 @@ public:
 	{
 		m_identifier = identifier;
 	}
+
+	virtual void onSceneLoad() {}
 
 	// Update
 	virtual void update(float dt) = 0;

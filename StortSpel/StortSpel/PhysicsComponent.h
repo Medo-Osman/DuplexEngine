@@ -18,9 +18,15 @@ private:
 	bool m_controllRotation;
 	bool m_kinematic;
 	bool m_slide;
+	bool m_hasMirrored;
 
-	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, LRM_VERTEX vertexArray[], const int vertexCount)
+	Vector3 m_centerOffset = {0.f, 0.f, 0.f};
+	Vector3 m_meshOffset = {0.f, 0.f, 0.f};
+
+	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, MeshResource* meshResource, Vector3 scale = {1, 1, 1 })
 	{
+		PxTriangleMesh* tringMesh;
+		PositionVertex* vertexArray;
 		PxGeometry* createdGeometry = nullptr;
 		XMFLOAT3 vec = XMFLOAT3((max.x - min.x) / 2, (max.y - min.y) / 2, (max.z - min.z) / 2);
 		switch (geometryType)
@@ -34,9 +40,11 @@ private:
 			XMFLOAT3 center = { (max.x + min.x) * 0.5f, (max.y + min.y) * 0.5f, (max.z + min.z) * 0.5f };
 			float radius;
 			radius = 0;
-			for (int i = 0; i < vertexCount; i++)
+			vertexArray = meshResource->getVertexArray();
+
+			for (int i = 0; i < meshResource->getVertexArraySize(); i++)
 			{
-				XMFLOAT3 position = vertexArray[i].pos;
+				XMFLOAT3 position = vertexArray[i].position;
 				float tempDist = sqrt((position.x - center.x) * (position.x - center.x)
 					+ (position.y - center.y) * (position.y - center.y)
 					+ (position.z - center.z) * (position.z - center.z));
@@ -48,6 +56,10 @@ private:
 			break;
 		case physx::PxGeometryType::eBOX:
 			createdGeometry = new physx::PxBoxGeometry((max.x - min.x) / 2, (max.y - min.y) / 2, (max.z - min.z) / 2);
+			break;
+		case physx::PxGeometryType::eTRIANGLEMESH:
+			tringMesh = m_physicsPtr->getTriangleMeshe(meshResource->getFilePath(), meshResource->getVertexArraySize(), meshResource->getVertexArray(), meshResource->getIndexArraySize(), meshResource->getIndexArray(), m_centerOffset);
+			createdGeometry = new physx::PxTriangleMeshGeometry(tringMesh, PxMeshScale(PxVec3(scale.x, scale.y, scale.z)), PxMeshGeometryFlag::eDOUBLE_SIDED);
 			break;
 		default:
 			break;
@@ -107,14 +119,26 @@ public:
 
 	void initActorAndShape(int sceneID, Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
 	{
+		bool forceMakeKinematic = geometryType == PxGeometryType::eTRIANGLEMESH && dynamic;
 		m_dynamic = dynamic;
 		m_transform = entity;
 		XMFLOAT3 scale = entity->getScaling() * meshComponent->getScaling();
 		std::string name = meshComponent->getFilePath() + std::to_string(geometryType);
-		PxGeometry* geometry;
-		m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), m_transform->getRotation(), dynamic, this, sceneID);
+		PxGeometry* geometry; 
+		XMFLOAT3 boundsCenter;
+		m_meshOffset = meshComponent->getTranslation();
+		if (geometryType == PxGeometryType::eTRIANGLEMESH)
+		{
+			boundsCenter = { 0, 0, 0 };
+		}
+		else
+		{
+			meshComponent->getMeshResourcePtr()->getBoundsCenter(boundsCenter);
+			boundsCenter = boundsCenter * scale;
+		}
+		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshComponent->getTranslation() + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this, sceneID, forceMakeKinematic);
 		bool addGeom = true;
-
+		m_centerOffset = boundsCenter;
 		if (this->canAddGeometry())
 		{
 			if (!unique)
@@ -259,7 +283,7 @@ public:
 
 		if (!bb)
 		{
-			bb = createPrimitiveGeometry(geometry, min, max, meshComponent->getMeshResourcePtr()->getVertexArray(), meshComponent->getMeshResourcePtr()->getVertexBuffer().getSize());
+			bb = createPrimitiveGeometry(geometry, min, max, meshComponent->getMeshResourcePtr());
 			if(saveGeometry)
 				m_physicsPtr->addGeometry(name, bb);
 		}
@@ -310,9 +334,17 @@ public:
 	// Update
 	void update(float dt) override 
 	{
-		m_transform->setPosition(this->getActorPosition());
-		if(m_controllRotation)
-			m_transform->setRotationQuat(this->getActorQuaternion());
+		//IF we check if it is static, We don't mirror the transform in the first place.
+		if (m_dynamic || !m_hasMirrored)
+		{
+			m_transform->setPosition(this->getActorPosition() - m_centerOffset - m_meshOffset);
+			if (m_controllRotation)
+				m_transform->setRotationQuat(this->getActorQuaternion());
+
+			m_hasMirrored = true;
+		}
+
+		
 	}
 
 	XMFLOAT3 getActorPosition()

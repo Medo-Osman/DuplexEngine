@@ -222,9 +222,9 @@
     <ClCompile Include="AudioHandler.cpp" />
     <ClCompile Include="Boss.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Component.h" />
+    <ClInclude Include="Component.h" />
     <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="Entity.h" />
+    <ClInclude Include="Entity.h" />
     <ClCompile Include="GUIHandler.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
@@ -273,6 +273,7 @@
     <ClInclude Include="CheckpointComponent.h" />
     <ClInclude Include="CompileShaderUtility.h" />
     <ClInclude Include="ConstantBufferTypes.h" />
+    <ClInclude Include="DataHelper.h" />
     <ClInclude Include="FlippingComponent.h" />
     <ClInclude Include="GrowingComponent.h" />
     <ClInclude Include="GUIButton.h" />
@@ -316,7 +317,10 @@
     <ClInclude Include="AudioResource.h" />
     <ClInclude Include="SpeedPickup.h" />
     <ClInclude Include="SweepingComponent.h" />
-    <ClInclude Include="PhysicsComponent.h" />
+    <ClInclude Include="PhysicsComponent.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="PhysicsMaterial.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Input.h" />
@@ -332,6 +336,7 @@
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="SkeletalMeshResource.h" />
     <ClInclude Include="SpotLightComponent.h" />
+    <ClInclude Include="SwingComponent.h" />
     <ClInclude Include="TestComponent.h" />
     <ClInclude Include="TextureResource.h" />
     <ClInclude Include="Timer.h" />
