@@ -105,7 +105,7 @@ private:
     float m_transitionTime;
 
     //Cannon Config
-    const float CANNON_POWER = 100;
+    const float CANNON_POWER = 80;
 
 
     float m_currentSpeedModifier;
