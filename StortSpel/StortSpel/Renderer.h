@@ -128,6 +128,9 @@ public:
 	void operator=(Renderer const&) = delete;
 	void setPointLightRenderStruct(lightBufferStruct& buffer);
 
+	void setFullScreen(BOOL val);
+
+	void resizeBackbuff(int x, int y);
 	static Renderer& get()
 	{
 		static Renderer instance;

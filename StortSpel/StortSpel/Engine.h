@@ -34,8 +34,8 @@ class Engine
 private:
 	Engine();
 
-	static const int m_startWidth = 1920;
-	static const int m_startHeight = 1080;
+	//static const int m_startWidth = ApplicationLayer::getInstance().m_width;
+	//static const int m_startHeight = ApplicationLayer::m_height;
 
 
 	ID3D11Device* m_devicePtr = NULL;

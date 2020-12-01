@@ -9,8 +9,14 @@
 
 Engine::Engine()
 {
-	m_settings.width = m_startWidth;
-	m_settings.height = m_startHeight;
+	//static const int m_startWidth = ApplicationLayer::getInstance().m_width;
+	//static const int m_startHeight = ApplicationLayer::m_height;
+
+	int x = ApplicationLayer::getInstance().m_width;
+	int y = ApplicationLayer::getInstance().m_height;
+
+	m_settings.width = x;
+	m_settings.height = y;
 }
 
 Engine& Engine::get()
@@ -24,6 +30,8 @@ Engine::~Engine()
 	if (m_player)
 		delete m_player;
 
+	//static const int m_startWidth = ApplicationLayer::getInstance().m_width;
+	//static const int m_startHeight = ApplicationLayer::m_height;
 	//for (std::pair<std::string, Entity*> entity : m_entities)
 	//	delete entity.second;
 
@@ -204,6 +212,8 @@ void Engine::initialize(Input* input)
 	// Audio Handler needs Camera Transform ptr for 3D positional audio
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
 	Material::readMaterials();
+
+	Renderer::get().setFullScreen(true);
 }
 
 void Engine::updateLightData()
