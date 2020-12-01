@@ -119,6 +119,7 @@ public:
 
 	void initActorAndShape(int sceneID, Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
 	{
+		bool loaded = false;
 		bool forceMakeKinematic = geometryType == PxGeometryType::eTRIANGLEMESH && dynamic;
 		m_dynamic = dynamic;
 		m_transform = entity;
@@ -153,7 +154,7 @@ public:
 					}
 					else //Create shape and add shape for sharing
 					{
-						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true);
+						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true, loaded);
 						m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
 						m_physicsPtr->addShapeForSharing(m_shape, name);
 					}
@@ -163,9 +164,10 @@ public:
 			}
 			if (addGeom)
 			{
-				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false);
+				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false, loaded);
 				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
-				delete geometry;
+				if(!loaded)
+					delete geometry;
 			}
 
 		}
@@ -272,7 +274,7 @@ public:
 	}
 
 
-	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool saveGeometry)
+	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool saveGeometry, bool &outLoaded)
 	{
 		XMFLOAT3 min, max;
 		PxGeometry* bb = nullptr;
@@ -284,9 +286,11 @@ public:
 		if (!bb)
 		{
 			bb = createPrimitiveGeometry(geometry, min, max, meshComponent->getMeshResourcePtr());
-			if(saveGeometry)
+			if (saveGeometry)
 				m_physicsPtr->addGeometry(name, bb);
 		}
+		else
+			outLoaded = true;
 		
 		return bb;
 	}
