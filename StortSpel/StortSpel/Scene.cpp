@@ -1834,6 +1834,27 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 }
 
+Entity* Scene::addTrampoline(Vector3 position)
+{
+	Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
+	trampoline->setPosition(position);
+	addComponent(trampoline, "mesh1",
+		new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+	addComponent(trampoline, "mesh2",
+		new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
+	addComponent(trampoline, "mesh3",
+		new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
+
+	createNewPhysicsComponent(trampoline, false);
+	TriggerComponent* triggerComponent = new TriggerComponent();
+	triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
+	triggerComponent->setIntData(0);
+	trampoline->addComponent("heightTrigger", triggerComponent);
+	triggerComponent->initTrigger(m_sceneID, trampoline, { 0.4f, 0.1, 0.4f }, { 0.f, 1.f, 0.f });
+
+	return trampoline;
+}
+
 void Scene::reactOnPlayer(PlayerMessageData& msg)
 {
 
@@ -1843,21 +1864,7 @@ void Scene::reactOnPlayer(PlayerMessageData& msg)
 		{
 			//Create a trampoline entity
 			Vector3 trampolineSpawnPos = m_player->getPlayerEntity()->getTranslation();
-			Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
-			trampoline->setPosition(trampolineSpawnPos);
-			addComponent(trampoline, "mesh1",
-				new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
-			addComponent(trampoline, "mesh2",
-				new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
-			addComponent(trampoline, "mesh3",
-				new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
-
-			createNewPhysicsComponent(trampoline, false);
-			TriggerComponent* triggerComponent = new TriggerComponent();
-			triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
-			triggerComponent->setIntData(0);
-			trampoline->addComponent("heightTrigger", triggerComponent);
-			triggerComponent->initTrigger(m_sceneID, trampoline, { 0.4f, 0.1, 0.4f }, { 0.f, 1.f, 0.f });
+			Entity* trampoline = addTrampoline(trampolineSpawnPos);
 		}
 
 		if ((PickupType)msg.intEnum == PickupType::CANNON)

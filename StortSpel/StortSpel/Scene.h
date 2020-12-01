@@ -196,5 +196,6 @@ public:
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
+	Entity* addTrampoline(Vector3 position);
 	virtual void reactOnPlayer(PlayerMessageData& msg);
 };
