@@ -55,6 +55,13 @@ private:
 			createdGeometry = new physx::PxSphereGeometry(radius);
 			break;
 		case physx::PxGeometryType::eBOX:
+			if (max.y == min.y)
+				max.y += 0.1f;
+			if (max.x == min.x)
+				max.x += 0.1f;
+			if (max.z == min.z)
+				max.z += 0.1f;
+
 			createdGeometry = new physx::PxBoxGeometry((max.x - min.x) / 2, (max.y - min.y) / 2, (max.z - min.z) / 2);
 			break;
 		case physx::PxGeometryType::eTRIANGLEMESH:
