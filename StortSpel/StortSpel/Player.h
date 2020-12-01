@@ -63,12 +63,10 @@ public:
 class Player : public InputObserver, public PhysicsObserver, public GUIObserver, public PlayerSubject
 {
 private:
-    float m_playerScale = 2.0f;
-
     //WALK CONFIG
-    const float PLAYER_MAX_SPEED = 10.f;
-    const float PLAYER_ACCELERATION = 50.f; // times dt
-    const float PLAYER_DECELERATION = 30.f; // times dt
+    const float PLAYER_MAX_SPEED = 5.f;
+    const float PLAYER_ACCELERATION = 30.f; // times dt
+    const float PLAYER_DECELERATION = 15.f; // times dt
     const float PLAYER_ROTATION_SPEED = 0.08f;
     float m_verticalMultiplier = 0.f;
     float m_horizontalMultiplier = 0.f;
@@ -77,11 +75,12 @@ private:
 
     //JUMP CONFIG
     const float JUMP_SPEED = 70.f;
-    const float JUMP_START_SPEED = 1.f;
+    const float JUMP_START_SPEED = 4.f;
     //const float JUMP_SPEED = 10.f;
-    const float PLAYER_AIR_ACCELERATION = 40.f;
-    const float PLAYER_AIR_DECELERATION = 30.f;
-    float JUMP_HEIGHT_FORCE_LIMIT = 1.3f;
+    const float PLAYER_AIR_ACCELERATION = 20.f;
+    const float PLAYER_AIR_DECELERATION = 15.f;
+    const float JUMP_HEIGHT_FORCE_LIMIT = 1.0f;
+    float m_jumpLimit = JUMP_HEIGHT_FORCE_LIMIT;
 
     bool m_jumpPressed = false;
     bool m_lastJumpPressed = false;
@@ -95,17 +94,17 @@ private:
     float m_gravityScale = 4.f;
 
     //DASH CONFIG 
-    const float DASH_TRAVEL_DISTANCE = 10.f;
-    const float DASH_SPEED = 50.0f;
-    const float DASH_OUT_SPEED = 20.0f;
+    const float DASH_TRAVEL_DISTANCE = 3.f;
+    const float DASH_SPEED = 30.0f;
+    const float DASH_OUT_SPEED = 10.0f;
     float m_beginDashSpeed = -1.f;
     bool m_hasDashed;
 
     //Roll CONFIG
     const float ROLL_TRAVEL_DISTANCE = 30.f;
     const float ROLL_SPEED = 50.0f;
-    const float ROLL_HEIGHT = 0.4f;
-    const float ROLL_RADIUS = 0.4f;
+    const float ROLL_HEIGHT = 0.2f;
+    const float ROLL_RADIUS = 0.2f; // not used
     const float ROLL_TRANSITION_SPEED = 8.0f;
     const float MAX_TRANSITION_TIME = 0.2f; // Sec
     float m_transitionTime;
@@ -141,14 +140,17 @@ private:
     Entity* m_playerEntity;
     AnimatedMeshComponent* m_animMesh;
     CharacterControllerComponent* m_controller;
-    Transform* m_cameraTransform;
    
+    // Camera
+    Transform* m_cameraTransform;
+    const Vector3 ORIGINAL_CAMERA_OFFSET = Vector3(0.f, 0.0f, 2.5f);
+    Vector3 m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
+
     //Cannon
     Entity* m_cannonEntity;
     bool m_shouldFire = false;
     Vector3 m_direction;
     Entity* m_3dMarker;
-    Vector3 m_cameraOffset;
 
     // Trap
     TrapType m_activeTrap;
@@ -242,8 +244,6 @@ public:
 
     void increaseScoreBy(int value);
     void respawnPlayer();
-
-    float getPlayerScale() const;
 
     int getScore();
     void setScore(int newScore);

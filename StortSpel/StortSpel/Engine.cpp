@@ -197,7 +197,7 @@ void Engine::initialize(Input* input)
 	// - Mesh Componenet
 	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
 	playerEntity->addComponent("mesh", animMeshComp);
-	playerEntity->setScaleUniform(0.5);
+	playerEntity->setScaleUniform(0.5f);
 
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);

@@ -267,7 +267,7 @@ void Player::playerStateLogic(const float& dt)
 			}
 			
 			m_controller->setControllerSize(m_controller->getOriginalHeight());
-			m_cameraOffset = Vector3(0.f, 0.f, 0.f);
+			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
 			idleAnimation();
 		}
 		else
@@ -343,9 +343,14 @@ void Player::playerStateLogic(const float& dt)
 
 	case PlayerState::JUMPING:
 
-		if (m_jumpPressed && (currentY - m_jumpStartY < JUMP_HEIGHT_FORCE_LIMIT)) // Jump Limit Not Reached
+		if (m_jumps == 1)
+			m_jumpLimit = JUMP_HEIGHT_FORCE_LIMIT;
+		else
+			m_jumpLimit = JUMP_HEIGHT_FORCE_LIMIT * .8f;
+
+		if (m_jumpPressed && (currentY - m_jumpStartY < m_jumpLimit)) // Jump Limit Not Reached
 		{
-			m_verticalMultiplier += JUMP_SPEED * m_playerScale * dt; // Apply Jump Force
+			m_verticalMultiplier += JUMP_SPEED * dt; // Apply Jump Force
 		}
 
 		if (directionalMovement.LengthSquared() > 0)
@@ -404,7 +409,7 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::CANNON;
 			m_direction = m_cameraTransform->getForwardVector();
 			m_velocity = m_direction;
-			m_cameraOffset = Vector3(0.f, 0.f, 0.f);
+			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
 			m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
 		}
@@ -713,11 +718,6 @@ void Player::respawnPlayer()
 	m_velocity = Vector3();
 	m_horizontalMultiplier = 0.f;
 	m_verticalMultiplier = 0.f;
-}
-
-float Player::getPlayerScale() const
-{
-	return this->m_playerScale;
 }
 
 int Player::getScore()
@@ -1050,10 +1050,14 @@ void Player::jump(const bool& incrementCounter, const float& multiplier)
 	}
 	else
 		m_state = PlayerState::JUMPING;
-	
-	m_verticalMultiplier = 0;
+
+	if (m_jumps == 1)
+		startJump_First();
+	else
+		startJump_Second();
+
 	m_currentDistance = 0;
-	m_verticalMultiplier += JUMP_START_SPEED * m_playerScale * multiplier; // Apply Jump Force
+	m_verticalMultiplier = JUMP_START_SPEED * multiplier; // Apply Jump Force
 }
 
 bool Player::canRoll() const
@@ -1105,20 +1109,20 @@ void Player::dashAnimation()
 void Player::idleAnimation()
 {
 	m_animMesh->playBlendState("runOrIdle", 0.3f);
-	m_animMesh->setAnimationSpeed(1.0f);
+	m_animMesh->setAnimationSpeed(1.5f);
 }
 
 void Player::startJump_First()
 {
-	m_animMesh->playSingleAnimation("JumpStart_First", 0.1f, true, false);
+	m_animMesh->playSingleAnimation("JumpStart_First", 0.01f, true, false);
 	m_animMesh->queueSingleAnimation("JumpLoop_First", 0.f, true, false);
 }
 
 void Player::endJump_First()
 {
-	m_animMesh->playSingleAnimation("JumpEnd_First", 0.02f, false, false);
+	m_animMesh->playSingleAnimation("JumpEnd_First", 0.01f, false, false);
 	//m_animMesh->setAnimationSpeed(0.1f);
-	m_animMesh->queueBlendState("runOrIdle", 0.3f);
+	m_animMesh->queueBlendState("runOrIdle", 0.05f);
 }
 
 void Player::startJump_Second()

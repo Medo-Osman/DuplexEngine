@@ -961,6 +961,18 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->createSpotLight(Vector3(-11.f, 50.f, 275.f), Vector3(-35.f, 0.f, 0.f), Vector3(1.f, 0.f, 0.f), 0.3f);
 
+	for (size_t i = 0; i < 10; i++)
+	{
+		Entity* block = sceneObject->addEntity("block" + std::to_string(i));
+		if (block)
+		{
+			sceneObject->addComponent(block, "mesh",
+				new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+			block->setPosition({ (float)i + (2 * (float)i), 7.5f, 0 });
+			sceneObject->createNewPhysicsComponent(block, false, "", PxGeometryType::eBOX, "earth", false);
+		}
+	}
+
 	*finished = true;
 }
 
