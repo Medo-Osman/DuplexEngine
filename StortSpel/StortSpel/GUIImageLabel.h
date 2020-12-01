@@ -46,6 +46,11 @@ public:
 	{
 		texture = ResourceHandler::get().loadTexture(texturePath.data());
 	}
+	
+	void setStyle(GUIImageStyle style)
+	{
+		m_style = style;
+	}
 
 	void render(SpriteBatch* spriteBatch) override
 	{

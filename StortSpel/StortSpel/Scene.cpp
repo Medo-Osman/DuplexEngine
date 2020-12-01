@@ -1406,6 +1406,15 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 
 void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 {
+	sceneObject->imageStyle.position = Vector2(400.f, 50.f);
+	sceneObject->imageStyle.scale = Vector2(1.f, 0.8f);
+	sceneObject->m_bossHP_barGuiIndex = GUIHandler::get().addGUIImage(L"BossHP-bar.png", sceneObject->imageStyle);
+
+	sceneObject->imageStyle.position = Vector2(400.f, 50.f);
+	sceneObject->imageStyle.scale = Vector2(1.f, 0.8f);
+	sceneObject->m_bossHP_barBackgroundGuiIndex = GUIHandler::get().addGUIImage(L"BossHP-barBG.png", sceneObject->imageStyle);
+
+
 	sceneObject->createStaticPlatform(Vector3(0, 15, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
 	sceneObject->m_sceneEntryPosition = Vector3(0, 17, 20);
 
@@ -1419,12 +1428,14 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		sceneObject->m_boss = new Boss();
 		sceneObject->m_boss->Attach(sceneObject);
 		sceneObject->m_boss->initialize(bossEnt, true);
+		sceneObject->m_boss->setNrOfMaxStars(100);
+		sceneObject->m_endBossAtPecentNrOfStarts = 0; // if this is 0 the end secene will be triggered
 
 		//// Init grid structure
 		BossStructures::PlatformArray* platformArray = &sceneObject->m_boss->platformArray;
 		float spacingBetweenPlatforms = 1.f;
 		int total = 0;
-		float scaling = 10.f;
+		float scaling = 5.f;
 		Vector3 platformPos = Vector3(15, 0, 15);
 		for (int x = 0; x < platformArray->columns.size(); x++)
 		{
@@ -1470,8 +1481,9 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		sceneObject->addCheckpoint(sceneObject->m_sceneEntryPosition + Vector3(0, 0, 0));
 		Physics::get().Attach(sceneObject->m_boss, true, false);
 
+
 		//Generate a set of segments on the boss, primarily to display the interface.
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < 2; i++)
 		{
 			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
 			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("Boss_Bot.lrm", Material({ L"DarkGrayTexture.png" })));
@@ -1481,7 +1493,8 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 			projectileSegment->initializeSegment(segmentEntity, false);
 			projectileSegment->m_entityOffset = Vector3(0, 3 * sceneObject->m_boss->m_bossSegments.size(), 0);
 			sceneObject->m_boss->addSegment(projectileSegment);
-			sceneObject->createNewPhysicsComponent(segmentEntity, false, "mesh");
+			sceneObject->createNewPhysicsComponent(segmentEntity, true, "mesh");
+			segmentEntity->getComponentsByType<PhysicsComponent>(ComponentType::PHYSICS)->makeKinematic();
 			projectileSegment->Attach(sceneObject);
 
 			//This is to add actions to the segment just generated, they will however shoot independently of the boss moving aroud.
@@ -1491,7 +1504,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 
 		//Add the head of the boss, just another mesh in the boss entity.
 		MeshComponent* headComponent = new MeshComponent("Boss_Top.lrm", Material({ L"DarkGrayTexture.png" }));
-		headComponent->setPosition(0, (3 * sceneObject->m_boss->m_bossSegments.size()), 0);
+		headComponent->setPosition(0, (2 * sceneObject->m_boss->m_bossSegments.size()), 0);
 		sceneObject->addComponent(bossEnt, "meshHead", headComponent);
 
 		//Add custom action
@@ -1527,17 +1540,17 @@ void Scene::updateScene(const float& dt)
 
 		//This is the primary action loop of the boss.
 		//If boss it not moving, pick a new target at random, wait for two seconds, then shoot. Start over.
-		if (m_boss->getActionQueue()->size() == 0)
+		if (m_boss->getActionQueue()->size() == 0 && m_boss->getCurrnentNrOfStars() >= 0)
 		{
 			BossStructures::IntVec platformTargetIndex = m_boss->getNewPlatformTarget();
-			//m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
+			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
 			//m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 2)); //Wait before moving again
 			//m_boss->addAction(new ShootLaserAction(m_boss->m_bossSegments.at(0)->m_bossEntity, m_boss, 4));
 			//m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
-			m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 5)); //Wait before moving again
+			//m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 5)); //Wait before moving again
 			m_boss->addAction(new ThunderAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, &m_displacedPlatforms));
 		}
-
+		
 		ShootProjectileAction* ptr = dynamic_cast<ShootProjectileAction*>(m_boss->getCurrentAction());
 		if (ptr)
 			ptr->setTarget(static_cast<CharacterControllerComponent*>(m_player->getPlayerEntity()->getComponent("CCC"))->getFootPosition() + Vector3(0, 1, 0));
@@ -1837,6 +1850,13 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 			Entity* projectile = static_cast<Entity*>(data.pointer0);
 			Component* component = projectile->getComponent("projectile");
 
+			m_boss->dropStar(1);
+			float c = float(m_boss->getCurrnentNrOfStars()) / float(m_boss->getNrOfMaxStars());
+		if (m_boss->getCurrnentNrOfStars() > -1)
+		{
+			imageStyle.scale = Vector2(c, 0.8f);
+			GUIHandler::get().setImageStyle(m_bossHP_barGuiIndex, imageStyle);
+
 			if (component != nullptr)
 			{
 				ProjectileComponent* projComponent = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
@@ -1845,8 +1865,19 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 				deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
 			}
 			else
-				addScore(data.origin+Vector3(0,5,0));
+				addScore(data.origin + Vector3(0, 5, 0));
+		}
 
+
+
+			if (c <= m_endBossAtPecentNrOfStarts * 0.01)
+			{
+				removeBoss();
+				if (m_endBossAtPecentNrOfStarts != 0)
+					createPortal();
+				else
+					createEndScenePortal();
+			}
 
 	}
 
@@ -2137,6 +2168,68 @@ bool Scene::findPlatformAlready(Entity* entity)
 
 
 	return found;
+}
+
+void Scene::removeBoss()
+{
+	for (int i = 0; i < m_boss->getActionQueue()->size(); i++)
+		delete m_boss->getActionQueue()->at(i);
+
+	m_boss->getActionQueue()->clear();
+	
+	UINT id = m_boss->addAction(new MoveToAction(m_boss->m_bossEntity, m_boss, Vector3(0, 10000, 0), 100000));
+	GUIHandler::get().setVisible(m_bossHP_barGuiIndex, false);
+	GUIHandler::get().setVisible(m_bossHP_barBackgroundGuiIndex, false);
+}
+
+void Scene::createPortal()
+{
+	Entity* goalTrigger = addEntity("trigger");
+	if (goalTrigger)
+	{
+		addComponent(goalTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
+		
+		float a = m_boss->getNrOfPlatforms();
+		a = float(ceil(a / 2));
+		a = 5 * a;
+		a = a + 10;
+		goalTrigger->setPosition(10, 5, a);
+		goalTrigger->setScale(5, 5, 5);
+
+		addComponent(goalTrigger, "trigger",
+			new TriggerComponent());
+
+		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
+		tc->initTrigger(m_sceneID, goalTrigger, XMFLOAT3(1, 1, 1));
+		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
+		tc->setIntData((int)ScenesEnum::ARENA);
+	}
+}
+
+void Scene::createEndScenePortal()
+{
+	Entity* endSceneTrigger = addEntity("endSceneTrigger");
+	if (endSceneTrigger)
+	{
+		addComponent(endSceneTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
+
+		float a = m_boss->getNrOfPlatforms();
+		a = float(ceil(a / 2));
+		a = 5 * a;
+		a = a + 10;
+		endSceneTrigger->setPosition(Vector3(10, 5, a));
+		endSceneTrigger->setScale(5, 5, 5);
+
+		addComponent(endSceneTrigger, "endSceneTrigger",
+			new TriggerComponent());
+
+		TriggerComponent* tc = static_cast<TriggerComponent*>(endSceneTrigger->getComponent("endSceneTrigger"));
+		tc->initTrigger(m_sceneID, endSceneTrigger, XMFLOAT3(1.0f, 1.0f, 1.0f));
+		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
+		tc->setIntData((int)ScenesEnum::ENDSCENE);
+	}
 }
 
 void Scene::setScoreVec()

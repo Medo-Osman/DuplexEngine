@@ -19,10 +19,13 @@
 class Boss : public PhysicsObserver, public BossSegment
 {
 private:
+	int m_maxStarCount = 0;
+	int m_currentStarCount = 0;
+	const int NR_OF_PLATFORMS = 5;
 public:
 
 
-	BossStructures::PlatformArray platformArray = BossStructures::PlatformArray(10);
+	BossStructures::PlatformArray platformArray = BossStructures::PlatformArray(NR_OF_PLATFORMS);
 	Vector2 currentPlatformIndex = Vector2(0, 0);
 	std::vector<BossSegment*> m_bossSegments;
 
@@ -32,6 +35,12 @@ public:
 	void initialize(Entity* entity, bool destroyActionOnComplete = true);
 	void addSegment(BossSegment* segment);
 	BossStructures::IntVec getNewPlatformTarget();
+
+	void dropStar(int dropAmount);
+	int getCurrnentNrOfStars();
+	void setNrOfMaxStars(int maxValue);
+	int getNrOfMaxStars();
+	int getNrOfPlatforms();
 
 	// Inherited via PhysicsObserver
 	virtual void sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity) override;

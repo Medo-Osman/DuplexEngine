@@ -14,6 +14,8 @@ namespace BossStructures
 		Vector3 origin;
 		Vector3 rotation;
 		float speed = 0;
+		int maxStarCount;
+		int currentStarCount;
 		void* pointer0 = nullptr;
 	};
 

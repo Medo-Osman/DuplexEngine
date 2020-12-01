@@ -66,6 +66,20 @@ public:
 			
 		return m_components[componentName];
 	}
+
+	template<typename T>
+	T* getComponentsByType(ComponentType type)
+	{
+		for (std::pair<std::string, Component*> component : m_components)
+		{
+			if (component.second->getType() == type)
+			{
+				return static_cast<T*>(component.second);
+			}
+		}
+		return nullptr;
+	}
+
 	
 	void getComponentsOfType(std::vector<Component*> &compVec, ComponentType type)
 	{

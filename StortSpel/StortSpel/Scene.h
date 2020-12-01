@@ -67,7 +67,13 @@ private:
 	void physicallyMovePlatform(Entity* entity);
 	bool findPlatformAlready(Entity* entity);
 
-
+	GUIImageStyle imageStyle;
+	int m_bossHP_barGuiIndex = 0;
+	int m_bossHP_barBackgroundGuiIndex = 0;
+	int m_endBossAtPecentNrOfStarts = 0;
+	void removeBoss();
+	void createPortal();
+	void createEndScenePortal();
 
 	//For projectiles
 	std::unordered_map<UINT, Entity*> m_projectiles;
