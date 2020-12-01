@@ -147,6 +147,7 @@ public:
 	static void loadMaterialTest(Scene* sceneObject, bool* finished);
 	static void loadBossTest(Scene* sceneObject, bool* finished);
 	static void loadEmpty(Scene* sceneObject, bool* finished);
+	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
 

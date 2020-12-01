@@ -21,7 +21,9 @@ Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST
 
 Material::Material(std::string materialName)
 	:Material(m_MaterialCache[materialName])
-{}
+{
+
+}
 
 Material::Material(const Material& other)
 {
@@ -40,10 +42,7 @@ Material::Material(const Material& other)
 
 Material::~Material() 
 {
-	/*for (int i = 0; i < m_referencedResources.size(); i++)
-	{
-		m_referencedResources.at(i)->deleteRef();
-	}*/
+
 }
 
 void Material::setMaterial(ShaderProgram* shader, ID3D11DeviceContext* dContextPtr)
@@ -88,20 +87,25 @@ void Material::setMaterial(bool shaderNeedsResource[5], bool shaderNeedsCBuffer[
 
 	if (shaderNeedsResource[ShaderType::Pixel])
 		dContextPtr->PSSetShaderResources(0, (UINT)this->m_textureArray.size(), &this->m_textureArray[0]);
-
 	//TODO: check what is already set and if it should be overwritten, maybe might already be in the drivers
 }
 
 void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 {
+	std::wstring wideString = fileName;
+	std::string string = std::string(wideString.begin(), wideString.end());
+	//std::cout << "Requiring mat: " << string << std::endl;
+
 	if (m_isDefault)
 	{
 		this->m_textureArray.clear();
+		m_referencedResources.clear();
 		m_materialId = ++totalMaterialCount;
 		m_isDefault = false;
 	}
 
 	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, true);
+	//std::cout << "\tMaterial loaded in: " << loadedTexResource->debugName << std::endl;
 	//loadedTexResource->addRef();
 
 	this->m_textureArray.push_back(loadedTexResource->view);
@@ -173,6 +177,7 @@ void Material::addMaterialRefs()
 	for (int i = 0; i < m_referencedResources.size(); i++)
 	{
 		m_referencedResources.at(i)->addRef();
+		//std::cout << "\t\tAdding ref to: " << m_referencedResources.at(i)->debugName << ", " << m_referencedResources.at(i)->getRefCount() << ", " << m_referencedResources.at(i) << std::endl;
 	}
 }
 
@@ -183,6 +188,9 @@ void Material::removeRefs()
 		if (!ResourceHandler::get().m_unloaded)
 			m_referencedResources.at(i)->deleteRef();
 	}
+
+	m_referencedResources.clear();
+	m_textureArray.clear();
 }
 
 unsigned int long Material::getMaterialId()

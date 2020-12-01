@@ -32,9 +32,9 @@ void ResourceHandler::checkResources()
 
 	for (int i = 0; i < idsForMeshesToRemove.size(); i++)
 	{
-		std::cout << "Removing mesh: " << m_meshCache[idsForMeshesToRemove[i]]->debugName << std::endl;
-		//delete m_meshCache[idsForMeshesToRemove[i]];
-		//m_meshCache.erase(idsForMeshesToRemove[i]);
+		//std::cout << "Removing mesh: " << m_meshCache[idsForMeshesToRemove[i]]->debugName << std::endl;
+		delete m_meshCache[idsForMeshesToRemove[i]];
+		m_meshCache.erase(idsForMeshesToRemove[i]);
 	}
 
 	idsForMeshesToRemove.clear();
@@ -55,9 +55,12 @@ void ResourceHandler::checkResources()
 	for (int i = 0; i < textureIdsToRemove.size(); i++)
 	{
 		std::string name = m_textureCache[textureIdsToRemove[i]]->debugName;
-		std::cout << "Deleting texture " << name << std::endl;
+		//std::cout << "Deleting texture " << name << ", " << m_textureCache[textureIdsToRemove[i]]->getRefCount() << std::endl;
+		m_textureCache[textureIdsToRemove[i]]->Release();
 		//delete m_textureCache[textureIdsToRemove[i]];
-		//m_textureCache.erase(textureIdsToRemove[i]);
+		m_textureCache.erase(textureIdsToRemove[i]);
+
+		int x = 0;
 	}
 
 	//=========================================== 
@@ -74,22 +77,35 @@ void ResourceHandler::checkResources()
 
 	for (int i = 0; i < audioIdsToRemove.size(); i++)
 	{
-		//delete m_soundCache[audioIdsToRemove[i]];
-		//m_soundCache.erase(audioIdsToRemove[i]);
+		delete m_soundCache[audioIdsToRemove[i]];
+		m_soundCache.erase(audioIdsToRemove[i]);
 	}
 	//=========================================== 
 
+	std::cout << std::endl;
 	std::cout << "mesh: " << m_meshCache.size() << std::endl;
 	std::cout << "texture: " << m_textureCache.size() << std::endl;
 	std::cout << "audio: " << m_soundCache.size() << std::endl;
+
+	//for (auto& m : m_textureCache)
+		//if (m.second->m_doReferenceCount)
+			//std::cout << m.second->debugName << ", " << m.second->getRefCount() << ", " << m.second->view << std::endl;
 }
 
-TextureResource* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isCubeMap, bool referenceBasedDelete)
+TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isCubeMap, bool referenceBasedDelete)
 {
+	std::wstring wideString = texturePath;
+	std::string string = std::string(wideString.begin(), wideString.end());
+
+
 	if (m_textureCache.count(texturePath))
+	{
+		std::cout << "\tReturning: " << string << std::endl;
 		return m_textureCache[texturePath];
+	}
 	else
 	{
+		std::cout << "\n\tLoading: " << std::string(wideString.begin(), wideString.end()) << std::endl;
 		isResourceHandlerReady();
 
 		std::lock_guard<std::mutex> lock(m_lock);
@@ -144,7 +160,7 @@ TextureResource* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isC
 			return m_textureCache[texturePath];
 		}
 	}
-	return nullptr;
+	//return nullptr;
 }
 
 TextureResource* ResourceHandler::loadErrorTexture()

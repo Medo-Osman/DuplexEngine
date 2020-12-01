@@ -19,7 +19,7 @@ private:
 
 	bool m_castShadow = true;
 	bool m_visible = true;
-	
+	bool m_initialized = false;
 protected:
 	std::string m_filePath;
 
@@ -40,7 +40,7 @@ public:
 	void setMeshResourcePtr(MeshResource* newResourcePointer) { m_resourcePointer = newResourcePointer; }
 	MeshResource* getMeshResourcePtr() const { return m_resourcePointer; }
 	const std::string& getFilePath() const { return m_filePath; }
-	
+
 	ShaderProgramsEnum getShaderProgEnum(int index);
 	Material* getMaterialPtr(int index);
 

@@ -228,8 +228,8 @@ void SceneManager::inputUpdate(InputData& inputData)
 		{
 			m_nextScene = new Scene();
 			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest1", m_nextSceneReady);
-			//std::thread sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
+			//Scene::loadScene(m_nextScene, "levelMeshTest1", m_nextSceneReady);
 
 			//Scene::loadLobby(m_nextScene, m_nextSceneReady);
 
@@ -264,6 +264,16 @@ void SceneManager::inputUpdate(InputData& inputData)
 			sceneLoaderThread.detach();
 
 			m_gameStarted = true;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+		}
+		else if (inputData.actionData[i] == LOAD_ALMOST_EMPTY)
+		{
+			m_nextScene = new Scene();
+			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+
+			m_gameStarted = false;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 		}
 
@@ -341,7 +351,6 @@ void SceneManager::swapScenes()
 	m_swapScene = false;
 	if (*m_nextSceneReady == true && m_loadNextSceneWhenReady)
 	{
-		system("CLS");
 
 		*m_nextSceneReady = false;
 		m_loadNextSceneWhenReady = false;

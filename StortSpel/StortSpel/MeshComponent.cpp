@@ -1,22 +1,9 @@
 #include "3DPCH.h"
 #include "MeshComponent.h"
 
+
 MeshComponent::MeshComponent(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials)
 {
-	m_type = ComponentType::MESH;
-	m_resourcePointer = ResourceHandler::get().loadLRMMesh(filepath);
-	m_filePath = filepath;
-	for (auto& se : shaderEnums)
-	{
-		m_shaderProgEnums.push_back(se);
-	}
-	for (auto& mat : materials)
-	{
-		m_materials.push_back(mat);
-		
-	}
-
-	//m_resourcePointer->addRef();
 	init(filepath, shaderEnums, materials);
 }
 
@@ -25,11 +12,11 @@ MeshComponent::MeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum
 {}
 
 MeshComponent::MeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum, Material material)
-	:MeshComponent(filepath, shaderEnum, { material })
+	: MeshComponent(filepath, shaderEnum, { material })
 {}
 
 MeshComponent::MeshComponent(const char* filepath, std::initializer_list<Material> materials)
-	:MeshComponent(filepath, ShaderProgramsEnum::DEFAULT, materials)
+	: MeshComponent(filepath, ShaderProgramsEnum::DEFAULT, materials)
 {}
 
 MeshComponent::MeshComponent(const char* filepath, Material material = Material())
@@ -38,18 +25,9 @@ MeshComponent::MeshComponent(const char* filepath, Material material = Material(
 
 MeshComponent::MeshComponent(char* paramData)
 {
-	m_type = ComponentType::MESH;
-	m_resourcePointer = ResourceHandler::get().loadLRMMesh(paramData);
-	//m_resourcePointer->addRef();
-
-	m_filePath = paramData;
-	Material mat = Material();
-	m_materials.push_back(mat);
-	mat.addMaterialRefs();
-	m_shaderProgEnums.push_back(ShaderProgramsEnum::DEFAULT);
 	// Read data from package
 	int offset = 0;
-	
+
 	std::string fileName = readStringFromChar(paramData, offset);
 
 	// Read material
@@ -64,18 +42,27 @@ MeshComponent::MeshComponent(char* paramData)
 		{
 			//std::string suffix = matName.substr(indexAt_ + 1, matName.length());
 			char suffix = matName.back();
-			
+
 			matName = matName.substr(0, indexAt_);
-			
+
 			ShaderProgramsEnum sp = charToShaderEnum(suffix);
 
 			m_shaderProgEnums.push_back(sp);
 		}
 		else
 			m_shaderProgEnums.push_back(ShaderProgramsEnum::DEFAULT);
-		
-		m_materials.push_back(Material(matName));
+
+		//m_materials.push_back(Material({ matName }));
+		//m_materials.push_back(matName);
+		//m_materials.push_back(Material({ L"DarkGrayTexture.png" }));
+
+		matName += ".png";
+		std::cout << "TRYING matName: " << matName << std::endl;
+		m_materials.push_back(Material({ std::wstring(matName.begin(), matName.end()).c_str() }));
+		std::cout << matName << std::endl;
+		std::cout << "LOADING FROM FILE: " << matName <<", count: " << matCount << std::endl;
 	}
+
 
 	if (matCount == 0)
 	{
@@ -85,7 +72,7 @@ MeshComponent::MeshComponent(char* paramData)
 
 	// Initialize
 	init(fileName.c_str());
-	
+
 	// Read and posibly set offset transform
 	bool hasTransformOffset = readDataFromChar<bool>(paramData, offset);
 
@@ -99,17 +86,20 @@ MeshComponent::MeshComponent(char* paramData)
 		this->setRotationQuat(rotQuat);
 		this->setScale(scale);
 	}
+
+	m_visible = readDataFromChar<bool>(paramData, offset);
+
+	for (int i = 0; i < m_materials.size(); i++)
+	{
+		m_materials[i].addMaterialRefs();
+	}
 }
 
 MeshComponent::~MeshComponent()
 {
-	if (!ResourceHandler::get().m_unloaded)
+	for (int i = 0; i < m_materials.size() && m_initialized; i++)
 	{
-		m_resourcePointer->deleteRef();
-		for (int i = 0; i < m_materials.size(); i++)
-		{
-			m_materials[i].removeRefs();
-		}
+		m_materials[i].removeRefs();
 	}
 }
 
@@ -162,6 +152,7 @@ void MeshComponent::init(std::initializer_list<ShaderProgramsEnum> shaderEnums, 
 	{
 		m_materials[i].addMaterialRefs();
 	}
+	m_initialized = true;
 }
 
 void MeshComponent::init(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials)
@@ -177,10 +168,12 @@ void MeshComponent::init(const char* filepath, std::initializer_list<ShaderProgr
 	{
 		m_shaderProgEnums.push_back(se);
 	}
-	/*for (int i = 0; i < m_materials.size(); i++)
+
+	for (int i = 0; i < m_materials.size(); i++)
 	{
 		m_materials[i].addMaterialRefs();
 	}
 
-	m_resourcePointer->addRef();*/
+	m_resourcePointer->addRef();
+	m_initialized = true;
 }

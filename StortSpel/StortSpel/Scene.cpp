@@ -275,7 +275,7 @@ void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 tr
 	{
 		PushTrapComponent* pushComponentTrigger = new PushTrapComponent(pushWall);
 		addComponent(pushWallTrigger, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
+			new MeshComponent("testCube_pCube1.lrm", Material()));
 
 		pushWallTrigger->setPosition(0, 18, 50);
 
@@ -479,6 +479,7 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 
 void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 {
+	std::cout << "Started scene loading ================================" << std::endl;
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
 	size_t dot = path.rfind('.', path.length());
@@ -531,7 +532,7 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 
 		Entity* newEntity = sceneObject->addEntity(entName);
 
-		assert(newEntity);
+		//assert(newEntity);
 
 		// Read transform values
 		Vector3 pos = readDataFromChar<Vector3>(levelData, offset);
@@ -615,6 +616,18 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 		sceneObject->addPrefabFromFile(prefabData);
 
 		delete[] prefabData;
+	}
+
+
+	Entity* skybox = sceneObject->addEntity("SkyBox");
+	skybox->m_canCull = false;
+	if (skybox)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		//Disable shadow casting
+		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
 
 	delete[] levelData;
@@ -815,7 +828,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	{
 		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
 		sceneObject->addComponent(barrelDropTrigger, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
+			new MeshComponent("testCube_pCube1.lrm", Material()));
 
 		barrelDropTrigger->setPosition(-30.f, 30.f, 105.f);
 
@@ -823,7 +836,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
 	}
 
-	for (int i = 0; i < 3; i++)
+	/*for (int i = 0; i < 3; i++)
 	{
 		Entity* stressObject = sceneObject->addEntity("stressObject" + std::to_string(i));
 		if (stressObject)
@@ -834,7 +847,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 			stressObject->setPosition(0, 6*i*0.15f + 6, 0);
 
 		}
-	}
+	}*/
 
 
 
@@ -1499,6 +1512,16 @@ void Scene::loadEmpty(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 	}*/
 
+
+	*finished = true;
+}
+
+void Scene::loadAlmostEmpty(Scene* sceneObject, bool* finished)
+{
+	sceneObject->m_sceneEntryPosition = Vector3(0, 10, 0);
+	sceneObject->createStaticPlatform(Vector3(0, -2, 0), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
+
+	sceneObject->addCheckpoint({ 0, 8, 0 });
 
 	*finished = true;
 }

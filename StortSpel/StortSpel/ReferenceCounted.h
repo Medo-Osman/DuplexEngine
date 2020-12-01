@@ -5,7 +5,7 @@
 class ReferenceCounted
 {
 protected:
-	UINT refCount = 0;
+	int refCount = 0;
 public:
 	std::string debugName = "";
 	void addRef()
