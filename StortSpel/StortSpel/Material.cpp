@@ -19,10 +19,14 @@ Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST
 	m_materialConstData = materialConstData;
 }
 
-Material::Material(std::string materialName)
-	:Material(m_MaterialCache[materialName])
+Material::Material(std::wstring materialName)
+	/*:Material(m_MaterialCache[materialName])*/
+	:m_materialId(m_MaterialCache[materialName].MaterialID), m_isDefault(false)
 {
-
+	for (auto fileName : m_MaterialCache[materialName].fileNames)
+	{
+		addTexture(fileName.c_str());
+	}
 }
 
 Material::Material(const Material& other)
@@ -215,28 +219,28 @@ MATERIAL_CONST_BUFFER Material::getMaterialParameters()
 
 void Material::readMaterials()
 {
-	std::unordered_map<std::string, std::unordered_map<std::string, std::string>> materials;
-	std::vector<std::string> textureNames;
-	std::string letters[4] = { "D", "E", "N", "ORM" };
+	std::unordered_map<std::wstring, std::unordered_map<std::wstring, std::wstring>> materials;
+	std::vector<std::wstring> textureNames;
+	std::wstring letters[4] = { L"D", L"E", L"N", L"ORM" };
 
 	for (const auto& file : std::filesystem::directory_iterator(m_TEXTURES_PATH))
 	{
-		std::string filePath = file.path().generic_string();
-		std::string fileName = filePath.substr(filePath.find_last_of("/") + 1);
-		std::string rawFileName = "";
-		std::string textureName = "";
-		if (fileName.rfind("T_", 0) == 0)
+		std::wstring filePath = file.path();
+		std::wstring fileName = filePath.substr(filePath.find_last_of(L"/") + 1);
+		std::wstring rawFileName = L"";
+		std::wstring textureName = L"";
+		if (fileName.rfind(L"T_", 0) == 0)
 		{
 			rawFileName = fileName.substr(0, fileName.size() - 4);
 			textureName = rawFileName.substr(2);						// Remove start "T_"
-			textureName = textureName.substr(0, textureName.find_last_of("_")); // Remove ending "_D"
-			if (textureName.find_last_of("_") != std::string::npos)
-				textureName = textureName.substr(0, textureName.find_last_of("_")); // Remove shaderprog letter "_E"
+			textureName = textureName.substr(0, textureName.find_last_of(L"_")); // Remove ending "_D"
+			if (textureName.find_last_of(L"_") != std::wstring::npos)
+				textureName = textureName.substr(0, textureName.find_last_of(L"_")); // Remove shaderprog letter "_E"
 			bool isTextrue = false;
 
 			for (int l = 0; l < 4; l++)
 			{
-				if (rawFileName.substr(rawFileName.size() - 2, std::string::npos) == "_" + letters[l])
+				if (rawFileName.substr(rawFileName.size() - 2, std::wstring::npos) == L"_" + letters[l])
 				{
 					materials[textureName][letters[l]] = (rawFileName);
 					isTextrue = true;
@@ -251,21 +255,25 @@ void Material::readMaterials()
 
 	for (int i = 0; i < materials.size(); i++)
 	{
-		Material mat;
+		//Material mat;
+		MATERIAL_INIT_STRUCT mat;
+		mat.MaterialID = ++totalMaterialCount;
 		
 		for (int l = 0; l < 4; l++)
 		{
 			if (materials[textureNames[i]].find(letters[l]) == materials[textureNames[i]].end())
 			{
-				materials[textureNames[i]][letters[l]] = "T_Missing_" + letters[l];
+				materials[textureNames[i]][letters[l]] = L"T_Missing_" + letters[l];
 			}
 		}
 
 		for (int l = 0; l < 4; l++)
 		{
-			std::string name = materials[textureNames[i]][letters[l]] + ".png";
-			mat.addTexture(std::wstring(name.begin(), name.end()).c_str());
+			std::wstring name = materials[textureNames[i]][letters[l]] + L".png";
+			//mat.addTexture(std::wstring(name.begin(), name.end()).c_str());
+			mat.fileNames.push_back(name);
 		}
+		
 		m_MaterialCache[textureNames[i]] = mat;
 	}
 }

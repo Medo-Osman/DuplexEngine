@@ -837,6 +837,10 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		tc->setIntData((int)ScenesEnum::ENDSCENE);
 	}
 
+	sceneObject->createTimedSweepPlatform({ 0, 7.5f, 5.f }, { 0, 7.5f, 10.f }, true, 2.5f);
+
+
+
 
 	Entity* barrelDropTrigger = sceneObject->addEntity("dropTrigger");
 	if (barrelDropTrigger)
@@ -1922,6 +1926,24 @@ void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)
 		addComponent(sweepingPlatform, "sweep",
 			new SweepingComponent(sweepingPlatform, startPos, endPos, 5));
 	}
+}
+
+void Scene::createTimedSweepPlatform(Vector3 startPos, Vector3 endPos, bool startEnd, float interval)
+{
+	Entity* crashBPlatform = addEntity("crashBPlatform-" + std::to_string(m_nrOfSweepingPlatforms++));
+	if (crashBPlatform)
+	{
+		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
+		addComponent(crashBPlatform, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"Wellcome.png" })));
+
+		crashBPlatform->setPosition(startPos);
+
+		createNewPhysicsComponent(crashBPlatform, true);
+
+		crashBPlatform->addComponent("sweepBoy", new SweepingComponent(crashBPlatform, startPos, endPos, 1.f, true, true, interval, startEnd));
+	}
+
 }
 
 void Scene::createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity)

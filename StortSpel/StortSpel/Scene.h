@@ -44,6 +44,7 @@ private:
 	void createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 scale, std::string meshPath, std::wstring texPath = L"GrayTexture.png");
 	int m_nrOfSweepingPlatforms = 0;
 	void createSweepingPlatform(Vector3 startPos, Vector3 endPos);
+	void createTimedSweepPlatform(Vector3 startPos, Vector3 endPos, bool startEnd, float interval);
 	int m_nrOfSpotLight = 0;
 	void createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity);
 	int m_nrOfPointLight = 0;

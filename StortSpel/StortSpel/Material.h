@@ -5,6 +5,12 @@
 
 static unsigned int long totalMaterialCount;
 
+struct MATERIAL_INIT_STRUCT
+{
+	std::vector<std::wstring> fileNames;
+	int MaterialID;
+};
+
 struct MATERIAL_CONST_BUFFER
 {
 	float UVScale			= 1.0f;
@@ -29,7 +35,7 @@ public:
 
 	Material();
 	Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData = MATERIAL_CONST_BUFFER());
-	Material(std::string materialName);
+	Material(std::wstring materialName);
 	Material(const Material& other);
 	~Material();
 
@@ -53,7 +59,8 @@ public:
 	static void readMaterials();
 };
 
-static std::unordered_map<std::string, Material> m_MaterialCache;
+//static std::unordered_map<std::string, Material> m_MaterialCache;
+static std::unordered_map<std::wstring, MATERIAL_INIT_STRUCT> m_MaterialCache;
 static const std::wstring m_TEXTURES_PATH = L"../res/textures/";
 
 
