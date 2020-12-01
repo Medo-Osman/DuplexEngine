@@ -19,6 +19,12 @@ void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
 void Renderer::setFullScreen(BOOL val)
 {
 	m_swapChainPtr->SetFullscreenState(val, NULL);
+	m_isFullscreen = val;
+}
+
+bool Renderer::isFullscreen()
+{
+	return m_isFullscreen;
 }
 
 void Renderer::release()
