@@ -10,7 +10,6 @@ public:
 
 	TextureResource()
 	{
-		std::cout << "Texture resource, " << this << std::endl;
 	}
 
 	~TextureResource()
@@ -18,7 +17,7 @@ public:
 		if (view)
 		{
 			int nr = view->Release();
-			std::cout << "\tTexture resource release, nr: " << nr << ", " << this << std::endl;
+			//std::cout << "\tTexture resource release, nr: " << nr << ", " << this << std::endl;
 			view = nullptr;
 		}
 		
@@ -29,7 +28,7 @@ public:
 		if (view)
 		{
 			int nr = view->Release();
-			std::cout << "\tTexture resource release, nr: " << nr << std::endl;
+			//std::cout << "\tTexture resource release, nr: " << nr << std::endl;
 			view = nullptr;
 		}
 		else

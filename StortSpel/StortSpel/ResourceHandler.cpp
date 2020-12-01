@@ -56,11 +56,9 @@ void ResourceHandler::checkResources()
 	{
 		std::string name = m_textureCache[textureIdsToRemove[i]]->debugName;
 		//std::cout << "Deleting texture " << name << ", " << m_textureCache[textureIdsToRemove[i]]->getRefCount() << std::endl;
-		m_textureCache[textureIdsToRemove[i]]->Release();
-		//delete m_textureCache[textureIdsToRemove[i]];
+		//m_textureCache[textureIdsToRemove[i]]->Release();
+		delete m_textureCache[textureIdsToRemove[i]];
 		m_textureCache.erase(textureIdsToRemove[i]);
-
-		int x = 0;
 	}
 
 	//=========================================== 
@@ -100,12 +98,10 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isC
 
 	if (m_textureCache.count(texturePath))
 	{
-		std::cout << "\tReturning: " << string << std::endl;
 		return m_textureCache[texturePath];
 	}
 	else
 	{
-		std::cout << "\n\tLoading: " << std::string(wideString.begin(), wideString.end()) << std::endl;
 		isResourceHandlerReady();
 
 		std::lock_guard<std::mutex> lock(m_lock);
@@ -610,10 +606,10 @@ void ResourceHandler::Destroy()
 		m_meshCache.erase(it++);
 	}*/
 
-	for (std::pair<std::string, MeshResource*> element : m_meshCache)
+	/*for (std::pair<std::string, MeshResource*> element : m_meshCache)
 	{
 		delete element.second;
-	}
+	}*/
 	for (std::pair<std::string, AnimationResource*> element : m_animationCache)
 	{
 		delete element.second;
@@ -623,8 +619,8 @@ void ResourceHandler::Destroy()
 		delete element.second;
 	}*/
 
-	m_textureCache.clear();
-	m_meshCache.clear();
+	//m_textureCache.clear();
+	//m_meshCache.clear();
 	m_animationCache.clear();
-	m_soundCache.clear();
+	//m_soundCache.clear();
 }

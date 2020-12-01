@@ -98,6 +98,8 @@ MeshComponent::~MeshComponent()
 	{
 		m_materials[i].removeRefs();
 	}
+
+	m_resourcePointer->deleteRef();
 }
 
 ShaderProgramsEnum MeshComponent::getShaderProgEnum(int index)
