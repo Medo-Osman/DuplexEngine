@@ -161,7 +161,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>3DPCH.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>..\3rd-Party\PhysX\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -306,6 +306,7 @@
     <ClInclude Include="PickupComponent.h" />
     <ClInclude Include="ProjectileComponent.h" />
     <ClInclude Include="PushTrapComponent.h" />
+    <ClInclude Include="ReferenceCounted.h" />
     <ClInclude Include="RotateComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
@@ -313,6 +314,7 @@
     <ClInclude Include="ShootLaserXZAction.h" />
     <ClInclude Include="ShootProjectileAction.h" />
     <ClInclude Include="ShrinkingComponent.h" />
+    <ClInclude Include="AudioResource.h" />
     <ClInclude Include="SpeedPickup.h" />
     <ClInclude Include="SweepingComponent.h" />
     <ClInclude Include="PhysicsComponent.h">
@@ -336,6 +338,7 @@
     <ClInclude Include="SpotLightComponent.h" />
     <ClInclude Include="SwingComponent.h" />
     <ClInclude Include="TestComponent.h" />
+    <ClInclude Include="TextureResource.h" />
     <ClInclude Include="ThunderAction.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Transform.h" />

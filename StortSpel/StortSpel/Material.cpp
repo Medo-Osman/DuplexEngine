@@ -4,9 +4,9 @@
 Material::Material()
 	:m_materialId(0), m_isDefault(true)
 {
-	ID3D11ShaderResourceView* errorTexturePtr = ResourceHandler::get().loadErrorTexture();
+	TextureResource* errorTexturePtr = ResourceHandler::get().loadErrorTexture();
 	for (int i = 0; i < 5; i++)
-		this->m_textureArray.push_back(errorTexturePtr);
+		this->m_textureArray.push_back(errorTexturePtr->view);
 }
 
 Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData)
@@ -39,10 +39,15 @@ Material::Material(const Material& other)
 
 	this->m_materialConstData = other.m_materialConstData;
 
+	this->m_referencedResources = other.m_referencedResources;
+
 	this->m_isDefault = other.m_isDefault;
 }
 
-Material::~Material() {}
+Material::~Material() 
+{
+
+}
 
 void Material::setMaterial(ShaderProgram* shader, ID3D11DeviceContext* dContextPtr)
 {
@@ -86,25 +91,39 @@ void Material::setMaterial(bool shaderNeedsResource[5], bool shaderNeedsCBuffer[
 
 	if (shaderNeedsResource[ShaderType::Pixel])
 		dContextPtr->PSSetShaderResources(0, (UINT)this->m_textureArray.size(), &this->m_textureArray[0]);
-
 	//TODO: check what is already set and if it should be overwritten, maybe might already be in the drivers
 }
 
 void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 {
+	std::wstring wideString = fileName;
+	std::string string = std::string(wideString.begin(), wideString.end());
+	//std::cout << "Requiring mat: " << string << std::endl;
+
 	if (m_isDefault)
 	{
 		this->m_textureArray.clear();
+		m_referencedResources.clear();
 		m_materialId = ++totalMaterialCount;
 		m_isDefault = false;
 	}
 
-	this->m_textureArray.push_back(ResourceHandler::get().loadTexture(fileName, isCubeMap));
+	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, true);
+	//std::cout << "\tMaterial loaded in: " << loadedTexResource->debugName << std::endl;
+	//loadedTexResource->addRef();
+
+	this->m_textureArray.push_back(loadedTexResource->view);
+	this->m_referencedResources.push_back(loadedTexResource);
 }
 
 void Material::swapTexture(const WCHAR* fileName, int index, bool isCubeMap)
 {
-	this->m_textureArray.at(index) = ResourceHandler::get().loadTexture(fileName, isCubeMap);
+	m_referencedResources.at(index)->deleteRef(); //Decrement old source
+	TextureResource* res = ResourceHandler::get().loadTexture(fileName, isCubeMap);
+
+	m_referencedResources.at(index) = res; //Set new source
+	m_referencedResources.at(index)->addRef(); //Add ref to new source
+	this->m_textureArray.at(index) = res->view; //Swap the actual texture
 }
 
 void Material::setUVScale(float scale)
@@ -165,6 +184,27 @@ void Material::setEmissiveStrength(float emissiveStrength)
 	}
 
 	this->m_materialConstData.emissiveStrength = emissiveStrength;
+}
+
+void Material::addMaterialRefs()
+{
+	for (int i = 0; i < m_referencedResources.size(); i++)
+	{
+		m_referencedResources.at(i)->addRef();
+		//std::cout << "\t\tAdding ref to: " << m_referencedResources.at(i)->debugName << ", " << m_referencedResources.at(i)->getRefCount() << ", " << m_referencedResources.at(i) << std::endl;
+	}
+}
+
+void Material::removeRefs()
+{
+	for (int i = 0; i < m_referencedResources.size(); i++)
+	{
+		if (!ResourceHandler::get().m_unloaded)
+			m_referencedResources.at(i)->deleteRef();
+	}
+
+	m_referencedResources.clear();
+	m_textureArray.clear();
 }
 
 unsigned int long Material::getMaterialId()
