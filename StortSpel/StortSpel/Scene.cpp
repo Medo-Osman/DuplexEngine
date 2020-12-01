@@ -1720,7 +1720,7 @@ void Scene::setPlayersPosition(Entity* entity)
 	for (int i = 0; i < m_scores.size(); i++)
 	{
 
-		if (m_scores.at(i).second == entity->getIdentifier())
+		if (m_scores.at(i).first == PacketHandler::get().getIDAt(i))
 		{
 			position = i;
 		}
@@ -1762,7 +1762,7 @@ void Scene::removeLightComponentFromMap(LightComponent* component)
 	}
 }
 
-std::vector<std::pair<int, std::string>>* Scene::getScores()
+std::vector<std::pair<int, int>>* Scene::getScores()
 {
 	return &m_scores;
 }
@@ -2109,9 +2109,27 @@ bool Scene::findPlatformAlready(Entity* entity)
 void Scene::setScoreVec()
 {
 	//m_scores.push_back(std::make_pair(m_nrOfScore, "Player"));
-	m_scores.push_back(std::make_pair(m_nrOfScorePlayerOne, "Playerdummy1"));
-	m_scores.push_back(std::make_pair(m_nrOfScorePlayerTwo, "Playerdummy2"));
-	m_scores.push_back(std::make_pair(m_nrOfScorePlayerThree, "Playerdummy3"));
+	if (m_scores.size() < 1)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			m_scores.push_back(std::make_pair(PacketHandler::get().getIDAt(i), PacketHandler::get().getScoreAt(i)));
+		}
+	}
+	else
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			if (m_scores.at(i).first == PacketHandler::get().getIDAt(i))
+			{
+				m_scores.at(i).second = PacketHandler::get().getScoreAt(i);
+			}
+			m_scores.push_back(std::make_pair(PacketHandler::get().getIDAt(i), PacketHandler::get().getScoreAt(i)));
+		}
+	}
+	//m_scores.push_back(std::make_pair(m_nrOfScorePlayerOne, "Playerdummy1"));
+	//m_scores.push_back(std::make_pair(m_nrOfScorePlayerTwo, "Playerdummy2"));
+	//m_scores.push_back(std::make_pair(m_nrOfScorePlayerThree, "Playerdummy3"));
 }
 
 void Scene::sortScore()

@@ -62,7 +62,6 @@ void Engine::update(const float& dt)
 	PacketHandler::get().setPlayerState(m_player->getState());
 	PacketHandler::get().setPlayerData(m_player->getAnimMeshComp()->getCurrentBlend());
 	PacketHandler::get().setPlayerScore(m_player->getScore());
-	//Vector4 test = m_player->getPlayerEntity()->getRotation();
 	for (int i = 0; i < 3; i++)
 	{
 		if (serverPlayers->at(i)->getNetworkID() == -1)
@@ -74,6 +73,7 @@ void Engine::update(const float& dt)
 			serverPlayers->at(i)->getPlayerEntity()->setPosition(PacketHandler::get().getPosAt(i + 1));
 			serverPlayers->at(i)->getPlayerEntity()->setRotationQuat(PacketHandler::get().getRotAt(i + 1));
 			serverPlayers->at(i)->serverPlayerAnimationChange((PlayerState)PacketHandler::get().getStateAt(i + 1), PacketHandler::get().getBlendAt(i + 1));
+			serverPlayers->at(i)->setScore(PacketHandler::get().getScoreAt(i + 1));
 		}
 	}
 
@@ -226,7 +226,7 @@ void Engine::initialize(Input* input)
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
 
 	// Player
-	m_player = new Player();
+	m_player = new Player(true);
 
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
 

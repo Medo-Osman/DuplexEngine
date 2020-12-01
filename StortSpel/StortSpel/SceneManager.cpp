@@ -134,11 +134,11 @@ void SceneManager::initalize()
 	style.position.y = 300.f;
 
 	style.color = Colors::Yellow;
-	m_playerOneScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(0).first), L"squirk.spritefont", style);
+	m_playerOneScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(0).second), L"squirk.spritefont", style);
 	style.position.y -= 50.0f;
-	m_playerTwoScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(1).first), L"squirk.spritefont", style);
+	m_playerTwoScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(1).second), L"squirk.spritefont", style);
 	style.position.y -= 50.0f;
-	m_playerThreeScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(2).first), L"squirk.spritefont", style);
+	m_playerThreeScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(2).second), L"squirk.spritefont", style);
 
 
 	style.position.x = 50.0f;
@@ -359,12 +359,12 @@ std::vector<iContext*>* SceneManager::getContextPtr()
 	return m_contexts;
 }
 
-void SceneManager::setScorePtr(std::vector<std::pair<int, std::string>>* scores)
+void SceneManager::setScorePtr(std::vector<std::pair<int, int>>* scores)
 {
 	m_scores = scores;
 }
 
-std::vector<std::pair<int, std::string>>* SceneManager::getScorePtr()
+std::vector<std::pair<int, int>>* SceneManager::getScorePtr()
 {
 	return m_scores;
 }
@@ -561,6 +561,7 @@ void SceneManager::hideScore()
 
 void SceneManager::showScore()
 {
+
 	GUIHandler::get().setVisible(m_highScoreLabelIndex, true);
 	GUIHandler::get().setVisible(m_playerOneScoreIndex, true);
 	GUIHandler::get().setVisible(m_playerTwoScoreIndex, true);

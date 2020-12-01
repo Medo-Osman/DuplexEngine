@@ -46,6 +46,7 @@ public:
 	Vector4 getRotAt(int i);
 	int getStateAt(int i);
 	float getBlendAt(int i);
+	int getScoreAt(int i);
 
 	void setPlayerData(Vector3 pos);
 	void setPlayerData(Vector4 rot);

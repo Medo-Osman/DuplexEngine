@@ -32,28 +32,32 @@ Player::Player(bool isLocal)
 	}
 	
 	//GUI
-	m_score = 0;
-	GUITextStyle style;
-	style.position.y = 70.f;
-	style.scale = { 0.5f };
-	m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
-	style.position.x = 160.f;
-	style.color = Colors::Yellow;
-	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
+	if (m_isLocal)
+	{
+		m_score = 0;
+		GUITextStyle style;
+		style.position.y = 70.f;
+		style.scale = { 0.5f };
+		m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
+		style.position.x = 160.f;
+		style.color = Colors::Yellow;
+		m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
 
-	GUIImageStyle imageStyle;
-	imageStyle.position = Vector2(400.f, 50.f);
-	imageStyle.scale = Vector2(0.9f, 0.9f);
-	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
+		GUIImageStyle imageStyle;
+		imageStyle.position = Vector2(400.f, 50.f);
+		imageStyle.scale = Vector2(0.9f, 0.9f);
+		m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
-	//Test Button stuff
-	GUIButtonStyle btnStyle;
-	btnStyle.position = Vector2(240, 200);
-	btnStyle.scale = Vector2(0.5, 0.5);
-	closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
+		//Test Button stuff
+		GUIButtonStyle btnStyle;
+		btnStyle.position = Vector2(240, 200);
+		btnStyle.scale = Vector2(0.5, 0.5);
+		closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
 
-	//Attach to the click listener for the button
-	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
+		//Attach to the click listener for the button
+		dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
+	}
+
 }
 
 Player::~Player()
@@ -424,8 +428,12 @@ int Player::getState()
 
 void Player::setScore(int newScore)
 {
-	m_score = newScore;
-	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+	if (m_isLocal)
+	{
+		m_score = newScore;
+		GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+	}
+
 }
 
 Entity* Player::getPlayerEntity() const

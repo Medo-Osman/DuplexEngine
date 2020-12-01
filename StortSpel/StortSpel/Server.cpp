@@ -28,7 +28,7 @@ Server::Server()
 
 	
 	hint.sin_family = AF_INET;
-	hint.sin_port = htons(54000);
+	hint.sin_port = htons(9000);
 	hint.sin_addr.S_un.S_addr = INADDR_ANY;
 
 	bind(listening, (sockaddr*)&hint, sizeof(hint));
@@ -134,11 +134,11 @@ void Server::playerPacket(Packet* _packet)
 
 	state = _packet->ReadInt();
 	blend = _packet->ReadFloat();
-	//score = _packet->ReadInt();
+	score = _packet->ReadInt();
 
 	_outPacket.Write(state);
 	_outPacket.Write(blend);
-	//_outPacket.Write(score);
+	_outPacket.Write(score);
 
 	sendToAllExcept(&_outPacket);
 }

@@ -44,7 +44,7 @@ private:
 
 	bool* m_nextSceneReady = new bool;
 	bool m_loadNextSceneWhenReady = false;
-	std::vector<std::pair<int, std::string>>* m_scores;
+	std::vector<std::pair<int, int>>* m_scores;
 	void hideScore();
 	void showScore(); 
 
@@ -70,8 +70,8 @@ public:
 	void setContextPtr(std::vector<iContext*>* contexts);
 	std::vector<iContext*>* getContextPtr();
 
-	void setScorePtr(std::vector<std::pair<int, std::string>>* m_scores);
-	std::vector<std::pair<int, std::string>>* getScorePtr();
+	void setScorePtr(std::vector<std::pair<int, int>>* m_scores);
+	std::vector<std::pair<int, int>>* getScorePtr();
 
 	void swapScenes();
 

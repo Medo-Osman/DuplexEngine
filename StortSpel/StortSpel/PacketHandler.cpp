@@ -17,13 +17,14 @@ PacketHandler::PacketHandler()
 		serverPlayerData[i].rot = XMQuaternionIdentity();
 		serverPlayerData[i].state = 9;
 		serverPlayerData[i].blend = 0;
+		serverPlayerData[i].score = 50;
 	}
 
-	//ipAddress = "192.168.0.108";
+	//ipAddress = "109.228.165.63";
 	//ipAddress = convert(Server::get().getServerIP());
 	//std::cout << "this is the IP to connect to " << ipAddress << std::endl;
 	ipAddress = "127.0.0.1";
-	port = 54000;
+	port = 9000;
 
 	//Connect to server
 	//isConnected = tryConnect();
@@ -137,7 +138,7 @@ void PacketHandler::playerData(Packet* _packet)
 			serverPlayerData[i].rot = rotation;
 			serverPlayerData[i].state = state;
 			serverPlayerData[i].blend = blend;
-			//serverPlayerData[i].score = score;
+			serverPlayerData[i].score = score;
 			//Add a score component that shows the score of all current players
 			
 			//std::cout << "Player at ID " + std::to_string(ID) + " has moved" << std::endl;
@@ -240,7 +241,7 @@ void PacketHandler::sendPlayerData()
 	_packet.Write(serverPlayerData[0].blend);
 
 	//Write Player Score
-	//_packet.Write(serverPlayerData[0].score);
+	_packet.Write(serverPlayerData[0].score);
 
 
 	//Send Packet
@@ -296,6 +297,11 @@ int PacketHandler::getStateAt(int i)
 float PacketHandler::getBlendAt(int i)
 {
 	return this->serverPlayerData[i].blend;
+}
+
+int PacketHandler::getScoreAt(int i)
+{
+	return this->serverPlayerData[i].score;
 }
 
 void PacketHandler::setPlayerData(Vector3 pos)

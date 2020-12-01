@@ -95,7 +95,7 @@ private:
 
 	Timer m_despawnBarrelTimer;
 
-	std::vector<std::pair<int, std::string>> m_scores;
+	std::vector<std::pair<int, int>> m_scores;
 
 	std::unordered_map<std::string, Entity*> m_entities;
 	std::unordered_map<unsigned int long, MeshComponent*> m_meshComponentMap;
@@ -182,7 +182,7 @@ public:
 	void createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false);
 
 
-	std::vector<std::pair<int, std::string>>* getScores();
+	std::vector<std::pair<int, int>>* getScores();
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
