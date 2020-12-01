@@ -130,9 +130,9 @@ void SceneManager::initalize()
 	GUIButton* resumeBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_resumeBtnIndex));
 	resumeBtn->Attach(this);
 	//assdasdasdfsdfsjdfjsdfjsdfjsdfjsdfj
-	btnStyle.position = Vector2(790, 600);
-	btnStyle.scale = Vector2(1, 1);
-	m_fullscreenIndex = GUIHandler::get().addGUIButton(L"fullscreen.png", btnStyle);
+	btnStyle.position = Vector2(930, 600);
+	btnStyle.scale = Vector2(0.2, 0.2);
+	m_fullscreenIndex = GUIHandler::get().addGUIButton(L"uncheckedBox.png", btnStyle);
 
 	GUIButton* fullscreenBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_fullscreenIndex));
 	fullscreenBtn->Attach(this);
@@ -229,7 +229,7 @@ void SceneManager::initalize()
 	m_settingsText = GUIHandler::get().addGUIText("Settings", L"squirk.spritefont", style);
 
 	//24000
-	style.position.x = 800.0f;
+	style.position.x = 670.0f;
 	style.position.y = 600.0f;
 	m_fullscreenText = GUIHandler::get().addGUIText("FullScreen", L"squirk.spritefont", style);
 
@@ -251,6 +251,9 @@ void SceneManager::initalize()
 	GUIHandler::get().setVisible(m_settingsText, false); 
 	GUIHandler::get().setVisible(m_resumeBtnIndex, false);
 	GUIHandler::get().setVisible(m_fullscreenIndex, false);
+	GUIHandler::get().setVisible(m_fullscreenText, false);
+
+
 
 }
 
@@ -563,10 +566,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			button->setTexture(L"resumeBtnHover.png");
 		}
-		if (guiElement->m_index == m_fullscreenIndex)
-		{
-			button->setTexture(L"exitFullscreen.png");
-		}
+		
 	}
 	
 	if (type == GUIUpdateType::HOVER_EXIT)
@@ -623,10 +623,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			button->setTexture(L"resumeBtn.png");
 		}
-		if (guiElement->m_index == m_fullscreenIndex)
-		{
-			button->setTexture(L"fullscreen.png");
-		}
+	
 
 	}
 
@@ -687,6 +684,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
 			GUIHandler::get().setVisible(m_settingsText, false);
 			GUIHandler::get().setVisible(m_resumeBtnIndex, false);
+			GUIHandler::get().setVisible(m_fullscreenText, false);
 
 
 			m_nextSceneEnum = ScenesEnum::MAINMENU;
@@ -714,6 +712,8 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_volumeTextIndex, true);
 			GUIHandler::get().setVisible(m_settingsText, true);
 			GUIHandler::get().setVisible(m_fullscreenIndex, true);
+			GUIHandler::get().setVisible(m_fullscreenText, true);
+
 		}
 		if (guiElement->m_index == m_senseIncreaseIndex)
 		{
@@ -763,6 +763,19 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_fullscreenIndex)
 		{
 			// do stuff
+			
+			
+			if (checked == false)
+			{
+				button->setTexture(L"uncheckedbox.png");
+				
+			}
+			else
+			{
+				button->setTexture(L"checkedbox.png");
+			}
+			checked = !checked;
+			
 		}
 	}
 }

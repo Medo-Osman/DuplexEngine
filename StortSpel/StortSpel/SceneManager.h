@@ -30,7 +30,7 @@ private:
 	int m_rankingScoreIndecTwo;
 	int m_rankingScoreIndecThree;
 
-	bool checked = false;
+	bool checked = true;
 	
 	int m_cameraSense;
 	int m_volumeAmount;
