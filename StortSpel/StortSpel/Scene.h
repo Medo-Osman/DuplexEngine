@@ -68,7 +68,13 @@ private:
 	void physicallyMovePlatform(Entity* entity);
 	bool findPlatformAlready(Entity* entity);
 
-
+	GUIImageStyle imageStyle;
+	int m_bossHP_barGuiIndex = 0;
+	int m_bossHP_barBackgroundGuiIndex = 0;
+	int m_endBossAtPecentNrOfStarts = 0;
+	void removeBoss();
+	void createPortal();
+	void createEndScenePortal();
 
 	//For projectiles
 	std::unordered_map<UINT, Entity*> m_projectiles;
@@ -147,6 +153,8 @@ public:
 	static void loadArena(Scene* sceneObject, bool* finished);
 	static void loadMaterialTest(Scene* sceneObject, bool* finished);
 	static void loadBossTest(Scene* sceneObject, bool* finished);
+	static void loadEmpty(Scene* sceneObject, bool* finished);
+	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
 

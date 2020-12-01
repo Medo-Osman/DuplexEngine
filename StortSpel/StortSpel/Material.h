@@ -26,6 +26,7 @@ class Material
 private:
 
 	std::vector< ID3D11ShaderResourceView* > m_textureArray;
+	std::vector<TextureResource*> m_referencedResources;
 	MATERIAL_CONST_BUFFER m_materialConstData;
 	unsigned int long m_materialId;
 	bool m_isDefault;
@@ -49,6 +50,8 @@ public:
 	void setMetallic(float metallic);
 	void setTextured(int textured);
 	void setEmissiveStrength(float emissiveStrength);
+	void addMaterialRefs();
+	void removeRefs();
 
 	unsigned int long getMaterialId();
 	MATERIAL_CONST_BUFFER getMaterialParameters();

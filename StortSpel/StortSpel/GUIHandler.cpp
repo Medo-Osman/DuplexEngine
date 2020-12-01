@@ -122,6 +122,11 @@ bool GUIHandler::getVisible(int index)
 	return (m_elements[index]->isVisible());
 }
 
+void GUIHandler::setImageStyle(int index, GUIImageStyle style)
+{
+	static_cast<GUIImageLabel*>(m_elements[index])->setStyle(style);
+}
+
 std::vector<GUIElement*>* GUIHandler::getElementMap()
 {
 	return &this->m_elements;

@@ -65,7 +65,6 @@ public:
 			m_timeData.timer.restart();
 			m_hasFired = true;
 
-			std::cout << "pew" << std::endl;
 			m_subjectPtr->Notify(BossMovementType::ClearColumn, m_data); //Data is not neccessary here.
 			m_subjectPtr->Notify(BossMovementType::ClearRow, m_data);
 		}
