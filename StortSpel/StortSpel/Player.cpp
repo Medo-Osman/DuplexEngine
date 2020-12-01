@@ -40,19 +40,19 @@ Player::Player()
 	style.color = Colors::Yellow;
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
 
-	GUIImageStyle imageStyle;
-	imageStyle.position = Vector2(400.f, 50.f);
-	imageStyle.scale = Vector2(0.9f, 0.9f);
-	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
+	//GUIImageStyle imageStyle;
+	//imageStyle.position = Vector2(400.f, 50.f);
+	//imageStyle.scale = Vector2(0.9f, 0.9f);
+	//m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
-	//Test Button stuff
-	GUIButtonStyle btnStyle;
-	btnStyle.position = Vector2(240, 200);
-	btnStyle.scale = Vector2(0.5, 0.5);
-	closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
+	////Test Button stuff
+	//GUIButtonStyle btnStyle;
+	//btnStyle.position = Vector2(240, 200);
+	//btnStyle.scale = Vector2(0.5, 0.5);
+	//closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
 
 	//Attach to the click listener for the button
-	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
+	//dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
 }
 
 Player::~Player()
@@ -261,7 +261,7 @@ void Player::playerStateLogic(const float& dt)
 		if ((PLAYER_SPEED * dt) <= 0.0f)
 			blend = 0.0f;
 
-		std::cout << sizeof(float) << std::endl;
+		//std::cout << sizeof(float) << std::endl;
 
 		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
 		//// analog animation:

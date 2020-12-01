@@ -54,6 +54,7 @@ void Engine::update(const float& dt)
 
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
+	m_camera.setProjectionMatrix(m_camera.fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 	updateLightData();
 
 }
@@ -166,12 +167,11 @@ void Engine::initialize(Input* input)
 		// before this function call be called.
 		assert(false);
 	}
-
-	m_camera.initialize(120.f, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
-
+	
+	m_camera.initialize(m_camera.fovAmount,(float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 	// Audio Handler Listener setup
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
-
+	
 
 	// Player
 	m_player = new Player();

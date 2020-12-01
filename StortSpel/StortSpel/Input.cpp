@@ -65,8 +65,8 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 		{
 			m_Keyboard.onKeyPressed(key);
 		}
-		if (key == VK_ESCAPE)
-			uMsg = WM_DESTROY;
+		/*if (key == VK_ESCAPE)
+			uMsg = WM_DESTROY;*/
 
 		if (key == VK_TAB)
 		{

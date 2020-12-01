@@ -164,44 +164,37 @@ void AudioHandler::setEmitterPosition(int index, Vector3 position, bool isLoopin
 		m_loopingSoundInstances[index]->Apply3D(m_listener, m_emitter, false);
 }
 
-float AudioHandler::increaseVolume()
+int AudioHandler::increaseVolume()
 {	
-	m_hasAudioChanged = true;
-	m_volumeAmount += 5.f;
-	return m_volumeAmount;
+	if (m_volumeAmount < 10)
+	{
+		m_hasAudioChanged = true;
+		m_volumeAmount += 1;
+		return m_volumeAmount;
+	}
+
 	
 }
 
-float AudioHandler::decreaseVolume()
+int AudioHandler::decreaseVolume()
 {
-	m_hasAudioChanged = true;
-	m_volumeAmount -= 5.f;
-	return m_volumeAmount;
+	if (m_volumeAmount > 0)
+	{
+		m_hasAudioChanged = true;
+		m_volumeAmount -= 1;
+		return m_volumeAmount;
+	}
+
 }
 
-float AudioHandler::getVolumeAmount()
+int AudioHandler::getVolumeAmount()
 {
 	return m_volumeAmount;
 }
 
 void AudioHandler::update(float dt)
 {
-	for (int i = 0; i < m_soundInstances.size(); i++)
-	{
-		m_soundInstances[i]->SetVolume(m_volumeAmount);
-		if (m_volumeAmount == 0.0f)
-		{
-			m_soundInstances[i]->Stop();
-		}
-	}
-	for (int i = 0; i < m_loopingSoundInstances.size(); i++)
-	{
-		m_loopingSoundInstances[i]->SetVolume(m_volumeAmount);
-		if (m_volumeAmount == 0.0f)
-		{
-			m_loopingSoundInstances[i]->Stop();
-		}
-	}
+	
 	if (m_listenerTransformPtr)
 	{
 		m_listener.SetPosition(m_listenerTransformPtr->getTranslation());
@@ -231,7 +224,14 @@ void AudioHandler::update(float dt)
 			m_retryAudio = true;
 		}
 	}
-	
+	for (auto& soundsInstance : m_soundInstances)
+	{
+		soundsInstance.second->SetVolume(m_volumeAmount);
+	}
+	for (auto& loopingSounds : m_loopingSoundInstances)
+	{
+		loopingSounds.second->SetVolume(m_volumeAmount);
+	}
 }
 
 void AudioHandler::suspend()

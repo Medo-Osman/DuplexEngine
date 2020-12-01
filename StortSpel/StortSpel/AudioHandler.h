@@ -19,12 +19,9 @@ private:
 	
 	// 3D Positional Audio
 	AudioEmitter m_emitter;
-	//bool hasAudioChanged true om ökat eller sänkt volym
-	//getfunction bool hasAudioChanged 
-	//engine update if hasAudioChanged så getaudiocompent updatefunction audiocomp
 	AudioListener m_listener;
 	Transform* m_listenerTransformPtr;
-	float m_volumeAmount = 5.0f;
+	int m_volumeAmount = 3;
 	//volume /10
 public:
 	AudioHandler(const AudioHandler&) = delete;
@@ -51,9 +48,9 @@ public:
 	void setPitch(int index, float pitch, bool isLooping);
 	void setEmitterPosition(int index, Vector3 position, bool isLooping);
 
-	float increaseVolume();
-	float decreaseVolume();
-	float getVolumeAmount();
+	int increaseVolume();
+	int decreaseVolume();
+	int getVolumeAmount();
 
 	void update(float dt);
 	void suspend();

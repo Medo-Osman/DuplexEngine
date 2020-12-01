@@ -14,13 +14,13 @@ Camera::Camera()
 }
 Camera::~Camera() {}
 
-void Camera::initialize(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
+void Camera::initialize(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
 {
 	ApplicationLayer::getInstance().m_input.Attach(this);
 	setProjectionMatrix(fov, aspectRatio, nearZ, farZ);
 }
 
-void Camera::setProjectionMatrix(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
+void Camera::setProjectionMatrix(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
 {
 	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH((fov / 360.f) * DirectX::XM_2PI,
 		aspectRatio, nearZ, farZ);
@@ -52,11 +52,30 @@ Transform* Camera::getTransform()
 }
 void Camera::increaseSensitivity()
 {
+	
 	m_sensitivity += 0.1f;
 }
-void Camera::DecreaseSensitivity()
+void Camera::decreaseSensitivity()
 {
-	m_sensitivity -= 0.1f;
+	if (m_sensitivity > 0)
+	{
+		m_sensitivity -= 0.1f;
+	}
+}
+void Camera::increaseFov()
+{
+	if (fovAmount < 110.0f)
+	{
+		fovAmount += 1.0f;
+	}
+}
+void Camera::decreaseFov()
+{
+	if (fovAmount > 60.0f)
+	{
+		fovAmount -= 1.0f;
+	}
+	
 }
 float Camera::getSensitivity()
 {

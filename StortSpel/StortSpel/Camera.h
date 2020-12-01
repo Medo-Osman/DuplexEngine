@@ -23,23 +23,25 @@ private:
 	XMVECTOR m_incrementPosition;
 
 	float m_sensitivity = 0.1f;
-
+	
 	void updateViewMatrix();
 	void updateViewMatrixEndScene();
 public:
 	Camera();
 	~Camera();
-	void initialize(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ);
-	void setProjectionMatrix(const float &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
+	void initialize(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ);
+	void setProjectionMatrix(const int &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
 	void setPosition(const XMVECTOR&pos);
 	void setRotation(const XMVECTOR&rot);
 	bool endSceneCamera = false;
 	bool frustumCullingOn = true;
-
+	int fovAmount = 80;
 	Transform* getTransform();
 
 	void increaseSensitivity();
-	void DecreaseSensitivity();
+	void decreaseSensitivity();
+	void increaseFov();
+	void decreaseFov();
 	float getSensitivity();
 
 	const XMVECTOR& getPosition() const;

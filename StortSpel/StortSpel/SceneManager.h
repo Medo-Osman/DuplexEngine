@@ -30,13 +30,13 @@ private:
 	int m_rankingScoreIndecTwo;
 	int m_rankingScoreIndecThree;
 
-	int m_sensitivityIndex;
 	
-	float m_cameraSense;
-	float m_volumeAmount;
+	
+	int m_cameraSense;
+	int m_volumeAmount;
 	std::vector<iContext*>* m_contexts;
 	
-
+	//button index
 	int m_singleplayerIndex = 0;
 	int m_exitIndex = 0;
 	int m_joinGameIndex = 0;
@@ -48,6 +48,20 @@ private:
 	int m_volumeIncreaseIndex = 0;
 	int m_volumeDecreaseIndex = 0;
 	int m_volumeAmountIndex = 0;
+	int m_setFovIncreaseIndex = 0;
+	int m_setFovDecreaseIndex = 0;
+	int m_resumeBtnIndex = 0;
+	int m_fullscreenIndex = 0;
+	int m_exitFullscreenindex = 0;
+
+	//text index
+	int m_sensitivityIndex;
+	int m_fovIndex;
+	int m_fovText;
+	int m_senseTextIndex;
+	int m_volumeTextIndex;
+	int m_settingsText;
+
 
 	bool* m_nextSceneReady = new bool;
 	bool m_loadNextSceneWhenReady = false;
@@ -59,8 +73,6 @@ private:
 public:
 	SceneManager();
 	~SceneManager();
-	float volumeIncrease = 1;
-	float volumeDecrease = 0.1;
 
 	bool m_gameStarted = false;
 	bool endGame = false;
