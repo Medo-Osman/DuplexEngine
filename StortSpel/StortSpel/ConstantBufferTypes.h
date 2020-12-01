@@ -75,6 +75,18 @@ struct CS_BLUR_CBUFFER
     XMFLOAT2 pad;
 };
 
+struct SSAO_BUFFER
+{
+    XMMATRIX viewToTexSpace;
+    XMFLOAT4 offsetVectors[14];
+    XMFLOAT4 frustumCorners[4];
+
+    float occlusionRadius = 0.5f;
+    float occlusionFadeStart = 0.2f;
+    float occlusionFadeEnd = 2.0f;
+    float surfaceEpsilon = 0.05f;
+};
+
 __declspec(align(16)) struct projectionMatrix
 {
     XMMATRIX g_viewProjectionMatrix;

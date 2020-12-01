@@ -147,6 +147,8 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	geometryTexture->Release();
 
+	m_ssaoBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_ssaoData, 1);
+
 	buildRandomVectorTexture();
 
 	initializeBloomFilter();
@@ -480,12 +482,29 @@ void Renderer::computeSSAO()
 	buildOffsetVectors();
 	buildFrustumFarCorners(80.f, 1000.0f); // Change this to whatever global constants that get available later xD
 
+	m_ssaoData.viewToTexSpace = pt;
+
+	for(UINT i = 0; i < 4; i++)
+	{
+		m_ssaoData.frustumCorners[i] = m_frustumFarCorners[i];
+	}
+
+	for(UINT i = 0; i < 14; i++)
+	{
+		m_ssaoData.offsetVectors[i] = m_offsetVectors[i];
+	}
+
+	m_ssaoBuffer.updateBuffer(m_dContextPtr.Get(), &m_ssaoData);
+
 	m_dContextPtr->IASetVertexBuffers(0, 1, m_renderQuadBuffer.GetAddressOf(), m_renderQuadBuffer.getStridePointer(), &offset);
 	m_compiledShaders[ShaderProgramsEnum::SSAO_MAP]->setShaders();
 	m_currentSetShaderProg = ShaderProgramsEnum::SSAO_MAP;
+	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
+
+	m_dContextPtr->VSSetConstantBuffers(0, 1, m_ssaoBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(0, 1, m_ssaoBuffer.GetAddressOf());
 	m_dContextPtr->PSSetShaderResources(0, 1, &m_normalsNDepthSRV);
 	m_dContextPtr->PSSetShaderResources(1, 1, &m_randomVectorsSRV);
-	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
 
 	m_dContextPtr->Draw(vertexCount, 0);
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);

@@ -83,6 +83,10 @@ private:
 	CS_BLUR_CBUFFER m_blurData;
 	float m_weightSigma = 5.f;
 
+	// SSAO Buffer
+	SSAO_BUFFER m_ssaoData;
+	Buffer<SSAO_BUFFER> m_ssaoBuffer;
+
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
 
