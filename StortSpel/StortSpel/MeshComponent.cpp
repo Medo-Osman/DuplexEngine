@@ -57,11 +57,7 @@ MeshComponent::MeshComponent(char* paramData)
 		//m_materials.push_back(matName);
 		//m_materials.push_back(Material({ L"DarkGrayTexture.png" }));
 
-		matName += ".png";
-		std::cout << "TRYING matName: " << matName << std::endl;
-		m_materials.push_back(Material({ std::wstring(matName.begin(), matName.end()).c_str() }));
-		std::cout << matName << std::endl;
-		std::cout << "LOADING FROM FILE: " << matName <<", count: " << matCount << std::endl;
+		m_materials.push_back(Material(matName));
 	}
 
 
