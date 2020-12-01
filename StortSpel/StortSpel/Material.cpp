@@ -114,7 +114,12 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 
 void Material::swapTexture(const WCHAR* fileName, int index, bool isCubeMap)
 {
-	this->m_textureArray.at(index) = ResourceHandler::get().loadTexture(fileName, isCubeMap);
+	m_referencedResources.at(index)->deleteRef(); //Decrement old source
+	TextureResource* res = ResourceHandler::get().loadTexture(fileName, isCubeMap);
+
+	m_referencedResources.at(index) = res; //Set new source
+	m_referencedResources.at(index)->addRef(); //Add ref to new source
+	this->m_textureArray.at(index) = res->view; //Swap the actual texture
 }
 
 void Material::setUVScale(float scale)
