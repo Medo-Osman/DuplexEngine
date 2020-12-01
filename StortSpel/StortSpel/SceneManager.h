@@ -30,7 +30,7 @@ private:
 	int m_rankingScoreIndecTwo;
 	int m_rankingScoreIndecThree;
 
-	
+	bool checked = false;
 	
 	int m_cameraSense;
 	int m_volumeAmount;
@@ -61,7 +61,7 @@ private:
 	int m_senseTextIndex;
 	int m_volumeTextIndex;
 	int m_settingsText;
-
+	int m_fullscreenText;
 
 	bool* m_nextSceneReady = new bool;
 	bool m_loadNextSceneWhenReady = false;

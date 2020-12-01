@@ -137,6 +137,9 @@ void SceneManager::initalize()
 	GUIButton* fullscreenBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_fullscreenIndex));
 	fullscreenBtn->Attach(this);
 
+
+
+
 	exitButton->Attach(this);
 	exitButton->setPrevMenuButton(hostButton);
 	exitButton->setNextMenuButton(startButton);
@@ -224,6 +227,11 @@ void SceneManager::initalize()
 	style.position.x = 800.0f;
 	style.position.y = 200.0f;
 	m_settingsText = GUIHandler::get().addGUIText("Settings", L"squirk.spritefont", style);
+
+	//24000
+	style.position.x = 800.0f;
+	style.position.y = 600.0f;
+	m_fullscreenText = GUIHandler::get().addGUIText("FullScreen", L"squirk.spritefont", style);
 
 	
 	hideScore();
