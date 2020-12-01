@@ -71,6 +71,7 @@ private:
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_particleRasterizerStatePtr = NULL;
 
 	D3D11_VIEWPORT m_defaultViewport;
 

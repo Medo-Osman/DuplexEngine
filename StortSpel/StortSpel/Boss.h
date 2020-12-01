@@ -10,6 +10,7 @@
 #include "MoveToTargetInGridAction.h"
 #include "ShootLaserXZAction.h"
 #include "WaitAction.h"
+#include "ThunderAction.h"
 
 #include "ShrinkingComponent.h"
 #include "GrowingComponent.h"

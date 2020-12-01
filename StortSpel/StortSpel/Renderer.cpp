@@ -739,7 +739,12 @@ void Renderer::rasterizerSetup()
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
 
-	
+
+
+	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+
+	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_particleRasterizerStatePtr.GetAddressOf());
+	assert(SUCCEEDED(hr) && "Error creating particleRasterizerState");
 }
 
 void Renderer::update(const float& dt)
@@ -835,6 +840,7 @@ void Renderer::render()
 
 
 	//Particles
+	m_dContextPtr->RSSetState(m_particleRasterizerStatePtr.Get());
 	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
 	//Draw all particles here
 	//this->particle.draw(this->m_dContextPtr.Get());
@@ -849,6 +855,7 @@ void Renderer::render()
 			static_cast<ParticleComponent*>(vec[i])->draw(m_dContextPtr.Get());
 		}
 	}
+	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
 	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
 	this->m_dContextPtr->PSSetSamplers(1, 1, this->m_psSamplerState.GetAddressOf());

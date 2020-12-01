@@ -2,7 +2,7 @@
 #include "3DPCH.h"
 #include <functional>
 
-enum class BossMovementType { NONE, ShootProjectile, DropPoints, MoveTo, MoveOneInGrid, MoveToTargetInGrid, ShootLaser, MovePlatform, Wait, ClearColumn, ClearRow };
+enum class BossMovementType { NONE, ShootProjectile, DropPoints, MoveTo, MoveOneInGrid, MoveToTargetInGrid, ShootLaser, MovePlatform, Wait, ClearColumn, ClearRow, Thunder, SpawnParticlesOnPlatform };
 
 class BossSubject;
 
