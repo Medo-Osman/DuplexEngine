@@ -34,9 +34,10 @@ MeshComponent::MeshComponent(char* paramData)
 	int matCount = readDataFromChar<int>(paramData, offset);
 	for (int i = 0; i < matCount; i++)
 	{
-		std::string matName = readStringFromChar(paramData, offset);
+		std::string strMatName = readStringFromChar(paramData, offset);
+		std::wstring matName = std::wstring(strMatName.begin(), strMatName.end());
 
-		size_t indexAt_ = matName.find_last_of("_");
+		size_t indexAt_ = matName.find_last_of(L"_");
 
 		if (indexAt_ != std::string::npos)
 		{
