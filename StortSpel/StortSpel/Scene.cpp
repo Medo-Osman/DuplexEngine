@@ -1363,6 +1363,15 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 {
 	Entity* entity;
 
+	Entity* floor = sceneObject->addEntity("Floor");
+	if (floor)
+	{
+		sceneObject->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+		floor->scale({ 30, 1, 30 });
+		floor->translate({ 0,-2,0 });
+		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
 	std::wstring materialNames[7] = {
 	L"Bronze_Quilt/bronze_quilt",
 	L"Coastline_Flat_Stone_Wall_Mixed/coastline_flat_stone_wall_mixed",
@@ -1381,8 +1390,8 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 		{
 			entity = sceneObject->m_entities[currentSphereName];
 			Material PBRMatTextured;
-			PBRMatTextured.addTexture(L"skybox1IR.dds", true);
-			PBRMatTextured.addTexture(L"skybox1.dds", true);
+			PBRMatTextured.addTexture(L"Skybox_Texture2.dds", true);
+			PBRMatTextured.addTexture(L"Skybox_Texture2.dds", true);
 			PBRMatTextured.addTexture(L"ibl_brdf_lut.png");
 
 			PBRMatTextured.addTexture((materialNames[i] + L"_Base_Color.dds").c_str());
@@ -1412,8 +1421,8 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 		{
 			entity = sceneObject->m_entities[currentSphereName];
 			Material PBRMatUntextured;
-			PBRMatUntextured.addTexture(L"skybox1IR.dds", true);
-			PBRMatUntextured.addTexture(L"skybox1.dds", true);
+			PBRMatUntextured.addTexture(L"Skybox_Texture3.dds", true);
+			PBRMatUntextured.addTexture(L"Skybox_Texture4.dds", true);
 			PBRMatUntextured.addTexture(L"ibl_brdf_lut.png");
 
 			xCounter++;
@@ -1440,7 +1449,7 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 	if (skybox)
 	{
 		Material skyboxMat;
-		skyboxMat.addTexture(L"skybox1.dds", true);
+		skyboxMat.addTexture(L"Skybox_Texture3.dds", true);
 		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 	}
 

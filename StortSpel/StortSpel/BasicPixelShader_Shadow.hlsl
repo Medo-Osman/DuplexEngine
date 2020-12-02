@@ -81,7 +81,7 @@ struct ps_out
 Texture2D diffuseTexture : TEXTURE : register(t0);
 SamplerState sampState : SAMPLER : register(s0);
 SamplerComparisonState shadowSampState : SAMPLER1 : register(s1);
-Texture2D shadowMap : TEXTURE : register(t2);
+Texture2D shadowMap : TEXTURE : register(t9);
 
 struct lightComputeResult
 {
