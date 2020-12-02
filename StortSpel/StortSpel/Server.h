@@ -1,16 +1,10 @@
 #pragma once
 #include "Packet.h"
-#include "BaseAction.h"
 #pragma comment (lib, "ws2_32.lib")
 struct PlayerInfo
 {
 	int id;
 	int ready; // 0 is unready, 1 is ready
-};
-struct BossData
-{
-	Vector3 position;
-	Vector4 rotation;
 };
 class Server
 {
@@ -20,8 +14,7 @@ private:
 	void sendTo(Packet* _packet);
 	void sendToAllExcept(Packet* _packet);
 	void sendToAll(Packet* _packet);
-	
-	void sendBossData();
+
 	void playerPacket(Packet* _packet);
 	void trapPacket(Packet* _packet);
 	void pickUpPacket(Packet* _packet);
@@ -37,10 +30,7 @@ public:
 
 	BSTR getServerIP();
 	void setNrOfPlayers(int x);
-	void setBossData(Vector3 pos, Vector4 rot);
-	void sendBossActionData(int bossEnum, BossStructures::BossActionData actionData);
 	void update();
-
 private:
 	SOCKET client;
 	fd_set master;
@@ -53,6 +43,5 @@ private:
 	int nrOfPlayers = 0;
 	int playersReady = -1;
 	PlayerInfo playerInfo[4];
-	BossData bossData;
 
 };

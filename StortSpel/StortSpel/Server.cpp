@@ -101,14 +101,6 @@ void Server::sendToAll(Packet* _packet)
 	}
 }
 
-void Server::sendBossData()
-{
-	Packet _packet(7);
-	_packet.Write(bossData.position);
-	_packet.Write(bossData.rotation);
-	sendToAll(&_packet);
-}
-
 void Server::playerPacket(Packet* _packet)
 {
 	//loop through players and send data to every other client
@@ -264,25 +256,6 @@ void Server::setNrOfPlayers(int x)
 	this->nrOfPlayers = x;
 }
 
-void Server::setBossData(Vector3 pos, Vector4 rot)
-{
-	bossData.position = pos;
-	bossData.rotation = rot;
-}
-
-void Server::sendBossActionData(int bossEnum, BossStructures::BossActionData actionData)
-{
-	Packet _packet(8);
-	_packet.Write(bossEnum);
-	_packet.Write(actionData.direction);
-	_packet.Write(actionData.origin);
-	_packet.Write(actionData.rotation);
-	_packet.Write(actionData.speed);
-	_packet.Write(actionData.maxStarCount);
-	_packet.Write(actionData.currentStarCount);
-	_packet.Write(actionData.entityID);
-}
-
 void Server::update()
 {
 
@@ -394,9 +367,6 @@ void Server::update()
 				sendToAll(&_packet);
 				gameRunning = true;
 			}
-
-			sendBossData();
-			
 		}
 	}
 	

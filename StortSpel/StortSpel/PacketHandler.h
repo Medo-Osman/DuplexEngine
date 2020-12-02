@@ -1,6 +1,5 @@
 #pragma once
 #include "Packet.h"
-#include "BaseAction.h"
 struct SimpleData
 {
 	int ID;
@@ -14,11 +13,6 @@ struct TrapData
 {
 	std::string entityID;
 	bool isActive;
-};
-struct BossData
-{
-	Vector3 position;
-	Vector4 rotation;
 };
 class PacketHandler
 {
@@ -34,10 +28,9 @@ private:
 	void newPlayerConnection(Packet* _packet);
 	void trapActivation(Packet* _packet);
 	void playerPickUp(Packet* _packet);
-	void writeBossData(Packet* _packet);
+
 	void sendPlayerData();
-	void setBossData(Packet* _packet);
-	void setBossActionData(Packet* _packet);
+
 public:
 	PacketHandler(const PacketHandler&) = delete;
 	void operator=(PacketHandler const&) = delete;
@@ -65,8 +58,6 @@ public:
 	void sendScorePickup(std::string entityID);
 	void sendReady();
 
-	Vector3 getBossPosition() { return this->bossData.position; }
-	Vector4 getBossRotation() { return this->bossData.rotation; }
 
 	bool getServerReady() { return serverReady; }
 	bool getClientReady() { return clientReady; }
@@ -75,11 +66,8 @@ public:
 	std::vector<std::string>& getEntitiesToBeRemoved();
 	void update();
 	
-	std::string convert(BSTR source);
-
 	bool gameStarted = false;
-	int bossEnum;
-	BossStructures::BossActionData bossActionData;
+	std::string convert(BSTR source);
 private:
 	WSAData data;
 	std::string ipAddress;
@@ -92,8 +80,6 @@ private:
 	SimpleData serverPlayerData[4];
 	std::vector<TrapData> trapData;
 	std::vector<std::string> entitiesToBeRemoved;
-	BossData bossData;
 
-	
 
 };

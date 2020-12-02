@@ -87,11 +87,6 @@ void Scene::createParticleEntity(void* particleComponent, Vector3 position)
 	m_tempParticleComponent.emplace_back(pc);
 }
 
-void Scene::initializeBoss()
-{
-
-}
-
 void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 {
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
@@ -1945,46 +1940,34 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 	if (type == BossMovementType::MovePlatform) //Move a platform that the boss has moved over for a period of time.
 	{
-		if (data.pointer0 != nullptr)
-		{
-			Entity* entity;
-			entity = static_cast<Entity*>(data.pointer0);
+		Entity* entity;
+		entity = static_cast<Entity*>(data.pointer0);
 
-			displacePlatform(entity);
-		}
-		else
-		{
-			//Find entity based on string
-			//Engine::get().getEntityMap()->at(entityID)->getComponentsOfType(pushTraps, ComponentType::TRIGGER);
-
-		}
-
+		displacePlatform(entity);
 	}
 
 	if (type == BossMovementType::DropPoints)
 	{
-		if (data.pointer0 != nullptr)
-		{
 			Entity* projectile = static_cast<Entity*>(data.pointer0);
 			Component* component = projectile->getComponent("projectile");
 
 			m_boss->dropStar(1);
 			float c = float(m_boss->getCurrnentNrOfStars()) / float(m_boss->getNrOfMaxStars());
-			if (m_boss->getCurrnentNrOfStars() > -1)
-			{
-				imageStyle.scale = Vector2(c, 0.8f);
-				GUIHandler::get().setImageStyle(m_bossHP_barGuiIndex, imageStyle);
+		if (m_boss->getCurrnentNrOfStars() > -1)
+		{
+			imageStyle.scale = Vector2(c, 0.8f);
+			GUIHandler::get().setImageStyle(m_bossHP_barGuiIndex, imageStyle);
 
-				if (component != nullptr)
-				{
-					ProjectileComponent* projComponent = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
-					m_projectiles.erase(projComponent->m_id);
-					removeEntity(projectile->getIdentifier());
-					deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
-				}
-				else
-					addScore(data.origin + Vector3(0, 5, 0));
+			if (component != nullptr)
+			{
+				ProjectileComponent* projComponent = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
+				m_projectiles.erase(projComponent->m_id);
+				removeEntity(projectile->getIdentifier());
+				deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
 			}
+			else
+				addScore(data.origin + Vector3(0, 5, 0));
+		}
 
 
 
@@ -1996,22 +1979,16 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 				else
 					createEndScenePortal();
 			}
-		}
-		
 
 	}
 
 	if (type == BossMovementType::SpawnParticlesOnPlatform)
 	{
-		if (data.pointer0 != nullptr)
-		{
-			Entity* platformEntity = static_cast<Entity*>(data.pointer0);
-			MeshComponent* platformMeshComponent = (MeshComponent*)(platformEntity->getComponent("mesh"));
-			Material* platformMaterial = platformMeshComponent->getMaterialPtr(0);
+		Entity* platformEntity = static_cast<Entity*>(data.pointer0);
+		MeshComponent* platformMeshComponent = (MeshComponent*)(platformEntity->getComponent("mesh"));
+		Material* platformMaterial = platformMeshComponent->getMaterialPtr(0);
 
-			platformMaterial->swapTexture(L"RedEmissive.png", 1);
-		}
-
+		platformMaterial->swapTexture(L"RedEmissive.png", 1);
 	}
 	
 }
