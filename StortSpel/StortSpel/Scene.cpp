@@ -350,7 +350,7 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 
 	pickupPtr = addEntity(name);
 	pickupPtr->setPosition(position);
-	addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
+	addComponent(pickupPtr, "mesh", new MeshComponent("SpeedPickup_Cube.001.lrm", ShaderProgramsEnum::RAINBOW));
 	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, 1.f, 6));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
@@ -697,13 +697,14 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	Entity* itemBox = sceneObject->addEntity("itemBox");
 	if (itemBox)
 	{
-		//sceneObject->addComponent(itemBox, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", RAINBOW, Material()));
-		sceneObject->addComponent(itemBox, "itemBox", new MeshComponent("testCube_pCube1.lrm", RAINBOW, Material()));
+		sceneObject->addComponent(itemBox, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", RAINBOW, Material()));
 
 		itemBox->translate({ 2, 12, 2 });
 		itemBox->scale({ 3, 3, 3 });
-
+		Vector3 start = itemBox->getTranslation();
+		Vector3 end = Vector3(itemBox->getTranslation().x, itemBox->getTranslation().y, itemBox->getTranslation().z + 10);
 		sceneObject->addComponent(itemBox, "rotate", new RotateComponent(itemBox, { 0.f, 1.f, 0.f }));
+		sceneObject->addComponent(itemBox, "sweep", new SweepingComponent(itemBox, start, end, 1));
 
 	}
 
