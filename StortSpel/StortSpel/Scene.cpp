@@ -204,7 +204,7 @@ void Scene::addCheckpoint(const Vector3& position)
 {
 	Entity* checkPoint = addEntity("checkpoint"+std::to_string(m_nrOfCheckpoints++));
 	addComponent(checkPoint, "mesh", new MeshComponent("Flag_pPlane2.lrm"));
-	checkPoint->setPosition(position + Vector3(0,-0.2f,0));
+	checkPoint->setPosition(position + Vector3(0,1.35f,0));
 	checkPoint->scale(1.5, 1.5, 1.5);
 
 	addComponent(checkPoint, "checkpoint", new CheckpointComponent(checkPoint));
@@ -633,17 +633,19 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 		delete[] prefabData;
 	}
 
-
+	/*
 	Entity* skybox = sceneObject->addEntity("SkyBox");
-	skybox->m_canCull = false;
 	if (skybox)
 	{
+		skybox->m_canCull = false;
+		
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
+	*/
 
 	delete[] levelData;
 	*finished = true; //Inform the main thread that the loading is complete.
@@ -802,8 +804,25 @@ void Scene::addPrefabFromFile(char* params)
 	case GOAL_TRIGGER:
 
 		break;
+
+	case SWINGING_HAMMER:
+	{
+		Vector3 rot = readDataFromChar<Vector3>(params, offset);
+		float swingSpeed = readDataFromChar<float>(params, offset);
+		createSwingingHammer(pos, rot, swingSpeed);
+		break;
 	}
+	case pfSKYBOX:
+	{
+		std::string strTexName = readStringFromChar(params, offset);
+		std::wstring texName = std::wstring(strTexName.begin(), strTexName.end());
+		createSkybox(texName);
+		break;
+	}
+	}
+	
 }
+
 
 void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 {
@@ -2040,6 +2059,20 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 
 		addComponent(hammer, "swing",
 			new SwingComponent(hammer, rotation, swingSpeed));
+	}
+}
+
+void Scene::createSkybox(std::wstring textureName)
+{
+	Entity* skybox = addEntity("SkyBox");
+	skybox->m_canCull = false;
+	if (skybox)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(textureName.c_str(), true);
+		addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		//Disable shadow casting
+		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
 }
 

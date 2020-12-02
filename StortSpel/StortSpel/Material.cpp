@@ -27,6 +27,16 @@ Material::Material(std::wstring materialName)
 	{
 		addTexture(fileName.c_str());
 	}
+
+	if (m_MaterialCache[materialName].fileNames.empty())
+	{
+		m_isDefault = true;
+		m_materialId = 0;
+
+		TextureResource* errorTexturePtr = ResourceHandler::get().loadErrorTexture();
+		for (int i = 0; i < 5; i++)
+			this->m_textureArray.push_back(errorTexturePtr->view);
+	}
 }
 
 Material::Material(const Material& other)

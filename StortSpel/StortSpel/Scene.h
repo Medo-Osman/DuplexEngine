@@ -26,7 +26,9 @@ enum PrefabType
 	SLOWTRAP,
 	PUSHTRAP,
 	BARRELDROP,
-	GOAL_TRIGGER
+	GOAL_TRIGGER,
+	SWINGING_HAMMER,
+	pfSKYBOX
 };
 
 class Scene : public PhysicsObserver, public BossObserver
@@ -51,6 +53,8 @@ private:
 	void createPointLight(Vector3 position, Vector3 color, float intensity);
 	int m_nrSwingningHammers = 0;
 	void createSwingingHammer(Vector3 position, Vector3 rotation, float swingSpeed);
+
+	void createSkybox(std::wstring textureName = std::wstring(L"Skybox_Texture.dds"));
 
 	//---------------------------------------------------------------Boss sstuff
 	UINT m_nrOfProjectiles = 0;
