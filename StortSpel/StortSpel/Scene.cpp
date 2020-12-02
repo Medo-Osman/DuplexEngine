@@ -2298,7 +2298,7 @@ void Scene::createPortal()
 			new TriggerComponent());
 
 		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
-		tc->initTrigger(m_sceneID, goalTrigger, XMFLOAT3(1, 1, 1));
+		tc->initTrigger(m_sceneID, goalTrigger, XMFLOAT3(2.5f, 2.5f, 2.5f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
 		tc->setIntData((int)ScenesEnum::ARENA);
 	}
@@ -2323,7 +2323,7 @@ void Scene::createEndScenePortal()
 			new TriggerComponent());
 
 		TriggerComponent* tc = static_cast<TriggerComponent*>(endSceneTrigger->getComponent("endSceneTrigger"));
-		tc->initTrigger(m_sceneID, endSceneTrigger, XMFLOAT3(1.0f, 1.0f, 1.0f));
+		tc->initTrigger(m_sceneID, endSceneTrigger, XMFLOAT3(2.5f, 2.5f, 2.5f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
 		tc->setIntData((int)ScenesEnum::ENDSCENE);
 	}
