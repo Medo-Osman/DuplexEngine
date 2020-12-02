@@ -916,13 +916,13 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	if (itemBox)
 	{
 		sceneObject->addComponent(itemBox, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", RAINBOW, Material()));
+		sceneObject->addComponent(itemBox, "speedItem", new MeshComponent("SpeedPickup_Plane.lrm", ShaderProgramsEnum::DEFAULT, Material({ L"SpeedIcon.png" })));
 
 		itemBox->translate({ 2, 12, 2 });
 		itemBox->scale({ 3, 3, 3 });
 		Vector3 start = itemBox->getTranslation();
 		Vector3 end = Vector3(itemBox->getTranslation().x, itemBox->getTranslation().y, itemBox->getTranslation().z + 10);
-		sceneObject->addComponent(itemBox, "rotate", new RotateComponent(itemBox, { 0.f, 1.f, 0.f }));
-		sceneObject->addComponent(itemBox, "sweep", new SweepingComponent(itemBox, start, end, 1));
+		sceneObject->addComponent(itemBox, "rotate", new RotateComponent(itemBox, { 0.f, 1.0f, 0.f }, 1.f));
 
 	}
 

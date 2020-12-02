@@ -22,6 +22,13 @@ cbuffer perModel : register(b2)
     float4x4 wvpMatrix;
 };
 
+cbuffer globalConstsBuffer : register(b4)
+{
+    float3 playerPosition;
+    float environmentMapBrightness;
+    float time;
+}
+
 float3 HueShift(float3 Color, float Shift)
 {
     float3 P = float3(0.55735, 0.55735, 0.55735) * dot(float3(0.55735, 0.55735, 0.55735), Color);
@@ -82,8 +89,9 @@ ps_out main(ps_in input) : SV_TARGET
 
     float3 color = rgb2hsl(modelPosition);
     ps_out output;
-    
-    float4 finalColor = float4(HueShift(color, worldMatrix._43 / 2), 1);
+    float sintime = (sin(time) / 2.) + 0.5;
+    float3 rainbow = rgb2hsl(float3(input.uv.x + time/10, time/10, input.uv.y));
+    float4 finalColor = float4(HueShift(rainbow, time/10), 1);
     output.diffuse = finalColor;
     output.glow = finalColor;
     
