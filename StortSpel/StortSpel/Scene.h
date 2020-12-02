@@ -124,7 +124,7 @@ private:
 	void loadPickups();
 	void loadScore();
 	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
-	void addCheckpoint(const Vector3& position);
+	void addCheckpoint(const Vector3& position, float rotation = 90);
 	void createScoreParticleEntity(Vector3 position);
 
 	void addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox);

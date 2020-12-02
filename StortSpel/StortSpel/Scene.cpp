@@ -212,12 +212,17 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
 
-void Scene::addCheckpoint(const Vector3& position)
+void Scene::addCheckpoint(const Vector3& position, float rotation)
 {
 	Entity* checkPoint = addEntity("checkpoint"+std::to_string(m_nrOfCheckpoints++));
-	addComponent(checkPoint, "mesh", new MeshComponent("Flag_pPlane2.lrm"));
+
+	MeshComponent* mesh(new MeshComponent("Flag_pPlane2.lrm", Material({ L"Flag_Albedo.png" })));
+	mesh->setPosition(0, -2.25f, 0);
+	mesh->setRotation(0, XMConvertToRadians(rotation), 0);
+
+	addComponent(checkPoint, "mesh", mesh);
 	checkPoint->setPosition(position + Vector3(0,1.35f,0));
-	checkPoint->scale(1.5, 1.5, 1.5);
+	checkPoint->scaleUniform(0.6f);
 
 	addComponent(checkPoint, "checkpoint", new CheckpointComponent(checkPoint));
 	static_cast<TriggerComponent*>(checkPoint->getComponent("checkpoint"))->initTrigger( m_sceneID, checkPoint, { 4, 4, 4 });
@@ -1481,8 +1486,8 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	sceneObject->m_bossHP_barBackgroundGuiIndex = GUIHandler::get().addGUIImage(L"BossHP-barBG.png", sceneObject->imageStyle);
 
 
-	sceneObject->createStaticPlatform(Vector3(0, 15, 20), Vector3(0, 0, 0), Vector3(10, 1, 20), "testCube_pCube1.lrm");
-	sceneObject->m_sceneEntryPosition = Vector3(0, 17, 20);
+
+
 
 	//Generate the boss, if boss does not exist in the scene it will not be updated in sceneUpdate() either.
 	Entity* bossEnt = sceneObject->addEntity("boss");
@@ -1499,13 +1504,13 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		sceneObject->m_boss->Attach(sceneObject);
 		sceneObject->m_boss->initialize(bossEnt, true);
 		sceneObject->m_boss->setNrOfMaxStars(10);
-		sceneObject->m_endBossAtPecentNrOfStarts = 50; // if this is 0 the end secene will be triggered
+		sceneObject->m_endBossAtPecentNrOfStarts = 0; // if this is 0 the end secene will be triggered
 
 		//// Init grid structure
 		BossStructures::PlatformArray* platformArray = &sceneObject->m_boss->platformArray;
 		float spacingBetweenPlatforms = 1.f;
 		int total = 0;
-		float scaling = 5.f;
+		float scaling = 2.5f;
 		Vector3 platformPos = Vector3(15, 0, 15);
 		for (int x = 0; x < platformArray->columns.size(); x++)
 		{
@@ -1545,25 +1550,30 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 			}
 		}
 		//// Grid structure finished
-
+		float a = 2.5f * 4;
+		a = a + 10 + 1.25f;
+		sceneObject->m_sceneEntryPosition = Vector3(10, 6, a);
+		sceneObject->createStaticPlatform(Vector3(10, 4.9, a), Vector3(0, 0, 0), Vector3(3, 0.2, 3), "testCube_pCube1.lrm");
 
 		//Added the platform to spawn on, as well as a checkpoint on it.
-		sceneObject->addCheckpoint(sceneObject->m_sceneEntryPosition + Vector3(0, 0, 0));
+		sceneObject->addCheckpoint(sceneObject->m_sceneEntryPosition - Vector3(0, 1, 0), 0);
 		Physics::get().Attach(sceneObject->m_boss, true, false);
 
 
 		//Generate a set of segments on the boss, primarily to display the interface.
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 3; i++)
 		{
 			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
 			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("Boss_Bot.lrm", Material({ L"DarkGrayTexture.png" })));
-			segmentEntity->setScale({ 1,1,1 });
+			segmentEntity->setScale({ 0.5f, 0.5f, 0.5f });
 
 			BossSegment* projectileSegment = new BossSegment();
 			projectileSegment->initializeSegment(segmentEntity, false);
-			projectileSegment->m_entityOffset = Vector3(0, 3 * sceneObject->m_boss->m_bossSegments.size(), 0);
+			projectileSegment->m_entityOffset = Vector3(0, 1.5 * sceneObject->m_boss->m_bossSegments.size(), 0);
 			sceneObject->m_boss->addSegment(projectileSegment);
-			sceneObject->createNewPhysicsComponent(segmentEntity, true, "mesh");
+			sceneObject->createNewPhysicsComponent(segmentEntity, true, "physics");
+			PhysicsComponent* pys = (PhysicsComponent*)segmentEntity->getComponent("physics");
+			pys->setSlide(true);
 			segmentEntity->getComponentsByType<PhysicsComponent>(ComponentType::PHYSICS)->makeKinematic();
 			projectileSegment->Attach(sceneObject);
 
@@ -1573,13 +1583,26 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		}
 
 		//Add the head of the boss, just another mesh in the boss entity.
-		MeshComponent* headComponent = new MeshComponent("Boss_Top.lrm", Material({ L"DarkGrayTexture.png" }));
-		headComponent->setPosition(0, (2 * sceneObject->m_boss->m_bossSegments.size()), 0);
-		sceneObject->addComponent(bossEnt, "meshHead", headComponent);
+		//MeshComponent* headComponent = new MeshComponent("Boss_Top.lrm", Material({ L"DarkGrayTexture.png" }));
+		//headComponent->setScale({ 0.5f, 0.5f, 0.5f });
+		//headComponent->setPosition(0, (sceneObject->m_boss->m_bossSegments.size()), 0);
+		//sceneObject->addComponent(bossEnt, "meshHead", headComponent);
 
 		//Add custom action
 		//sceneObject->m_boss->addAction(new ShootLaserAction(bossEnt, sceneObject->m_boss, 4.f));
 	}
+
+
+	Entity* walls = sceneObject->addEntity("Walls");
+	if (walls)
+	{
+		sceneObject->addComponent(walls, "mesh", new MeshComponent("BossWalls_polySurface54.lrm", 
+													 Material ({ L"DarkGrayTexture.png" })));
+		walls->setPosition(22.5, -35, 22.5);
+		walls->setScaleUniform(0.5);
+	}
+
+
 
 	Entity* skybox = sceneObject->addEntity("SkyBox");
 	skybox->m_canCull = false;
@@ -1638,10 +1661,10 @@ void Scene::updateScene(const float& dt)
 		if (m_boss->getActionQueue()->size() == 0 && m_boss->getCurrnentNrOfStars() >= 0)
 		{
 			BossStructures::IntVec platformTargetIndex = m_boss->getNewPlatformTarget();
-			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
+			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 5.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
 			//m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 2)); //Wait before moving again
 			m_boss->addAction(new ShootLaserAction(m_boss->m_bossSegments.at(0)->m_bossEntity, m_boss, 1));
-			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
+			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 5.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
 			//m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 5)); //Wait before moving again
 			m_boss->addAction(new ThunderAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, &m_displacedPlatforms));
 		}
@@ -1961,7 +1984,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 				deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
 			}
 			else
-				addScore(data.origin + Vector3(0, 5, 0));
+				addScore(data.origin + Vector3(0, 1, 0));
 		}
 
 
@@ -2141,6 +2164,7 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 
 		createNewPhysicsComponent(hammer, true, "", PxGeometryType::eTRIANGLEMESH);
 		static_cast<PhysicsComponent*>(hammer->getComponent("physics"))->makeKinematic();
+		static_cast<PhysicsComponent*>(hammer->getComponent("physics"))->setSlide(true);
 
 		addComponent(hammer, "swing",
 			new SwingComponent(hammer, rotation, swingSpeed));
@@ -2231,7 +2255,7 @@ void Scene::createLaser(BossStructures::BossActionData data)
 		MeshComponent* mComp = new MeshComponent("Boss_Laser.lrm", EMISSIVE, mat);
 		mComp->setCastsShadow(false);
 		addComponent(laserEntity, "mesh", mComp);
-		laserEntity->setScale(1, 1, 10);
+		laserEntity->setScale(0.5, 0.5, 10);
 
 		if (sound != nullptr)
 		{
@@ -2266,7 +2290,7 @@ void Scene::checkLasers(float dt)
 			idsToRemove.push_back(laserStruct.first);
 		}
 
-		float maxSize = 2;
+		float maxSize = 0.1f;
 		Entity* entity = laserStruct.second->entity;
 		float size = (currTime / lifeTime) * maxSize;
 		entity->setScale({ 1+size, 1 + size, entity->getScaling().z });
@@ -2381,14 +2405,12 @@ void Scene::removeBoss()
 
 void Scene::createPortal()
 {
-	float a = m_boss->getNrOfPlatforms();
-	a = float(ceil(a / 2));
-	a = 5 * a;
-	a = a + 10;
+	float a = 2.5f * 4;
+	a = a + 10 + 1.25f;
 	Entity* goalTriggerFrame = addEntity("triggerFrame");
 	if (goalTriggerFrame)
 	{
-		goalTriggerFrame->setPosition(Vector3(10, 3, a));
+		goalTriggerFrame->setPosition(Vector3(30, 3, a));
 		goalTriggerFrame->setRotation(Vector3(0, XMConvertToRadians(90), 0));
 		addComponent(goalTriggerFrame, "mesh",
 			new MeshComponent("Portal_pCube41.lrm", Material({ L"DarkGrayTexture.png" })));
@@ -2397,7 +2419,7 @@ void Scene::createPortal()
 	Entity* goalTrigger = addEntity("trigger");
 	if (goalTrigger)
 	{
-		goalTrigger->setPosition(Vector3(10, 4.5, a));
+		goalTrigger->setPosition(Vector3(30, 4.5, a));
 		goalTrigger->setRotation(Vector3(0, XMConvertToRadians(90), 0));
 
 		Material emissiveMat({ L"DarkGrayTexture.png", L"PortalEmissive.jpg" });
@@ -2420,15 +2442,13 @@ void Scene::createPortal()
 
 void Scene::createEndScenePortal()
 {
-	float a = m_boss->getNrOfPlatforms();
-	a = float(ceil(a / 2));
-	a = 5 * a;
-	a = a + 10;
+	float a = 2.5f * 4;
+	a = a + 10 + 1.25f;
 
 	Entity* endSceneTriggerFrame = addEntity("endTrriggerFrame");
 	if (endSceneTriggerFrame)
 	{
-		endSceneTriggerFrame->setPosition(Vector3(10, 3, a));
+		endSceneTriggerFrame->setPosition(Vector3(30, 3, a));
 		endSceneTriggerFrame->setRotation(Vector3(0, XMConvertToRadians(90), 0));
 		addComponent(endSceneTriggerFrame, "mesh",
 			new MeshComponent("Portal_pCube41.lrm", Material({ L"DarkGrayTexture.png" })));
@@ -2437,7 +2457,7 @@ void Scene::createEndScenePortal()
 	Entity* endSceneTrigger = addEntity("endTrigger");
 	if (endSceneTrigger)
 	{
-		endSceneTrigger->setPosition(Vector3(10, 4.5, a));
+		endSceneTrigger->setPosition(Vector3(30, 4.5, a));
 		endSceneTrigger->setRotation(Vector3(0, XMConvertToRadians(90), 0));
 
 		Material emissiveMat({ L"DarkGrayTexture.png", L"PortalEmissive.jpg" });
