@@ -35,7 +35,7 @@ public:
 
 	Material();
 	Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData = MATERIAL_CONST_BUFFER());
-	Material(std::wstring materialName);
+	Material(std::wstring materialName, bool isPBR = false);
 	Material(const Material& other);
 	~Material();
 

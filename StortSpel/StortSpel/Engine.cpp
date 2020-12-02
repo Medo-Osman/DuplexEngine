@@ -162,6 +162,8 @@ void Engine::initialize(Input* input)
 		assert(false);
 	}
 
+	Material::readMaterials();
+
 	m_camera.initialize(80.f, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 
 	// Audio Handler Listener setup
@@ -179,7 +181,7 @@ void Engine::initialize(Input* input)
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
-	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE , ShaderProgramsEnum::SKEL_PBR }, { Material(L"Cloth"), Material(L"Skin", true), Material(L"Hair"), Material(L"LucyEyes") });
 	playerEntity->addComponent("mesh", animMeshComp);
 	playerEntity->setScaleUniform(0.5f);
 
@@ -204,7 +206,6 @@ void Engine::initialize(Input* input)
 
 	// Audio Handler needs Camera Transform ptr for 3D positional audio
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
-	Material::readMaterials();
 }
 
 void Engine::updateLightData()

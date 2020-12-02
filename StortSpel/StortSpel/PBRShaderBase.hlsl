@@ -65,6 +65,7 @@ struct ps_in
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
 	float4 worldPos : POSITION;
+	float4 shadowPos : SPOS;
 };
 
 struct ps_out

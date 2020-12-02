@@ -19,10 +19,17 @@ Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST
 	m_materialConstData = materialConstData;
 }
 
-Material::Material(std::wstring materialName)
+Material::Material(std::wstring materialName, bool isPBR)
 	/*:Material(m_MaterialCache[materialName])*/
 	:m_materialId(m_MaterialCache[materialName].MaterialID), m_isDefault(false)
 {
+	if (isPBR)
+	{
+		addTexture(L"skybox1IR.dds", true);
+		addTexture(L"skybox1.dds", true);
+		addTexture(L"ibl_brdf_lut.png");
+	}
+	
 	for (auto fileName : m_MaterialCache[materialName].fileNames)
 	{
 		addTexture(fileName.c_str());

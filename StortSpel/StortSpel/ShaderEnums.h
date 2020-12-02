@@ -138,7 +138,8 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 
 	(*compiledShadersMap)[ShaderProgramsEnum::LUCY_FACE] = new ShaderProgram
 	(
-		{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"BasicPixelShader_temp_for_testing_shaderSwitching.hlsl" },
+		//{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"BasicPixelShader_temp_for_testing_shaderSwitching.hlsl" },BasicPixelShader_Shadow
+		{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"BasicPixelShader_Shadow.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		VertexLayoutType::LRSMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
