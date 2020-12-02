@@ -950,12 +950,22 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(itemBox, "speedItem", new MeshComponent("SpeedPickup_Plane.lrm", ShaderProgramsEnum::DEFAULT, Material({ L"SpeedIcon.png" })));
 
 		itemBox->translate({ 2, 12, 2 });
-		itemBox->translate({ 2, 12, 2 });
 		itemBox->scale({ 3, 3, 3 });
 		Vector3 start = itemBox->getTranslation();
 		Vector3 end = Vector3(itemBox->getTranslation().x, itemBox->getTranslation().y, itemBox->getTranslation().z + 10);
 		sceneObject->addComponent(itemBox, "rotate", new RotateComponent(itemBox, { 0.f, 1.0f, 0.f }, 1.f));
 
+	}
+
+	Entity* testBox = sceneObject->addEntity("testBoxu");
+	if (testBox)
+	{
+		sceneObject->addComponent(testBox, "boxu", new MeshComponent("Pickup_Cube.lrm", ShaderProgramsEnum::DEFAULT, Material({ L"SpeedIcon.png" })));
+
+		testBox->translate({ 2, 2, 2 });
+		testBox->scale({ 8, 8, 8 });
+		
+		sceneObject->addComponent(testBox, "rotate", new RotateComponent(testBox, { 0.f, 1.0f, 0.f }, 1.f));
 	}
 
 	Entity* test = sceneObject->addEntity("test");
