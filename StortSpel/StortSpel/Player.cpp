@@ -40,7 +40,7 @@ Player::Player()
 		m_lineData[i].direction = { 0, 0, 0 };
 		m_lineData[i].position = { 0, 0, 0 };
 	}
-	
+
 	//GUI
 	m_score = 0;
 	//style.position.y = 70.f;
@@ -179,11 +179,11 @@ void Player::handleRotation(const float &dt)
 		currentRotation.Normalize();
 
 		auto cameraRot = m_cameraTransform->getRotation();
-		
+
 		Quaternion cameraRotationY = Quaternion(0.f, cameraRot.y, 0.f, cameraRot.w);
 		cameraRotationY.Normalize();
 		Vector3 cameraForward = XMVector3Rotate(Vector4(0.f, 0.f, 1.f, 0.f), cameraRotationY);
-		
+
 		auto offset = Vector4(XMVector3AngleBetweenNormals(XMVector3Normalize(m_movementVector), cameraForward));
 
 		//if this vector has posisitv value the character is facing the positiv x axis, checks movementVec against cameraForward
@@ -308,7 +308,7 @@ void Player::playerStateLogic(const float& dt)
 				else
 					m_state = PlayerState::FALLING;
 			}
-			
+
 			m_controller->setControllerSize(m_controller->getOriginalHeight());
 			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
 			idleAnimation();
@@ -381,7 +381,7 @@ void Player::playerStateLogic(const float& dt)
 		}
 		else if (m_jumpPressed && !m_lastJumpPressed && m_jumps < ALLOWED_NR_OF_JUMPS)
 			jump(dt);
-		
+
 		break;
 
 	case PlayerState::JUMPING:
@@ -461,6 +461,17 @@ void Player::playerStateLogic(const float& dt)
 			m_shouldDrawLine = false;
 			m_verticalMultiplier = 1;
 			m_horizontalMultiplier = CANNON_POWER;
+		}
+		else //Draw marker
+		{
+			Vector3 finalPos;
+			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector(), GRAVITY);
+
+			return;
+		}
+		break;
+	case PlayerState::FLYINGBALL:
+		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 
 			directionalMovement = m_cameraTransform->getForwardVector();
 
@@ -551,9 +562,9 @@ void Player::playerStateLogic(const float& dt)
 		m_timeCounter -= 0.1f;
 	}
 
-	
+
 	// Final frame velocity
-	if (directionalMovement.LengthSquared() > 0.f) 
+	if (directionalMovement.LengthSquared() > 0.f)
 	{
 		// Compensate for larger directional change
 		m_horizontalMultiplier = m_horizontalMultiplier * max(directionalMovement.Dot(m_lastDirectionalMovement), 0.2f);
@@ -571,7 +582,7 @@ void Player::playerStateLogic(const float& dt)
 	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
 	{
 		float blend = vectorLen / (PLAYER_MAX_SPEED * dt);
-		
+
 		if ((PLAYER_MAX_SPEED * dt) <= 0.0f)
 			blend = 0.0f;
 
@@ -706,6 +717,8 @@ void Player::updatePlayer(const float& dt)
 	ImGui::Text("Player Position: (%d %d, %d)", (int)this->getPlayerEntity()->getTranslation().x, (int)this->getPlayerEntity()->getTranslation().y, (int)this->getPlayerEntity()->getTranslation().z);
 	ImGui::Text("PlayerState: %d", this->m_state);
 	ImGui::End();
+	
+
 }
 
 void Player::setPlayerEntity(Entity* entity)
@@ -772,7 +785,7 @@ void Player::increaseScoreBy(int value)
 {
 	m_score += value;
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
-	
+
 	if (m_score >= 10 && m_score < 100)
 	{
 		GUITextStyle style;
@@ -782,7 +795,7 @@ void Player::increaseScoreBy(int value)
 	}
 	if (m_score >= 100)
 	{
-		
+
 		GUITextStyle style;
 		style.position = Vector2(1678, 62);
 		style.color = Colors::White;
@@ -925,8 +938,6 @@ void Player::inputUpdate(InputData& inputData)
 
 void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEntityBeRemoved)
 {
-	
-
 	if (!shouldTriggerEntityBeRemoved)
 	{
 		//Traps
@@ -942,17 +953,18 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				break;
 			}
 
+
 		}
 
 		if (physicsData.triggerType == TriggerType::BARREL)
 		{
+			m_activeTrap = TrapType::SLOW;
+			m_currentSpeedModifier = 0.5f;
 
-			//spelare - barrel
-			/*	Vector3 direction = ->getTranslation() - m_playerEntity->getTranslation();
-			direction.Normalize();
-			m_playerEntity->translate(direction);*/
+			m_speedModifierTime = 0;
+			//PacketHandler::get().functionnamn(int m_nrOfBarrelDrops")
+			//do stuff jonas
 
-			jump();
 		}
 
 		//Checkpoints

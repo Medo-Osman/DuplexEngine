@@ -19,6 +19,21 @@ SceneManager::~SceneManager()
 
 void SceneManager::initalize()
 {
+	//ImGui::NewFrame();
+	//ImGui::Begin("My First Tool", &my_test_active, ImGuiWindowFlags_MenuBar);
+	//if (ImGui::BeginMenuBar())
+	//{
+	//	if (ImGui::BeginMenu("File"))
+	//	{
+	//		if (ImGui::MenuItem("Open..", "Ctrl+O")) { /* Do stuff */ }
+	//		if (ImGui::MenuItem("Save", "Ctrl+S")) { /* Do stuff */ }
+	//		if (ImGui::MenuItem("Close", "Ctrl+W")) { my_test_active = false; }
+	//		ImGui::EndMenu();
+	//	}
+	//	ImGui::EndMenuBar();
+	//}
+
+
 	//define gui button
 	GUIButtonStyle btnStyle;
 	//start button
@@ -62,6 +77,9 @@ void SceneManager::initalize()
 
 	GUIButton* backToLobbyButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_backToLobbyIndex));
 	backToLobbyButton->Attach(this);
+	//ImGui::NewFrame();
+	//char buf[15] = { 0 };
+	//ImGui::InputText("Input Text", buf, IM_ARRAYSIZE(buf));
 
 	exitButton->Attach(this);
 	exitButton->setPrevMenuButton(hostButton);
@@ -124,13 +142,15 @@ void SceneManager::initalize()
 	hideScore();
 
 	GUIHandler::get().setVisible(m_backToLobbyIndex, false);
+
 }
 
 void SceneManager::updateScene(const float &dt)
 {
+	inputIP();
 	if (m_swapScene && !m_loadNextSceneWhenReady)
 	{
-
+		
 		m_nextScene = new Scene();
 		std::thread sceneLoaderThread;
 		switch (m_nextSceneEnum)
@@ -150,6 +170,8 @@ void SceneManager::updateScene(const float &dt)
 			m_gameStarted = false;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			m_camera->endSceneCamera = false;
+			
+			
 			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::START:
@@ -182,8 +204,10 @@ void SceneManager::updateScene(const float &dt)
 			m_camera->endSceneCamera = false; // if this is false the camera follows the player as usual
 			hideScore();
 			GUIHandler::get().setVisible(m_backToLobbyIndex, false);
+			
+		
 			GUIHandler::get().setInMenu(true, m_singleplayerIndex);
-
+			
 			break;
 		case ScenesEnum::ENDSCENE:
 			sceneLoaderThread = std::thread(Scene::loadEndScene, m_nextScene, m_nextSceneReady);
@@ -345,6 +369,16 @@ std::vector<std::pair<int, std::string>>* SceneManager::getScorePtr()
 	return m_scores;
 }
 
+void SceneManager::inputIP()
+{
+
+	ImGui::Begin("Input IP", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+	ImGui::InputText("IP", charPtr,IM_ARRAYSIZE(charPtr));
+	
+	ImGui::End();
+	std::string IP = std::string(charPtr, charPtr + sizeof(char)*256);
+	
+}
 void SceneManager::swapScenes()
 {
 
@@ -458,6 +492,16 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_hostGameIndex)
 		{
 			//do stuff
+			if (showInputBar == false)
+			{
+				
+			}
+			else
+			{
+				
+
+			}
+			showInputBar = !showInputBar;
 		}
 		if (guiElement->m_index == m_exitIndex)
 		{
