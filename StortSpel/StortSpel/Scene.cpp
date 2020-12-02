@@ -6,6 +6,7 @@
 #include"ParticleComponent.h"
 #include"Particles\ScorePickupParticle.h"
 #include"Renderer.h"
+#include"TrampolineComponent.h"
 
 Scene::Scene()
 {
@@ -21,7 +22,6 @@ Scene::Scene()
 	addMeshComponent(meshComponent);
 	setScoreVec();
 	sortScore();
-
 }
 
 Scene::~Scene()
@@ -180,6 +180,7 @@ void Scene::loadPickups()
 {
 	addPickup(Vector3(-30.f, 30.f, 105.f));
 	addPickup(Vector3(8.5f, 40.f, 172.f));
+	addPickup(Vector3(2, 12, 2));
 }
 
 void Scene::loadScore()
@@ -228,7 +229,7 @@ void Scene::addCheckpoint(const Vector3& position)
 
 void Scene::addBarrelDrop(Vector3 Position)
 {
-	Entity* rollingBarrel = addEntity("barrel");
+	Entity* rollingBarrel = addEntity("barrel"+std::to_string(m_player->m_nrOfBarrelDrops++));
 
 	if (rollingBarrel)
 	{
@@ -239,9 +240,23 @@ void Scene::addBarrelDrop(Vector3 Position)
 		createNewPhysicsComponent(rollingBarrel, true, "", PxGeometryType::eSPHERE, "wood", true);
 		static_cast<PhysicsComponent*>(rollingBarrel->getComponent("physics"))->setMass(100.0f);
 		addComponent(rollingBarrel, "barrel", new BarrelComponent());
-		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 1,1,1 });
-		m_despawnBarrelTimer.restart();
-		addedBarrel = true;
+		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 4,2,2 });
+	}
+}
+
+void Scene::addBarrelDropTrigger(Vector3 position)
+{
+	Entity* barrelDropTrigger = addEntity("dropTrigger" + std::to_string(m_nrOfBarrelTrigger++));
+	if (barrelDropTrigger)
+	{
+		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
+		addComponent(barrelDropTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material()));
+
+		barrelDropTrigger->setPosition(position);
+
+		addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
+		barrelComponentTrigger->initTrigger(m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
 	}
 }
 
@@ -300,7 +315,25 @@ void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 tr
 void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 {
 	int nrOfPickups = (int)PickupType::COUNT - 1; //-1 due to Score being in pickupTypes
-	int pickupEnum = rand() % nrOfPickups;
+	int pickupEnum = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / nrOfPickups));
+
+	const char* pickupName = "";
+	const WCHAR* textureName = L"";
+	switch(pickupEnum)
+	{
+	case 0:
+		pickupName = "SpeedPickup_Plane.lrm";
+		textureName = L"SpeedIcon.png";
+		break;
+	case 1:
+		pickupName = "TrampolinPickup_Plane.001.lrm";
+		textureName = L"TrampolinIcon.png";
+		break;
+	case 2:
+		pickupName = "CanonPickup_Circle.lrm";
+		textureName = L"CanonIcon.png";
+		break;
+	}
 
 	Entity* pickupPtr;
 	if (name == "")
@@ -308,8 +341,8 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 
 	pickupPtr = addEntity(name);
 	pickupPtr->setPosition(position);
-	addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-
+	addComponent(pickupPtr, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", ShaderProgramsEnum::RAINBOW));
+	addComponent(pickupPtr, "speedItem", new MeshComponent(pickupName, ShaderProgramsEnum::DEFAULT, Material({ textureName })));
 	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, tier, 1));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
@@ -861,7 +894,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->addSlowTrap(Vector3(0.f, 13.f, 30.f), Vector3(3.f,3.f,3.f), Vector3(1.5f, 1.5f, 1.5f));
 	sceneObject->addPushTrap(Vector3(-5.f, 20.f, 58.f), Vector3(5.f, 20.f, 58.f), Vector3(0.f, 18.f, 50.f));
-
+	sceneObject->addBarrelDropTrigger(Vector3(-30.f, 30.f, 105.f));
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 	
 	Entity* endSceneTrigger = sceneObject->addEntity("endSceneTrigger");
@@ -883,22 +916,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->createTimedSweepPlatform({ 0, 7.5f, 5.f }, { 0, 7.5f, 10.f }, true, 2.5f);
 
-
-
-
-	Entity* barrelDropTrigger = sceneObject->addEntity("dropTrigger");
-	if (barrelDropTrigger)
-	{
-		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
-		sceneObject->addComponent(barrelDropTrigger, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material()));
-
-		barrelDropTrigger->setPosition(-30.f, 30.f, 105.f);
-
-		sceneObject->addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
-		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
-	}
-
 	/*for (int i = 0; i < 3; i++)
 	{
 		Entity* stressObject = sceneObject->addEntity("stressObject" + std::to_string(i));
@@ -913,7 +930,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	}*/
 
 
-
 	Entity* floor = sceneObject->addEntity("floor"); // Floor:
 	if (floor)
 	{
@@ -924,6 +940,21 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		floor->setPosition({ 0, 6, 0 });
 		floor->scale({ 20, 2, 20 });
 		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
+	Entity* itemBox = sceneObject->addEntity("itemBox");
+	if (itemBox)
+	{
+		sceneObject->addComponent(itemBox, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", RAINBOW, Material()));
+		sceneObject->addComponent(itemBox, "speedItem", new MeshComponent("SpeedPickup_Plane.lrm", ShaderProgramsEnum::DEFAULT, Material({ L"SpeedIcon.png" })));
+
+		itemBox->translate({ 2, 12, 2 });
+		itemBox->translate({ 2, 12, 2 });
+		itemBox->scale({ 3, 3, 3 });
+		Vector3 start = itemBox->getTranslation();
+		Vector3 end = Vector3(itemBox->getTranslation().x, itemBox->getTranslation().y, itemBox->getTranslation().z + 10);
+		sceneObject->addComponent(itemBox, "rotate", new RotateComponent(itemBox, { 0.f, 1.0f, 0.f }, 1.f));
+
 	}
 
 	Entity* test = sceneObject->addEntity("test");
@@ -1681,15 +1712,6 @@ void Scene::updateScene(const float& dt)
 	}
 	
 
-	if (addedBarrel)
-	{
-		static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->clearForce();
-		static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->setPosition({ -30, 50, 130 });
-		m_despawnBarrelTimer.restart();
-
-		addedBarrel = false;
-	}
-
 	for (int i = 0; i < m_tempParticleComponent.size(); i++)
 	{
 		if (!m_tempParticleComponent[i]->getParticlePointer())
@@ -2010,7 +2032,32 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 }
 
-void Scene::reactOnPlayer(PlayerMessageData& msg)
+Entity* Scene::addTrampoline(Vector3 position)
+{
+	Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
+	trampoline->setPosition(position);
+	trampoline->setScale(0.5f, 0.5f, 0.5f);
+	addComponent(trampoline, "mesh1", //Dun edit diz them nems plz.
+		new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+	addComponent(trampoline, "mesh2",
+		new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
+	addComponent(trampoline, "mesh3",
+		new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
+
+
+	createNewPhysicsComponent(trampoline, false);
+	TriggerComponent* triggerComponent = new TriggerComponent();
+	triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
+	triggerComponent->setIntData(0);
+	trampoline->addComponent("heightTrigger", triggerComponent);
+	triggerComponent->initTrigger(m_sceneID, trampoline, { 0.475f, 0.05, 0.475f }, { 0.f, 0.7f, 0.f });
+
+	trampoline->addComponent("trampoline", new TrampolineComponent(trampoline)); //Dun edit diz nem ethar plz, cuz chardcohoded somwere.
+
+	return trampoline;
+}
+
+void Scene::reactOnPlayer(const PlayerMessageData& msg)
 {
 
 	if (msg.playerActionType == PlayerActions::ON_POWERUP_USE) //Player have just used a powerup.
@@ -2018,37 +2065,37 @@ void Scene::reactOnPlayer(PlayerMessageData& msg)
 		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
 		{
 			//Create a trampoline entity
-			Vector3 trampolineSpawnPos = m_player->getPlayerEntity()->getTranslation();
-			Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
-			trampoline->setPosition(trampolineSpawnPos);
-			addComponent(trampoline, "mesh1",
-				new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
-			addComponent(trampoline, "mesh2",
-				new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
-			addComponent(trampoline, "mesh3",
-				new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
-
-			createNewPhysicsComponent(trampoline, false);
-			TriggerComponent* triggerComponent = new TriggerComponent();
-			triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
-			triggerComponent->setIntData(0);
-			trampoline->addComponent("heightTrigger", triggerComponent);
-			triggerComponent->initTrigger(m_sceneID, trampoline, { 0.4f, 0.1, 0.4f }, { 0.f, 1.f, 0.f });
+			Vector3 trampolineSpawnPos = m_player->getFeetPosition() - Vector3(0.f, 0.75f, 0.f);
+			Entity* trampoline = addTrampoline(trampolineSpawnPos);
 		}
 
 		if ((PickupType)msg.intEnum == PickupType::CANNON)
 		{
-			Vector3 playerPos = m_player->getPlayerEntity()->getTranslation();
-			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
-			cannon->setPosition(playerPos);
-			addComponent(cannon, "mesh1", new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", Material({ L"DarkGrayTexture.png" }));
+			pipe->setPosition(Vector3(0, 1, 0));
 
-			static_cast<Player*>(msg.playerPtr)->setCannonEntity(cannon);
+			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
+			cannon->setScale(0.5f, 0.5f, 0.5f);
+			addComponent(cannon, "mesh1", new MeshComponent("Canon_Base.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(cannon, "mesh2", pipe);
+			cannon->setPosition(m_player->getPlayerEntity()->getTranslation());
+			//cannon->setRotationQuat(m_input);
+
+			static_cast<Player*>(msg.playerPtr)->setCannonEntity(cannon, pipe);
 		}
 	}
 	else if (msg.playerActionType == PlayerActions::ON_FIRE_CANNON)
 	{
 		removeEntity(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getIdentifier());
+	}
+	else if (msg.playerActionType == PlayerActions::ON_ENVIRONMENTAL_USE)
+	{
+		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
+		{
+			Entity* trampolineEnt = m_entities[msg.entityIdentifier];
+			TrampolineComponent* tc = (TrampolineComponent*)trampolineEnt->getComponent("trampoline");
+			tc->activate();
+		}
 	}
 
 }

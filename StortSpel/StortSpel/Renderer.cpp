@@ -197,6 +197,9 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_skelAnimationConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skeletonAnimationCBuffer, 1);
 	m_dContextPtr->VSSetConstantBuffers(2, 1, m_skelAnimationConstantBuffer.GetAddressOf());
 
+	m_globalConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &globalConstBuffer(), 1);
+	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
+
 	lightBufferStruct initalLightData; //Not sure why, but it refuses to take &lightBufferStruct() as argument on line below
 	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);
 	m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
@@ -756,6 +759,23 @@ void Renderer::update(const float& dt)
 	{
 		m_camera->frustumCullingOn = !m_camera->frustumCullingOn;
 	}
+
+	// Constant buffer updates and settings
+	static globalConstBuffer tempGlobalConstBuffer;
+
+	tempGlobalConstBuffer.time += dt;
+
+	m_globalConstBuffer.updateBuffer(m_dContextPtr.Get(), &tempGlobalConstBuffer);
+
+	//ImGui::SetNextWindowPos(ImVec2(1300.0f, 600.0f));
+	//ImGui::SetNextWindowSize(ImVec2(550.0f, 500.0f));
+	//ImGui::Begin("Time");
+
+	//ImGui::Text("");
+	//ImGui::Text("%.0f Time 1 ", tempGlobalConstBuffer.time);
+	//ImGui::Text("%.0f Dt ", dt);;
+
+	//ImGui::End();
 }
 
 void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)

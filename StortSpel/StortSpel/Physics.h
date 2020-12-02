@@ -569,6 +569,25 @@ public:
 		return m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
 	}
 
+	bool castRay(const SimpleMath::Vector3& origin, const SimpleMath::Vector3& unitDirection, const float& distance, Vector3& OUT_position)
+	{
+		bool didHit;
+		OUT_position = { -666, -1337, -420 };
+		PxVec3 pOrigin(origin.x, origin.y, origin.z);
+		PxVec3 pUnitDir(unitDirection.x, unitDirection.y, unitDirection.z);
+		PxRaycastBuffer hit;                 // [out] Raycast results
+
+		// Raycast against all static & dynamic objects (no filtering)
+		// The main result from this call is the closest hit, stored in the 'hit.block' structure
+		didHit = m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
+		if (hit.hasBlock)
+		{
+			PxVec3 hitPos = hit.block.position;
+			OUT_position = Vector3(hitPos.x, hitPos.y, hitPos.z);
+		}
+		return didHit;
+	}
+
 	bool sphereIntersectionTest(const PxExtendedVec3& origin, const float& radius)
 	{
 		PxQueryFilterData fd;

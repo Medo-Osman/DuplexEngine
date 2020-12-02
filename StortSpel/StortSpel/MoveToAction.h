@@ -42,10 +42,10 @@ public:
 	virtual void beginAction() override
 	{
 		m_timeData.timer.start();
-		//AnimatedMeshComponent* animComp = static_cast<AnimatedMeshComponent*>(m_bossEntity->getComponent("mesh"));
-		//animComp->playSingleAnimation("Running4.1", 0.1f, false, true);
-		//animComp->setCurrentBlend(0.5f);
-		//animComp->setAnimationSpeed(0.5f);
+		AnimatedMeshComponent* animComp = static_cast<AnimatedMeshComponent*>(m_bossEntity->getComponent("mesh"));
+		animComp->playSingleAnimation("Running4.1", 0.1f, false, true);
+		animComp->setCurrentBlend(0.5f);
+		animComp->setAnimationSpeed(0.5f);
 		//animComp->pla
 	}
 

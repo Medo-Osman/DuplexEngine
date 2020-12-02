@@ -25,7 +25,6 @@ cbuffer particleData : register(b0)
 
 particleGSDraw main(particle particleDraw)
 {
-	float time = particleDraw.time;
 	particleGSDraw output;
 	output.type = particleDraw.type;
 	output.wSize = particleDraw.wSize;
