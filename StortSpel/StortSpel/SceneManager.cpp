@@ -685,6 +685,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_settingsText, false);
 			GUIHandler::get().setVisible(m_resumeBtnIndex, false);
 			GUIHandler::get().setVisible(m_fullscreenText, false);
+			GUIHandler::get().setVisible(m_fullscreenIndex, false);
 
 
 			m_nextSceneEnum = ScenesEnum::MAINMENU;
@@ -759,6 +760,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_resumeBtnIndex, false);
 			GUIHandler::get().setVisible(m_settingsIndex, false);
 			GUIHandler::get().setVisible(m_backToLobbyIndex, false);
+			GUIHandler::get().setVisible(m_fullscreenIndex, false);
 		}
 		if (guiElement->m_index == m_fullscreenIndex)
 		{
