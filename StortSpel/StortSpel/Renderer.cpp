@@ -197,7 +197,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_skelAnimationConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skeletonAnimationCBuffer, 1);
 	m_dContextPtr->VSSetConstantBuffers(2, 1, m_skelAnimationConstantBuffer.GetAddressOf());
 
-	m_globalConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &globalConstBuffer(), 1);
+	globalConstBuffer globalConstBuffer;
+	m_globalConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &globalConstBuffer, 1);
 	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
 
 	lightBufferStruct initalLightData; //Not sure why, but it refuses to take &lightBufferStruct() as argument on line below
