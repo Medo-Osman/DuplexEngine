@@ -7,6 +7,8 @@
 #include <future>
 #include "Camera.h"
 #include <Windows.h>
+#include "Renderer.h"
+
 
 
 class SceneManager : public InputObserver, public PhysicsObserver, public GUIObserver
@@ -15,6 +17,7 @@ private:
 	Scene* m_currentScene;
 	Scene* m_nextScene;
 	Input* inputPtr;
+	ScenesEnum m_currectSceneEnum;
 	ScenesEnum m_nextSceneEnum;
 	Camera* m_camera;
 	std::string str;
@@ -29,16 +32,45 @@ private:
 	int m_rankingScoreIndecOne;
 	int m_rankingScoreIndecTwo;
 	int m_rankingScoreIndecThree;
-	//
+
+	bool checked = true;
+	
+	bool m_inPause = false;
+	bool m_inPauseSettings = false;
+	int m_cameraSense;
+	int m_volumeAmount;
 	std::vector<iContext*>* m_contexts;
 	bool showInputBar = true;
 
 	char charPtr[256] = { 0 };
 	int m_singleplayerIndex = 0;
+	int m_tutorialIndex = 0;
 	int m_exitIndex = 0;
 	int m_joinGameIndex = 0;
 	int m_hostGameIndex = 0;
 	int m_backToLobbyIndex = 0;
+	int m_settingsIndex = 0;
+	int m_senseIncreaseIndex = 0;
+	int m_senseDecreaseIndex = 0;
+	int m_volumeIncreaseIndex = 0;
+	int m_volumeDecreaseIndex = 0;
+	int m_volumeAmountIndex = 0;
+	int m_setFovIncreaseIndex = 0;
+	int m_setFovDecreaseIndex = 0;
+	int m_resumeBtnIndex = 0;
+	int m_fullscreenIndex = 0;
+	int m_exitFullscreenindex = 0;
+
+
+	//text index
+	int m_sensitivityIndex;
+	int m_fovIndex;
+	int m_fovText;
+	int m_senseTextIndex;
+	int m_volumeTextIndex;
+	int m_settingsText;
+	int m_pauseText;
+	int m_fullscreenText;
 
 	bool* m_nextSceneReady = new bool;
 	bool m_loadNextSceneWhenReady = false;
@@ -46,6 +78,7 @@ private:
 	void hideScore();
 	void showScore(); 
 
+	void uiMenuInitialize();
 
 public:
 	SceneManager();

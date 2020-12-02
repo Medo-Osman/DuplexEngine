@@ -65,8 +65,8 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 		{
 			m_Keyboard.onKeyPressed(key);
 		}
-		if (key == VK_ESCAPE)
-			uMsg = WM_DESTROY;
+		/*if (key == VK_ESCAPE)
+			uMsg = WM_DESTROY;*/
 
 		if (key == VK_TAB)
 		{
@@ -365,10 +365,10 @@ void Input::readBuffers(const float& dt)
 		}
 
 		// Menu / Start
-		if (m_tracker.menu == BState::PRESSED)
-			inputDataChanged = this->fillInputDataUsingKey('P', true) || inputDataChanged; 
-		else if (m_tracker.menu == BState::RELEASED)
-			inputDataChanged = this->fillInputDataUsingKey('P', false) || inputDataChanged; 
+		if (m_tracker.menu == GamePad::ButtonStateTracker::PRESSED)
+			inputDataChanged = this->fillInputDataUsingKey('\x1B', true) || inputDataChanged;
+		else if (m_tracker.menu == GamePad::ButtonStateTracker::RELEASED)
+			inputDataChanged = this->fillInputDataUsingKey('\x1B', false) || inputDataChanged;
 
 		// View / Back
 		if (m_tracker.view == BState::PRESSED)

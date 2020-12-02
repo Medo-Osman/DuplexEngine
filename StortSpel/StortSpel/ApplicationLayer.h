@@ -28,7 +28,6 @@ private:
 	float m_gameTime = 0;
 	FILE* m_consoleFile;
 
-	int m_width, m_height;
 
 	void createWin32Window(const HINSTANCE hInstance, const wchar_t* windowTitle, HWND& _d3d11Window);
 
@@ -36,6 +35,7 @@ private:
 
 	
 public:
+	int m_width, m_height;
 	static ApplicationLayer& getInstance()
 	{
 		static ApplicationLayer instance;

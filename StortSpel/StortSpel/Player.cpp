@@ -56,26 +56,25 @@ Player::Player()
 	style.color = Colors::White;
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
 
+	//GUIImageStyle imageStyle;
+	//imageStyle.position = Vector2(400.f, 50.f);
+	//imageStyle.scale = Vector2(0.9f, 0.9f);
+	//m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
-	GUIImageStyle imageStyle;
-	imageStyle.position = Vector2(400.f, 50.f);
-	imageStyle.scale = Vector2(0.9f, 0.9f);
-	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
-
-	//Test Button stuff
-	GUIButtonStyle btnStyle;
-	btnStyle.position = Vector2(240, 200);
-	btnStyle.scale = Vector2(0.5, 0.5);
-	closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
+	////Test Button stuff
+	//GUIButtonStyle btnStyle;
+	//btnStyle.position = Vector2(240, 200);
+	//btnStyle.scale = Vector2(0.5, 0.5);
+	//closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
 
 	//Attach to the click listener for the button
-	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
+	/*dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
 
 	GUIImageStyle guiInfo;
 	guiInfo.origin = Vector2(256, 256);
 	guiInfo.position = Vector2(Engine::get().getSettings().width / 2, Engine::get().getSettings().height / 2);
 	m_cannonCrosshairID = GUIHandler::get().addGUIImage(L"crosshair.png", guiInfo);
-	GUIHandler::get().setVisible(m_cannonCrosshairID, false);
+	GUIHandler::get().setVisible(m_cannonCrosshairID, false);*/
 
 
 }
@@ -925,8 +924,8 @@ void Player::inputUpdate(InputData& inputData)
 			break;
 
 		case CLOSEINTROGUI:
-			GUIHandler::get().setVisible(m_instructionGuiIndex, false);
-			GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
+			//GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+			//GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
 			break;
 
 		case RESPAWN:
