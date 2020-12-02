@@ -122,6 +122,9 @@ void SceneManager::initalize()
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
+	m_bossScene = new Scene();
+	Engine::get().setBossEntityMap(m_bossScene->getEntityMap());
+
 	m_camera = Engine::get().getCameraPtr();
 	setScorePtr(m_currentScene->getScores());
 	
@@ -277,7 +280,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 		}
 		else if (inputData.actionData[i] == LOAD_TEST_SCENE)
 		{
-			m_nextScene = new Scene();
+			m_nextScene = m_bossScene;//new Scene();
 			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
 			std::thread sceneLoaderThread = std::thread(Scene::loadBossTest, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
