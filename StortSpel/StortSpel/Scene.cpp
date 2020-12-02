@@ -322,15 +322,15 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	switch(pickupEnum)
 	{
 	case 0:
-		pickupName = "SpeedPickup_Plane.lrm";
+		pickupName = "PickupStuffs_SpeedPickup.lrm";
 		textureName = L"SpeedIcon.png";
 		break;
 	case 1:
-		pickupName = "TrampolinPickup_Plane.001.lrm";
+		pickupName = "PickupStuffs_TrampolinPickup.lrm";
 		textureName = L"TrampolinIcon.png";
 		break;
 	case 2:
-		pickupName = "CanonPickup_Circle.lrm";
+		pickupName = "PickupStuffs_CanonPickup.lrm";
 		textureName = L"CanonIcon.png";
 		break;
 	}
@@ -340,8 +340,9 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 		name = "pickup_" + std::to_string(m_nrOfPickups++);
 
 	pickupPtr = addEntity(name);
-	pickupPtr->setPosition(position);
-	addComponent(pickupPtr, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", ShaderProgramsEnum::RAINBOW));
+	Vector3 offset = Vector3(0.f, -0.9f, 0.f);
+	pickupPtr->setPosition(position + offset);
+	addComponent(pickupPtr, "itemBox", new MeshComponent("PickupStuffs_ItemBox.lrm", ShaderProgramsEnum::RAINBOW));
 	addComponent(pickupPtr, "speedItem", new MeshComponent(pickupName, ShaderProgramsEnum::DEFAULT, Material({ textureName })));
 	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, tier, 1));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
