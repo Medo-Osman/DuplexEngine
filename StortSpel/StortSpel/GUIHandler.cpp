@@ -34,7 +34,7 @@ GUIHandler::~GUIHandler()
 	m_input->Detach(this);
 }
 
-void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext, Input* input, HWND* window)
+void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext, Input* input, HWND* window, Vector2 windowSize)
 {
 	m_device = device;
 	m_dContext = dContext;
@@ -45,6 +45,8 @@ void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext,
 	m_states = std::make_unique< CommonStates >(m_device);
 
 	m_spriteBatch = new SpriteBatch(m_dContext);
+
+	m_windowSize = windowSize;
 }
 
 int GUIHandler::addGUIButton(std::wstring buttonTextureString, GUIButtonStyle style)
@@ -156,6 +158,11 @@ void GUIHandler::render()
 		
 
 	m_spriteBatch->End();
+}
+
+const Vector2& GUIHandler::getWindowSize()
+{
+	return m_windowSize;
 }
 
 void GUIHandler::inputUpdate(InputData& inputData)

@@ -97,7 +97,6 @@ using namespace SimpleMath;
 //Defines
 #define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = nullptr; } }
 #define SAFE_DELETE(a) if( (a) != NULL ) delete (a); (a) = NULL;
-
 enum class TriggerType
 {
 	UNDEFINED,

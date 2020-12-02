@@ -91,7 +91,7 @@ private:
 	std::unordered_map<UINT, BossStructures::PlatformDisplace*> m_displacedPlatforms;
 	std::vector<Vector3> deferredPointInstantiationList;
 	//---------------------------------------------------------------End of boss stuff
-	
+
 
 	Player* m_player;
 
@@ -116,7 +116,7 @@ private:
 
 	void sendPhysicsMessage(PhysicsData& physicsData, bool& removed);
 	int m_nrOfScore = 400;
-	
+
 	int m_nrOfPickups = 0;
 	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
 	void loadPickups();
@@ -140,15 +140,15 @@ private:
 	const std::string m_LEVELS_PATH = "../res/levels/";
 
 	int m_nrOfCheckpoints = 0;
-	int m_nrOfBarrelDrops = 0;
+
 	int m_nrOftraps = 0;
+	int m_nrOf = 0; //can be used with any entity if u don't care about numbers.
 	int m_nrOfPlayers = 4;
+	int m_nrOfBarrelTrigger = 0;
 
 
 	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
 
-
-	int m_nrOf = 0; //can be used with any entity if u don't care about numbers.
 	int startGameIndex = 0;
 public:
 	Boss* m_boss = nullptr;
@@ -171,7 +171,7 @@ public:
 	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
-
+	
 	void updateScene(const float &dt);
 	Vector3 getEntryPosition();
 	Entity* getEntity(std::string key);
@@ -182,7 +182,7 @@ public:
 	int m_nrOfScorePlayerOne = 54;
 	int m_nrOfScorePlayerTwo = 12;
 	int m_nrOfScorePlayerThree = 31;
-	
+
 	void setPlayersPosition(Entity* entity);
 
 	bool endSceneCamera = false;
@@ -197,6 +197,7 @@ public:
 	void addMeshComponent(MeshComponent* component);
 	void addLightComponent(LightComponent* component);
 	void addBarrelDrop(Vector3 Position);
+	void addBarrelDropTrigger(Vector3 Position);
 
 	int getSceneID();
 
@@ -211,5 +212,6 @@ public:
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
-	virtual void reactOnPlayer(PlayerMessageData& msg);
+	Entity* addTrampoline(Vector3 position);
+	virtual void reactOnPlayer(const PlayerMessageData& msg);
 };

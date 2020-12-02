@@ -13,18 +13,21 @@ public:
 	HeightPickup()
 		:Pickup(PickupType::HEIGHTBOOST)
 	{
-		//m_onPickupSound = L"";
+		m_onUseSound = L"spring.wav";
+		m_onPickupSound = L"";
 		//m_whileActiveSound = L"SpeedSound.wav";
+	
 		m_activateOnPickup = false;
 		m_isTimeBased = false;
+		m_pickupIcon = L"spring.png";
 	}
 	virtual void update(const float& dt)
 	{
 		Pickup::update(dt);
 	}
-	virtual void onPickup(Entity* entityToDoEffectsOn)
+	virtual void onPickup(Entity* entityToDoEffectsOn, bool isEnvironmental)
 	{
-		Pickup::onPickup(entityToDoEffectsOn);
+		Pickup::onPickup(entityToDoEffectsOn, isEnvironmental);
 	}
 
 	virtual void onUse()

@@ -123,6 +123,11 @@ public:
 		return m_physicsPtr->sphereIntersectionTest(m_controller->getPosition() + PxExtendedVec3(0.f, ((m_originalHeight / 2.f) + 0.2f) * -1.f, 0.f), m_originalRadius);
 	}
 
+	bool castRay(const Vector3& origin, const Vector3& unitDirection, const float& distance) const
+	{
+		return m_physicsPtr->castRay(origin, unitDirection, distance);
+	}
+
 	virtual PxControllerBehaviorFlags getBehaviorFlags(const PxShape& shape, const PxActor& actor) //Controller colides with shapes
 	{
 		return static_cast<PhysicsComponent*>(actor.userData)->getBehaviorFlag();

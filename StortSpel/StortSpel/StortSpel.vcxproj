@@ -282,6 +282,7 @@
     <ClInclude Include="GUIContext.h" />
     <ClInclude Include="GUIImageLabel.h" />
     <ClInclude Include="HeightPickup.h" />
+    <ClInclude Include="Particles\LineArrayParticle.h" />
     <ClInclude Include="MoveToAction.h" />
     <ClInclude Include="MoveOneInGridAction.h" />
     <ClInclude Include="MoveToTargetInGridAction.h" />
@@ -344,6 +345,7 @@
     <ClInclude Include="TextureResource.h" />
     <ClInclude Include="ThunderAction.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="TrampolineComponent.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="SlowTrapComponent.h" />
     <ClInclude Include="Traps.h" />
@@ -435,6 +437,10 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
+    <FxCompile Include="Particles\ArrayOfLinesStreamOut.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Particles\DrawLineByVelocityGS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -504,6 +510,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="RainbowShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="ShadowPixel.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
