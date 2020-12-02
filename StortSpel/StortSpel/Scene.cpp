@@ -1478,9 +1478,9 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	}
 
 	Entity* skybox = sceneObject->addEntity("SkyBox");
-	skybox->m_canCull = false;
 	if (skybox)
 	{
+		skybox->m_canCull = false;
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));

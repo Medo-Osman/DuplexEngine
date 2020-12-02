@@ -123,6 +123,10 @@ void SceneManager::initalize()
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
 	m_bossScene = new Scene();
+	std::thread sceneLoaderThread = std::thread(Scene::loadBossTest, m_bossScene, new bool);
+	sceneLoaderThread.detach();
+
+	Physics::get().blockRemovalOfScene(m_bossScene->getSceneID());
 	Engine::get().setBossEntityMap(m_bossScene->getEntityMap());
 
 	m_camera = Engine::get().getCameraPtr();
@@ -254,6 +258,7 @@ void SceneManager::updateScene(const float &dt)
 
 void SceneManager::inputUpdate(InputData& inputData)
 {
+	Engine::get().setUseBossEntityMap(true);
 	for (size_t i = 0; i < inputData.actionData.size(); i++)
 	{
 		if (inputData.actionData[i] == TEST_SCENE)
@@ -282,10 +287,10 @@ void SceneManager::inputUpdate(InputData& inputData)
 		{
 			m_nextScene = m_bossScene;//new Scene();
 			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
-			std::thread sceneLoaderThread = std::thread(Scene::loadBossTest, m_nextScene, m_nextSceneReady);
-			sceneLoaderThread.detach();
-
+			
+			*m_nextSceneReady = true;
 			m_gameStarted = true;
+			Engine::get().setUseBossEntityMap(false);
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 		}
 
@@ -379,15 +384,16 @@ void SceneManager::swapScenes()
 	{
 		*m_nextSceneReady = false;
 		m_loadNextSceneWhenReady = false;
-		Physics::get().Detach(m_currentScene, false, true);
-
-		//Reset boss
-		if (m_currentScene->m_boss)
-			m_currentScene->m_boss->Detach(m_currentScene);
+		
 
 		// Swap
-		if (m_currentScene != m_bossScene)
+		if (m_currentScene != m_bossScene) //Not moving from boss scene
 		{
+			Physics::get().Detach(m_currentScene, false, true);
+
+			//Reset boss
+			if (m_currentScene->m_boss)
+				m_currentScene->m_boss->Detach(m_currentScene);
 			delete m_currentScene;
 
 		}

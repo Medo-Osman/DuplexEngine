@@ -63,6 +63,7 @@ private:
 
 	bool m_recordMemoryAllocations = true;
 	bool m_givenFirstScene = false;
+	int m_bossSceneID = -1;
 
 	Physics()
 	{
@@ -158,6 +159,12 @@ public:
 		m_foundationPtr->release();
 	}
 
+	void blockRemovalOfScene(int SceneID)
+	{
+		assert(m_bossSceneID == -1);
+		m_bossSceneID = SceneID;
+	}
+
 	int getNewSceneID()
 	{
 		int id = (int)m_scenes.size();
@@ -198,9 +205,12 @@ public:
 			m_actorsToRemoveAfterSimulation.clear();
 
 			m_controllManager->release();
-			m_scenes[pos]->release();
-			m_scenes[pos] = nullptr;
-
+			if (pos != m_bossSceneID)
+			{
+				m_scenes[pos]->release();
+				m_scenes[pos] = nullptr;
+			}
+			
 			m_scenePtr = m_scenes.at(id);
 			m_controllManager = PxCreateControllerManager(*m_scenePtr);
 		}
