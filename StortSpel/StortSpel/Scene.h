@@ -15,6 +15,13 @@ enum class ScenesEnum
 	ENDSCENE,
 };
 
+struct starStruct
+{
+	Timer timer;
+	Entity* starEntity = nullptr;
+	float lifeTime = 10;
+};
+
 enum PrefabType
 {
 	PARIS_WHEEL,
@@ -89,6 +96,8 @@ private:
 	//For lasers
 	std::unordered_map<UINT, BossStructures::BossLaser*> m_lasers;
 
+	std::unordered_map<std::string, starStruct*> m_activeStars;
+
 	//Displaced platforms from the grid
 	std::unordered_map<UINT, BossStructures::PlatformDisplace*> m_displacedPlatforms;
 	std::vector<Vector3> deferredPointInstantiationList;
@@ -123,7 +132,7 @@ private:
 	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
 	void loadPickups();
 	void loadScore();
-	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
+	Entity* addScore(const Vector3& position, const int tier = 1, std::string name = "");
 	void addCheckpoint(const Vector3& position, float rotation = 90);
 	void createScoreParticleEntity(Vector3 position);
 
@@ -135,6 +144,8 @@ private:
 
 	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData, bool& needsDynamicPhys, bool& needsKinematicPhys);
 	void addPrefabFromFile(char* params);
+
+	void checkStars();
 
 	const std::string m_LEVELS_PATH = "../res/levels/";
 
