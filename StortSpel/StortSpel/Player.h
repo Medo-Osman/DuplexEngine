@@ -113,7 +113,7 @@ private:
     float m_transitionTime;
 
     //Cannon Config
-    const float CANNON_POWER = 80;
+    const float CANNON_POWER = 100;
 
 
     // Speed Powerup
@@ -150,7 +150,7 @@ private:
 
     // Camera
     Transform* m_cameraTransform;
-    const Vector3 ORIGINAL_CAMERA_OFFSET = Vector3(0.f, 0.0f, 2.5f);
+    const Vector3 ORIGINAL_CAMERA_OFFSET = Vector3(0.f, 0.0f, 0.0f);
     Vector3 m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
 
     //Cannon
@@ -160,6 +160,7 @@ private:
     Entity* m_3dMarker;
     LineData m_lineData[10];
     MeshComponent* m_pipe;
+    float y;
 
     //Trampoline
     bool m_shouldPickupJump;

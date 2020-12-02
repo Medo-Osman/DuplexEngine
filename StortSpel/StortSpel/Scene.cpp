@@ -2030,6 +2030,7 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 			pipe->setPosition(Vector3(0, 1, 0));
 
 			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
+			cannon->setScale(0.5f, 0.5f, 0.5f);
 			addComponent(cannon, "mesh1", new MeshComponent("Canon_Base.lrm", Material({ L"DarkGrayTexture.png" })));
 			addComponent(cannon, "mesh2", pipe);
 			cannon->setPosition(m_player->getPlayerEntity()->getTranslation());

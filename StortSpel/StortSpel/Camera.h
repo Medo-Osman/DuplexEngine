@@ -21,6 +21,7 @@ private:
 	bool m_newIncrements;
 	XMVECTOR m_incrementRotation;
 	XMVECTOR m_incrementPosition;
+	bool m_shouldRayCast = true;
 
 	float m_sensitivity = 0.05f;
 
@@ -46,6 +47,7 @@ public:
 	const XMMATRIX& getProjectionMatrix() const;
 
 	BoundingFrustum getFrustum();
+	void setRayCast(bool shouldRayCast);
 	
 
 

@@ -101,6 +101,7 @@ void Player::setCannonEntity(Entity* entity, MeshComponent* pipe)
 	if (!m_3dMarker)
 	{
 		m_3dMarker = new Entity("3DMarker");
+		m_3dMarker->scale(0.25f, 0.25f, 0.25f);
 		Engine::get().getEntityMap()->emplace("3DMarker", m_3dMarker);
 		MeshComponent* mesh = new MeshComponent("testCube_pCube1.lrm");
 		mesh->setCastsShadow(false);
@@ -444,7 +445,7 @@ void Player::playerStateLogic(const float& dt)
 
 		break;
 	case PlayerState::CANNON:
-		m_controller->setPosition(m_cannonEntity->getTranslation());
+		m_controller->setPosition(m_cannonEntity->getTranslation() + Vector3(0.f, 0.5f, 0.f));
 		m_velocity.y = 0;
 
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
@@ -454,43 +455,20 @@ void Player::playerStateLogic(const float& dt)
 		{
 			m_state = PlayerState::FLYINGBALL;
 			m_lastState = PlayerState::CANNON;
+			m_velocity = { 0, 0, 0 };
 			m_direction = m_cameraTransform->getForwardVector();
 			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
 			m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
 			m_shouldDrawLine = false;
-			m_verticalMultiplier = 1;
+			m_verticalMultiplier = 5;
 			m_horizontalMultiplier = CANNON_POWER;
 		}
 		else //Draw marker
 		{
 			Vector3 finalPos;
-			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector(), GRAVITY);
+			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector(), CANNON_POWER, 1);
 
-			return;
-		}
-		break;
-	case PlayerState::FLYINGBALL:
-		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
-
-			directionalMovement = m_cameraTransform->getForwardVector();
-
-			PlayerMessageData data;
-			data.playerActionType = PlayerActions::ON_FIRE_CANNON;
-			data.playerPtr = this;
-
-			static_cast<CannonPickup*>(m_pickupPointer)->geFyr();
-
-			for (int i = 0; i < m_playerObservers.size(); i++)
-			{
-				m_playerObservers.at(i)->reactOnPlayer(data);
-			}
-		}
-		else //Draw marker
-		{
-			Vector3 finalPos;
-			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector() * 10, CANNON_POWER, 1);
-			
 			/*            Set base rot (Y)              */
 			Quaternion q1 = m_cameraTransform->getRotation();
 			Quaternion q2(0, q1.y, 0, q1.w);
@@ -511,6 +489,8 @@ void Player::playerStateLogic(const float& dt)
 	case PlayerState::FLYINGBALL:
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 		
+		m_controller->move(m_direction  * 75 * dt, dt);
+		m_direction.y -= 1.f * dt;
 		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || m_controller->checkGround() || m_horizontalMultiplier < 0.1f)
 		{
 			m_horizontalMultiplier = 0;
@@ -521,6 +501,7 @@ void Player::playerStateLogic(const float& dt)
 			m_pickupPointer->onRemove();
 			SAFE_DELETE(m_pickupPointer);
 		}
+		return;
 		break;
 	default:
 		break;
@@ -563,13 +544,17 @@ void Player::playerStateLogic(const float& dt)
 	}
 
 
-	// Final frame velocity
-	if (directionalMovement.LengthSquared() > 0.f)
+	if (m_state != PlayerState::CANNON)
 	{
-		// Compensate for larger directional change
-		m_horizontalMultiplier = m_horizontalMultiplier * max(directionalMovement.Dot(m_lastDirectionalMovement), 0.2f);
-		m_lastDirectionalMovement = directionalMovement;
+		// Final frame velocity
+		if (directionalMovement.LengthSquared() > 0.f)
+		{
+			// Compensate for larger directional change
+			m_horizontalMultiplier = m_horizontalMultiplier * max(directionalMovement.Dot(m_lastDirectionalMovement), 0.2f);
+			m_lastDirectionalMovement = directionalMovement;
+		}
 	}
+
 
 	m_velocity = ((m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier)) * dt;
 
@@ -596,7 +581,7 @@ void Player::playerStateLogic(const float& dt)
 	}
 
 	// Deceleration
-	if (m_state == PlayerState::FALLING)
+	if (m_state == PlayerState::FALLING || m_state == PlayerState::FLYINGBALL)
 		m_horizontalMultiplier -= PLAYER_AIR_DECELERATION * m_currentSpeedModifier * dt;
 	else
 		m_horizontalMultiplier -= PLAYER_DECELERATION * m_currentSpeedModifier * dt;
@@ -726,7 +711,7 @@ void Player::setPlayerEntity(Entity* entity)
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
-	m_pickupPointer = new HeightPickup();
+	m_pickupPointer = new CannonPickup();
 	m_pickupPointer->onPickup(m_playerEntity, false);
 }
 
@@ -865,7 +850,8 @@ void Player::handlePickupOnUse()
 		break;
 	case PickupType::CANNON:
 		m_state = PlayerState::CANNON;
-		m_cameraOffset = Vector3(1.5f, 4.0f, 0.f);
+		m_cameraOffset = Vector3(1.f, 2.0f, 0.f);
+		Engine::get().getCameraPtr()->setRayCast(false);
 		//Cannon on use
 		break;
 	default:
