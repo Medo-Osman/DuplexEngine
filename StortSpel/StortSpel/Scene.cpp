@@ -990,7 +990,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	if (skybox)
 	{
 		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		skyboxMat.addTexture(L"skybox_bluesky.dds", true);
 		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);

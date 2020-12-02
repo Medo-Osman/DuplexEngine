@@ -219,7 +219,7 @@ void Engine::initialize(Input* input)
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
 	Material::readMaterials();
 
-	Renderer::get().setFullScreen(true);
+	Renderer::get().setFullScreen(false);
 }
 
 void Engine::updateLightData()

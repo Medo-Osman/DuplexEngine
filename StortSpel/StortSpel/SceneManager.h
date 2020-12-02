@@ -34,6 +34,8 @@ private:
 
 	bool checked = true;
 	
+	bool m_inPause = false;
+	bool m_inPauseSettings = false;
 	int m_cameraSense;
 	int m_volumeAmount;
 	std::vector<iContext*>* m_contexts;
@@ -64,6 +66,7 @@ private:
 	int m_senseTextIndex;
 	int m_volumeTextIndex;
 	int m_settingsText;
+	int m_pauseText;
 	int m_fullscreenText;
 
 	bool* m_nextSceneReady = new bool;
@@ -72,6 +75,7 @@ private:
 	void hideScore();
 	void showScore(); 
 
+	void uiMenuInitialize();
 
 public:
 	SceneManager();
