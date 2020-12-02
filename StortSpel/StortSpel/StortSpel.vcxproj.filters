@@ -464,6 +464,12 @@
     <ClInclude Include="AudioResource.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
+    <ClInclude Include="HeightPickup.h">
+      <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
+    <ClInclude Include="CannonPickup.h">
+      <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
     <ClInclude Include="SwingComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>

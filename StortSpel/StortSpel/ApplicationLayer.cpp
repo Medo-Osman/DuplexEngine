@@ -55,7 +55,10 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	if (SUCCEEDED(hr))
 	{
 		initOK = true;
-		ShowWindow(m_window, showCmd);
+		if (m_height >= 1080)
+			ShowWindow(m_window, SW_MAXIMIZE);
+		else
+			ShowWindow(m_window, showCmd);
 	}
 	// Audio
 	AudioHandler::get().initialize(m_window);
@@ -151,7 +154,7 @@ void ApplicationLayer::applicationLoop()
 			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
-			m_input.readBuffers();
+			m_input.readBuffers(m_dt);
 			m_physics->update(m_dt);
 
 			m_enginePtr->update(m_dt);

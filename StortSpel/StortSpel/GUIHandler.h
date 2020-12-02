@@ -56,6 +56,7 @@ public:
 	bool getVisible(int index);
 
 	void setImageStyle(int index, GUIImageStyle style);
+	void setGUITextStyle(int index, GUITextStyle style);
 
 	std::vector< GUIElement* >* getElementMap();
 

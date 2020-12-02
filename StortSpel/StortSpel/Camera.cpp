@@ -72,7 +72,7 @@ const XMMATRIX& Camera::getProjectionMatrix() const
 
 void Camera::inputUpdate(InputData& inputData)
 {
-	for (std::vector<int>::size_type i = 0; i < inputData.rangeData.size(); i++)
+	for (size_t i = 0; i < inputData.rangeData.size(); i++)
 	{
 		if (inputData.rangeData[i].rangeFlag == Range::RAW)
 		{
@@ -89,7 +89,7 @@ void Camera::inputUpdate(InputData& inputData)
 			// Set Pitch
 			XMFLOAT3 rotationF3;
 			XMStoreFloat3(&rotationF3, m_rotation);
-			rotationF3.x += mouseDelta.y * 0.02f;
+			rotationF3.x += mouseDelta.y * m_sensitivity;
 
 			// Limit pitch to straight up or straight down with a little fudge-factor to avoid gimbal lock
 			float limit = XM_PI / 2.0f - 0.01f;
@@ -97,7 +97,7 @@ void Camera::inputUpdate(InputData& inputData)
 			rotationF3.x = min(limit, rotationF3.x);
 
 			// Set Yaw
-			rotationF3.y += mouseDelta.x * 0.02f;
+			rotationF3.y += mouseDelta.x * m_sensitivity;
 
 			// Keep longitude in sane range by wrapping
 			if (rotationF3.x > XM_PI)
@@ -138,27 +138,24 @@ BoundingFrustum Camera::getFrustum()
 //Private
 void Camera::updateViewMatrix()
 {
-	
+	Player* ply = Engine::get().getPlayerPtr();
+
 	float currentRotationAngleY = XMVectorGetY(m_rotation);
 	float currentRotationAngleX = XMVectorGetX(m_rotation);
 	
-	XMVECTOR currentRotation = XMQuaternionRotationRollPitchYaw(currentRotationAngleX, currentRotationAngleY, 0);
+	XMVECTOR currentRotation = XMQuaternionRotationRollPitchYaw(currentRotationAngleX, currentRotationAngleY, 0.f);
 
-	XMVECTOR playerPos = Vector3(dynamic_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + Vector3(0, 0.5, 0);//->getTranslation();
-
-	playerPos += Vector3(0, 1.75f, 0);
+	Vector3 playerPos = Vector3(dynamic_cast<CharacterControllerComponent*>(ply->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + Vector3(0.f, PLAYER_CAPSULE_HEIGHT / 2.f, 0.f);
+	
 	m_position = playerPos;
-	XMVECTOR offsetVector = Vector3(0, 0, 1) * 5;
+	XMVECTOR offsetVector = ply->getCameraOffset();
 	offsetVector = XMVector3Rotate(offsetVector, currentRotation);
 	m_position -= offsetVector;
+	m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
 
 	XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
 	XMVECTOR up = XMVector3TransformCoord(this->upVector, cameraRotation);
 	m_viewMatrix = XMMatrixLookAtLH(m_position, playerPos, up);
-
-	// = XMVector3TransformCoord(this->forwardVector, cameraRotation);
-	//m_curUp = XMVector3TransformCoord(this->upVector, cameraRotation);
-	//m_curRight = XMVector3TransformCoord(this->rightVector, cameraRotation);
 }
 
 void Camera::updateViewMatrixEndScene()
