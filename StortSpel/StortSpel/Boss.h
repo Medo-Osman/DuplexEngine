@@ -32,13 +32,10 @@ public:
 	Boss() { };
 	~Boss();
 	void update(const float& dt);
-	void updatePosition(Vector3 pos);
 	void initialize(Entity* entity, bool destroyActionOnComplete = true);
 	void addSegment(BossSegment* segment);
 	BossStructures::IntVec getNewPlatformTarget();
 
-	Vector3 getPosition();
-	Vector4 getRotation();
 	void dropStar(int dropAmount);
 	int getCurrnentNrOfStars();
 	void setNrOfMaxStars(int maxValue);

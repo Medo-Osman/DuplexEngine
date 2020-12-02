@@ -7,10 +7,10 @@ struct PlayerInfo
 	int id;
 	int ready; // 0 is unready, 1 is ready
 };
-struct ServerBossData
+struct BossData
 {
 	Vector3 position;
-	int x, y;
+	Vector4 rotation;
 };
 class Server
 {
@@ -37,7 +37,7 @@ public:
 
 	BSTR getServerIP();
 	void setNrOfPlayers(int x);
-	void setBossData(Vector3 pos, int x, int y);
+	void setBossData(Vector3 pos, Vector4 rot);
 	void sendBossActionData(int bossEnum, BossStructures::BossActionData actionData);
 	void update();
 
@@ -53,6 +53,6 @@ private:
 	int nrOfPlayers = 0;
 	int playersReady = -1;
 	PlayerInfo playerInfo[4];
-	ServerBossData bossData;
+	BossData bossData;
 
 };

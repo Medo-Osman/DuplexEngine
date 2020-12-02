@@ -46,27 +46,27 @@ public:
 		if (!m_hasFired)
 		{
 			//Fire in x, z
-
-			
-			Component* componentPtr = m_bossEntity->getComponent("physics");
-			if (componentPtr)
+			for (int i = 0; i < 360; i += 90)
 			{
-				PhysicsComponent* physPtr = static_cast<PhysicsComponent*>(componentPtr);
-				m_data.origin = physPtr->getActorPosition();
-			}
-			else
-				m_data.origin = m_bossEntity->getTranslation();
-			
-			m_data.rotation = Vector3(0, XMConvertToRadians(90), 0);
+				Component* componentPtr = m_bossEntity->getComponent("physics");
+				if (componentPtr)
+				{
+					PhysicsComponent* physPtr = static_cast<PhysicsComponent*>(componentPtr);
+					m_data.origin = physPtr->getActorPosition();
+				}
+				else
+					m_data.origin = m_bossEntity->getTranslation();
+				
+				m_data.rotation = Vector3(0, XMConvertToRadians(i), 0);
 
-			//Send event to scene triggering the shoot projectile with the parameters in m_data.
-			m_subjectPtr->Notify(BossMovementType::ShootLaser, m_data);
-			
+				//Send event to scene triggering the shoot projectile with the parameters in m_data.
+				m_subjectPtr->Notify(BossMovementType::ShootLaser, m_data);
+			}
 			m_timeData.timer.restart();
 			m_hasFired = true;
 
-			//m_subjectPtr->Notify(BossMovementType::ClearColumn, m_data); //Data is not neccessary here.
-			//m_subjectPtr->Notify(BossMovementType::ClearRow, m_data);
+			m_subjectPtr->Notify(BossMovementType::ClearColumn, m_data); //Data is not neccessary here.
+			m_subjectPtr->Notify(BossMovementType::ClearRow, m_data);
 		}
 
 	}

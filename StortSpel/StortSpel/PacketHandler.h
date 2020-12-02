@@ -1,7 +1,6 @@
 #pragma once
 #include "Packet.h"
 #include "BaseAction.h"
-
 struct SimpleData
 {
 	int ID;
@@ -19,7 +18,7 @@ struct TrapData
 struct BossData
 {
 	Vector3 position;
-	int x, y;
+	Vector4 rotation;
 };
 class PacketHandler
 {
@@ -35,6 +34,7 @@ private:
 	void newPlayerConnection(Packet* _packet);
 	void trapActivation(Packet* _packet);
 	void playerPickUp(Packet* _packet);
+	void writeBossData(Packet* _packet);
 	void sendPlayerData();
 	void setBossData(Packet* _packet);
 	void setBossActionData(Packet* _packet);
@@ -66,8 +66,7 @@ public:
 	void sendReady();
 
 	Vector3 getBossPosition() { return this->bossData.position; }
-	int getBossPIX() { return this->bossData.x; }
-	int getBossPIY() { return this->bossData.y; }
+	Vector4 getBossRotation() { return this->bossData.rotation; }
 
 	bool getServerReady() { return serverReady; }
 	bool getClientReady() { return clientReady; }
@@ -78,10 +77,9 @@ public:
 	
 	std::string convert(BSTR source);
 
-	BossStructures::BossActionData getBossActionData();
 	bool gameStarted = false;
 	int bossEnum;
-	bool hasDoneAction = true;
+	BossStructures::BossActionData bossActionData;
 private:
 	WSAData data;
 	std::string ipAddress;
@@ -95,7 +93,6 @@ private:
 	std::vector<TrapData> trapData;
 	std::vector<std::string> entitiesToBeRemoved;
 	BossData bossData;
-	BossStructures::BossActionData bossActionData;
 
 	
 

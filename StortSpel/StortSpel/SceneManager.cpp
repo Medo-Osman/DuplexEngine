@@ -123,7 +123,6 @@ void SceneManager::initalize()
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
 	m_bossScene = new Scene();
-
 	std::thread sceneLoaderThread = std::thread(Scene::loadBossTest, m_bossScene, new bool);
 	sceneLoaderThread.detach();
 

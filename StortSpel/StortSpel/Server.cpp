@@ -105,8 +105,7 @@ void Server::sendBossData()
 {
 	Packet _packet(7);
 	_packet.Write(bossData.position);
-	_packet.Write(bossData.x);
-	_packet.Write(bossData.y);
+	_packet.Write(bossData.rotation);
 	sendToAll(&_packet);
 }
 
@@ -265,12 +264,10 @@ void Server::setNrOfPlayers(int x)
 	this->nrOfPlayers = x;
 }
 
-void Server::setBossData(Vector3 pos, int x, int y)
+void Server::setBossData(Vector3 pos, Vector4 rot)
 {
 	bossData.position = pos;
-	bossData.x = x;
-	bossData.y = y;
-
+	bossData.rotation = rot;
 }
 
 void Server::sendBossActionData(int bossEnum, BossStructures::BossActionData actionData)
@@ -284,8 +281,6 @@ void Server::sendBossActionData(int bossEnum, BossStructures::BossActionData act
 	_packet.Write(actionData.maxStarCount);
 	_packet.Write(actionData.currentStarCount);
 	_packet.Write(actionData.entityID);
-
-	sendToAll(&_packet);
 }
 
 void Server::update()
@@ -384,7 +379,6 @@ void Server::update()
 						playersReady++;
 					}
 					playersReady++;
-					std::cout << playersReady << " playes are ready!" << std::endl;
 				}
 
 
