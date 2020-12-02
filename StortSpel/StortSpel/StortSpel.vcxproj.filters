@@ -608,6 +608,9 @@
     </FxCompile>
     <FxCompile Include="Particles\ArrayOfLinesStreamOut.hlsl">
       <Filter>Source Files\Graphics\Particles\Lines\LineArray</Filter>
+	</FxCompile>
+    <FxCompile Include="RainbowShader.hlsl">
+      <Filter>Resource Files\Shader</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
