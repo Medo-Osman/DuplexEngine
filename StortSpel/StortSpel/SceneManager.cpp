@@ -147,7 +147,10 @@ void SceneManager::initalize()
 
 void SceneManager::updateScene(const float &dt)
 {
-	inputIP();
+	if (m_inputBox)
+	{
+		inputIP();
+	}
 	if (m_swapScene && !m_loadNextSceneWhenReady)
 	{
 		
@@ -485,25 +488,18 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_joinGameIndex, false);
 			GUIHandler::get().setVisible(m_exitIndex, false);
 			m_nextSceneEnum = ScenesEnum::START;
+			m_inputBox = false;
 			m_swapScene = true;
 		}
 		if (guiElement->m_index == m_joinGameIndex)
 		{
+			m_inputBox = true;
 			//do stuff
 		}
 		if (guiElement->m_index == m_hostGameIndex)
 		{
 			//do stuff
-			if (showInputBar == false)
-			{
-				
-			}
-			else
-			{
-				
-
-			}
-			showInputBar = !showInputBar;
+		
 		}
 		if (guiElement->m_index == m_exitIndex)
 		{
@@ -516,6 +512,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_joinGameIndex, true);
 			GUIHandler::get().setVisible(m_exitIndex, true);
 			m_nextSceneEnum = ScenesEnum::MAINMENU;
+			m_inputBox = false;
 			m_swapScene = true;
 		}
 

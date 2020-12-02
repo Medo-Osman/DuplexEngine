@@ -19,7 +19,7 @@ private:
 	Camera* m_camera;
 	std::string str;
 	bool m_swapScene;
-
+	bool m_inputBox = false;
 	//GUI score
 	int m_highScoreLabelIndex;
 	int m_playerOneScoreIndex;
