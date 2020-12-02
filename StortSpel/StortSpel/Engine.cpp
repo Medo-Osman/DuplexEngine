@@ -9,8 +9,14 @@
 
 Engine::Engine()
 {
-	m_settings.width = m_startWidth;
-	m_settings.height = m_startHeight;
+	//m_settings.width = m_startWidth;
+	//m_settings.height = m_startHeight;
+
+	int x = ApplicationLayer::getInstance().m_width;
+	int y = ApplicationLayer::getInstance().m_height;
+
+	m_settings.width = x;
+	m_settings.height = y;
 }
 
 Engine& Engine::get()

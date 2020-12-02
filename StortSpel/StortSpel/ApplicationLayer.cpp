@@ -11,6 +11,12 @@ ApplicationLayer::ApplicationLayer()
 	m_height = 1080;
 	m_dt = 0.f;
 	m_consoleFile = nullptr;
+
+	RECT deskRect;
+	HWND deskTop = GetDesktopWindow();
+	GetWindowRect(deskTop, &deskRect);
+	m_width = deskRect.right - deskRect.left;
+	m_height = deskRect.bottom - deskRect.top;
 }
 
 ApplicationLayer::~ApplicationLayer()
@@ -99,6 +105,8 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 	windowRect.top = 20;
 	windowRect.bottom = windowRect.top + m_height;
 	AdjustWindowRect(&windowRect, NULL, false);
+
+
 
 	// Create the window.
 	_d3d11Window = CreateWindowEx(

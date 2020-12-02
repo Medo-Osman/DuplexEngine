@@ -194,7 +194,7 @@ void Scene::loadScore()
 	addScore(Vector3(-11.f, 40.f, 222.5f));
 }
 
-void Scene::addScore(const Vector3& position, const int tier, std::string name)
+Entity* Scene::addScore(const Vector3& position, const int tier, std::string name)
 {
 	if (name == "")
 		name = "score_" + std::to_string(m_nrOfScore++);
@@ -210,6 +210,8 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
+
+	return pickupPtr;
 }
 
 void Scene::addCheckpoint(const Vector3& position, float rotation)
@@ -839,6 +841,25 @@ void Scene::addPrefabFromFile(char* params)
 	}
 	}
 	
+}
+
+void Scene::checkStars()
+{
+	std::vector<std::string> m_keysToRemove;
+	for (auto starStruct : m_activeStars)
+	{
+		if (starStruct.second->timer.timeElapsed() > starStruct.second->lifeTime)
+		{
+			m_keysToRemove.push_back(starStruct.first);
+		}
+	}
+
+	for (int i = 0; i < m_keysToRemove.size(); i++)
+	{
+		removeEntity(m_keysToRemove.at(i));
+		delete m_activeStars[m_keysToRemove.at(i)];
+		m_activeStars.erase(m_keysToRemove.at(i));
+	}
 }
 
 
@@ -1682,9 +1703,17 @@ void Scene::updateScene(const float& dt)
 		//Check if the boss platforms are correctly placed
 		checkPlatforms(dt);
 
+		//Check all active stars that are to be removed after x seconds.
+		checkStars();
+
 		for (int i = 0; i < deferredPointInstantiationList.size(); i++)
 		{
-			addScore(deferredPointInstantiationList[i]);
+			Entity* ent = addScore(deferredPointInstantiationList[i]);
+			starStruct* activeStar = new starStruct();
+			activeStar->timer.start();
+			activeStar->starEntity = ent;
+
+			m_activeStars[ent->getIdentifier()] = activeStar;
 		}
 
 		
@@ -1984,7 +2013,14 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 				deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
 			}
 			else
-				addScore(data.origin + Vector3(0, 1, 0));
+			{
+				Entity* ent = addScore(data.origin + Vector3(0, 1, 0));
+				starStruct* activeStar = new starStruct();
+				activeStar->timer.start();
+				activeStar->starEntity = ent;
+
+				m_activeStars[ent->getIdentifier()] = activeStar;
+			}
 		}
 
 
