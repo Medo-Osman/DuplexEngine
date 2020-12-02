@@ -147,6 +147,7 @@ BoundingFrustum Camera::getFrustum()
 void Camera::updateViewMatrix()
 {
 	Player* ply = Engine::get().getPlayerPtr();
+	Vector3 hitPos;
 
 	float currentRotationAngleY = XMVectorGetY(m_rotation);
 	float currentRotationAngleX = XMVectorGetX(m_rotation);
@@ -160,6 +161,19 @@ void Camera::updateViewMatrix()
 	XMVECTOR offsetVector = Vector3(0, 0, 1) * 5;
 	offsetVector = XMVector3Rotate(offsetVector, currentRotation);
 	m_position -= offsetVector;
+	
+	Vector3 fromPlayerToCamera = m_position - playerPos;
+	if (Physics::get().castRay(playerPos, DirectX::XMVector3Normalize(fromPlayerToCamera), 5, hitPos))
+	{
+		m_position = hitPos;
+	}
+
+	if (XMVector3Equal(m_position, playerPos))
+	{
+		playerPos.m128_f32[1] += 0.00001f;
+	}
+
+	
 
 	XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
 	XMVECTOR up = XMVector3TransformCoord(this->upVector, cameraRotation);
