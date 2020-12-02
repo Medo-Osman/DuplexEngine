@@ -28,7 +28,7 @@ Server::Server()
 
 	
 	hint.sin_family = AF_INET;
-	hint.sin_port = htons(9000);
+	hint.sin_port = htons(54000);
 	hint.sin_addr.S_un.S_addr = INADDR_ANY;
 
 	bind(listening, (sockaddr*)&hint, sizeof(hint));

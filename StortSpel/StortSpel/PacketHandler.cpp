@@ -20,11 +20,11 @@ PacketHandler::PacketHandler()
 		serverPlayerData[i].score = 50;
 	}
 
-	//ipAddress = "109.228.165.63";
+	//ipAddress = "188.148.250.207";
 	//ipAddress = convert(Server::get().getServerIP());
 	//std::cout << "this is the IP to connect to " << ipAddress << std::endl;
 	ipAddress = "127.0.0.1";
-	port = 9000;
+	port = 54000;
 
 	//Connect to server
 	//isConnected = tryConnect();
