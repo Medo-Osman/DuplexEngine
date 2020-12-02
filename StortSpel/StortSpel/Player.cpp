@@ -213,15 +213,26 @@ float lerp(const float& a, const float &b, const float &t)
 
 Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 dir, float t, float horizonalMultiplier, float vertMulti)
 {
-	Vector3 curPos = pos;
-	Vector3 curDir = dir;
 
-	return curPos;
+
+	//m_controller->move(m_direction * 75 * dt, dt);
+	//m_direction.y -= 1.f * dt;
+
+	dir.y -= 1.f * t;
+	dir = dir * 75 * t;
+	
+
+	return pos + dir;
 }
 
 void Player::trajectoryEquationOutFill(Vector3 pos, Vector3 dir, float t, float horizonalMultiplier, float vertMulti, XMFLOAT3& outPos, XMFLOAT3& outDir)
 {
+	dir.y -= 1.f * t;
+	dir = dir * 75 * t;
 
+
+	outPos = pos + dir;
+	outDir = dir;
 }
 bool hasPrinted = false;
 																	//m_horizontalMultiplier, m_verticalMultiplier
@@ -230,7 +241,7 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 	Vector3 returnPosition;
 
 	bool foundEnd = false;
-	float t = 5.0f;
+	float t = 0.01f;
 	Vector3 pos = position;
 	Vector3 dir = direction;
 
@@ -851,7 +862,6 @@ void Player::handlePickupOnUse()
 	case PickupType::CANNON:
 		m_state = PlayerState::CANNON;
 		m_cameraOffset = Vector3(1.f, 2.0f, 0.f);
-		Engine::get().getCameraPtr()->setRayCast(false);
 		//Cannon on use
 		break;
 	default:
