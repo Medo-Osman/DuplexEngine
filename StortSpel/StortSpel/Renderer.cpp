@@ -16,6 +16,17 @@ void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
 	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &buffer);
 }
 
+void Renderer::setFullScreen(BOOL val)
+{
+	m_swapChainPtr->SetFullscreenState(val, NULL);
+	m_isFullscreen = val;
+}
+
+bool Renderer::isFullscreen()
+{
+	return m_isFullscreen;
+}
+
 void Renderer::release()
 {
 	delete m_shadowMap;
@@ -215,7 +226,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_dContextPtr->PSSetConstantBuffers(3, 1, m_currentMaterialConstantBuffer.GetAddressOf());
 
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
-	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
+	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get(), m_deferredContext.Get());
 	m_camera = Engine::get().getCameraPtr();
 
 
@@ -291,7 +302,9 @@ HRESULT Renderer::createDeviceAndSwapChain()
 		&m_fLevel, //Feature Level
 		m_dContextPtr.GetAddressOf() //Device COntext Pointer
 	);
+	assert(SUCCEEDED(hr));
 
+	hr = m_devicePtr->CreateDeferredContext(0, m_deferredContext.GetAddressOf());
 	assert(SUCCEEDED(hr));
 
 	return hr;
@@ -725,6 +738,20 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	}
 }
 
+void Renderer::resizeBackbuff(int x, int y)
+{
+	//m_swapChainPtr.
+	
+	/*ID3D11Texture2D* swapChainBufferPtr;
+	HRESULT hr = m_swapChainPtr->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&swapChainBufferPtr);
+	int succInt = swapChainBufferPtr->Release();
+
+	m_dContextPtr->ClearState();
+	HRESULT succ = m_swapChainPtr->ResizeBuffers(0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, 0);
+	assert(SUCCEEDED(succ));*/
+	//m_swapChainPtr->SetFullscreenState(TRUE, nullptr);
+}
+
 void Renderer::rasterizerSetup()
 {
 	HRESULT hr = 0;
@@ -737,7 +764,12 @@ void Renderer::rasterizerSetup()
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
 
-	
+
+
+	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+
+	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_particleRasterizerStatePtr.GetAddressOf());
+	assert(SUCCEEDED(hr) && "Error creating particleRasterizerState");
 }
 
 void Renderer::update(const float& dt)
@@ -759,7 +791,9 @@ void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* h
 
 void Renderer::render()
 {
-	
+	//m_deferredContext->ExecuteCommandList();
+	m_dContextPtr->ExecuteCommandList(ResourceHandler::get().m_commandList, TRUE);
+
 	//Update camera position for pixel shader buffer
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
@@ -831,6 +865,7 @@ void Renderer::render()
 
 
 	//Particles
+	m_dContextPtr->RSSetState(m_particleRasterizerStatePtr.Get());
 	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
 	//Draw all particles here
 	//this->particle.draw(this->m_dContextPtr.Get());
@@ -845,6 +880,7 @@ void Renderer::render()
 			static_cast<ParticleComponent*>(vec[i])->draw(m_dContextPtr.Get());
 		}
 	}
+	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
 	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
 	this->m_dContextPtr->PSSetSamplers(1, 1, this->m_psSamplerState.GetAddressOf());
@@ -876,6 +912,11 @@ ID3D11Device* Renderer::getDevice()
 ID3D11DeviceContext* Renderer::getDContext()
 {
 	return m_dContextPtr.Get();
+}
+
+ID3D11DeviceContext* Renderer::getDeferredDContext()
+{
+	return m_deferredContext.Get();
 }
 
 ID3D11DepthStencilView* Renderer::getDepthStencilView()

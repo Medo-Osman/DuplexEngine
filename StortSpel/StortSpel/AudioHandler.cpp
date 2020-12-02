@@ -10,6 +10,7 @@ AudioHandler::AudioHandler()
 
 AudioHandler::~AudioHandler()
 {
+	
 }
 
 void AudioHandler::release()
@@ -30,6 +31,10 @@ void AudioHandler::release()
 		delete sound.second.release();
 	}
 	m_soundInstances.clear();
+
+	//m_referencedSources.clear();
+	std::cout << "Clean Audio Handler!" << std::endl;
+	m_isReleased = true;
 }
 
 bool AudioHandler::getAudioChanged()
@@ -80,11 +85,28 @@ void AudioHandler::setListenerTransformPtr(Transform* listenerTransform)
 	m_listener.SetOrientation(m_listenerTransformPtr->getForwardVector(), Vector3(0.f, 1.f, 0.f));
 }
 
+void AudioHandler::addReference(int index)
+{
+	m_referencedSources[index]->addRef();
+}
+
+void AudioHandler::removeReference(int index)
+{
+	if (!m_isReleased) //Because release is called before all the components are cleaned up.
+	{
+		AudioResource* res = m_referencedSources[index];
+		m_referencedSources[index]->deleteRef();
+		m_referencedSources.erase(index);
+	}
+}
+
 int AudioHandler::addSoundInstance(const WCHAR* name, bool isLooping, float volume, float pitch, bool isPositional, Vector3 emitterPosition)
 {
-	SoundEffect* soundEffect = ResourceHandler::get().loadSound(name, m_audioEngine.get());
+	AudioResource* resource = ResourceHandler::get().loadSound(name, m_audioEngine.get());
+	SoundEffect* soundEffect = resource->audio;
 	SOUND_EFFECT_INSTANCE_FLAGS soundflags = SoundEffectInstance_Default;
-	int index = (int)m_idNum++;
+		int index = (int)m_idNum++;
+
 
 	if (isPositional)
 	{
@@ -109,6 +131,8 @@ int AudioHandler::addSoundInstance(const WCHAR* name, bool isLooping, float volu
 		if (isPositional)
 			m_soundInstances[index]->Apply3D(m_listener, m_emitter, false);
 	}
+
+	m_referencedSources[index] = resource;
 	return index;
 }
 

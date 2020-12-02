@@ -7,7 +7,7 @@ SceneManager::SceneManager()
 	m_nextScene = nullptr;
 	m_swapScene = false;
 	Physics::get().Attach(this, true, false);
-	
+
 }
 
 SceneManager::~SceneManager()
@@ -65,7 +65,7 @@ void SceneManager::initalize()
 
 	GUIButton* backToLobbyButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_backToLobbyIndex));
 	backToLobbyButton->Attach(this);
-	
+
 	//Settings button
 	btnStyle.position = Vector2(140, 700);
 	btnStyle.scale = Vector2(1, 1);
@@ -73,7 +73,7 @@ void SceneManager::initalize()
 
 	GUIButton* settingsButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_settingsIndex));
 	settingsButton->Attach(this);
-	
+
 	//fov button
 	btnStyle.position = Vector2(940, 500);
 	btnStyle.scale = Vector2(1, 1);
@@ -89,7 +89,7 @@ void SceneManager::initalize()
 
 	GUIButton* fovDecreaseBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_setFovDecreaseIndex));
 	fovDecreaseBtn->Attach(this);
-	
+
 	//sense Increase button
 	btnStyle.position = Vector2(940, 400);
 	btnStyle.scale = Vector2(1, 1);
@@ -151,8 +151,8 @@ void SceneManager::initalize()
 
 	// Start Scene
 	m_currentScene = new Scene();
-	 //Single thread first load-in.
 	Scene::loadMainMenu(m_currentScene, m_nextSceneReady);
+
 	disableMovement();
 	*m_nextSceneReady = false;
 
@@ -172,7 +172,7 @@ void SceneManager::initalize()
 
 	m_camera = Engine::get().getCameraPtr();
 	setScorePtr(m_currentScene->getScores());
-	
+
 	style.position.y = 120.f;
 	style.scale = { 0.5f };
 	m_highScoreLabelIndex = GUIHandler::get().addGUIText("High Score", L"squirk.spritefont", style);
@@ -198,7 +198,7 @@ void SceneManager::initalize()
 	style.position.x = 1100.0f;
 	style.position.y = 300.0f;
 	m_sensitivityIndex = GUIHandler::get().addGUIText(std::to_string(m_cameraSense), L"squirk.spritefont", style);
-	
+
 	style.position.x = 1100.0f;
 	style.position.y = 400.0f;
 	m_volumeAmountIndex = GUIHandler::get().addGUIText(std::to_string(m_volumeAmount), L"squirk.spritefont", style);
@@ -207,7 +207,7 @@ void SceneManager::initalize()
 	style.position.x = 1100.0f;
 	style.position.y = 500.0f;
 	m_fovIndex = GUIHandler::get().addGUIText(std::to_string(m_camera->fovAmount), L"squirk.spritefont", style);
-	
+
 	//
 	style.position.x = 590.0f;
 	style.position.y = 300.0f;
@@ -233,7 +233,7 @@ void SceneManager::initalize()
 	style.position.y = 600.0f;
 	m_fullscreenText = GUIHandler::get().addGUIText("FullScreen", L"squirk.spritefont", style);
 
-	
+
 	hideScore();
 	GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
 	GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
@@ -248,7 +248,7 @@ void SceneManager::initalize()
 	GUIHandler::get().setVisible(m_volumeTextIndex, false);
 	GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
 	GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
-	GUIHandler::get().setVisible(m_settingsText, false); 
+	GUIHandler::get().setVisible(m_settingsText, false);
 	GUIHandler::get().setVisible(m_resumeBtnIndex, false);
 	GUIHandler::get().setVisible(m_fullscreenIndex, false);
 	GUIHandler::get().setVisible(m_fullscreenText, false);
@@ -264,7 +264,7 @@ void SceneManager::updateScene(const float &dt)
 	GUIHandler::get().changeGUIText(m_sensitivityIndex, std::to_string(m_cameraSense));
 	GUIHandler::get().changeGUIText(m_volumeAmountIndex, std::to_string(m_volumeAmount));
 	GUIHandler::get().changeGUIText(m_fovIndex, std::to_string(m_camera->fovAmount));
-	
+
 	if (m_swapScene && !m_loadNextSceneWhenReady)
 	{
 
@@ -309,14 +309,14 @@ void SceneManager::updateScene(const float &dt)
 			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::ARENA:
-			sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			m_camera->endSceneCamera = false;
 			hideScore();
 			GUIHandler::get().setInMenu(false);
-			
+
 			break;
 		case ScenesEnum::MAINMENU:
 			disableMovement();
@@ -381,8 +381,11 @@ void SceneManager::inputUpdate(InputData& inputData)
 		else if (inputData.actionData[i] == LOAD_SCENE)
 		{
 			m_nextScene = new Scene();
-			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest1", m_nextSceneReady);
 			sceneLoaderThread.detach();
+			//Scene::loadScene(m_nextScene, "levelMeshTest1", m_nextSceneReady);
+
+			//Scene::loadLobby(m_nextScene, m_nextSceneReady);
 
 			m_gameStarted = false;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
@@ -397,6 +400,37 @@ void SceneManager::inputUpdate(InputData& inputData)
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 		}
+		else if (inputData.actionData[i] == LOAD_ARENA)
+		{
+			m_nextScene = new Scene();
+			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+
+			m_gameStarted = true;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+		}
+		else if (inputData.actionData[i] == LOAD_EMPTY)
+		{
+			m_nextScene = new Scene();
+			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadEmpty, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+
+			m_gameStarted = true;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+		}
+		else if (inputData.actionData[i] == LOAD_ALMOST_EMPTY)
+		{
+			m_nextScene = new Scene();
+			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+
+			m_gameStarted = false;
+			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+		}
+
 		else if (inputData.actionData[i] == MENU)
 		{
 			disableMovement();
@@ -477,9 +511,11 @@ std::vector<std::pair<int, std::string>>* SceneManager::getScorePtr()
 
 void SceneManager::swapScenes()
 {
+
 	m_swapScene = false;
 	if (*m_nextSceneReady == true && m_loadNextSceneWhenReady)
 	{
+
 		*m_nextSceneReady = false;
 		m_loadNextSceneWhenReady = false;
 		Physics::get().Detach(m_currentScene, false, true);
@@ -506,6 +542,7 @@ void SceneManager::swapScenes()
 		ccc->setPosition(m_currentScene->getEntryPosition());
 
 		m_currentScene->onSceneLoaded();
+		ResourceHandler::get().checkResources();
 	}
 }
 
@@ -566,9 +603,9 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			button->setTexture(L"resumeBtnHover.png");
 		}
-		
+
 	}
-	
+
 	if (type == GUIUpdateType::HOVER_EXIT)
 	{
 		if (guiElement->m_index == m_exitIndex)
@@ -597,7 +634,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		}
 		if (guiElement->m_index == m_senseDecreaseIndex)
 		{
-			button->setTexture(L"senseDecrease.png"); 
+			button->setTexture(L"senseDecrease.png");
 		}
 		if (guiElement->m_index == m_senseIncreaseIndex)
 		{
@@ -623,7 +660,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			button->setTexture(L"resumeBtn.png");
 		}
-	
+
 
 	}
 
@@ -765,19 +802,19 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_fullscreenIndex)
 		{
 			// do stuff
-			
-			
+
+
 			if (checked == false)
 			{
 				button->setTexture(L"uncheckedbox.png");
-				
+
 			}
 			else
 			{
 				button->setTexture(L"checkedbox.png");
 			}
 			checked = !checked;
-			
+
 		}
 	}
 }
@@ -804,4 +841,3 @@ void SceneManager::showScore()
 	GUIHandler::get().setVisible(m_rankingScoreIndecTwo, true);
 	GUIHandler::get().setVisible(m_rankingScoreIndecThree, true);
 }
-

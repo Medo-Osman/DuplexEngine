@@ -33,4 +33,28 @@ inline std::string readStringFromChar(char* data, int& offset)
 	return strData;
 }
 
+/*
+inline std::wstring readWStringFromChar(char* data, int& offset)
+{
+	std::wstring strData;
+
+	int strSize;
+	memcpy(&strSize, data + offset, sizeof(int));
+	offset += sizeof(int);
+
+	if (strSize == 2)
+		return L"";
+
+	char* rawData = new char[strSize];
+	memcpy(rawData, data + offset, strSize);
+	offset += strSize;
+
+	strData = std::wstring(rawData);
+
+	delete[] rawData;
+
+	return strData;
+}
+*/
+
 #define readStringFromChar1(data, offset)  std::string(); int strSize; memcpy(&strSize, data + offset, sizeof(int)); offset += sizeof(int); char* rawData = new char[strSize]; memcpy(rawData, data + offset, strSize); offset += strSize; strData = std::string(rawData); delete[] rawData;  

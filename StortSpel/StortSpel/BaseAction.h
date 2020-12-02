@@ -2,7 +2,7 @@
 #include "3DPCH.h"
 #include <functional>
 
-enum class BossMovementType { NONE, ShootProjectile, DropPoints, MoveTo, MoveOneInGrid, MoveToTargetInGrid, ShootLaser, MovePlatform, Wait, ClearColumn, ClearRow };
+enum class BossMovementType { NONE, ShootProjectile, DropPoints, MoveTo, MoveOneInGrid, MoveToTargetInGrid, ShootLaser, MovePlatform, Wait, ClearColumn, ClearRow, Thunder, SpawnParticlesOnPlatform };
 
 class BossSubject;
 
@@ -14,6 +14,8 @@ namespace BossStructures
 		Vector3 origin;
 		Vector3 rotation;
 		float speed = 0;
+		int maxStarCount;
+		int currentStarCount;
 		void* pointer0 = nullptr;
 	};
 

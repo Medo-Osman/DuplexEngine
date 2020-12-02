@@ -29,7 +29,7 @@ Player::Player()
 		vec.emplace_back(new SpeedPickup());
 		Pickup::initPickupArray(vec);
 	}
-	
+
 	//GUI
 	m_score = 0;
 	GUITextStyle style;
@@ -261,8 +261,6 @@ void Player::playerStateLogic(const float& dt)
 		if ((PLAYER_SPEED * dt) <= 0.0f)
 			blend = 0.0f;
 
-		//std::cout << sizeof(float) << std::endl;
-
 		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
 		//// analog animation:
 		//if (vectorLen > 0)
@@ -340,7 +338,7 @@ void Player::updatePlayer(const float& dt)
 				break;
 			}
 		}
-		
+
 	}
 
 	if(m_state != PlayerState::ROLL)
@@ -443,7 +441,7 @@ void Player::handlePickupOnUse()
 	default:
 		break;
 	}
-	
+
 	m_pickupPointer->onUse();
 }
 

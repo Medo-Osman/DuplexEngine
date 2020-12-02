@@ -44,6 +44,7 @@ private:
 	void createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 scale, std::string meshPath, std::wstring texPath = L"GrayTexture.png");
 	int m_nrOfSweepingPlatforms = 0;
 	void createSweepingPlatform(Vector3 startPos, Vector3 endPos);
+	void createTimedSweepPlatform(Vector3 startPos, Vector3 endPos, bool startEnd, float interval);
 	int m_nrOfSpotLight = 0;
 	void createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity);
 	int m_nrOfPointLight = 0;
@@ -67,7 +68,13 @@ private:
 	void physicallyMovePlatform(Entity* entity);
 	bool findPlatformAlready(Entity* entity);
 
-
+	GUIImageStyle imageStyle;
+	int m_bossHP_barGuiIndex = 0;
+	int m_bossHP_barBackgroundGuiIndex = 0;
+	int m_endBossAtPecentNrOfStarts = 0;
+	void removeBoss();
+	void createPortal();
+	void createEndScenePortal();
 
 	//For projectiles
 	std::unordered_map<UINT, Entity*> m_projectiles;
@@ -146,6 +153,8 @@ public:
 	static void loadArena(Scene* sceneObject, bool* finished);
 	static void loadMaterialTest(Scene* sceneObject, bool* finished);
 	static void loadBossTest(Scene* sceneObject, bool* finished);
+	static void loadEmpty(Scene* sceneObject, bool* finished);
+	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
 

@@ -3,6 +3,7 @@
 #include "Input.h"
 #include "Transform.h"
 
+
 class AudioHandler
 {
 private:
@@ -13,16 +14,19 @@ private:
 	HDEVNOTIFY m_newAudio = nullptr;
 
 	// Sound Instances
+	std::unordered_map<int, AudioResource*> m_referencedSources;
 	std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_soundInstances;
 	std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_loopingSoundInstances;
 	size_t m_idNum = 0;
-	
+
 	// 3D Positional Audio
 	AudioEmitter m_emitter;
 	AudioListener m_listener;
 	Transform* m_listenerTransformPtr;
 	int m_volumeAmount = 3;
-	//volume /10
+
+	bool m_isReleased = false;
+
 public:
 	AudioHandler(const AudioHandler&) = delete;
 	void operator=(AudioHandler const&) = delete;
@@ -34,12 +38,15 @@ public:
 	~AudioHandler();
 
 	void release();
-	
+
 	bool getAudioChanged();
 
 	void initialize(HWND &handle);
 	void setListenerTransformPtr(Transform* listenerTransform);
 	void onNewAudioDevice() { m_retryAudio = true; }
+
+	void addReference(int index);
+	void removeReference(int index);
 
 	int addSoundInstance(const WCHAR* name, bool isLooping, float volume, float pitch, bool isPositional, Vector3 position);
 	void playSound(int index);
