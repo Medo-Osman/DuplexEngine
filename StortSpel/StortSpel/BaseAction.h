@@ -16,6 +16,7 @@ namespace BossStructures
 		float speed = 0;
 		int maxStarCount;
 		int currentStarCount;
+		std::string entityID;
 		void* pointer0 = nullptr;
 	};
 

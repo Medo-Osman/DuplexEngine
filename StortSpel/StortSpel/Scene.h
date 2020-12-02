@@ -128,6 +128,7 @@ private:
 	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 	void createParticleEntity(void* particleComponent, Vector3 position);
 
+	void initializeBoss();
 	//void addSlowTrap(const Vector3& position, Vector3 scale);
 	//void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 
@@ -161,7 +162,7 @@ public:
 	static void loadBossTest(Scene* sceneObject, bool* finished);
 	static void loadEmpty(Scene* sceneObject, bool* finished);
 	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
-
+	
 	void onSceneLoaded();
 
 	void updateScene(const float &dt);

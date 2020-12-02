@@ -77,6 +77,7 @@ void PacketHandler::handlePacket(Packet* _packet)
 	case 1:
 		startGame(_packet);
 		break;
+
 	case 2:
 		welcomeReceived(_packet);
 		break;
@@ -96,6 +97,15 @@ void PacketHandler::handlePacket(Packet* _packet)
 	case 6:
 		playerPickUp(_packet);
 		break;
+
+	case 7:
+		setBossData(_packet);
+		break;
+
+	case 8:
+		setBossActionData(_packet);
+		break;
+
 	}
 }
 
@@ -220,6 +230,12 @@ void PacketHandler::playerPickUp(Packet* _packet)
 	
 }
 
+void PacketHandler::writeBossData(Packet* _packet)
+{
+	bossData.position = _packet->ReadVector3();
+	bossData.rotation = _packet->ReadVector4();
+}
+
 void PacketHandler::sendPlayerData()
 {
 	//Write Packet ID
@@ -246,6 +262,27 @@ void PacketHandler::sendPlayerData()
 
 	//Send Packet
 	int sendResult = send(sock, _packet.ToArray(), _packet.Lenght() + 1, 0);
+}
+
+void PacketHandler::setBossData(Packet* _packet)
+{
+	this->bossData.position = _packet->ReadVector3();
+	this->bossData.rotation = _packet->ReadVector4();
+}
+
+void PacketHandler::setBossActionData(Packet* _packet)
+{
+	bossEnum = _packet->ReadInt();
+	bossActionData.direction = _packet->ReadVector3();
+	bossActionData.origin = _packet->ReadVector3();
+	bossActionData.rotation = _packet->ReadVector3();
+	bossActionData.speed = _packet->ReadFloat();
+	bossActionData.maxStarCount = _packet->ReadInt();
+	bossActionData.currentStarCount = _packet->ReadInt();
+	int length = _packet->ReadInt();
+	bossActionData.entityID = _packet->ReadString(length);
+
+	//Engine::get().
 }
 
 void PacketHandler::sendTrapData(std::string entityID)
