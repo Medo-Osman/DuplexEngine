@@ -232,6 +232,7 @@ void Player::trajectoryEquationOutFill(Vector3 pos, Vector3 dir, float t, float 
 
 
 	outPos = pos + dir;
+	dir.Normalize();
 	outDir = dir;
 }
 bool hasPrinted = false;
@@ -245,7 +246,7 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 	Vector3 pos = position;
 	Vector3 dir = direction;
 
-	while (!foundEnd && t < 5)
+	while (!foundEnd && t < 10)
 	{
 		pos = trajectoryEquation(position, dir, t, horizonalMultiplier, vertMulti);
 
@@ -499,9 +500,9 @@ void Player::playerStateLogic(const float& dt)
 		break;
 	case PlayerState::FLYINGBALL:
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
-		
-		m_controller->move(m_direction  * 75 * dt, dt);
 		m_direction.y -= 1.f * dt;
+
+		m_controller->move(m_direction  * 75 * dt, dt);
 		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || m_controller->checkGround() || m_horizontalMultiplier < 0.1f)
 		{
 			m_horizontalMultiplier = 0;
