@@ -860,9 +860,16 @@ void Scene::addPrefabFromFile(char* params)
 		addBarrelDrop(pos);
 		break;
 	case GOAL_TRIGGER:
-
+	{
+		Vector3 rot, scale;
+		ScenesEnum se = ScenesEnum::ARENA;
+		rot = readDataFromChar<Vector3>(params, offset);
+		scale = readDataFromChar<Vector3>(params, offset);
+		int aegghed = readDataFromChar<int>(params, offset);
+		//se = (ScenesEnum)readDataFromChar<int>(params, offset);
+		createGoalTrigger(pos, rot, scale, se);
 		break;
-
+	}
 	case SWINGING_HAMMER:
 	{
 		Vector3 rot = readDataFromChar<Vector3>(params, offset);
@@ -877,6 +884,9 @@ void Scene::addPrefabFromFile(char* params)
 		createSkybox(texName);
 		break;
 	}
+	case TRAMPOLINE:
+		addTrampoline(pos);
+
 	}
 	
 }
