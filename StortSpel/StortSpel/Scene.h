@@ -31,7 +31,7 @@ enum PrefabType
 	pfSKYBOX
 };
 
-class Scene : public PhysicsObserver, public BossObserver
+class Scene : public PhysicsObserver, public BossObserver, public PlayerObserver
 {
 private:
 	int m_sceneID = -1;
@@ -93,7 +93,7 @@ private:
 	std::unordered_map<UINT, BossStructures::PlatformDisplace*> m_displacedPlatforms;
 	std::vector<Vector3> deferredPointInstantiationList;
 	//---------------------------------------------------------------End of boss stuff
-	
+
 
 	Player* m_player;
 
@@ -118,16 +118,19 @@ private:
 
 	void sendPhysicsMessage(PhysicsData& physicsData, bool& removed);
 	int m_nrOfScore = 400;
-	
+
 	int m_nrOfPickups = 0;
 	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
 	void loadPickups();
 	void loadScore();
 	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
 	void addCheckpoint(const Vector3& position);
+	void createScoreParticleEntity(Vector3 position);
+
 	void addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox);
 	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 	void createParticleEntity(void* particleComponent, Vector3 position);
+
 
 	//void addSlowTrap(const Vector3& position, Vector3 scale);
 	//void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
@@ -138,19 +141,25 @@ private:
 	const std::string m_LEVELS_PATH = "../res/levels/";
 
 	int m_nrOfCheckpoints = 0;
-	int m_nrOfBarrelDrops = 0;
+
 	int m_nrOftraps = 0;
 	int m_nrOfPlayers = 4;
+	int m_nrOfBarrelTrigger = 0;
 
 
 	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
 
 
+	int m_nrOf = 0; //can be used with any entity if u don't care about numbers.
 	int startGameIndex = 0;
 public:
 	Boss* m_boss = nullptr;
 	Scene();
 	~Scene();
+	void activateScene();
+	void deactivateScene();
+
+	bool disMovment = false;
 	bool hidescore = false;
 	static void loadMainMenu(Scene* sceneObject, bool* finished);
 	static void loadScene(Scene* sceneObject, std::string path, bool* finished);
@@ -175,7 +184,7 @@ public:
 	int m_nrOfScorePlayerOne = 54;
 	int m_nrOfScorePlayerTwo = 12;
 	int m_nrOfScorePlayerThree = 31;
-	
+
 	void setPlayersPosition(Entity* entity);
 
 	bool endSceneCamera = false;
@@ -190,6 +199,7 @@ public:
 	void addMeshComponent(MeshComponent* component);
 	void addLightComponent(LightComponent* component);
 	void addBarrelDrop(Vector3 Position);
+	void addBarrelDropTrigger(Vector3 Position);
 
 	int getSceneID();
 
@@ -204,5 +214,5 @@ public:
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
-
+	virtual void reactOnPlayer(PlayerMessageData& msg);
 };

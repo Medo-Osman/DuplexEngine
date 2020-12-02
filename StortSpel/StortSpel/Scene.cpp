@@ -56,17 +56,29 @@ Scene::~Scene()
 	}
 }
 
-void Scene::createParticleEntity(void* particleComponent, Vector3 position)
+void Scene::activateScene()
 {
-	ParticleComponent* pc = static_cast<ParticleComponent*>(particleComponent);
+	m_player->Attach(this);
+}
+
+void Scene::deactivateScene()
+{
+	m_player->Detach(this);
+}
+
+void Scene::createScoreParticleEntity(Vector3 position)
+{
 	std::string name = "tempParticleEntity" + std::to_string(m_tempParticleID++);
 	Entity* particleEntity = this->addEntity(name);
-	particleEntity->setPosition(position);
-	pc->setTransform(particleEntity);
-	particleEntity->addComponent("particle", pc);
-	pc->activate();
+	ParticleComponent* particleComponent = new ParticleComponent(particleEntity, new ScorePickupParticle());
 
-	m_tempParticleComponent.emplace_back(pc);
+
+	particleEntity->setPosition(position);
+	particleComponent->setTransform(particleEntity);
+	particleEntity->addComponent("particle", particleComponent);
+	particleComponent->activate();
+
+	m_tempParticleComponent.emplace_back(particleComponent);
 }
 
 void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
@@ -149,7 +161,7 @@ void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
 	{
 		if (physicsData.associatedTriggerEnum == (int)PickupType::SCORE)
 		{
-			this->createParticleEntity(physicsData.pointer, entity->getTranslation());
+			this->createScoreParticleEntity(entity->getTranslation());
 		}
 	}
 	//std::vector<Component*> vec;
@@ -191,11 +203,11 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 	mat.setEmissiveStrength(100.f);
 	Entity* pickupPtr = addEntity(name);
 
-	ParticleComponent* particleComponent = new ParticleComponent(pickupPtr, new ScorePickupParticle());
 
 	pickupPtr->setPosition(position);
+
 	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST, mat));
-	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6, particleComponent));
+	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
@@ -216,7 +228,7 @@ void Scene::addCheckpoint(const Vector3& position)
 
 void Scene::addBarrelDrop(Vector3 Position)
 {
-	Entity* rollingBarrel = addEntity("barrel");
+	Entity* rollingBarrel = addEntity("barrel"+std::to_string(m_player->m_nrOfBarrelDrops++));
 
 	if (rollingBarrel)
 	{
@@ -227,9 +239,23 @@ void Scene::addBarrelDrop(Vector3 Position)
 		createNewPhysicsComponent(rollingBarrel, true, "", PxGeometryType::eSPHERE, "wood", true);
 		static_cast<PhysicsComponent*>(rollingBarrel->getComponent("physics"))->setMass(100.0f);
 		addComponent(rollingBarrel, "barrel", new BarrelComponent());
-		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 1,1,1 });
-		m_despawnBarrelTimer.restart();
-		addedBarrel = true;
+		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 4,2,2 });
+	}
+}
+
+void Scene::addBarrelDropTrigger(Vector3 position)
+{
+	Entity* barrelDropTrigger = addEntity("dropTrigger" + std::to_string(m_nrOfBarrelTrigger++));
+	if (barrelDropTrigger)
+	{
+		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
+		addComponent(barrelDropTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material()));
+
+		barrelDropTrigger->setPosition(position);
+
+		addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
+		barrelComponentTrigger->initTrigger(m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
 	}
 }
 
@@ -296,7 +322,8 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	pickupPtr = addEntity(name);
 	pickupPtr->setPosition(position);
 	addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, 1.f, 6));
+
+	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, tier, 1));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
@@ -837,7 +864,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->addSlowTrap(Vector3(0.f, 13.f, 30.f), Vector3(3.f,3.f,3.f), Vector3(1.5f, 1.5f, 1.5f));
 	sceneObject->addPushTrap(Vector3(-5.f, 20.f, 58.f), Vector3(5.f, 20.f, 58.f), Vector3(0.f, 18.f, 50.f));
-
+	sceneObject->addBarrelDropTrigger(Vector3(-30.f, 30.f, 105.f));
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 	
 	Entity* endSceneTrigger = sceneObject->addEntity("endSceneTrigger");
@@ -859,22 +886,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->createTimedSweepPlatform({ 0, 7.5f, 5.f }, { 0, 7.5f, 10.f }, true, 2.5f);
 
-
-
-
-	Entity* barrelDropTrigger = sceneObject->addEntity("dropTrigger");
-	if (barrelDropTrigger)
-	{
-		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
-		sceneObject->addComponent(barrelDropTrigger, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material()));
-
-		barrelDropTrigger->setPosition(-30.f, 30.f, 105.f);
-
-		sceneObject->addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
-		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
-	}
-
 	/*for (int i = 0; i < 3; i++)
 	{
 		Entity* stressObject = sceneObject->addEntity("stressObject" + std::to_string(i));
@@ -887,7 +898,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 		}
 	}*/
-
 
 
 	Entity* floor = sceneObject->addEntity("floor"); // Floor:
@@ -1032,6 +1042,18 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	sceneObject->createSpotLight(Vector3(8.5f, 60.f, 159.5f), Vector3(90.f, 0.f, 0.f), Vector3(0.f, 0.f, 1.f), 0.2f);
 
 	sceneObject->createSpotLight(Vector3(-11.f, 50.f, 275.f), Vector3(-35.f, 0.f, 0.f), Vector3(1.f, 0.f, 0.f), 0.3f);
+
+	for (size_t i = 0; i < 10; i++)
+	{
+		Entity* block = sceneObject->addEntity("block" + std::to_string(i));
+		if (block)
+		{
+			sceneObject->addComponent(block, "mesh",
+				new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+			block->setPosition({ (float)i + (2 * (float)i), 7.5f, 0 });
+			sceneObject->createNewPhysicsComponent(block, false, "", PxGeometryType::eBOX, "earth", false);
+		}
+	}
 
 	*finished = true;
 }
@@ -1645,15 +1667,6 @@ void Scene::updateScene(const float& dt)
 	}
 	
 
-	if (addedBarrel)
-	{
-		static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->clearForce();
-		static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->setPosition({ -30, 50, 130 });
-		m_despawnBarrelTimer.restart();
-
-		addedBarrel = false;
-	}
-
 	for (int i = 0; i < m_tempParticleComponent.size(); i++)
 	{
 		if (!m_tempParticleComponent[i]->getParticlePointer())
@@ -1971,6 +1984,49 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 		}
 	}
 	
+
+}
+
+void Scene::reactOnPlayer(PlayerMessageData& msg)
+{
+
+	if (msg.playerActionType == PlayerActions::ON_POWERUP_USE) //Player have just used a powerup.
+	{
+		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
+		{
+			//Create a trampoline entity
+			Vector3 trampolineSpawnPos = m_player->getPlayerEntity()->getTranslation();
+			Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
+			trampoline->setPosition(trampolineSpawnPos);
+			addComponent(trampoline, "mesh1",
+				new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(trampoline, "mesh2",
+				new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(trampoline, "mesh3",
+				new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
+
+			createNewPhysicsComponent(trampoline, false);
+			TriggerComponent* triggerComponent = new TriggerComponent();
+			triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
+			triggerComponent->setIntData(0);
+			trampoline->addComponent("heightTrigger", triggerComponent);
+			triggerComponent->initTrigger(m_sceneID, trampoline, { 0.4f, 0.1, 0.4f }, { 0.f, 1.f, 0.f });
+		}
+
+		if ((PickupType)msg.intEnum == PickupType::CANNON)
+		{
+			Vector3 playerPos = m_player->getPlayerEntity()->getTranslation();
+			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
+			cannon->setPosition(playerPos);
+			addComponent(cannon, "mesh1", new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+
+			static_cast<Player*>(msg.playerPtr)->setCannonEntity(cannon);
+		}
+	}
+	else if (msg.playerActionType == PlayerActions::ON_FIRE_CANNON)
+	{
+		removeEntity(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getIdentifier());
+	}
 
 }
 
