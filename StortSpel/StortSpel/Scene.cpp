@@ -56,17 +56,29 @@ Scene::~Scene()
 	}
 }
 
-void Scene::createParticleEntity(void* particleComponent, Vector3 position)
+void Scene::activateScene()
 {
-	ParticleComponent* pc = static_cast<ParticleComponent*>(particleComponent);
+	m_player->Attach(this);
+}
+
+void Scene::deactivateScene()
+{
+	m_player->Detach(this);
+}
+
+void Scene::createScoreParticleEntity(Vector3 position)
+{
 	std::string name = "tempParticleEntity" + std::to_string(m_tempParticleID++);
 	Entity* particleEntity = this->addEntity(name);
-	particleEntity->setPosition(position);
-	pc->setTransform(particleEntity);
-	particleEntity->addComponent("particle", pc);
-	pc->activate();
+	ParticleComponent* particleComponent = new ParticleComponent(particleEntity, new ScorePickupParticle());
 
-	m_tempParticleComponent.emplace_back(pc);
+
+	particleEntity->setPosition(position);
+	particleComponent->setTransform(particleEntity);
+	particleEntity->addComponent("particle", particleComponent);
+	particleComponent->activate();
+
+	m_tempParticleComponent.emplace_back(particleComponent);
 }
 
 void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
@@ -149,7 +161,7 @@ void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
 	{
 		if (physicsData.associatedTriggerEnum == (int)PickupType::SCORE)
 		{
-			this->createParticleEntity(physicsData.pointer, entity->getTranslation());
+			this->createScoreParticleEntity(entity->getTranslation());
 		}
 	}
 	//std::vector<Component*> vec;
@@ -191,11 +203,11 @@ void Scene::addScore(const Vector3& position, const int tier, std::string name)
 	mat.setEmissiveStrength(100.f);
 	Entity* pickupPtr = addEntity(name);
 
-	ParticleComponent* particleComponent = new ParticleComponent(pickupPtr, new ScorePickupParticle());
 
 	pickupPtr->setPosition(position);
+
 	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST, mat));
-	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6, particleComponent));
+	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
@@ -310,7 +322,8 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	pickupPtr = addEntity(name);
 	pickupPtr->setPosition(position);
 	addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, 1.f, 6));
+
+	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, tier, 1));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 }
@@ -1030,6 +1043,18 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->createSpotLight(Vector3(-11.f, 50.f, 275.f), Vector3(-35.f, 0.f, 0.f), Vector3(1.f, 0.f, 0.f), 0.3f);
 
+	for (size_t i = 0; i < 10; i++)
+	{
+		Entity* block = sceneObject->addEntity("block" + std::to_string(i));
+		if (block)
+		{
+			sceneObject->addComponent(block, "mesh",
+				new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+			block->setPosition({ (float)i + (2 * (float)i), 7.5f, 0 });
+			sceneObject->createNewPhysicsComponent(block, false, "", PxGeometryType::eBOX, "earth", false);
+		}
+	}
+
 	*finished = true;
 }
 
@@ -1458,10 +1483,14 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 
 	//Generate the boss, if boss does not exist in the scene it will not be updated in sceneUpdate() either.
 	Entity* bossEnt = sceneObject->addEntity("boss");
+	sceneObject->m_bossMusicComp = new AudioComponent(L"BossMusic.wav", true, 0.1f, 0.f, false);
+
 	if (bossEnt)
 	{
 		bossEnt->scale({ 1, 1, 1 });
 		bossEnt->translate({ 0,2.5,0 });
+
+		sceneObject->addComponent(bossEnt, "sound", sceneObject->m_bossMusicComp);
 
 		sceneObject->m_boss = new Boss();
 		sceneObject->m_boss->Attach(sceneObject);
@@ -1901,11 +1930,12 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 	if (type == BossMovementType::DropPoints)
 	{
-			Entity* projectile = static_cast<Entity*>(data.pointer0);
-			Component* component = projectile->getComponent("projectile");
+		Entity* projectile = static_cast<Entity*>(data.pointer0);
+		Component* component = projectile->getComponent("projectile");
 
-			m_boss->dropStar(1);
-			float c = float(m_boss->getCurrnentNrOfStars()) / float(m_boss->getNrOfMaxStars());
+		m_boss->dropStar(1);
+		float c = float(m_boss->getCurrnentNrOfStars()) / float(m_boss->getNrOfMaxStars());
+
 		if (m_boss->getCurrnentNrOfStars() > -1)
 		{
 			imageStyle.scale = Vector2(c, 0.8f);
@@ -1926,6 +1956,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 			if (c <= m_endBossAtPecentNrOfStarts * 0.01)
 			{
+				m_bossMusicComp->setVolume(0.02f);
 				removeBoss();
 				if (m_endBossAtPecentNrOfStarts != 0)
 					createPortal();
@@ -1937,13 +1968,66 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 	if (type == BossMovementType::SpawnParticlesOnPlatform)
 	{
+
 		Entity* platformEntity = static_cast<Entity*>(data.pointer0);
 		MeshComponent* platformMeshComponent = (MeshComponent*)(platformEntity->getComponent("mesh"));
 		Material* platformMaterial = platformMeshComponent->getMaterialPtr(0);
 
 		platformMaterial->swapTexture(L"RedEmissive.png", 1);
+		
+		{
+			Entity* bossEnt = static_cast<Entity*>(data.pointer1);
+			AudioComponent* sound = nullptr;
+			sound = new AudioComponent(L"warningSound.wav", false, 1.f, 0.f, true, bossEnt);
+			addComponent(bossEnt, "3Dsound", sound);
+			sound->playSound();
+		}
 	}
 	
+
+}
+
+void Scene::reactOnPlayer(PlayerMessageData& msg)
+{
+
+	if (msg.playerActionType == PlayerActions::ON_POWERUP_USE) //Player have just used a powerup.
+	{
+		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
+		{
+			//Create a trampoline entity
+			Vector3 trampolineSpawnPos = m_player->getPlayerEntity()->getTranslation();
+			Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
+			trampoline->setPosition(trampolineSpawnPos);
+			addComponent(trampoline, "mesh1",
+				new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(trampoline, "mesh2",
+				new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(trampoline, "mesh3",
+				new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
+
+			createNewPhysicsComponent(trampoline, false);
+			TriggerComponent* triggerComponent = new TriggerComponent();
+			triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
+			triggerComponent->setIntData(0);
+			trampoline->addComponent("heightTrigger", triggerComponent);
+			triggerComponent->initTrigger(m_sceneID, trampoline, { 0.4f, 0.1, 0.4f }, { 0.f, 1.f, 0.f });
+		}
+
+		if ((PickupType)msg.intEnum == PickupType::CANNON)
+		{
+			Vector3 playerPos = m_player->getPlayerEntity()->getTranslation();
+			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
+			cannon->setPosition(playerPos);
+			addComponent(cannon, "mesh1", new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+
+			static_cast<Player*>(msg.playerPtr)->setCannonEntity(cannon);
+		}
+	}
+	else if (msg.playerActionType == PlayerActions::ON_FIRE_CANNON)
+	{
+		removeEntity(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getIdentifier());
+	}
+
 }
 
 void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)
@@ -2118,6 +2202,11 @@ void Scene::checkProjectiles()
 void Scene::createLaser(BossStructures::BossActionData data)
 {
 	Entity* laserEntity = addEntity("laser" + std::to_string(m_nrOfLasers++));
+	AudioComponent* sound = nullptr;
+	if (m_nrOfLasers % 4 == 0)
+	{
+		sound = new AudioComponent(L"laserSound.wav", false, 1.f, 0.f, true, laserEntity);
+	}
 
 	if (laserEntity)
 	{
@@ -2132,6 +2221,11 @@ void Scene::createLaser(BossStructures::BossActionData data)
 		addComponent(laserEntity, "mesh", mComp);
 		laserEntity->setScale(1, 1, 10);
 
+		if (sound != nullptr)
+		{
+			addComponent(laserEntity, "3Dsound", sound);
+		}
+
 		BossStructures::BossLaser* laserObject = new BossStructures::BossLaser();
 		laserObject->entity = laserEntity;
 		laserObject->id = m_nrOfLasers;
@@ -2139,6 +2233,11 @@ void Scene::createLaser(BossStructures::BossActionData data)
 		laserObject->timer.restart();
 
 		m_lasers[laserObject->id] = laserObject;
+	}
+
+	if (m_nrOfLasers % 4 == 0)
+	{
+		sound->playSound();
 	}
 }
 
@@ -2271,6 +2370,7 @@ void Scene::removeBoss()
 void Scene::createPortal()
 {
 	Entity* goalTrigger = addEntity("trigger");
+
 	if (goalTrigger)
 	{
 		addComponent(goalTrigger, "mesh",
@@ -2285,6 +2385,7 @@ void Scene::createPortal()
 
 		addComponent(goalTrigger, "trigger",
 			new TriggerComponent());
+		addComponent(goalTrigger, "3Dsound", new AudioComponent(L"PortalSound.wav", true, 1.f, 0.f, true, goalTrigger));
 
 		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
 		tc->initTrigger(m_sceneID, goalTrigger, XMFLOAT3(2.5f, 2.5f, 2.5f));
@@ -2296,6 +2397,7 @@ void Scene::createPortal()
 void Scene::createEndScenePortal()
 {
 	Entity* endSceneTrigger = addEntity("endSceneTrigger");
+
 	if (endSceneTrigger)
 	{
 		addComponent(endSceneTrigger, "mesh",
@@ -2310,6 +2412,7 @@ void Scene::createEndScenePortal()
 
 		addComponent(endSceneTrigger, "endSceneTrigger",
 			new TriggerComponent());
+		addComponent(endSceneTrigger, "3Dsound", new AudioComponent(L"PortalSound.wav", true, 2.f, 0.f, true, endSceneTrigger));
 
 		TriggerComponent* tc = static_cast<TriggerComponent*>(endSceneTrigger->getComponent("endSceneTrigger"));
 		tc->initTrigger(m_sceneID, endSceneTrigger, XMFLOAT3(2.5f, 2.5f, 2.5f));

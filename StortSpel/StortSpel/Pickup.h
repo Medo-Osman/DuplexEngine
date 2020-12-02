@@ -3,9 +3,11 @@
 #include"AudioComponent.h"
 #include"Timer.h"
 
-enum class PickupType
+enum class PickupType //Add new pickuptypes -before- score and count. Also add the coresponding pickup class in Player.cpp. Look for function call initPickupArray(vec).
 {
 	SPEED,
+	HEIGHTBOOST,
+	CANNON,
 	SCORE,
 	COUNT,
 };
@@ -22,6 +24,16 @@ public:
 	static const bool hasInitPickupArray()
 	{
 		return PICKUP_VECTOR_INIT;
+	}
+
+	static void clearStaticPickupArrayPlz()
+	{
+		//k
+		for (size_t i = 0; i < PICKUP_VECTOR.size(); i++)
+		{
+			SAFE_DELETE(PICKUP_VECTOR[i]);
+		}
+		PICKUP_VECTOR.clear();
 	}
 
 	static void initPickupArray(std::vector<Pickup*>& vec)
@@ -59,6 +71,7 @@ protected:
 	bool m_doneDepleted;
 	bool m_activateOnPickup;
 	bool m_active;
+	bool m_isTimeBased;
 
 	float m_timer;
 	float m_duration;
@@ -85,6 +98,7 @@ public:
 		m_whileAudio = nullptr;
 		m_active = false;
 		m_modifierValue = 0;
+		m_isTimeBased = true;
 	}
 
 	~Pickup()
@@ -123,24 +137,35 @@ public:
 	}
 	const bool isDepleted() const
 	{
-		return m_timer >= m_duration;
+		if (m_isTimeBased)
+			return m_timer >= m_duration;
+		else
+			return false;
 	}
 
 	const bool shouldDestroy() const
 	{
-		return m_timer >= m_duration + m_removeTime;
+		bool destroy = false;
+		if (m_isTimeBased)
+			destroy = m_timer >= m_duration + m_removeTime;
+		
+		return destroy;
 	}
 
 	virtual void update(const float& dt)
 	{
 		if (m_active)
 		{
-			m_timer += dt;
-			if (!m_doneDepleted && isDepleted())
+			if (m_isTimeBased)
 			{
-				this->onDepleted();
-				m_doneDepleted = true;
+				m_timer += dt;
+				if (!m_doneDepleted && isDepleted())
+				{
+					this->onDepleted();
+					m_doneDepleted = true;
+				}
 			}
+
 		}
 	}
 
@@ -159,10 +184,10 @@ public:
 			m_audioComponents.back()->playSound();
 		}
 	}
-	virtual void onPickup(Entity* entityToDoEffectsOn, float duration)
+
+	virtual void onPickup(Entity* entityToDoEffectsOn)
 	{
 		m_timer = 0.f;
-		m_duration = duration;
 		m_entityToDoEffectsOn = entityToDoEffectsOn;
 		if (m_onPickupSound != L"")
 		{

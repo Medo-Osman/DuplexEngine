@@ -569,13 +569,38 @@ public:
 		return m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
 	}
 
+	bool sphereIntersectionTest(const PxExtendedVec3& origin, const float& radius)
+	{
+		PxQueryFilterData fd;
+		fd.flags |= PxQueryFlag::eANY_HIT;
+		PxOverlapBuffer hit;            // [out] Overlap results
+		PxSphereGeometry overlapShape(radius);  // [in] shape to test for overlaps
+		PxTransform shapePose(origin.x, origin.y, origin.z);    // [in] initial shape pose (at distance=0)
+
+		bool status = m_scenePtr->overlap(overlapShape, shapePose, hit, fd);
+		return status;
+	}
+
+	bool hitSomething(Vector3 position, float radius, float halfHeight)
+	{
+		PxQueryFilterData fd;
+		fd.flags |= PxQueryFlag::eANY_HIT;
+		PxOverlapBuffer hit;            // [out] Overlap results
+		PxCapsuleGeometry overlapShape(radius, halfHeight) ;  // [in] shape to test for overlaps
+		PxTransform shapePose = PxTransform(PxVec3(position.x, position.y, position.z));    // [in] initial shape pose (at distance=0)
+
+
+		bool status = m_scenePtr->overlap(overlapShape, shapePose, hit, fd);
+		return status;
+	}
+
 	//Manager
 	PxController* addCapsuleController(const XMFLOAT3 &position, const float &height, const float &radius, const std::string &materialName, PxControllerBehaviorCallback* controlBehavior)
 	{
 		PxController* capsuleController = nullptr;
 		PxCapsuleControllerDesc ccd;
 		ccd.climbingMode = PxCapsuleClimbingMode::eCONSTRAINED;
-		ccd.contactOffset = 0.1f;
+		ccd.contactOffset = 0.001f;
 		ccd.height = height;
 		ccd.radius = radius;
 		ccd.invisibleWallHeight = 0.f;
@@ -599,6 +624,12 @@ public:
 		ccd.scaleCoeff = 0.8f;
 
 		capsuleController = m_controllManager->createController(ccd);
+		dynamic_cast<PxRigidBody*>(capsuleController->getActor())->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, true);
+		PxShape* shapes[1];
+		PxRigidDynamic* actor = capsuleController->getActor();
+		int nrOfShapes = actor->getNbShapes();
+		actor->getShapes(shapes, 1 * sizeof(PxShape), 0);
+		shapes[0]->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 
 		return capsuleController;
 	}
@@ -621,7 +652,7 @@ public:
 	void setCapsuleRadius(PxController* controller, const float &radius)
 	{
 		PxCapsuleController* capsule = static_cast<PxCapsuleController*>(controller);
-		capsule->setRadius(radius);
+		capsule->resize(radius);
 
 	}
 
@@ -634,7 +665,7 @@ public:
 
 	void makeKinematicActorDynamic(PxRigidBody* actor, float newMass)
 	{
-		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, false);
+		actor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, false);
 		actor->setMass(newMass);
 	}
 

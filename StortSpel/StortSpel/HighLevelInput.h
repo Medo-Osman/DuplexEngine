@@ -19,7 +19,8 @@ enum Action
 	LOAD_ALMOST_EMPTY,
 	CLOSEINTROGUI,
 	USE,
-	SELECT
+	SELECT,
+	RESPAWN
 };
 
 enum State
@@ -29,11 +30,13 @@ enum State
 	WALK_FORWARD,
 	WALK_BACKWARD,
 	MENU_UP,
-	MENU_DOWN
+	MENU_DOWN,
+	JUMPING
 };
 
 enum Range
 {
 	RAW,
 	REL,
+	WALK
 };
