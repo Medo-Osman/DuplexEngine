@@ -49,8 +49,6 @@ private:
 	FLOAT m_ambientLightLevel = 0.3f;
 
 	// Entities
-	std::unordered_map<std::string, Entity*>* m_bossEntities;
-
 	std::unordered_map<std::string, Entity*>* m_entities;
 	std::unordered_map<unsigned int long, MeshComponent*>* m_meshComponentMap;
 	std::unordered_map<std::string, LightComponent*>* m_lightComponentMap;
@@ -66,8 +64,6 @@ private:
 	Settings m_settings;
 
 	Input* m_input = nullptr;
-
-	bool m_useBossEntityMap = false;
 
 
 	//NETWORK
@@ -100,12 +96,6 @@ public:
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
 	std::unordered_map<std::string, Entity*>* getEntityMap();
-	std::unordered_map<std::string, Entity*>* getBossEntityMap();
-	void setBossEntityMap(std::unordered_map<std::string, Entity*>* val);
-	void setUseBossEntityMap(bool val);
-	bool getUseBossEntityMap();
-
-
 	Vector4& getSkyLightDir();
 
 	Input* getInput();

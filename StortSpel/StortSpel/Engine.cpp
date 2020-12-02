@@ -47,10 +47,6 @@ void Engine::update(const float& dt)
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
 
-	if (m_useBossEntityMap)
-		for (auto& entity : *m_bossEntities)
-			entity.second->update(dt);
-
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
 	updateLightData();
@@ -158,26 +154,6 @@ std::unordered_map<std::string, LightComponent*>* Engine::getLightComponentMap()
 std::unordered_map<std::string, Entity*>* Engine::getEntityMap()
 {
 	return m_entities;
-}
-
-std::unordered_map<std::string, Entity*>* Engine::getBossEntityMap()
-{
-	return m_bossEntities;
-}
-
-void Engine::setBossEntityMap(std::unordered_map<std::string, Entity*>* val)
-{
-	m_bossEntities = val;
-}
-
-void Engine::setUseBossEntityMap(bool val)
-{
-	
-}
-
-bool Engine::getUseBossEntityMap()
-{
-	return m_useBossEntityMap;
 }
 
 Input* Engine::getInput()

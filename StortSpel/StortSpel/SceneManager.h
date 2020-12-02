@@ -13,8 +13,6 @@ class SceneManager : public InputObserver, public PhysicsObserver, public GUIObs
 {
 private:
 	Scene* m_nextScene;
-	Scene* m_bossScene = nullptr;
-
 	Input* inputPtr;
 	ScenesEnum m_nextSceneEnum;
 	Camera* m_camera;
