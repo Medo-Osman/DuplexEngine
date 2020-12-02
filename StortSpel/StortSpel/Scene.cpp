@@ -162,6 +162,12 @@ void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
 		if (physicsData.associatedTriggerEnum == (int)PickupType::SCORE)
 		{
 			this->createScoreParticleEntity(entity->getTranslation());
+
+			if (m_boss)
+			{
+				delete m_activeStars[entity->getIdentifier()];
+				m_activeStars.erase(entity->getIdentifier());
+			}
 		}
 	}
 	//std::vector<Component*> vec;
