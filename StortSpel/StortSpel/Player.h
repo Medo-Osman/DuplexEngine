@@ -33,6 +33,7 @@ enum class PlayerState
 enum class PlayerActions
 {
     ON_POWERUP_USE,
+    ON_ENVIRONMENTAL_USE,
     ON_FIRE_CANNON,
 };
 
@@ -42,6 +43,7 @@ struct PlayerMessageData
     void* playerPtr;
     PlayerActions playerActionType;
     int intEnum;
+    std::string entityIdentifier;
 
 };
 
@@ -49,7 +51,7 @@ class PlayerObserver {
 public:
     PlayerObserver() {};
     virtual ~PlayerObserver() {};
-    virtual void reactOnPlayer(PlayerMessageData& msg) = 0;
+    virtual void reactOnPlayer(const PlayerMessageData& msg) = 0;
 };
 
 class PlayerSubject {
@@ -243,6 +245,7 @@ public:
     Vector3 getCameraOffset();
     const bool canUsePickup();
     void handlePickupOnUse();
+    void sendPlayerMSG(const PlayerMessageData& data);
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
 

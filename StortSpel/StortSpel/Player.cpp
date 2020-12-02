@@ -691,7 +691,7 @@ void Player::setPlayerEntity(Entity* entity)
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
-	m_pickupPointer = new CannonPickup();
+	m_pickupPointer = new HeightPickup();
 	m_pickupPointer->onPickup(m_playerEntity, false);
 }
 
@@ -819,6 +819,14 @@ void Player::handlePickupOnUse()
 	for (int i = 0; i < m_playerObservers.size(); i++)
 	{
 		m_playerObservers[i]->reactOnPlayer(data);
+	}
+}
+
+void Player::sendPlayerMSG(const PlayerMessageData &data)
+{
+	for (int i = 0; i < (int)m_playerObservers.size(); i++)
+	{
+		m_playerObservers.at(i)->reactOnPlayer(data);
 	}
 }
 
@@ -957,6 +965,15 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 					{
 						jump(false, 1.5f);
 						environmenPickup = true;
+						PlayerMessageData data;
+						data.playerActionType = PlayerActions::ON_ENVIRONMENTAL_USE;
+						data.intEnum = physicsData.associatedTriggerEnum;
+						data.entityIdentifier = physicsData.entityIdentifier;
+
+						for (int i = 0; i < (int)m_playerObservers.size(); i++)
+						{
+							m_playerObservers.at(i)->reactOnPlayer(data);
+						}
 					}
 
 

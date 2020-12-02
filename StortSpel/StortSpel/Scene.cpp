@@ -6,6 +6,7 @@
 #include"ParticleComponent.h"
 #include"Particles\ScorePickupParticle.h"
 #include"Renderer.h"
+#include"TrampolineComponent.h"
 
 Scene::Scene()
 {
@@ -1838,24 +1839,27 @@ Entity* Scene::addTrampoline(Vector3 position)
 {
 	Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
 	trampoline->setPosition(position);
-	addComponent(trampoline, "mesh1",
+	addComponent(trampoline, "mesh1", //Dun edit diz them nems plz.
 		new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
 	addComponent(trampoline, "mesh2",
 		new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
 	addComponent(trampoline, "mesh3",
 		new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
 
+
 	createNewPhysicsComponent(trampoline, false);
 	TriggerComponent* triggerComponent = new TriggerComponent();
 	triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
 	triggerComponent->setIntData(0);
 	trampoline->addComponent("heightTrigger", triggerComponent);
-	triggerComponent->initTrigger(m_sceneID, trampoline, { 0.4f, 0.1, 0.4f }, { 0.f, 1.f, 0.f });
+	triggerComponent->initTrigger(m_sceneID, trampoline, { 0.95f, 0.1, 0.95f }, { 0.f, 1.6f, 0.f });
+
+	trampoline->addComponent("trampoline", new TrampolineComponent(trampoline)); //Dun edit diz nem ethar plz, cuz chardcohoded somwere.
 
 	return trampoline;
 }
 
-void Scene::reactOnPlayer(PlayerMessageData& msg)
+void Scene::reactOnPlayer(const PlayerMessageData& msg)
 {
 
 	if (msg.playerActionType == PlayerActions::ON_POWERUP_USE) //Player have just used a powerup.
@@ -1884,6 +1888,15 @@ void Scene::reactOnPlayer(PlayerMessageData& msg)
 	else if (msg.playerActionType == PlayerActions::ON_FIRE_CANNON)
 	{
 		removeEntity(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getIdentifier());
+	}
+	else if (msg.playerActionType == PlayerActions::ON_ENVIRONMENTAL_USE)
+	{
+		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
+		{
+			Entity* trampolineEnt = m_entities[msg.entityIdentifier];
+			TrampolineComponent* tc = (TrampolineComponent*)trampolineEnt->getComponent("trampoline");
+			tc->activate();
+		}
 	}
 
 }

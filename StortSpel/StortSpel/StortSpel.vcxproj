@@ -341,6 +341,7 @@
     <ClInclude Include="SwingComponent.h" />
     <ClInclude Include="TestComponent.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="TrampolineComponent.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="SlowTrapComponent.h" />
     <ClInclude Include="Traps.h" />

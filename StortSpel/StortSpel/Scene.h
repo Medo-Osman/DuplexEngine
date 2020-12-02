@@ -197,5 +197,5 @@ public:
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
 	Entity* addTrampoline(Vector3 position);
-	virtual void reactOnPlayer(PlayerMessageData& msg);
+	virtual void reactOnPlayer(const PlayerMessageData& msg);
 };
