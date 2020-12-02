@@ -253,15 +253,16 @@ void Scene::addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox)
 
 }
 
-void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition)
+void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition, const char* meshFile, Vector3 meshRotation)
 {
 	Entity* pushWall = addEntity("wall");
 	if (pushWall)
 	{
 		addComponent(pushWall, "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
-		pushWall->setScale(Vector3(10, 5, 1));
-		pushWall->rotate(0.f, 1.57f, 0.f);
+			new MeshComponent(meshFile));
+		//pushWall->setScale(Vector3(10, 5, 1));
+		//pushWall->setScale(Vector3(1, 1, 1));
+		pushWall->rotate(meshRotation);
 
 		createNewPhysicsComponent(pushWall, true, "", PxGeometryType::eBOX, "default", true);
 		static_cast<PhysicsComponent*>(pushWall->getComponent("physics"))->makeKinematic();
@@ -277,7 +278,7 @@ void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 tr
 		addComponent(pushWallTrigger, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material()));
 
-		pushWallTrigger->setPosition(0, 18, 50);
+		pushWallTrigger->setPosition(triggerPosition);
 
 		addComponent(pushWallTrigger, "trigger", pushComponentTrigger);
 		pushComponentTrigger->initTrigger( m_sceneID, pushWallTrigger, { 1,1,1 });
@@ -792,10 +793,20 @@ void Scene::addPrefabFromFile(char* params)
 	}
 	case PUSHTRAP:
 	{
-		Vector3 wallpos1, wallpos2;
+		// Add file param, don't forget .lrm
+		
+		Vector3 wallpos1, wallpos2, rot;
 		wallpos1 = readDataFromChar<Vector3>(params, offset);
 		wallpos2 = readDataFromChar<Vector3>(params, offset);
-		addPushTrap(wallpos1, wallpos2, pos);
+		wallpos1.x = -wallpos1.x;
+		wallpos2.x = -wallpos2.x;
+		std::string mesh = readStringFromChar(params, offset);
+		mesh.append(".lrm");
+		//std::wstring wMesh = std::wstring(mesh.begin(), mesh.end());
+		rot = readDataFromChar<Vector3>(params, offset);
+		rot.x = XMConvertToRadians(rot.x); rot.y = XMConvertToRadians(rot.y); rot.z = XMConvertToRadians(rot.z);
+		addPushTrap(wallpos1, wallpos2, pos, mesh.c_str(), rot);
+
 		break;
 	}
 	case BARRELDROP:
@@ -918,8 +929,8 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(test, "3Dsound", new AudioComponent(L"fireplace.wav", true, 3.f, 0.f, true, test));
 	}
 
-	sceneObject->createSwingingHammer(Vector3(0, 9.3, 20), Vector3(0, 0, 0), 1);
-	sceneObject->createStaticPlatform(Vector3(0, 13, 20), Vector3(0, 0, 0), Vector3(4, 1, 4), "testCube_pCube1.lrm");
+	sceneObject->createSwingingHammer(Vector3(0, 9.3 - 2.72f, 20), Vector3(0, 0, 0), 1);
+	sceneObject->createStaticPlatform(Vector3(0, 13 - 2.72f, 20), Vector3(0, 0, 0), Vector3(4, 1, 4), "testCube_pCube1.lrm");
 	// Start:
 	sceneObject->createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
 	sceneObject->createStaticPlatform(Vector3(0, 8.5, 29.5), Vector3(0, 0, 0), Vector3(10, 3, 1), "testCube_pCube1.lrm");
@@ -2035,8 +2046,8 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 	{
 		addComponent(hammerFrame, "mesh",
 			new MeshComponent("Hammer_Frame_pCube7.lrm", Material({ L"DarkGrayTexture.png" })));
-
-		hammerFrame->setPosition(position);
+		
+		hammerFrame->setPosition(position.x, position.y + 2.72f, position.z);
 		hammerFrame->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 
 		createNewPhysicsComponent(hammerFrame, false, "", PxGeometryType::eTRIANGLEMESH);
@@ -2051,7 +2062,7 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 			new MeshComponent("Hammer_pCylinder3.lrm", Material({ L"DarkGrayTexture.png" })));
 
 
-		hammer->setPosition({ position.x, position.y + 3.5f, position.z });
+		hammer->setPosition({ position.x, position.y + 3.5f + 2.72f, position.z });
 		hammer->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 
 		createNewPhysicsComponent(hammer, true, "", PxGeometryType::eTRIANGLEMESH);
@@ -2073,6 +2084,27 @@ void Scene::createSkybox(std::wstring textureName)
 		addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	}
+}
+
+void Scene::createGoalTrigger(const Vector3& position, Vector3 rotation, Vector3 scale, ScenesEnum scene)
+{
+	Entity* goalTrigger = addEntity("trigger");
+	if (goalTrigger)
+	{
+		addComponent(goalTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
+		goalTrigger->setPosition(position);
+		goalTrigger->setScale(scale);
+		goalTrigger->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+
+		addComponent(goalTrigger, "trigger",
+			new TriggerComponent());
+
+		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
+		tc->initTrigger(m_sceneID, goalTrigger, scale/2);
+		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
+		tc->setIntData((int)scene);
 	}
 }
 

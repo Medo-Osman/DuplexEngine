@@ -7,6 +7,7 @@ class RotateComponent : public Component
 {
 private:
 	Transform* m_transform;
+	Quaternion m_originalRotation; // Could be replaced with just a starting value on m_angle
 
 	float m_angle = 0.f;
 	float m_rotationSpeed = 20.f;
@@ -18,6 +19,7 @@ private:
 	{
 		m_type = ComponentType::ROTATE;
 		this->m_transform = origin;
+		m_originalRotation = origin->getRotation();
 
 		this->m_angle = 0.f;
 		this->m_rotationSpeed = rotationSpeed;
@@ -59,15 +61,33 @@ public:
 
 		//m_transform->setRotation(rotMatrix);
 		Quaternion quat = XMQuaternionRotationAxis(m_rotateVector, m_angle);
-
+		quat = XMQuaternionMultiply(quat, m_originalRotation);
 		//m_transform->setRotation(m_rotateVector, m_angle);
 
 		//m_physicsComponent ? m_physicsComponent->kinematicMove(m_transform->getTranslation(), quat) :
 		//	m_transform->setRotationQuat(quat);
 
-		if (m_physicsComponent)
-			m_physicsComponent->kinematicMove(m_transform->getTranslation(), quat);
+		
+		
+		
 
-		m_transform->setRotationQuat(quat);
+		if (m_physicsComponent)
+		{
+			//Vector3 co = m_physicsComponent->getCenterOffset();
+			////Vector3 p = m_physicsComponent->getActorPosition() - co;
+			//Vector3 p = m_transform->getTranslation() - co;
+			//
+			//co = XMVector3Rotate(co, quat);
+			//Vector3 o = p + co;
+
+			//m_physicsComponent->kinematicMove(o, quat);
+			//
+			//m_transform->setPosition(o);
+			//m_transform->setRotationQuat(quat);
+			m_physicsComponent->kinematicMove(m_physicsComponent->getActorPosition(), quat);
+		}
+		else
+		//m_transform->setPosition(quat);
+			m_transform->setRotationQuat(quat);
 	}
 };

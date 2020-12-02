@@ -368,6 +368,11 @@ public:
 			return XMFLOAT3(0, 0, 0);
 	}
 
+	Vector3 getCenterOffset()
+	{
+		return m_centerOffset;
+	}
+
 	XMFLOAT4 getActorQuaternion()
 	{
 		return XMFLOAT4(m_actor->getGlobalPose().q.x, m_actor->getGlobalPose().q.y, m_actor->getGlobalPose().q.z, m_actor->getGlobalPose().q.w);

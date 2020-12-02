@@ -8,12 +8,14 @@ enum ShaderProgramsEnum
 	SKYBOX,
 	SKEL_ANIM,
 	PBRTEST,
+	SKEL_PBR,
 	BLOOM_COMBINE,
 	OBJECTSPACEGRID,
 	SHADOW_DEPTH,
 	DEFAULT_SHADOW,
 	SHADOW_DEPTH_ANIM,
 	EMISSIVE,
+	LUCY_FACE,
 	NONE
 };
 
@@ -27,10 +29,14 @@ inline ShaderProgramsEnum charToShaderEnum(char e)
 		return TEMP_TEST;
 	case 'S':
 		return SKEL_ANIM;
+	case 's':
+		return SKEL_PBR;
 	case 'P':
 		return PBRTEST;
 	case 'O':
 		return OBJECTSPACEGRID;
+	case 'L':
+		return LUCY_FACE;
 	default:
 		return TEMP_TEST;
 	}
@@ -117,6 +123,22 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 	(*compiledShadersMap)[ShaderProgramsEnum::SHADOW_DEPTH_ANIM] = new ShaderProgram
 	(
 		{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"ShadowPixel.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::SKEL_PBR] = new ShaderProgram
+	(
+		{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"PBRShaderBase.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::LUCY_FACE] = new ShaderProgram
+	(
+		{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"BasicPixelShader_temp_for_testing_shaderSwitching.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		VertexLayoutType::LRSMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr

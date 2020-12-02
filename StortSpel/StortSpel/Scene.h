@@ -54,8 +54,6 @@ private:
 	int m_nrSwingningHammers = 0;
 	void createSwingingHammer(Vector3 position, Vector3 rotation, float swingSpeed);
 
-	void createSkybox(std::wstring textureName = std::wstring(L"Skybox_Texture.dds"));
-
 	//---------------------------------------------------------------Boss sstuff
 	UINT m_nrOfProjectiles = 0;
 	float m_projectileLifeTime = 10.f;
@@ -123,8 +121,10 @@ private:
 	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
 	void addCheckpoint(const Vector3& position);
 	void addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox);
-	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
+	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition, const char* meshFile = "testCube_pCube1.lrm", Vector3 meshRotation = { 0.f, 1.57f, 0.f });
 	void createParticleEntity(void* particleComponent, Vector3 position);
+	void createSkybox(std::wstring textureName = std::wstring(L"Skybox_Texture.dds"));
+	void createGoalTrigger(const Vector3& position, Vector3 rotation, Vector3 scale, ScenesEnum scene);
 
 	//void addSlowTrap(const Vector3& position, Vector3 scale);
 	//void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
