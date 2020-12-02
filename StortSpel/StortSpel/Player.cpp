@@ -474,8 +474,8 @@ void Player::inputUpdate(InputData& inputData)
 				handlePickupOnUse();
 			break;
 		case CLOSEINTROGUI:
-			GUIHandler::get().setVisible(m_instructionGuiIndex, false);
-			GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
+			//GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+			//GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
 			break;
 		default:
 			break;

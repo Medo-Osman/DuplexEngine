@@ -313,9 +313,9 @@ void Input::readBuffers()
 
 		// Menu / Start
 		if (m_tracker.menu == GamePad::ButtonStateTracker::PRESSED)
-			inputDataChanged = this->fillInputDataUsingKey('P', true) || inputDataChanged; 
+			inputDataChanged = this->fillInputDataUsingKey('\x1B', true) || inputDataChanged;
 		else if (m_tracker.menu == GamePad::ButtonStateTracker::RELEASED)
-			inputDataChanged = this->fillInputDataUsingKey('P', false) || inputDataChanged; 
+			inputDataChanged = this->fillInputDataUsingKey('\x1B', false) || inputDataChanged;
 
 		// View / Back
 		if (m_tracker.view == GamePad::ButtonStateTracker::PRESSED)
