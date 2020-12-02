@@ -6,6 +6,8 @@
 #include"ParticleComponent.h"
 #include"Particles\ScorePickupParticle.h"
 #include"Renderer.h"
+#include "Server.h"
+
 
 Scene::Scene()
 {
@@ -1631,6 +1633,17 @@ void Scene::updateScene(const float& dt)
 {
 	if (m_boss)
 	{
+		//Check lasers
+		checkLasers(dt);
+
+		//Check projectiles and their lifetime so they do not continue on forever in case they missed.
+		checkProjectiles();
+
+		//Check if the boss platforms are correctly placed
+		checkPlatforms(dt);
+	}
+	if (m_boss && Engine::get().getIsHost())
+	{
 		m_boss->update(dt);
 		Vector3 targetPos = static_cast<CharacterControllerComponent*>(m_player->getPlayerEntity()->getComponent("CCC"))->getFootPosition() + Vector3(0, 1, 0);
 
@@ -1651,14 +1664,7 @@ void Scene::updateScene(const float& dt)
 		if (ptr)
 			ptr->setTarget(static_cast<CharacterControllerComponent*>(m_player->getPlayerEntity()->getComponent("CCC"))->getFootPosition() + Vector3(0, 1, 0));
 
-		//Check lasers
-		checkLasers(dt);
 
-		//Check projectiles and their lifetime so they do not continue on forever in case they missed.
-		checkProjectiles();
-
-		//Check if the boss platforms are correctly placed
-		checkPlatforms(dt);
 
 		for (int i = 0; i < deferredPointInstantiationList.size(); i++)
 		{
@@ -1668,8 +1674,20 @@ void Scene::updateScene(const float& dt)
 		
 
 		deferredPointInstantiationList.clear();
+
+		Server::get().setBossData(m_boss->getPosition(), m_boss->currentPlatformIndex.x, m_boss->currentPlatformIndex.y);
+
 	}
-	
+	else if(!PacketHandler::get().hasDoneAction && m_boss)
+	{
+		bossEventUpdate((BossMovementType)PacketHandler::get().bossEnum, PacketHandler::get().getBossActionData());
+	}
+	if (!Engine::get().getIsHost() && m_boss)
+	{
+		m_boss->updatePosition(PacketHandler::get().getBossPosition());
+		m_boss->currentPlatformIndex.x = PacketHandler::get().getBossPIX();
+		m_boss->currentPlatformIndex.y = PacketHandler::get().getBossPIY();
+	}
 
 	if (addedBarrel)
 	{
@@ -1918,37 +1936,54 @@ std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMa
 
 void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionData data)
 {
+	if (data.pointer0)
+	{
+		data.entityID = static_cast<Entity*>(data.pointer0)->getIdentifier();
+	}
 
 	if(type == BossMovementType::ShootProjectile)
 		createProjectile(data.origin, data.direction, data.speed);
 
 	if (type == BossMovementType::ShootLaser)
 	{
-		createLaser(data);
-	}
 
-	if (type == BossMovementType::ClearColumn)
-	{
-		for (int i = 0; i < m_boss->platformArray.columns.size(); i++)
+		for (int i = 0; i < 360; i += 90)
 		{
-			displacePlatform(m_boss->platformArray[m_boss->currentPlatformIndex.x][i]);
+			data.rotation = Vector3(0, XMConvertToRadians(i), 0);
+			createLaser(data);
+			for (int i = 0; i < m_boss->platformArray.columns.size(); i++)
+			{
+				displacePlatform(m_boss->platformArray[m_boss->currentPlatformIndex.x][i]);
+				displacePlatform(m_boss->platformArray[i][m_boss->currentPlatformIndex.y]);
+			}
 		}
 	}
 
-	if (type == BossMovementType::ClearRow)
-	{
-		for (int i = 0; i < m_boss->platformArray.columns.size(); i++)
-		{
-			displacePlatform(m_boss->platformArray[i][m_boss->currentPlatformIndex.y]);
-		}
-	}
+	//if (type == BossMovementType::ClearColumn)
+	//{
+	//	for (int i = 0; i < m_boss->platformArray.columns.size(); i++)
+	//	{
+	//		displacePlatform(m_boss->platformArray[m_boss->currentPlatformIndex.x][i]);
+	//	}
+	//}
+
+	//if (type == BossMovementType::ClearRow)
+	//{
+	//	for (int i = 0; i < m_boss->platformArray.columns.size(); i++)
+	//	{
+	//		displacePlatform(m_boss->platformArray[i][m_boss->currentPlatformIndex.y]);
+	//	}
+	//}
 
 	if (type == BossMovementType::MovePlatform) //Move a platform that the boss has moved over for a period of time.
 	{
+		
+
 		if (data.pointer0 != nullptr)
 		{
 			Entity* entity;
 			entity = static_cast<Entity*>(data.pointer0);
+			
 
 			displacePlatform(entity);
 		}
@@ -1956,47 +1991,58 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 		{
 			//Find entity based on string
 			//Engine::get().getEntityMap()->at(entityID)->getComponentsOfType(pushTraps, ComponentType::TRIGGER);
-
+			Entity* entity = m_entities[data.entityID];
+			displacePlatform(entity);
 		}
 
 	}
 
 	if (type == BossMovementType::DropPoints)
 	{
-		if (data.pointer0 != nullptr)
+
+		Entity* projectile;
+		if (data.pointer0)
 		{
-			Entity* projectile = static_cast<Entity*>(data.pointer0);
-			Component* component = projectile->getComponent("projectile");
-
-			m_boss->dropStar(1);
-			float c = float(m_boss->getCurrnentNrOfStars()) / float(m_boss->getNrOfMaxStars());
-			if (m_boss->getCurrnentNrOfStars() > -1)
-			{
-				imageStyle.scale = Vector2(c, 0.8f);
-				GUIHandler::get().setImageStyle(m_bossHP_barGuiIndex, imageStyle);
-
-				if (component != nullptr)
-				{
-					ProjectileComponent* projComponent = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
-					m_projectiles.erase(projComponent->m_id);
-					removeEntity(projectile->getIdentifier());
-					deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
-				}
-				else
-					addScore(data.origin + Vector3(0, 5, 0));
-			}
-
-
-
-			if (c <= m_endBossAtPecentNrOfStarts * 0.01)
-			{
-				removeBoss();
-				if (m_endBossAtPecentNrOfStarts != 0)
-					createPortal();
-				else
-					createEndScenePortal();
-			}
+			projectile = static_cast<Entity*>(data.pointer0);
 		}
+		else
+		{
+			projectile = m_entities[data.entityID];
+		}
+
+	
+		Component* component = projectile->getComponent("projectile");
+
+		m_boss->dropStar(1);
+		float c = float(m_boss->getCurrnentNrOfStars()) / float(m_boss->getNrOfMaxStars());
+		if (m_boss->getCurrnentNrOfStars() > -1)
+		{
+			imageStyle.scale = Vector2(c, 0.8f);
+			GUIHandler::get().setImageStyle(m_bossHP_barGuiIndex, imageStyle);
+
+			if (component != nullptr)
+			{
+				ProjectileComponent* projComponent = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
+				m_projectiles.erase(projComponent->m_id);
+				removeEntity(projectile->getIdentifier());
+				deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
+			}
+			else
+				addScore(data.origin + Vector3(0, 5, 0));
+		}
+
+
+
+		if (c <= m_endBossAtPecentNrOfStarts * 0.01)
+		{
+			removeBoss();
+			if (m_endBossAtPecentNrOfStarts != 0)
+				createPortal();
+			else
+				createEndScenePortal();
+		}
+		
+
 		
 
 	}
@@ -2011,8 +2057,22 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 			platformMaterial->swapTexture(L"RedEmissive.png", 1);
 		}
+		else
+		{
+			Entity* platformEntity = m_entities[data.entityID];
+			MeshComponent* platformMeshComponent = (MeshComponent*)(platformEntity->getComponent("mesh"));
+			Material* platformMaterial = platformMeshComponent->getMaterialPtr(0);
+
+			platformMaterial->swapTexture(L"RedEmissive.png", 1);
+		}
 
 	}
+
+	if (Engine::get().getIsHost())
+	{
+		Server::get().sendBossActionData((int)type, data);
+	}
+	
 	
 }
 

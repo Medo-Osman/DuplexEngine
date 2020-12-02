@@ -230,11 +230,7 @@ void PacketHandler::playerPickUp(Packet* _packet)
 	
 }
 
-void PacketHandler::writeBossData(Packet* _packet)
-{
-	bossData.position = _packet->ReadVector3();
-	bossData.rotation = _packet->ReadVector4();
-}
+
 
 void PacketHandler::sendPlayerData()
 {
@@ -267,7 +263,8 @@ void PacketHandler::sendPlayerData()
 void PacketHandler::setBossData(Packet* _packet)
 {
 	this->bossData.position = _packet->ReadVector3();
-	this->bossData.rotation = _packet->ReadVector4();
+	this->bossData.x = _packet->ReadInt();
+	this->bossData.y = _packet->ReadInt();
 }
 
 void PacketHandler::setBossActionData(Packet* _packet)
@@ -282,7 +279,7 @@ void PacketHandler::setBossActionData(Packet* _packet)
 	int length = _packet->ReadInt();
 	bossActionData.entityID = _packet->ReadString(length);
 
-	//Engine::get().
+	hasDoneAction = false;
 }
 
 void PacketHandler::sendTrapData(std::string entityID)
@@ -415,4 +412,10 @@ std::string PacketHandler::convert(BSTR source)
 		strcpy_s(char_array, length + 1, wrapped_bstr);
 		return char_array;
 	
+}
+
+BossStructures::BossActionData PacketHandler::getBossActionData()
+{
+	hasDoneAction = true;
+	return bossActionData;
 }
