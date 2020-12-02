@@ -66,22 +66,28 @@ public:
 class Player : public InputObserver, public PhysicsObserver, public GUIObserver, public PlayerSubject
 {
 private:
-    float m_playerScale = 2.0f;
-
     //WALK CONFIG
-    const float PLAYER_MAX_SPEED = 10.f;
-    const float PLAYER_ACCELERATION = 50.f; // times dt
-    const float PLAYER_DECELERATION = 30.f; // times dt
+    const float PLAYER_MAX_SPEED = 5.f;
+    const float PLAYER_ACCELERATION = 30.f; // times dt
+    const float PLAYER_DECELERATION = 15.f; // times dt
     const float PLAYER_ROTATION_SPEED = 0.08f;
-    float m_verticalMultiplier;
-    float m_horizontalMultiplier;
+    float m_verticalMultiplier = 0.f;
+    float m_horizontalMultiplier = 0.f;
     Vector3 m_movementVector;
     float m_timeCounter = 0.f;
 
     //JUMP CONFIG
-    const float JUMP_SPEED = 10.f;
-    const float PLAYER_AIR_ACCELERATION = 40.f;
-    const float PLAYER_AIR_DECELERATION = 30.f;
+    const float JUMP_SPEED = 70.f;
+    const float JUMP_START_SPEED = 4.f;
+    //const float JUMP_SPEED = 10.f;
+    const float PLAYER_AIR_ACCELERATION = 20.f;
+    const float PLAYER_AIR_DECELERATION = 15.f;
+    const float JUMP_HEIGHT_FORCE_LIMIT = 1.0f;
+    float m_jumpLimit = JUMP_HEIGHT_FORCE_LIMIT;
+
+    bool m_jumpPressed = false;
+    bool m_lastJumpPressed = false;
+    float m_jumpStartY = 0.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
     int m_jumps;
 
@@ -91,17 +97,17 @@ private:
     float m_gravityScale = 4.f;
 
     //DASH CONFIG 
-    const float DASH_TRAVEL_DISTANCE = 10.f;
-    const float DASH_SPEED = 50.0f;
-    const float DASH_OUT_SPEED = 20.0f;
+    const float DASH_TRAVEL_DISTANCE = 3.f;
+    const float DASH_SPEED = 30.0f;
+    const float DASH_OUT_SPEED = 10.0f;
     float m_beginDashSpeed = -1.f;
     bool m_hasDashed;
 
     //Roll CONFIG
     const float ROLL_TRAVEL_DISTANCE = 30.f;
     const float ROLL_SPEED = 50.0f;
-    const float ROLL_HEIGHT = 0.3f;
-    const float ROLL_RADIUS = 0.3f;
+    const float ROLL_HEIGHT = 0.2f;
+    const float ROLL_RADIUS = 0.2f; // not used
     const float ROLL_TRANSITION_SPEED = 8.0f;
     const float MAX_TRANSITION_TIME = 0.2f; // Sec
     float m_transitionTime;
@@ -110,49 +116,60 @@ private:
     const float CANNON_POWER = 80;
 
 
+    // Speed Powerup
     float m_currentSpeedModifier;
     float m_goalSpeedModifier;
     int m_speedModifierDuration;
     float m_speedModifierTime;
     const float FOR_FULL_EFFECT_TIME = 2.f;
 
-    int m_instructionGuiIndex = 0;
-
-    int closeInstructionsBtnIndex = 0;
-
-    float m_angleY;
-    float m_currentDistance;
-    Vector3 m_moveDirection;
-    PlayerState m_state;
-    PlayerState m_lastState;
-    Entity* m_playerEntity;
-    AnimatedMeshComponent* m_animMesh;
-    CharacterControllerComponent* m_controller;
-    Transform* m_cameraTransform;
+    // Pickup
     Pickup* m_pickupPointer;
     Pickup* m_environmentPickup;
-   
-    //Cannon
-    Entity* m_cannonEntity;
-    bool m_shouldFire = false;
-    Vector3 m_direction;
-    Entity* m_3dMarker;
-    Vector3 m_cameraOffset;
-    LineData m_lineData[10];
-    MeshComponent* m_pipe;
 
-    //
-    TrapType m_activeTrap;
+    // UI
+    int m_instructionGuiIndex = 0;
+    int closeInstructionsBtnIndex = 0;
 
+    // Movement
+    float m_currentDistance;
+    Vector3 m_moveDirection;
     Vector3 m_velocity = Vector3();
     Vector3 m_lastDirectionalMovement = Vector3();
     Vector3 m_lastPosition = Vector3();
     float m_previousVerticalMovement = 0.f;
 
+    // States
+    PlayerState m_state;
+    PlayerState m_lastState;
+
+    // Entity and Components
+    Entity* m_playerEntity;
+    AnimatedMeshComponent* m_animMesh;
+    CharacterControllerComponent* m_controller;
+   
+    // Camera
+    Transform* m_cameraTransform;
+    const Vector3 ORIGINAL_CAMERA_OFFSET = Vector3(0.f, 0.0f, 2.5f);
+    Vector3 m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
+
+    //Cannon
+    Entity* m_cannonEntity;
+    bool m_shouldFire = false;
+    Vector3 m_direction;
+    Entity* m_3dMarker;
+    LineData m_lineData[10];
+    MeshComponent* m_pipe;
+
+    // Trap
+    TrapType m_activeTrap;
+
     // Score
     int m_score;
     int m_scoreLabelGUIIndex;
     int m_scoreGUIIndex;
+    int m_scoreBG_GUIIndex;
+    int m_powerUp_GUIIndex;
     std::wstring m_scoreSound = L"StarSound.wav";
     AudioComponent* m_audioComponent;
 
@@ -190,6 +207,12 @@ private:
     void rollAnimation();
     void dashAnimation();
     void idleAnimation();
+    void startJump_First();
+    void endJump_First();
+    void startJump_Second();
+    void endJump_Second();
+  
+    bool m_respawnNextFrame = false; //PhysX won't allow you to read and write at the same time.
   
 public:
     Player();
@@ -227,6 +250,9 @@ public:
     Vector3 getCheckpointPos();
     Vector3 getVelocity();
     LineData* getLineDataArray();
+    PlayerState getState();
+    PlayerState getLastState();
+    Vector3 getFeetPosition();
     void setCheckpoint(Vector3 newPosition);
 
     void setCameraTranformPtr(Transform* transform);
@@ -236,8 +262,6 @@ public:
 
     void increaseScoreBy(int value);
     void respawnPlayer();
-
-    float getPlayerScale() const;
 
     int getScore();
     void setScore(int newScore);

@@ -57,6 +57,9 @@ public:
 	void setVisible(int index, bool value);
 	bool getVisible(int index);
 
+	void setImageStyle(int index, GUIImageStyle style);
+	void setGUITextStyle(int index, GUITextStyle style);
+
 	std::vector< GUIElement* >* getElementMap();
 
 	// Menu Gamepad Selection
