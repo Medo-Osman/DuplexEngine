@@ -833,6 +833,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	sceneObject->addCheckpoint(Vector3(14.54f, 30.f, 105.f));
 	sceneObject->addCheckpoint(Vector3(-30.f, 40.f, 144.f));
 	sceneObject->addCheckpoint(Vector3(-11.f, 40.f, 218.5f));
+	sceneObject->createRespawnBox(Vector3(0, 18, 15), Vector3(1, 1, 1), true);
 
 	sceneObject->addSlowTrap(Vector3(0.f, 13.f, 30.f), Vector3(3.f,3.f,3.f), Vector3(1.5f, 1.5f, 1.5f));
 	sceneObject->addPushTrap(Vector3(-5.f, 20.f, 58.f), Vector3(5.f, 20.f, 58.f), Vector3(0.f, 18.f, 50.f));
@@ -2326,6 +2327,34 @@ void Scene::createEndScenePortal()
 		tc->initTrigger(m_sceneID, endSceneTrigger, XMFLOAT3(2.5f, 2.5f, 2.5f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
 		tc->setIntData((int)ScenesEnum::ENDSCENE);
+	}
+}
+
+void Scene::createRespawnBox(Vector3 position, Vector3 scale, bool boxVisible)
+{
+	Entity* respawnTrigger = addEntity("respawnTrigger"+std::to_string(m_nrOfRespawnBoxes++));
+	if (respawnTrigger)
+	{
+		Material mat = Material({ L"T_Missing_D.png", L"ibl_brdf_lut.png" });
+		mat.setEmissiveStrength(75);
+		addComponent(respawnTrigger, "mesh",
+			//new MeshComponent("testCube_pCube1.lrm", Material({ L"T_Missing_D.png" })));
+			new MeshComponent("testCube_pCube1.lrm",
+				EMISSIVE,
+				mat));
+		MeshComponent* meshComp = respawnTrigger->getComponentsByType<MeshComponent>(ComponentType::MESH);
+		meshComp->setVisible(boxVisible);
+		meshComp->setCastsShadow(boxVisible);
+
+		respawnTrigger->setPosition(position);
+		respawnTrigger->setScale(scale);
+
+		addComponent(respawnTrigger, "respawnTrigger",
+			new TriggerComponent());
+
+		TriggerComponent* tc = static_cast<TriggerComponent*>(respawnTrigger->getComponent("respawnTrigger"));
+		tc->initTrigger(m_sceneID, respawnTrigger, scale/2);
+		tc->setEventData(TriggerType::RESPAWN);
 	}
 }
 

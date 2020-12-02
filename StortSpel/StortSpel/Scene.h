@@ -76,9 +76,11 @@ private:
 	int m_bossHP_barGuiIndex = 0;
 	int m_bossHP_barBackgroundGuiIndex = 0;
 	int m_endBossAtPecentNrOfStarts = 0;
+	int m_nrOfRespawnBoxes = 0;
 	void removeBoss();
 	void createPortal();
 	void createEndScenePortal();
+	void createRespawnBox(Vector3 position, Vector3 scale, bool boxVisible = true);
 
 	//For projectiles
 	std::unordered_map<UINT, Entity*> m_projectiles;
