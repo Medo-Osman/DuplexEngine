@@ -1461,10 +1461,14 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 
 	//Generate the boss, if boss does not exist in the scene it will not be updated in sceneUpdate() either.
 	Entity* bossEnt = sceneObject->addEntity("boss");
+	sceneObject->m_bossMusicComp = new AudioComponent(L"BossMusic.wav", true, 0.1f, 0.f, false);
+
 	if (bossEnt)
 	{
 		bossEnt->scale({ 1, 1, 1 });
 		bossEnt->translate({ 0,2.5,0 });
+
+		sceneObject->addComponent(bossEnt, "sound", sceneObject->m_bossMusicComp);
 
 		sceneObject->m_boss = new Boss();
 		sceneObject->m_boss->Attach(sceneObject);
@@ -1913,11 +1917,12 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 	if (type == BossMovementType::DropPoints)
 	{
-			Entity* projectile = static_cast<Entity*>(data.pointer0);
-			Component* component = projectile->getComponent("projectile");
+		Entity* projectile = static_cast<Entity*>(data.pointer0);
+		Component* component = projectile->getComponent("projectile");
 
-			m_boss->dropStar(1);
-			float c = float(m_boss->getCurrnentNrOfStars()) / float(m_boss->getNrOfMaxStars());
+		m_boss->dropStar(1);
+		float c = float(m_boss->getCurrnentNrOfStars()) / float(m_boss->getNrOfMaxStars());
+
 		if (m_boss->getCurrnentNrOfStars() > -1)
 		{
 			imageStyle.scale = Vector2(c, 0.8f);
@@ -1938,6 +1943,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 			if (c <= m_endBossAtPecentNrOfStarts * 0.01)
 			{
+				m_bossMusicComp->setVolume(0.02f);
 				removeBoss();
 				if (m_endBossAtPecentNrOfStarts != 0)
 					createPortal();
@@ -1949,13 +1955,23 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 	if (type == BossMovementType::SpawnParticlesOnPlatform)
 	{
+
 		Entity* platformEntity = static_cast<Entity*>(data.pointer0);
 		MeshComponent* platformMeshComponent = (MeshComponent*)(platformEntity->getComponent("mesh"));
 		Material* platformMaterial = platformMeshComponent->getMaterialPtr(0);
 
 		platformMaterial->swapTexture(L"RedEmissive.png", 1);
+		
+		{
+			Entity* bossEnt = static_cast<Entity*>(data.pointer1);
+			AudioComponent* sound = nullptr;
+			sound = new AudioComponent(L"warningSound.wav", false, 1.f, 0.f, true, bossEnt);
+			addComponent(bossEnt, "3Dsound", sound);
+			sound->playSound();
+		}
 	}
 	
+
 }
 
 void Scene::createSweepingPlatform(Vector3 startPos, Vector3 endPos)
@@ -2130,6 +2146,11 @@ void Scene::checkProjectiles()
 void Scene::createLaser(BossStructures::BossActionData data)
 {
 	Entity* laserEntity = addEntity("laser" + std::to_string(m_nrOfLasers++));
+	AudioComponent* sound = nullptr;
+	if (m_nrOfLasers % 4 == 0)
+	{
+		sound = new AudioComponent(L"laserSound.wav", false, 1.f, 0.f, true, laserEntity);
+	}
 
 	if (laserEntity)
 	{
@@ -2144,6 +2165,11 @@ void Scene::createLaser(BossStructures::BossActionData data)
 		addComponent(laserEntity, "mesh", mComp);
 		laserEntity->setScale(1, 1, 10);
 
+		if (sound != nullptr)
+		{
+			addComponent(laserEntity, "3Dsound", sound);
+		}
+
 		BossStructures::BossLaser* laserObject = new BossStructures::BossLaser();
 		laserObject->entity = laserEntity;
 		laserObject->id = m_nrOfLasers;
@@ -2151,6 +2177,11 @@ void Scene::createLaser(BossStructures::BossActionData data)
 		laserObject->timer.restart();
 
 		m_lasers[laserObject->id] = laserObject;
+	}
+
+	if (m_nrOfLasers % 4 == 0)
+	{
+		sound->playSound();
 	}
 }
 
@@ -2283,6 +2314,7 @@ void Scene::removeBoss()
 void Scene::createPortal()
 {
 	Entity* goalTrigger = addEntity("trigger");
+
 	if (goalTrigger)
 	{
 		addComponent(goalTrigger, "mesh",
@@ -2297,6 +2329,7 @@ void Scene::createPortal()
 
 		addComponent(goalTrigger, "trigger",
 			new TriggerComponent());
+		addComponent(goalTrigger, "3Dsound", new AudioComponent(L"PortalSound.wav", true, 1.f, 0.f, true, goalTrigger));
 
 		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
 		tc->initTrigger(m_sceneID, goalTrigger, XMFLOAT3(2.5f, 2.5f, 2.5f));
@@ -2308,6 +2341,7 @@ void Scene::createPortal()
 void Scene::createEndScenePortal()
 {
 	Entity* endSceneTrigger = addEntity("endSceneTrigger");
+
 	if (endSceneTrigger)
 	{
 		addComponent(endSceneTrigger, "mesh",
@@ -2322,6 +2356,7 @@ void Scene::createEndScenePortal()
 
 		addComponent(endSceneTrigger, "endSceneTrigger",
 			new TriggerComponent());
+		addComponent(endSceneTrigger, "3Dsound", new AudioComponent(L"PortalSound.wav", true, 2.f, 0.f, true, endSceneTrigger));
 
 		TriggerComponent* tc = static_cast<TriggerComponent*>(endSceneTrigger->getComponent("endSceneTrigger"));
 		tc->initTrigger(m_sceneID, endSceneTrigger, XMFLOAT3(2.5f, 2.5f, 2.5f));

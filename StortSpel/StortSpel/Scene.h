@@ -62,7 +62,7 @@ private:
 	void createProjectile(Vector3 origin, Vector3 dir, float speed);
 	void checkProjectiles();
 
-	UINT m_nrOfLasers = 0;
+	UINT m_nrOfLasers = 1;
 	void createLaser(BossStructures::BossActionData data);
 	void checkLasers(float dt);
 
@@ -72,6 +72,7 @@ private:
 	void physicallyMovePlatform(Entity* entity);
 	bool findPlatformAlready(Entity* entity);
 
+	AudioComponent* m_bossMusicComp = nullptr;
 	GUIImageStyle imageStyle;
 	int m_bossHP_barGuiIndex = 0;
 	int m_bossHP_barBackgroundGuiIndex = 0;
