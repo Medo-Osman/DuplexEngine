@@ -154,9 +154,11 @@ void Camera::updateViewMatrix()
 	
 	
 	Vector3 fromPlayerToCamera = m_position - playerPos;
-	if (Physics::get().castRay(playerPos, DirectX::XMVector3Normalize(fromPlayerToCamera), 5, hitPos))
+	float length = fromPlayerToCamera.Length();
+	Vector3 norm = fromPlayerToCamera / length * 0.2f;
+	if (Physics::get().castRay(playerPos, DirectX::XMVector3Normalize(fromPlayerToCamera), length, hitPos))
 	{
-		m_position = hitPos;
+		m_position = hitPos - norm;
 	}
 
 	if (XMVector3Equal(m_position, playerPos))

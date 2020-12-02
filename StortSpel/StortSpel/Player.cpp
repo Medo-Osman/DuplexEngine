@@ -798,6 +798,11 @@ void Player::respawnPlayer()
 	m_velocity = Vector3();
 	m_horizontalMultiplier = 0.f;
 	m_verticalMultiplier = 0.f;
+	if (m_pickupPointer && m_pickupPointer->isActive())
+	{
+		m_pickupPointer->onDepleted();
+		SAFE_DELETE(m_pickupPointer);
+	}
 }
 
 int Player::getScore()
