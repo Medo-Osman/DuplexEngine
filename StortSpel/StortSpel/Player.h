@@ -161,6 +161,10 @@ private:
     LineData m_lineData[10];
     MeshComponent* m_pipe;
 
+    //Trampoline
+    bool m_shouldPickupJump;
+    const float TRAMPOLINE_JUMP_MULTIPLIER = 2.0f;
+
     // Trap
     TrapType m_activeTrap;
 

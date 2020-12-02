@@ -2003,6 +2003,7 @@ Entity* Scene::addTrampoline(Vector3 position)
 {
 	Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
 	trampoline->setPosition(position);
+	trampoline->setScale(0.5f, 0.5f, 0.5f);
 	addComponent(trampoline, "mesh1", //Dun edit diz them nems plz.
 		new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
 	addComponent(trampoline, "mesh2",
@@ -2016,7 +2017,7 @@ Entity* Scene::addTrampoline(Vector3 position)
 	triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
 	triggerComponent->setIntData(0);
 	trampoline->addComponent("heightTrigger", triggerComponent);
-	triggerComponent->initTrigger(m_sceneID, trampoline, { 0.95f, 0.1, 0.95f }, { 0.f, 1.6f, 0.f });
+	triggerComponent->initTrigger(m_sceneID, trampoline, { 0.475f, 0.05, 0.475f }, { 0.f, 0.7f, 0.f });
 
 	trampoline->addComponent("trampoline", new TrampolineComponent(trampoline)); //Dun edit diz nem ethar plz, cuz chardcohoded somwere.
 
@@ -2031,7 +2032,7 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
 		{
 			//Create a trampoline entity
-			Vector3 trampolineSpawnPos = m_player->getPlayerEntity()->getTranslation();
+			Vector3 trampolineSpawnPos = m_player->getFeetPosition() - Vector3(0.f, 0.75f, 0.f);
 			Entity* trampoline = addTrampoline(trampolineSpawnPos);
 		}
 

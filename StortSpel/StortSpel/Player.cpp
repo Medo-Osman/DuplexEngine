@@ -386,12 +386,16 @@ void Player::playerStateLogic(const float& dt)
 
 	case PlayerState::JUMPING:
 
+
 		if (m_jumps == 1)
 			m_jumpLimit = JUMP_HEIGHT_FORCE_LIMIT;
 		else
 			m_jumpLimit = JUMP_HEIGHT_FORCE_LIMIT * .8f;
 
-		if (m_jumpPressed && (currentY - m_jumpStartY < m_jumpLimit)) // Jump Limit Not Reached
+		if (m_shouldPickupJump)
+			m_jumpLimit = JUMP_HEIGHT_FORCE_LIMIT * TRAMPOLINE_JUMP_MULTIPLIER;
+
+		if ((m_jumpPressed || m_shouldPickupJump) && (currentY - m_jumpStartY < m_jumpLimit)) // Jump Limit Not Reached
 		{
 			m_verticalMultiplier += JUMP_SPEED * dt; // Apply Jump Force
 		}
@@ -639,6 +643,7 @@ bool Player::pickupUpdate(Pickup* pickupPtr, const float& dt)
 				if (m_state == PlayerState::FALLING )
 				{
 					pickupPtr->onDepleted();
+					m_shouldPickupJump = false;
 					shouldRemovePickup = true;
 				}
 				break;
@@ -837,8 +842,8 @@ void Player::handlePickupOnUse()
 		//m_speedModifierTime = 0;
 		break;
 	case PickupType::HEIGHTBOOST:
-		//Kalla p� animation
-		jump(false);
+		//jump(false, TRAMPOLINE_JUMP_MULTIPLIER); //Activates by enviormental instead.
+		//m_shouldPickupJump = true;
 		break;
 	case PickupType::CANNON:
 		m_state = PlayerState::CANNON;
@@ -991,7 +996,8 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 					}
 					else
 					{
-						jump(false, 1.5f);
+						jump(false, TRAMPOLINE_JUMP_MULTIPLIER);
+						m_shouldPickupJump = true;
 						environmenPickup = true;
 						PlayerMessageData data;
 						data.playerActionType = PlayerActions::ON_ENVIRONMENTAL_USE;
@@ -1138,11 +1144,12 @@ void Player::jump(const bool& incrementCounter, const float& multiplier)
 	if (incrementCounter)
 	{
 		m_state = PlayerState::JUMPING;
-		m_jumpStartY = m_playerEntity->getTranslation().y;
 		m_jumps++;
 	}
 	else
 		m_state = PlayerState::JUMPING;
+
+	m_jumpStartY = m_playerEntity->getTranslation().y;
 
 	if (m_jumps == 1)
 		startJump_First();
