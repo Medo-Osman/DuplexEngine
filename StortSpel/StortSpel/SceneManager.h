@@ -17,6 +17,7 @@ private:
 	Scene* m_currentScene;
 	Scene* m_nextScene;
 	Input* inputPtr;
+	ScenesEnum m_currectSceneEnum;
 	ScenesEnum m_nextSceneEnum;
 	Camera* m_camera;
 	GUITextStyle style;

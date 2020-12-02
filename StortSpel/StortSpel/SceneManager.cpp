@@ -25,7 +25,7 @@ void SceneManager::initalize()
 	// Start Scene
 	m_currentScene = new Scene();
 	Scene::loadMainMenu(m_currentScene, m_nextSceneReady);
-
+	m_currectSceneEnum = ScenesEnum::MAINMENU;
 	disableMovement();
 	*m_nextSceneReady = false;
 
@@ -264,56 +264,59 @@ void SceneManager::inputUpdate(InputData& inputData)
 
 		else if (inputData.actionData[i] == MENU)
 		{
-			if (!m_inPause || m_inPauseSettings)
+			if (m_currectSceneEnum != ScenesEnum::MAINMENU && m_currectSceneEnum != ScenesEnum::ENDSCENE)
 			{
-				disableMovement();
-				GUIHandler::get().setVisible(m_pauseText, true);
-				GUIHandler::get().setVisible(m_settingsIndex, true);
-				GUIHandler::get().setVisible(m_resumeBtnIndex, true);
-				GUIHandler::get().setVisible(m_backToLobbyIndex, true);
-
-				// close Pause Settings
-				if (m_inPauseSettings) // if back from pause settings, hide settings
+				if (!m_inPause || m_inPauseSettings)
 				{
-					GUIHandler::get().setVisible(m_settingsText, false);
+					disableMovement();
+					GUIHandler::get().setVisible(m_pauseText, true);
+					GUIHandler::get().setVisible(m_settingsIndex, true);
+					GUIHandler::get().setVisible(m_resumeBtnIndex, true);
+					GUIHandler::get().setVisible(m_backToLobbyIndex, true);
 
-					GUIHandler::get().setVisible(m_senseTextIndex, false);
-					GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
-					GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
-					GUIHandler::get().setVisible(m_sensitivityIndex, false);
+					// close Pause Settings
+					if (m_inPauseSettings) // if back from pause settings, hide settings
+					{
+						GUIHandler::get().setVisible(m_settingsText, false);
 
-					GUIHandler::get().setVisible(m_volumeTextIndex, false);
-					GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
-					GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
-					GUIHandler::get().setVisible(m_volumeAmountIndex, false);
+						GUIHandler::get().setVisible(m_senseTextIndex, false);
+						GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
+						GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
+						GUIHandler::get().setVisible(m_sensitivityIndex, false);
 
-					GUIHandler::get().setVisible(m_fovText, false);
-					GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
-					GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
-					GUIHandler::get().setVisible(m_fovIndex, false);
+						GUIHandler::get().setVisible(m_volumeTextIndex, false);
+						GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
+						GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
+						GUIHandler::get().setVisible(m_volumeAmountIndex, false);
 
-					GUIHandler::get().setVisible(m_fullscreenText, false);
-					GUIHandler::get().setVisible(m_fullscreenIndex, false);
-					m_inPause = true;
-					m_inPauseSettings = false;
+						GUIHandler::get().setVisible(m_fovText, false);
+						GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
+						GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
+						GUIHandler::get().setVisible(m_fovIndex, false);
+
+						GUIHandler::get().setVisible(m_fullscreenText, false);
+						GUIHandler::get().setVisible(m_fullscreenIndex, false);
+						m_inPause = true;
+						m_inPauseSettings = false;
+					}
+					else // Entered Pause Menu
+					{
+						m_inPause = true;
+					}
+
+					GUIHandler::get().setInMenu(true, m_resumeBtnIndex);
 				}
-				else // Entered Pause Menu
+				else
 				{
-					m_inPause = true;
+					enableMovement();
+					GUIHandler::get().setVisible(m_pauseText, false);
+					GUIHandler::get().setVisible(m_settingsIndex, false);
+					GUIHandler::get().setVisible(m_resumeBtnIndex, false);
+					GUIHandler::get().setVisible(m_backToLobbyIndex, false);
+
+					GUIHandler::get().setInMenu(false);
+					m_inPause = false;
 				}
-
-				GUIHandler::get().setInMenu(true, m_resumeBtnIndex);
-			}
-			else
-			{
-				enableMovement();
-				GUIHandler::get().setVisible(m_pauseText, false);
-				GUIHandler::get().setVisible(m_settingsIndex, false);
-				GUIHandler::get().setVisible(m_resumeBtnIndex, false);
-				GUIHandler::get().setVisible(m_backToLobbyIndex, false);
-
-				GUIHandler::get().setInMenu(false);
-				m_inPause = false;
 			}
 		}
 	}
@@ -403,6 +406,7 @@ void SceneManager::swapScenes()
 		delete m_currentScene;
 		m_currentScene = m_nextScene;
 		m_nextScene = nullptr;
+		m_currectSceneEnum = m_nextSceneEnum;
 
 		// Update currentScene in engine
 		Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
