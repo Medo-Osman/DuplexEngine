@@ -1474,7 +1474,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		sceneObject->m_boss->Attach(sceneObject);
 		sceneObject->m_boss->initialize(bossEnt, true);
 		sceneObject->m_boss->setNrOfMaxStars(10);
-		sceneObject->m_endBossAtPecentNrOfStarts = 0; // if this is 0 the end secene will be triggered
+		sceneObject->m_endBossAtPecentNrOfStarts = 50; // if this is 0 the end secene will be triggered
 
 		//// Init grid structure
 		BossStructures::PlatformArray* platformArray = &sceneObject->m_boss->platformArray;
@@ -2313,19 +2313,31 @@ void Scene::removeBoss()
 
 void Scene::createPortal()
 {
-	Entity* goalTrigger = addEntity("trigger");
+	float a = m_boss->getNrOfPlatforms();
+	a = float(ceil(a / 2));
+	a = 5 * a;
+	a = a + 10;
+	Entity* goalTriggerFrame = addEntity("triggerFrame");
+	if (goalTriggerFrame)
+	{
+		goalTriggerFrame->setPosition(Vector3(10, 3, a));
+		goalTriggerFrame->setRotation(Vector3(0, XMConvertToRadians(90), 0));
+		addComponent(goalTriggerFrame, "mesh",
+			new MeshComponent("Portal_pCube41.lrm", Material({ L"DarkGrayTexture.png" })));
+	}
 
+	Entity* goalTrigger = addEntity("trigger");
 	if (goalTrigger)
 	{
+		goalTrigger->setPosition(Vector3(10, 4.5, a));
+		goalTrigger->setRotation(Vector3(0, XMConvertToRadians(90), 0));
+
+		Material emissiveMat({ L"DarkGrayTexture.png", L"PortalEmissive.jpg" });
+		emissiveMat.setEmissiveStrength(30);
 		addComponent(goalTrigger, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
-		
-		float a = m_boss->getNrOfPlatforms();
-		a = float(ceil(a / 2));
-		a = 5 * a;
-		a = a + 10;
-		goalTrigger->setPosition(10, 5, a);
-		goalTrigger->setScale(5, 5, 5);
+			new MeshComponent("portalMagic_pCylinder8.lrm",
+				EMISSIVE, emissiveMat));
+
 
 		addComponent(goalTrigger, "trigger",
 			new TriggerComponent());
@@ -2340,26 +2352,39 @@ void Scene::createPortal()
 
 void Scene::createEndScenePortal()
 {
-	Entity* endSceneTrigger = addEntity("endSceneTrigger");
+	float a = m_boss->getNrOfPlatforms();
+	a = float(ceil(a / 2));
+	a = 5 * a;
+	a = a + 10;
 
+	Entity* endSceneTriggerFrame = addEntity("endTrriggerFrame");
+	if (endSceneTriggerFrame)
+	{
+		endSceneTriggerFrame->setPosition(Vector3(10, 3, a));
+		endSceneTriggerFrame->setRotation(Vector3(0, XMConvertToRadians(90), 0));
+		addComponent(endSceneTriggerFrame, "mesh",
+			new MeshComponent("Portal_pCube41.lrm", Material({ L"DarkGrayTexture.png" })));
+	}
+
+	Entity* endSceneTrigger = addEntity("endTrigger");
 	if (endSceneTrigger)
 	{
-		addComponent(endSceneTrigger, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
+		endSceneTrigger->setPosition(Vector3(10, 4.5, a));
+		endSceneTrigger->setRotation(Vector3(0, XMConvertToRadians(90), 0));
 
-		float a = m_boss->getNrOfPlatforms();
-		a = float(ceil(a / 2));
-		a = 5 * a;
-		a = a + 10;
-		endSceneTrigger->setPosition(Vector3(10, 5, a));
-		endSceneTrigger->setScale(5, 5, 5);
+		Material emissiveMat({ L"DarkGrayTexture.png", L"PortalEmissive.jpg" });
+		emissiveMat.setEmissiveStrength(30);
+		addComponent(endSceneTrigger, "mesh", 
+			new MeshComponent("portalMagic_pCylinder8.lrm",
+			EMISSIVE, emissiveMat));
+
 
 		addComponent(endSceneTrigger, "endSceneTrigger",
 			new TriggerComponent());
 		addComponent(endSceneTrigger, "3Dsound", new AudioComponent(L"PortalSound.wav", true, 2.f, 0.f, true, endSceneTrigger));
 
 		TriggerComponent* tc = static_cast<TriggerComponent*>(endSceneTrigger->getComponent("endSceneTrigger"));
-		tc->initTrigger(m_sceneID, endSceneTrigger, XMFLOAT3(2.5f, 2.5f, 2.5f));
+		tc->initTrigger(m_sceneID, endSceneTrigger, XMFLOAT3(0.15f, 1.5f, 1.5f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
 		tc->setIntData((int)ScenesEnum::ENDSCENE);
 	}
