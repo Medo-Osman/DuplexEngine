@@ -68,13 +68,13 @@ Player::Player()
 	//closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
 
 	//Attach to the click listener for the button
-	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
+	/*dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
 
 	GUIImageStyle guiInfo;
 	guiInfo.origin = Vector2(256, 256);
 	guiInfo.position = Vector2(Engine::get().getSettings().width / 2, Engine::get().getSettings().height / 2);
 	m_cannonCrosshairID = GUIHandler::get().addGUIImage(L"crosshair.png", guiInfo);
-	GUIHandler::get().setVisible(m_cannonCrosshairID, false);
+	GUIHandler::get().setVisible(m_cannonCrosshairID, false);*/
 
 
 }
