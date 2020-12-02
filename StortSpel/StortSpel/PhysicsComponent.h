@@ -163,6 +163,7 @@ public:
 					}
 					else //Create shape and add shape for sharing
 					{
+
 						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true, loaded);
 						m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
 						m_physicsPtr->addShapeForSharing(m_shape, name);
@@ -283,8 +284,11 @@ public:
 	}
 
 
+
 	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool saveGeometry, bool &outLoaded)
+
 	{
+		bool loaded = true;
 		XMFLOAT3 min, max;
 		PxGeometry* bb = nullptr;
 		meshComponent->getMeshResourcePtr()->getMinMax(min, max);
