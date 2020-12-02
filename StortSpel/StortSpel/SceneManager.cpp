@@ -770,7 +770,7 @@ void SceneManager::uiMenuInitialize()
 
 	//Tutorial button
 	btnStyle.position = Vector2(140, 400);
-	btnStyle.scale = Vector2(1, 1);Menu tw
+	btnStyle.scale = Vector2(1, 1);
 	m_tutorialIndex = GUIHandler::get().addGUIButton(L"tutorialBtn.png", btnStyle);
 
 	GUIButton* tutorialButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_tutorialIndex));
