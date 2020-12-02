@@ -513,6 +513,11 @@ void Player::playerStateLogic(const float& dt)
 			m_pickupPointer->onRemove();
 			SAFE_DELETE(m_pickupPointer);
 		}
+
+		if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
+		{
+			respawnPlayer();
+		}
 		return;
 		break;
 	default:
@@ -811,6 +816,7 @@ void Player::respawnPlayer()
 	if (m_pickupPointer && m_pickupPointer->isActive())
 	{
 		m_pickupPointer->onDepleted();
+		m_pickupPointer->onRemove();
 		SAFE_DELETE(m_pickupPointer);
 	}
 }
