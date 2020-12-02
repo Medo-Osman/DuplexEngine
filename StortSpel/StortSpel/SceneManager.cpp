@@ -131,8 +131,8 @@ void SceneManager::initalize()
 	resumeBtn->Attach(this);
 	//assdasdasdfsdfsjdfjsdfjsdfjsdfjsdfj
 	btnStyle.position = Vector2(930, 600);
-	btnStyle.scale = Vector2(0.2, 0.2);
-	m_fullscreenIndex = GUIHandler::get().addGUIButton(L"uncheckedBox.png", btnStyle);
+	btnStyle.scale = Vector2(1, 1);
+	m_fullscreenIndex = GUIHandler::get().addGUIButton(L"checkedBoxx.png", btnStyle);
 
 	GUIButton* fullscreenBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_fullscreenIndex));
 	fullscreenBtn->Attach(this);
@@ -603,7 +603,18 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			button->setTexture(L"resumeBtnHover.png");
 		}
-
+		if (guiElement->m_index == m_fullscreenIndex)
+		{
+			if (checked)
+			{
+				button->setTexture(L"checkedBoxHover.png");
+			}
+			else
+			{
+				button->setTexture(L"uncheckedBoxHover.png");
+			}
+		}
+		
 	}
 
 	if (type == GUIUpdateType::HOVER_EXIT)
@@ -660,8 +671,17 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			button->setTexture(L"resumeBtn.png");
 		}
-
-
+		if (guiElement->m_index == m_fullscreenIndex)
+		{
+			if (checked)
+			{
+				button->setTexture(L"checkedBoxx.png");
+			}
+			else
+			{
+				button->setTexture(L"uncheckedBoxx.png");
+			}
+		}
 	}
 
 	//Checks which button is being clicked
@@ -683,6 +703,8 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
 			GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
 			GUIHandler::get().setVisible(m_fovIndex, false);
+			GUIHandler::get().setVisible(m_fullscreenText, false);
+
 
 
 			m_nextSceneEnum = ScenesEnum::START;
@@ -798,20 +820,22 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_settingsIndex, false);
 			GUIHandler::get().setVisible(m_backToLobbyIndex, false);
 			GUIHandler::get().setVisible(m_fullscreenIndex, false);
+			GUIHandler::get().setVisible(m_fullscreenText, false);
 		}
 		if (guiElement->m_index == m_fullscreenIndex)
 		{
 			// do stuff
 
-
+			
 			if (checked == false)
 			{
-				button->setTexture(L"uncheckedbox.png");
-
+				button->setTexture(L"checkedboxx.png");
+				Renderer::get().setFullScreen(true);
 			}
 			else
 			{
-				button->setTexture(L"checkedbox.png");
+				button->setTexture(L"uncheckedBoxx.png");
+				Renderer::get().setFullScreen(false);
 			}
 			checked = !checked;
 

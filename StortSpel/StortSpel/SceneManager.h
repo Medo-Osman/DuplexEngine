@@ -7,6 +7,7 @@
 #include <future>
 #include "Camera.h"
 #include <Windows.h>
+#include "Renderer.h"
 
 
 
@@ -54,6 +55,7 @@ private:
 	int m_resumeBtnIndex = 0;
 	int m_fullscreenIndex = 0;
 	int m_exitFullscreenindex = 0;
+
 
 	//text index
 	int m_sensitivityIndex;
