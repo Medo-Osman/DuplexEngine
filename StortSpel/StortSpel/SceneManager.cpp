@@ -386,7 +386,11 @@ void SceneManager::swapScenes()
 			m_currentScene->m_boss->Detach(m_currentScene);
 
 		// Swap
-		delete m_currentScene;
+		if (m_currentScene != m_bossScene)
+		{
+			delete m_currentScene;
+
+		}
 		m_currentScene = m_nextScene;
 		m_nextScene = nullptr;
 
