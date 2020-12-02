@@ -75,6 +75,14 @@ struct CS_BLUR_CBUFFER
     XMFLOAT2 pad;
 };
 
+struct globalConstBuffer
+{
+    Vector3 playerPosition = { 0.0f, 0.0f, 0.0f };
+    float environmentMapBrightness = 1.0f;
+    float time = 1.0f;
+    Vector3 padding;
+};
+
 __declspec(align(16)) struct projectionMatrix
 {
     XMMATRIX g_viewProjectionMatrix;
