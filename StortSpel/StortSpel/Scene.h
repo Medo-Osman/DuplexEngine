@@ -26,7 +26,9 @@ enum PrefabType
 	SLOWTRAP,
 	PUSHTRAP,
 	BARRELDROP,
-	GOAL_TRIGGER
+	GOAL_TRIGGER,
+	SWINGING_HAMMER,
+	pfSKYBOX
 };
 
 class Scene : public PhysicsObserver, public BossObserver
@@ -44,12 +46,15 @@ private:
 	void createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 scale, std::string meshPath, std::wstring texPath = L"GrayTexture.png");
 	int m_nrOfSweepingPlatforms = 0;
 	void createSweepingPlatform(Vector3 startPos, Vector3 endPos);
+	void createTimedSweepPlatform(Vector3 startPos, Vector3 endPos, bool startEnd, float interval);
 	int m_nrOfSpotLight = 0;
 	void createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity);
 	int m_nrOfPointLight = 0;
 	void createPointLight(Vector3 position, Vector3 color, float intensity);
 	int m_nrSwingningHammers = 0;
 	void createSwingingHammer(Vector3 position, Vector3 rotation, float swingSpeed);
+
+	void createSkybox(std::wstring textureName = std::wstring(L"Skybox_Texture.dds"));
 
 	//---------------------------------------------------------------Boss sstuff
 	UINT m_nrOfProjectiles = 0;
@@ -67,7 +72,15 @@ private:
 	void physicallyMovePlatform(Entity* entity);
 	bool findPlatformAlready(Entity* entity);
 
-
+	GUIImageStyle imageStyle;
+	int m_bossHP_barGuiIndex = 0;
+	int m_bossHP_barBackgroundGuiIndex = 0;
+	int m_endBossAtPecentNrOfStarts = 0;
+	int m_nrOfRespawnBoxes = 0;
+	void removeBoss();
+	void createPortal();
+	void createEndScenePortal();
+	void createRespawnBox(Vector3 position, Vector3 scale, bool boxVisible = true);
 
 	//For projectiles
 	std::unordered_map<UINT, Entity*> m_projectiles;
@@ -146,6 +159,8 @@ public:
 	static void loadArena(Scene* sceneObject, bool* finished);
 	static void loadMaterialTest(Scene* sceneObject, bool* finished);
 	static void loadBossTest(Scene* sceneObject, bool* finished);
+	static void loadEmpty(Scene* sceneObject, bool* finished);
+	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
 

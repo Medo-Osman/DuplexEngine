@@ -57,7 +57,6 @@ Player::Player(bool isLocal)
 		//Attach to the click listener for the button
 		dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
 	}
-
 }
 
 Player::~Player()
@@ -266,8 +265,6 @@ void Player::playerStateLogic(const float& dt)
 		if ((PLAYER_SPEED * dt) <= 0.0f)
 			blend = -1.0f;
 
-		//std::cout << sizeof(float) << std::endl;
-
 		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
 		//// analog animation:
 		//if (vectorLen > 0)
@@ -351,6 +348,9 @@ void Player::updatePlayer(const float& dt)
 	if(m_state != PlayerState::ROLL)
 		handleRotation(dt);
 
+	if (m_respawnNextFrame)
+		respawnPlayer();
+
 	playerStateLogic(dt);
 
 	ImGui::Begin("Player Information", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
@@ -403,10 +403,27 @@ void Player::increaseScoreBy(int value)
 {
 	m_score += value;
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+	
+	if (m_score >= 10 && m_score < 100)
+	{
+		GUITextStyle style;
+		style.position = Vector2(1705, 62);
+		style.color = Colors::White;
+		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
+	}
+	if (m_score >= 100)
+	{
+		
+		GUITextStyle style;
+		style.position = Vector2(1678, 62);
+		style.color = Colors::White;
+		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
+	}
 }
 
 void Player::respawnPlayer()
 {
+	m_respawnNextFrame = false;
 	m_state = PlayerState::IDLE;
 	m_controller->setPosition(m_checkpointPos);
 }
@@ -530,6 +547,12 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 	}
 	if (!shouldTriggerEntityBeRemoved)
 	{
+
+		if (physicsData.triggerType == TriggerType::RESPAWN)
+		{
+			m_respawnNextFrame = true;
+		}
+
 
 		if (physicsData.triggerType == TriggerType::CHECKPOINT)
 		{

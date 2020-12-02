@@ -12,11 +12,11 @@ MeshComponent::MeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum
 {}
 
 MeshComponent::MeshComponent(const char* filepath, ShaderProgramsEnum shaderEnum, Material material)
-	:MeshComponent(filepath, shaderEnum, { material })
+	: MeshComponent(filepath, shaderEnum, { material })
 {}
 
 MeshComponent::MeshComponent(const char* filepath, std::initializer_list<Material> materials)
-	:MeshComponent(filepath, ShaderProgramsEnum::DEFAULT, materials)
+	: MeshComponent(filepath, ShaderProgramsEnum::DEFAULT, materials)
 {}
 
 MeshComponent::MeshComponent(const char* filepath, Material material = Material())
@@ -27,33 +27,39 @@ MeshComponent::MeshComponent(char* paramData)
 {
 	// Read data from package
 	int offset = 0;
-	
+
 	std::string fileName = readStringFromChar(paramData, offset);
 
 	// Read material
 	int matCount = readDataFromChar<int>(paramData, offset);
 	for (int i = 0; i < matCount; i++)
 	{
-		std::string matName = readStringFromChar(paramData, offset);
+		std::string strMatName = readStringFromChar(paramData, offset);
+		std::wstring matName = std::wstring(strMatName.begin(), strMatName.end());
 
-		size_t indexAt_ = matName.find_last_of("_");
+		size_t indexAt_ = matName.find_last_of(L"_");
 
 		if (indexAt_ != std::string::npos)
 		{
 			//std::string suffix = matName.substr(indexAt_ + 1, matName.length());
 			char suffix = matName.back();
-			
+
 			matName = matName.substr(0, indexAt_);
-			
+
 			ShaderProgramsEnum sp = charToShaderEnum(suffix);
 
 			m_shaderProgEnums.push_back(sp);
 		}
 		else
 			m_shaderProgEnums.push_back(ShaderProgramsEnum::DEFAULT);
-		
+
+		//m_materials.push_back(Material({ matName }));
+		//m_materials.push_back(matName);
+		//m_materials.push_back(Material({ L"DarkGrayTexture.png" }));
+
 		m_materials.push_back(Material(matName));
 	}
+
 
 	if (matCount == 0)
 	{
@@ -63,7 +69,7 @@ MeshComponent::MeshComponent(char* paramData)
 
 	// Initialize
 	init(fileName.c_str());
-	
+
 	// Read and posibly set offset transform
 	bool hasTransformOffset = readDataFromChar<bool>(paramData, offset);
 
@@ -77,6 +83,23 @@ MeshComponent::MeshComponent(char* paramData)
 		this->setRotationQuat(rotQuat);
 		this->setScale(scale);
 	}
+
+	m_visible = readDataFromChar<bool>(paramData, offset);
+
+	for (int i = 0; i < m_materials.size(); i++)
+	{
+		m_materials[i].addMaterialRefs();
+	}
+}
+
+MeshComponent::~MeshComponent()
+{
+	for (int i = 0; i < m_materials.size() && m_initialized; i++)
+	{
+		m_materials[i].removeRefs();
+	}
+
+	m_resourcePointer->deleteRef();
 }
 
 ShaderProgramsEnum MeshComponent::getShaderProgEnum(int index)
@@ -123,6 +146,12 @@ void MeshComponent::init(std::initializer_list<ShaderProgramsEnum> shaderEnums, 
 	{
 		m_shaderProgEnums.push_back(se);
 	}
+
+	for (int i = 0; i < m_materials.size(); i++)
+	{
+		m_materials[i].addMaterialRefs();
+	}
+	m_initialized = true;
 }
 
 void MeshComponent::init(const char* filepath, std::initializer_list<ShaderProgramsEnum> shaderEnums, std::initializer_list<Material> materials)
@@ -138,4 +167,12 @@ void MeshComponent::init(const char* filepath, std::initializer_list<ShaderProgr
 	{
 		m_shaderProgEnums.push_back(se);
 	}
+
+	for (int i = 0; i < m_materials.size(); i++)
+	{
+		m_materials[i].addMaterialRefs();
+	}
+
+	m_resourcePointer->addRef();
+	m_initialized = true;
 }

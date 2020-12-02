@@ -7,6 +7,7 @@
 #include <future>
 #include "Camera.h"
 #include "Server.h"
+#include <Windows.h>
 
 class SceneManager : public InputObserver, public PhysicsObserver, public GUIObserver
 {

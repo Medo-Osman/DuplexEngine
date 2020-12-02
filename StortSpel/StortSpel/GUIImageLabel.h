@@ -44,7 +44,12 @@ public:
 
 	void setTexture(std::wstring texturePath)
 	{
-		texture = ResourceHandler::get().loadTexture(texturePath.data());
+		texture = ResourceHandler::get().loadTexture(texturePath.data())->view;
+	}
+	
+	void setStyle(GUIImageStyle style)
+	{
+		m_style = style;
 	}
 
 	void render(SpriteBatch* spriteBatch) override
