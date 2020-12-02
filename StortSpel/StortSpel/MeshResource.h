@@ -1,35 +1,40 @@
 #include "3DPCH.h"
+#include "VertexStructs.h"
+#include "ReferenceCounted.h"
 #pragma once
 
-
-
-class MeshResource
+class MeshResource : public ReferenceCounted
 {
 private:
 	
 	Buffer<float> m_vertexBuffer;
 	Buffer<std::uint32_t> m_indexBuffer;
+	std::string m_filePath;
 
-	LRM_VERTEX* m_vertexArray = nullptr;
+	PositionVertex* m_vertexArray = nullptr;
+	std::uint32_t* m_indexArray = nullptr;
 
 	XMFLOAT3 m_min, m_max;
+	XMFLOAT3 m_boundsCenter;
 
 	std::vector<std::uint32_t> m_materialOffsets;
 	
+	int refCount = 0;
 public:
-	int vertCount = 0;
+	int m_vertCount = 0;
+	int m_indexCount = 0;
 	virtual ~MeshResource()
 	{
-		SAFE_DELETE(m_vertexArray);
-		//m_vertexBuffer.release();
-		//m_indexBuffer.release();
+		//SAFE_DELETE(m_vertexArray);
+		m_vertexBuffer.release();
+		m_indexBuffer.release();
 		delete[] m_vertexArray;
 	}
 	
 	Buffer<float>& getVertexBuffer() { return m_vertexBuffer; }
 	Buffer<std::uint32_t>& getIndexBuffer() { return m_indexBuffer; }
 
-	void set(ID3D11DeviceContext* dContext) // ? Ska denna funktionen finnas här och sedan anropas innan draw eller ska koden ligga i en draw funktion 
+	void set(ID3D11DeviceContext* dContext)
 	{
 		UINT offset = 0;
 		
@@ -41,6 +46,7 @@ public:
 	{
 		m_min = min;
 		m_max = max;
+		m_boundsCenter = (m_max + m_min) / 2.f ;
 	}
 
 	void getMinMax(XMFLOAT3& min, XMFLOAT3& max)
@@ -49,20 +55,66 @@ public:
 		max = m_max;
 	}
 
-	void storeVertexArray(LRM_VERTEX vertexArray[], int nrOfVertecies)
+	void getBoundsCenter(XMFLOAT3& boundsCenter)
 	{
-		m_vertexArray = new LRM_VERTEX[nrOfVertecies];
-		for (int i = 0; i < nrOfVertecies; i++)
-		{
-			m_vertexArray[i] = vertexArray[i];
-		}
-
-		vertCount = nrOfVertecies;
+		boundsCenter = m_boundsCenter;
 	}
 
-	LRM_VERTEX* getVertexArray()
+	XMFLOAT3 getBoundsCenter()
+	{
+		return m_boundsCenter;
+	}
+
+	void storeVertexArray(LRM_VERTEX vertexArray[], int nrOfVertecies)
+	{
+		m_vertexArray = new PositionVertex[nrOfVertecies];
+		for (int i = 0; i < nrOfVertecies; i++)
+		{
+			m_vertexArray[i].position = vertexArray[i].pos;
+		}
+
+		m_vertCount = nrOfVertecies;
+	}
+
+	void storeIndexArray(std::uint32_t indexBuffer[], int nrOfIndicies)
+	{
+		m_indexArray = new std::uint32_t[nrOfIndicies];
+		for (int i = 0; i < nrOfIndicies; i++)
+		{
+			m_indexArray[i] = indexBuffer[i];
+		}
+
+		m_indexCount = nrOfIndicies;
+	}
+
+	void storeFilePath(std::string name)
+	{
+		m_filePath = name;
+	}
+
+	const std::string& getFilePath()
+	{
+		return m_filePath;
+	}
+
+	int getVertexArraySize()
+	{
+		return m_vertCount;
+	}
+
+	int getIndexArraySize()
+	{
+		return m_indexCount;
+	}
+
+	PositionVertex* getVertexArray()
 	{
 		return m_vertexArray;
+	}
+
+	uint32_t* getIndexArray()
+	{
+		return m_indexArray;
 	}
 
 	void setMaterialOffsetsVector(std::uint32_t* materialOffsets, int materialCount)
@@ -104,4 +156,5 @@ public:
 		
 		return { offset, size };
 	}
+
 };

@@ -9,6 +9,8 @@ GUIHandler::GUIHandler()
 	m_spriteBatch = nullptr;
 	m_screenWidth = 0;
 	m_screenHeight = 0;
+	m_selectedMenuButton = -1;
+	m_inMenu = false;
 }
 
 GUIHandler& GUIHandler::get()
@@ -28,6 +30,8 @@ GUIHandler::~GUIHandler()
 		delete m_elements[i];
 
 	delete m_spriteBatch;
+
+	m_input->Detach(this);
 }
 
 void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext, Input* input, HWND* window)
@@ -36,6 +40,7 @@ void GUIHandler::initialize(ID3D11Device* device, ID3D11DeviceContext* dContext,
 	m_dContext = dContext;
 	m_window = window;
 	m_input = input;
+	m_input->Attach(this);
 
 	m_states = std::make_unique< CommonStates >(m_device);
 
@@ -62,7 +67,7 @@ void GUIHandler::changeGUIButton(int index, std::wstring path)
 
 int GUIHandler::addGUIText(std::string textString, std::wstring fontName, GUITextStyle style)
 {
-	// Font L"squirk.spritefont"
+	// Font
 	if (m_fonts.find(fontName) == m_fonts.end())
 	{
 		std::wstring path = m_FONTS_PATH + fontName;
@@ -78,7 +83,6 @@ int GUIHandler::addGUIText(std::string textString, std::wstring fontName, GUITex
 
 	return index;
 }
-
 
 void GUIHandler::changeGUIText(int index, std::string newTextString)
 {
@@ -118,9 +122,26 @@ bool GUIHandler::getVisible(int index)
 	return (m_elements[index]->isVisible());
 }
 
+void GUIHandler::setImageStyle(int index, GUIImageStyle style)
+{
+	static_cast<GUIImageLabel*>(m_elements[index])->setStyle(style);
+}
+
+void GUIHandler::setGUITextStyle(int index, GUITextStyle style)
+{
+	static_cast<GUIText*>(m_elements[index])->setStyle(style);
+}
+
 std::vector<GUIElement*>* GUIHandler::getElementMap()
 {
 	return &this->m_elements;
+}
+
+void GUIHandler::setInMenu(bool inMenu, int startIndex)
+{
+	m_inMenu = inMenu;
+	if (m_inMenu)
+		m_selectedMenuButton = startIndex; // Reset Menu Selected Position
 }
 
 void GUIHandler::render()
@@ -135,4 +156,38 @@ void GUIHandler::render()
 		
 
 	m_spriteBatch->End();
+}
+
+void GUIHandler::inputUpdate(InputData& inputData)
+{
+	if (m_inMenu)
+	{
+		auto states = inputData.stateData;
+		for (int i = 0; i < states.size(); i++)
+		{
+			// For menues
+			if (states[i] == State::MENU_UP)
+			{
+				// Old selected button
+				GUIButton* button = dynamic_cast<GUIButton*>(m_elements[m_selectedMenuButton]);
+				button->setIsSelected(false);
+				m_selectedMenuButton = button->getPrevMenuButton();
+
+				// New selected button
+				button = dynamic_cast<GUIButton*>(m_elements[m_selectedMenuButton]);
+				button->setIsSelected(true);
+			}
+			else if (states[i] == State::MENU_DOWN)
+			{
+				// Old selected button
+				GUIButton* button = dynamic_cast<GUIButton*>(m_elements[m_selectedMenuButton]);
+				button->setIsSelected(false);
+				m_selectedMenuButton = button->getNextMenuButton();
+
+				// New selected button
+				button = dynamic_cast<GUIButton*>(m_elements[m_selectedMenuButton]);
+				button->setIsSelected(true);
+			}
+		}
+	}
 }

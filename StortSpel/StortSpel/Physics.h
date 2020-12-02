@@ -1,7 +1,8 @@
 #pragma once
 #include"3DPCH.h"
 #include"PhysicsMaterial.h"
-
+#include"cooking\PxCooking.h"
+#include"VertexStructs.h"
 static physx::PxDefaultErrorCallback gDefaultErrorCallback;
 static physx::PxDefaultAllocator gDefaultAllocatorCallback;
 using namespace physx;
@@ -51,10 +52,12 @@ private:
 	PxCpuDispatcher* m_dispatcherPtr;
 	PxScene* m_scenePtr;
 	PxControllerManager* m_controllManager;
+	PxCooking* m_cookingPtr;
 
 	std::map<std::string, PxMaterial*> m_defaultMaterials;
 	std::map<std::string, PxGeometry*> m_sharedGeometry;
 	std::map<std::string, PxShape*> m_sharedShapes;
+	std::map<std::string, PxTriangleMesh*> m_triangleMeshes;
 
 	std::vector<PhysicsObserver*> m_reactOnTriggerObservers;
 	std::vector<PhysicsObserver*> m_reactOnRemoveObservers;
@@ -72,6 +75,7 @@ private:
 		m_dispatcherPtr = nullptr;
 		m_scenePtr = nullptr;
 		m_controllManager = nullptr;
+		m_cookingPtr = nullptr;
 	}
 
 	void loadDefaultMaterials()
@@ -93,6 +97,35 @@ private:
 	PxRigidActor* createStaticActor(PxVec3 pos, PxQuat rot)
 	{
 		return m_physicsPtr->createRigidStatic(PxTransform(pos, rot));
+	}
+
+
+
+	PxTriangleMesh* createTriangleMesh(int nrOfVerticies, PositionVertex vertexArray[], int nrOfIndicies, uint32_t indiciesArray[], Vector3 centerOffset = {0, 0, 0 })
+	{
+		PxVec3* vertArray = new PxVec3[nrOfVerticies];
+		for (int i = 0; i < nrOfVerticies; i++)
+		{
+			PositionVertex v = vertexArray[i];
+			vertArray[i] = PxVec3(v.position.x, v.position.y, v.position.z);
+		}
+
+		PxTriangleMeshDesc meshDesc;
+		meshDesc.points.count = nrOfVerticies;
+		meshDesc.points.stride = sizeof(PxVec3);
+		meshDesc.points.data = vertArray;
+
+		meshDesc.triangles.count = nrOfIndicies / 3;
+		meshDesc.triangles.stride = 3 * sizeof(uint32_t);
+		meshDesc.triangles.data = indiciesArray;
+		PxDefaultMemoryOutputStream writeBuffer;
+		PxTriangleMeshCookingResult::Enum result;
+		bool status = m_cookingPtr->cookTriangleMesh(meshDesc, writeBuffer, &result);
+		if (!status)
+			return NULL;
+
+		PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
+		return m_physicsPtr->createTriangleMesh(readBuffer);
 	}
 
 	PxGeometryHolder scaleGeometry(PxGeometry* geometry, XMFLOAT3 scale)
@@ -150,6 +183,7 @@ public:
 		m_controllManager->release();
 		m_scenePtr->release();
 		m_scenePtr = nullptr;
+		m_cookingPtr->release();
 		m_physicsPtr->release();
 		m_PvdPtr->release();
 		m_transport->release();
@@ -276,7 +310,27 @@ public:
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 		}
+		PxCookingParams params = PxCookingParams(PxTolerancesScale());
+		m_cookingPtr = PxCreateCooking(PX_PHYSICS_VERSION, *m_foundationPtr, params);
+
+		assert(m_cookingPtr);
+
+
+
 		this->loadDefaultMaterials();
+	}
+
+
+	PxTriangleMesh* getTriangleMeshe(std::string nameOfMesh, int nrOfVerticies, PositionVertex vertexArray[], int nrOfIndicies, uint32_t indiciesArray[], Vector3 centerOffset)
+	{
+		if (m_triangleMeshes.find(nameOfMesh) != m_triangleMeshes.end())
+		{
+			return m_triangleMeshes[nameOfMesh];
+		}
+		else
+		{
+			return m_triangleMeshes[nameOfMesh] = (createTriangleMesh(nrOfVerticies, vertexArray, nrOfIndicies, indiciesArray, centerOffset));
+		}
 	}
 
 	void clearForce(PxRigidDynamic* actor)
@@ -414,13 +468,15 @@ public:
 		m_actorsToRemoveAfterSimulation.emplace_back(actor);
 	}
 
-	PxRigidActor* createRigidActor(const XMFLOAT3 &position, const XMFLOAT4& quaternion, const bool &dynamic, void* physicsComponentPtr, int sceneID)
+	PxRigidActor* createRigidActor(const XMFLOAT3& position, const XMFLOAT4& quaternion, const bool& dynamic, void* physicsComponentPtr, int sceneID, bool needsToBeKinematic = false)
 	{
 		PxVec3 pos(position.x, position.y, position.z);
 		PxQuat quat(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
 		PxRigidActor* actor = dynamic ? createDynamicActor(pos, quat) : createStaticActor(pos, quat);
 		actor->userData = physicsComponentPtr;
+		if(needsToBeKinematic) //If dynamic and trianglemesh is set this will be true.
+			static_cast<PxRigidDynamic*>(actor)->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
 		m_scenes[sceneID]->addActor(*actor);
 		return actor;
 	}
@@ -513,13 +569,38 @@ public:
 		return m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
 	}
 
+	bool sphereIntersectionTest(const PxExtendedVec3& origin, const float& radius)
+	{
+		PxQueryFilterData fd;
+		fd.flags |= PxQueryFlag::eANY_HIT;
+		PxOverlapBuffer hit;            // [out] Overlap results
+		PxSphereGeometry overlapShape(radius);  // [in] shape to test for overlaps
+		PxTransform shapePose(origin.x, origin.y, origin.z);    // [in] initial shape pose (at distance=0)
+
+		bool status = m_scenePtr->overlap(overlapShape, shapePose, hit, fd);
+		return status;
+	}
+
+	bool hitSomething(Vector3 position, float radius, float halfHeight)
+	{
+		PxQueryFilterData fd;
+		fd.flags |= PxQueryFlag::eANY_HIT;
+		PxOverlapBuffer hit;            // [out] Overlap results
+		PxCapsuleGeometry overlapShape(radius, halfHeight) ;  // [in] shape to test for overlaps
+		PxTransform shapePose = PxTransform(PxVec3(position.x, position.y, position.z));    // [in] initial shape pose (at distance=0)
+
+
+		bool status = m_scenePtr->overlap(overlapShape, shapePose, hit, fd);
+		return status;
+	}
+
 	//Manager
 	PxController* addCapsuleController(const XMFLOAT3 &position, const float &height, const float &radius, const std::string &materialName, PxControllerBehaviorCallback* controlBehavior)
 	{
 		PxController* capsuleController = nullptr;
 		PxCapsuleControllerDesc ccd;
 		ccd.climbingMode = PxCapsuleClimbingMode::eCONSTRAINED;
-		ccd.contactOffset = 0.1f;
+		ccd.contactOffset = 0.001f;
 		ccd.height = height;
 		ccd.radius = radius;
 		ccd.invisibleWallHeight = 0.f;
@@ -543,6 +624,12 @@ public:
 		ccd.scaleCoeff = 0.8f;
 
 		capsuleController = m_controllManager->createController(ccd);
+		dynamic_cast<PxRigidBody*>(capsuleController->getActor())->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, true);
+		PxShape* shapes[1];
+		PxRigidDynamic* actor = capsuleController->getActor();
+		int nrOfShapes = actor->getNbShapes();
+		actor->getShapes(shapes, 1 * sizeof(PxShape), 0);
+		shapes[0]->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 
 		return capsuleController;
 	}
@@ -565,7 +652,7 @@ public:
 	void setCapsuleRadius(PxController* controller, const float &radius)
 	{
 		PxCapsuleController* capsule = static_cast<PxCapsuleController*>(controller);
-		capsule->setRadius(radius);
+		capsule->resize(radius);
 
 	}
 
@@ -578,7 +665,7 @@ public:
 
 	void makeKinematicActorDynamic(PxRigidBody* actor, float newMass)
 	{
-		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, false);
+		actor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, false);
 		actor->setMass(newMass);
 	}
 

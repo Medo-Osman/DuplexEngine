@@ -161,6 +161,25 @@ struct LRM_VERTEX
 	XMFLOAT3 normal;
 	XMFLOAT3 tangent;
 	XMFLOAT3 bitangent;
+	/*LRM_VERTEX(const LRSM_VERTEX& other)
+	{
+		pos = other.pos;
+		texCoord = other.texCoord;
+		normal = other.normal;
+		tangent = other.tangent;
+		bitangent = other.bitangent;
+	}*/
+};
+
+struct LRSM_VERTEX : public LRM_VERTEX
+{
+	/*XMFLOAT3 pos;
+	XMFLOAT2 texCoord;
+	XMFLOAT3 normal;
+	XMFLOAT3 tangent;
+	XMFLOAT3 bitangent;*/
+	int      boneIdxs[4];
+	XMFLOAT4 weights;
 };
 
 struct PositionTextureVertex

@@ -9,6 +9,7 @@
 #include <windows.h>
 #include <assert.h>
 #include <wrl/client.h>
+#include <wrl/wrappers/corewrappers.h>
 #define NOMINMAX
 #include <map>
 #include <unordered_map>
@@ -40,6 +41,7 @@
 #include <SpriteBatch.h>
 #include <SpriteFont.h>
 #include <CommonStates.h>
+#include <GamePad.h>
 
 //PhysX
 #include"PxPhysicsAPI.h"
@@ -58,6 +60,7 @@
 //#include "ResourceHandler.h"
 #include "ErrorLogger.h"
 #include "Buffer.h"
+#include "DataHelper.h"
 //#include "Engine.h"
 //#include "Renderer.h"
 
@@ -87,10 +90,13 @@ using namespace SimpleMath;
 
 #include "PerformanceTester.h"
 
+//String Manipulation
+#include <locale>
+#include <codecvt>
+
 //Defines
 #define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = nullptr; } }
 #define SAFE_DELETE(a) if( (a) != NULL ) delete (a); (a) = NULL;
-
 
 enum class TriggerType
 {
@@ -101,6 +107,7 @@ enum class TriggerType
 	PROJECTILE,
 	TRAP,
 	BARREL,
+	RESPAWN
 };
 
 enum class EventType

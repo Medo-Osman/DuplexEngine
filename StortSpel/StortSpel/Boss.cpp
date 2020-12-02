@@ -5,6 +5,13 @@ int BossObserver::nr = 0;
 Boss::~Boss()
 {
 	Physics::get().Detach(this, true, false);
+
+	for (int i = 0; i < m_bossSegments.size(); i++)
+	{
+		delete m_bossSegments.at(i);
+	}
+
+	m_bossSegments.clear();
 }
 
 void Boss::update(const float& dt)
@@ -17,7 +24,27 @@ void Boss::update(const float& dt)
 	}
 	else if (m_actionQueue.size() > 0)
 		nextAction();
-	
+
+	for (int i = 0; i < m_bossSegments.size(); i++)
+	{
+		m_bossSegments.at(i)->update(dt);
+
+		PhysicsComponent* physComp = m_bossSegments.at(i)->m_bossEntity->getComponentsByType<PhysicsComponent>(ComponentType::PHYSICS);
+		if (physComp)
+		{
+			//PhysicsComponent* physComp = static_cast<PhysicsComponent*>(m_bossSegments.at(i)->m_bossEntity->getComponentsByType<PhysicsComponent>(ComponentType::PHYSICS));
+			physComp->setPosition(m_bossEntity->getTranslation() + m_bossSegments.at(i)->m_entityOffset);
+
+			//std::cout << "X = " << m_bossEntity->getTranslation().x << std::endl <<
+			//			 "Y = " << m_bossEntity->getTranslation().y << std::endl <<
+			//			 "Z = " << m_bossEntity->getTranslation().z << std::endl;
+
+		}
+		else
+			m_bossSegments.at(i)->m_bossEntity->setPosition(m_bossEntity->getTranslation() + (m_bossSegments.at(i)->m_bossEntity->getTranslation() - m_bossEntity->getTranslation()));
+	}
+
+
 }
 
 void Boss::initialize(Entity* entity, bool destroyActionOnComplete)
@@ -26,95 +53,48 @@ void Boss::initialize(Entity* entity, bool destroyActionOnComplete)
 	m_destroyActionOnComplete = destroyActionOnComplete;
 }
 
-UINT Boss::addAction(BossStructures::BaseAction* action)
+void Boss::addSegment(BossSegment* segment)
 {
-	//Put at the back of the queue, FIFO applies. Back is actually front in this case as we always take 
-	//from the back.
-	m_actionQueue.insert(m_actionQueue.begin(), action);
-	action->m_actionID = m_uniqueActionID++;
-
-	if (m_currentAction == nullptr)
-		nextAction();//m_currentAction = action;
-
-	return action->m_actionID;
-}
- 
-void Boss::nextAction()
-{
-	if (m_actionQueue.size() > 0)
-	{
-		if (m_destroyActionOnComplete)
-		{
-			if (m_currentAction)
-				delete m_currentAction;
-
-			m_currentAction = m_actionQueue.back();
-			m_actionQueue.pop_back();
-			m_currentAction->beginAction();
-		}
-		else
-		{
-			//m_actionQueue.push_back(m_actionQueue.back());
-			if (m_currentAction)
-				m_actionQueue.insert(m_actionQueue.begin(), m_currentAction);
-
-			m_currentAction = m_actionQueue.back();
-			m_actionQueue.pop_back();
-			m_currentAction->beginAction();
-		}
-	}
-	else
-	{
-		m_currentAction = nullptr;
-		ErrorLogger::get().logError(L"Boss error - No other action to switch to!");
-	}
+	m_bossSegments.push_back(segment);
 }
 
-BossStructures::BaseAction* Boss::getCurrentAction()
+BossStructures::IntVec Boss::getNewPlatformTarget() //Generate new random target 
 {
-	return m_currentAction;
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::default_random_engine generator(seed);
+	std::uniform_int_distribution<int> distribution(0, platformArray.columns.size() - 1);
+	int numberX = (int)distribution(generator);
+	int numberY = (int)distribution(generator);
+
+	return BossStructures::IntVec{ numberX, numberY };
 }
 
-std::vector<BossStructures::BaseAction*>* Boss::getActionQueue()
+void Boss::dropStar(int dropAmount)
 {
-	return &m_actionQueue;
+	m_currentStarCount = m_currentStarCount - dropAmount;
 }
 
-void Boss::setDestroyActionOnComplete(bool value)
+int Boss::getCurrnentNrOfStars()
 {
-	m_destroyActionOnComplete = value;
+	return m_currentStarCount;
 }
 
-void Boss::startActionWithID(UINT id)
+void Boss::setNrOfMaxStars(int maxValue)
 {
-	//Linear search unfortunately - dumb but practical
-	for (int i = 0; i < m_actionQueue.size(); i++)
-	{
-		if (m_actionQueue.at(i)->m_actionID == id)
-		{
-			m_currentAction = m_actionQueue.at(i);
-			m_currentAction->beginAction();
-		}
-	}
+	m_maxStarCount = maxValue;
+	m_currentStarCount = m_maxStarCount;
 }
 
-void Boss::Attach(BossObserver* observer)
+int Boss::getNrOfMaxStars()
 {
-	m_observers[BossObserver::nr++] = observer;
+	return m_maxStarCount;
 }
 
-void Boss::Detach(BossObserver* observer)
+int Boss::getNrOfPlatforms()
 {
-	m_observers.erase(observer->index);
+	return NR_OF_PLATFORMS;
 }
 
-void Boss::Notify(BossMovementType type, BossStructures::BossActionData data)
-{
-	for (auto observer : m_observers)
-	{
-		observer.second->bossEventUpdate(type, data);
-	}
-}
 
 void Boss::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity)
 {

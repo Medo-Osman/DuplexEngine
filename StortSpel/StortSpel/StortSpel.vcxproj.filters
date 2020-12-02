@@ -85,6 +85,9 @@
     <Filter Include="Source Files\Game\Traps">
       <UniqueIdentifier>{fda73094-e463-4574-9c83-c0425d6076d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Graphics\Particles\PlatformWarning">
+      <UniqueIdentifier>{ea91ae63-a675-4fa1-a31d-4759086d677a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -96,17 +99,11 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files\Game</Filter>
     </ClCompile>
-    <ClCompile Include="Component.h">
-      <Filter>Source Files\Components</Filter>
-    </ClCompile>
     <ClCompile Include="ResourceHandler.cpp">
       <Filter>Source Files\Application</Filter>
     </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Entity.h">
-      <Filter>Source Files\Game</Filter>
     </ClCompile>
     <ClCompile Include="3DPCH.cpp">
       <Filter>Header Files</Filter>
@@ -429,6 +426,57 @@
       <Filter>Source Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="MoveToAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="DataHelper.h">
+      <Filter>Source Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Source Files\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="BossSegment.h">
+      <Filter>Source Files\Game\Boss</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveToTargetInGridAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveOneInGridAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="ShootLaserXZAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="WaitAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="ShrinkingComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="GrowingComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ReferenceCounted.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureResource.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioResource.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="HeightPickup.h">
+      <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
+    <ClInclude Include="CannonPickup.h">
+      <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
+    <ClInclude Include="SwingComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ThunderAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
     </ClInclude>
   </ItemGroup>
