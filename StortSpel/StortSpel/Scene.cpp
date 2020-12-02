@@ -180,6 +180,7 @@ void Scene::loadPickups()
 {
 	addPickup(Vector3(-30.f, 30.f, 105.f));
 	addPickup(Vector3(8.5f, 40.f, 172.f));
+	addPickup(Vector3(2, 12, 2));
 }
 
 void Scene::loadScore()
@@ -316,7 +317,7 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	int pickupEnum = rand() % nrOfPickups;
 
 	const char* pickupName = "";
-	std::wstring textureName;
+	const WCHAR* textureName = L"";
 	switch(pickupEnum)
 	{
 	case 0:
@@ -340,7 +341,7 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	pickupPtr = addEntity(name);
 	pickupPtr->setPosition(position);
 	addComponent(pickupPtr, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", ShaderProgramsEnum::RAINBOW));
-	addComponent(pickupPtr, "speedItem", new MeshComponent(pickupName, ShaderProgramsEnum::DEFAULT, Material({textureName})));
+	addComponent(pickupPtr, "speedItem", new MeshComponent(pickupName, ShaderProgramsEnum::DEFAULT, Material({ textureName })));
 	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, tier, 1));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
@@ -936,6 +937,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(itemBox, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", RAINBOW, Material()));
 		sceneObject->addComponent(itemBox, "speedItem", new MeshComponent("SpeedPickup_Plane.lrm", ShaderProgramsEnum::DEFAULT, Material({ L"SpeedIcon.png" })));
 
+		itemBox->translate({ 2, 12, 2 });
 		itemBox->translate({ 2, 12, 2 });
 		itemBox->scale({ 3, 3, 3 });
 		Vector3 start = itemBox->getTranslation();
