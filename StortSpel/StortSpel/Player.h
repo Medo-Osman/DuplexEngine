@@ -96,6 +96,8 @@ private:
     int m_score;
     int m_scoreLabelGUIIndex;
     int m_scoreGUIIndex;
+    int m_scoreBG_GUIIndex;
+    int m_powerUp_GUIIndex;
     std::wstring m_scoreSound = L"StarSound.wav";
     AudioComponent* m_audioComponent;
 

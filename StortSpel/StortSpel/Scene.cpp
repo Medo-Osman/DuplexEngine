@@ -1449,7 +1449,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		sceneObject->m_boss = new Boss();
 		sceneObject->m_boss->Attach(sceneObject);
 		sceneObject->m_boss->initialize(bossEnt, true);
-		sceneObject->m_boss->setNrOfMaxStars(100);
+		sceneObject->m_boss->setNrOfMaxStars(10);
 		sceneObject->m_endBossAtPecentNrOfStarts = 0; // if this is 0 the end secene will be triggered
 
 		//// Init grid structure
@@ -1591,8 +1591,8 @@ void Scene::updateScene(const float& dt)
 			BossStructures::IntVec platformTargetIndex = m_boss->getNewPlatformTarget();
 			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
 			//m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 2)); //Wait before moving again
-			//m_boss->addAction(new ShootLaserAction(m_boss->m_bossSegments.at(0)->m_bossEntity, m_boss, 4));
-			//m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
+			m_boss->addAction(new ShootLaserAction(m_boss->m_bossSegments.at(0)->m_bossEntity, m_boss, 1));
+			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 10.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
 			//m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 5)); //Wait before moving again
 			m_boss->addAction(new ThunderAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, &m_displacedPlatforms));
 		}

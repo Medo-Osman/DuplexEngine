@@ -32,13 +32,19 @@ Player::Player()
 	
 	//GUI
 	m_score = 0;
+	//style.position.y = 70.f;
+	//style.scale = { 0.5f };
+	//m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
+	GUIImageStyle iStyle;
+	iStyle.position = Vector2(1750, 150);
+	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Power-up_BG.png", iStyle);
+	iStyle.position = Vector2(1700, 50);
+	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Point_BG.png", iStyle);
 	GUITextStyle style;
-	style.position.y = 70.f;
-	style.scale = { 0.5f };
-	m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
-	style.position.x = 160.f;
-	style.color = Colors::Yellow;
+	style.position = Vector2(1717, 62);
+	style.color = Colors::White;
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
+
 
 	GUIImageStyle imageStyle;
 	imageStyle.position = Vector2(400.f, 50.f);
@@ -393,6 +399,22 @@ void Player::increaseScoreBy(int value)
 {
 	m_score += value;
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+	
+	if (m_score >= 10 && m_score < 100)
+	{
+		GUITextStyle style;
+		style.position = Vector2(1705, 62);
+		style.color = Colors::White;
+		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
+	}
+	if (m_score >= 100)
+	{
+		
+		GUITextStyle style;
+		style.position = Vector2(1678, 62);
+		style.color = Colors::White;
+		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
+	}
 }
 
 void Player::respawnPlayer()
