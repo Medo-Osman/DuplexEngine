@@ -20,7 +20,6 @@ private:
 	ScenesEnum m_currectSceneEnum;
 	ScenesEnum m_nextSceneEnum;
 	Camera* m_camera;
-	GUITextStyle style;
 	bool m_swapScene;
 
 	//GUI score
@@ -43,6 +42,7 @@ private:
 	
 	//button index
 	int m_singleplayerIndex = 0;
+	int m_tutorialIndex = 0;
 	int m_exitIndex = 0;
 	int m_joinGameIndex = 0;
 	int m_hostGameIndex = 0;

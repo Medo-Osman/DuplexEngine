@@ -45,27 +45,30 @@ void SceneManager::initalize()
 
 	setScorePtr(m_currentScene->getScores());
 
-	style.position.y = 120.f;
-	style.scale = { 0.5f };
-	m_highScoreLabelIndex = GUIHandler::get().addGUIText("High Score", L"concert_one_60.spritefont", style);
-	style.position.x = 160.f;
-	style.position.y = 300.f;
+	GUITextStyle textStyle;
 
-	style.color = Colors::Yellow;
-	m_playerOneScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(0).first), L"concert_one_60.spritefont", style);
-	style.position.y -= 50.0f;
-	m_playerTwoScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(1).first), L"concert_one_60.spritefont", style);
-	style.position.y -= 50.0f;
-	m_playerThreeScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(2).first), L"concert_one_60.spritefont", style);
+	textStyle.position.x = 140.f;
+	textStyle.position.y = 100.f;
+	m_highScoreLabelIndex = GUIHandler::get().addGUIText("High Score", L"concert_one_60.spritefont", textStyle);
 
-	style.position.x = 50.0f;
-	style.position.y = 300.f;
+	textStyle.color = Colors::Yellow;
+	textStyle.position.y = 300.f;
+	m_playerOneScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(0).first), L"concert_one_32.spritefont", textStyle);
+	
+	textStyle.position.y -= 50.0f;
+	m_playerTwoScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(1).first), L"concert_one_32.spritefont", textStyle);
+	
+	textStyle.position.y -= 50.0f;
+	m_playerThreeScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(2).first), L"concert_one_32.spritefont", textStyle);
+
+	textStyle.position.x = 50.0f;
+	textStyle.position.y = 300.f;
 	int rankings = 3;
-	m_rankingScoreIndecOne = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"concert_one_60.spritefont", style);
-	style.position.y -= 50.0f;
-	m_rankingScoreIndecTwo = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"concert_one_60.spritefont", style);
-	style.position.y -= 50.0f;
-	m_rankingScoreIndecThree = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"concert_one_60.spritefont", style);
+	m_rankingScoreIndecOne = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"concert_one_32.spritefont", textStyle);
+	textStyle.position.y -= 50.0f;
+	m_rankingScoreIndecTwo = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"concert_one_32.spritefont", textStyle);
+	textStyle.position.y -= 50.0f;
+	m_rankingScoreIndecThree = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"concert_one_32.spritefont", textStyle);
 
 	hideScore();
 	GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
@@ -156,6 +159,8 @@ void SceneManager::updateScene(const float &dt)
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			m_gameStarted = false;
 			m_camera->endSceneCamera = false; // if this is false the camera follows the player as usual
+			m_camera->setRotation(Vector3(0.f)); // Reset camera rotation
+			Engine::get().getPlayerPtr()->getPlayerEntity()->setRotationQuat(Quaternion());
 			hideScore();
 			GUIHandler::get().setVisible(m_backToLobbyIndex, false);
 			GUIHandler::get().setInMenu(true, m_singleplayerIndex);
@@ -169,7 +174,7 @@ void SceneManager::updateScene(const float &dt)
 			GUIHandler::get().setVisible(m_hostGameIndex, false);
 			GUIHandler::get().setVisible(m_joinGameIndex, false);
 			GUIHandler::get().setVisible(m_settingsIndex, false);
-			GUIHandler::get().setVisible(m_exitIndex, true);
+			GUIHandler::get().setVisible(m_exitIndex, false);
 			GUIHandler::get().setVisible(m_backToLobbyIndex, true);
 			GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
 			GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
@@ -296,14 +301,11 @@ void SceneManager::inputUpdate(InputData& inputData)
 
 						GUIHandler::get().setVisible(m_fullscreenText, false);
 						GUIHandler::get().setVisible(m_fullscreenIndex, false);
-						m_inPause = true;
+
 						m_inPauseSettings = false;
 					}
-					else // Entered Pause Menu
-					{
-						m_inPause = true;
-					}
 
+					m_inPause = true;
 					GUIHandler::get().setInMenu(true, m_resumeBtnIndex);
 				}
 				else
@@ -604,8 +606,9 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_singleplayerIndex, true);
 			GUIHandler::get().setVisible(m_hostGameIndex, true);
 			GUIHandler::get().setVisible(m_joinGameIndex, true);
-			GUIHandler::get().setVisible(m_exitIndex, true);
 			GUIHandler::get().setVisible(m_settingsIndex, true);
+			GUIHandler::get().setVisible(m_exitIndex, true);
+			GUIHandler::get().setVisible(m_backToLobbyIndex, false);
 			GUIHandler::get().setVisible(m_sensitivityIndex, false);
 			GUIHandler::get().setVisible(m_volumeAmountIndex, false);
 			GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
@@ -635,6 +638,8 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_hostGameIndex, false);
 			GUIHandler::get().setVisible(m_joinGameIndex, false);
 			GUIHandler::get().setVisible(m_settingsIndex, false);
+			GUIHandler::get().setVisible(m_exitIndex, false);
+			GUIHandler::get().setVisible(m_pauseText, false);
 			GUIHandler::get().setVisible(m_backToLobbyIndex, true);
 			GUIHandler::get().setVisible(m_senseDecreaseIndex, true);
 			GUIHandler::get().setVisible(m_volumeDecreaseIndex, true);
@@ -681,6 +686,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_resumeBtnIndex)
 		{
 			enableMovement();
+			GUIHandler::get().setVisible(m_pauseText, false);
 			GUIHandler::get().setVisible(m_settingsText, false);
 			GUIHandler::get().setVisible(m_exitIndex, false);
 			GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
@@ -751,6 +757,7 @@ void SceneManager::uiMenuInitialize()
 {
 	//define gui button
 	GUIButtonStyle btnStyle;
+	GUITextStyle textStyle;
 
 	//------- Main Menu ----------
 	//start button
@@ -760,6 +767,14 @@ void SceneManager::uiMenuInitialize()
 
 	GUIButton* startButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_singleplayerIndex));
 	startButton->Attach(this);
+
+	//Tutorial button
+	btnStyle.position = Vector2(140, 400);
+	btnStyle.scale = Vector2(1, 1);Menu tw
+	m_tutorialIndex = GUIHandler::get().addGUIButton(L"tutorialBtn.png", btnStyle);
+
+	GUIButton* tutorialButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_tutorialIndex));
+	tutorialButton->Attach(this);
 
 	//join button
 	btnStyle.position = Vector2(140, 450);
@@ -805,102 +820,96 @@ void SceneManager::uiMenuInitialize()
 
 	//------- Options/Settings ---------
 	
-	//Options Label
-	style.position.x = 800.0f;
-	style.position.y = 200.0f;
-	m_settingsText = GUIHandler::get().addGUIText("Options", L"concert_one_60.spritefont", style);
+	//Options/Settings Label
+	textStyle.position.x = 140.0f;
+	textStyle.position.y = 100.0f;
+	m_settingsText = GUIHandler::get().addGUIText("Options", L"concert_one_60.spritefont", textStyle);
 
 	// --Sensetivity--
 	// Sensetivity Label
-	style.position.x = 1100.0f;
-	style.position.y = 300.0f;
-	m_sensitivityIndex = GUIHandler::get().addGUIText(std::to_string(m_cameraSense), L"concert_one_60.spritefont", style);
+	textStyle.position.x = 140.0f;
+	textStyle.position.y = 200.0f;
+	m_senseTextIndex = GUIHandler::get().addGUIText("Sensitivity", L"concert_one_32.spritefont", textStyle);
 
 	//sense Increase button
-	btnStyle.position = Vector2(940, 300);
-	btnStyle.scale = Vector2(1, 1);
+	btnStyle.position = Vector2(500, 200);
+	btnStyle.scale = Vector2(0.9f);
 	m_senseIncreaseIndex = GUIHandler::get().addGUIButton(L"rightBtn.png", btnStyle);
 
 	GUIButton* senseIncrease = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_senseIncreaseIndex));
 	senseIncrease->Attach(this);
 
 	//sense decrease button
-	btnStyle.position = Vector2(840, 300);
-	btnStyle.scale = Vector2(1, 1);
+	btnStyle.position = Vector2(370, 200);
 	m_senseDecreaseIndex = GUIHandler::get().addGUIButton(L"leftBtn.png", btnStyle);
 
 	GUIButton* senseDecrease = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_senseDecreaseIndex));
 	senseDecrease->Attach(this);
 
 	//sense amount label
-	style.position.x = 590.0f;
-	style.position.y = 300.0f;
-	m_senseTextIndex = GUIHandler::get().addGUIText("Sensitivity", L"concert_one_60.spritefont", style);
+	textStyle.position.x = 660.0f;
+	textStyle.position.y = 200.0f;
+	m_sensitivityIndex = GUIHandler::get().addGUIText(std::to_string(m_cameraSense), L"concert_one_32.spritefont", textStyle);
 
 	//--Volume--
 	//Volume Label
-	style.position.x = 1100.0f;
-	style.position.y = 400.0f;
-	m_volumeAmountIndex = GUIHandler::get().addGUIText(std::to_string(m_volumeAmount), L"concert_one_60.spritefont", style);
+	textStyle.position.x = 140.0f;
+	textStyle.position.y = 300.0f;
+	m_volumeTextIndex = GUIHandler::get().addGUIText("Volume", L"concert_one_32.spritefont", textStyle);
 
 	//Volume Increase button
-	btnStyle.position = Vector2(940, 400);
-	btnStyle.scale = Vector2(1, 1);
+	btnStyle.position = Vector2(500, 300);
 	m_volumeIncreaseIndex = GUIHandler::get().addGUIButton(L"rightBtn.png", btnStyle);
 
 	GUIButton* volumeIncrease = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_volumeIncreaseIndex));
 	volumeIncrease->Attach(this);
 
 	//Voume Decrease button
-	btnStyle.position = Vector2(840, 400);
-	btnStyle.scale = Vector2(1, 1);
+	btnStyle.position = Vector2(370, 300);
 	m_volumeDecreaseIndex = GUIHandler::get().addGUIButton(L"leftBtn.png", btnStyle);
 
 	GUIButton* volumeDecrease = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_volumeDecreaseIndex));
 	volumeDecrease->Attach(this);
 
 	//volume amount label
-	style.position.x = 650.0f;
-	style.position.y = 400.0f;
-	m_volumeTextIndex = GUIHandler::get().addGUIText("Volume", L"concert_one_60.spritefont", style);
+	textStyle.position.x = 660.0f;
+	textStyle.position.y = 300.0f;
+	m_volumeAmountIndex = GUIHandler::get().addGUIText(std::to_string(m_volumeAmount), L"concert_one_32.spritefont", textStyle);
 
 	//--FOV--
 	//fov Label
-	style.position.x = 1100.0f;
-	style.position.y = 500.0f;
-	m_fovIndex = GUIHandler::get().addGUIText(std::to_string(m_camera->fovAmount), L"concert_one_60.spritefont", style);
+	textStyle.position.x = 140.0f;
+	textStyle.position.y = 400.0f;
+	m_fovText = GUIHandler::get().addGUIText("FOV", L"concert_one_32.spritefont", textStyle);
 
 	//fov button
-	btnStyle.position = Vector2(940, 500);
-	btnStyle.scale = Vector2(1, 1);
+	btnStyle.position = Vector2(500, 400);
 	m_setFovIncreaseIndex = GUIHandler::get().addGUIButton(L"rightBtn.png", btnStyle);
 
 	GUIButton* fovIncreaseBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_setFovIncreaseIndex));
 	fovIncreaseBtn->Attach(this);
 
 	//fov button
-	btnStyle.position = Vector2(840, 500);
-	btnStyle.scale = Vector2(1, 1);
+	btnStyle.position = Vector2(370, 400);
 	m_setFovDecreaseIndex = GUIHandler::get().addGUIButton(L"leftBtn.png", btnStyle);
 
 	GUIButton* fovDecreaseBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_setFovDecreaseIndex));
 	fovDecreaseBtn->Attach(this);
 
 	//fov amount label
-	style.position.x = 700.0f;
-	style.position.y = 500.0f;
-	m_fovText = GUIHandler::get().addGUIText("FOV", L"concert_one_60.spritefont", style);
+	textStyle.position.x = 660.0f;
+	textStyle.position.y = 400.0f;
+	m_fovIndex = GUIHandler::get().addGUIText(std::to_string(m_camera->fovAmount), L"concert_one_32.spritefont", textStyle);
 
 	//--Fullscreen--
-
 	//Fullscreen Label
-	style.position.x = 670.0f;
-	style.position.y = 600.0f;
-	m_fullscreenText = GUIHandler::get().addGUIText("FullScreen", L"concert_one_60.spritefont", style);
+	textStyle.position.x = 140.0f;
+	textStyle.position.y = 500.0f;
+	m_fullscreenText = GUIHandler::get().addGUIText("FullScreen", L"concert_one_32.spritefont", textStyle);
 
 	//Fullscreen checkbox
-	btnStyle.position = Vector2(930, 600);
-	btnStyle.scale = Vector2(1, 1);
+	btnStyle.position = Vector2(370, 500);
+	btnStyle.scale = Vector2(0.5f);
 	m_fullscreenIndex = GUIHandler::get().addGUIButton(L"checkedBox.png", btnStyle);
 
 	GUIButton* fullscreenBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_fullscreenIndex));
@@ -917,9 +926,9 @@ void SceneManager::uiMenuInitialize()
 	//------- Pause ---------
 
 	//Pause Label
-	style.position.x = 800.0f;
-	style.position.y = 200.0f;
-	m_pauseText = GUIHandler::get().addGUIText("Pause", L"concert_one_60.spritefont", style);
+	textStyle.position.x = 140.0f;
+	textStyle.position.y = 100.0f;
+	m_pauseText = GUIHandler::get().addGUIText("Pause", L"concert_one_60.spritefont", textStyle);
 
 	//resume button
 	btnStyle.position = Vector2(140, 600);

@@ -53,13 +53,13 @@ Transform* Camera::getTransform()
 void Camera::increaseSensitivity()
 {
 	
-	m_sensitivity += 0.1f;
+	m_sensitivity += 0.01f;
 }
 void Camera::decreaseSensitivity()
 {
 	if (m_sensitivity > 0)
 	{
-		m_sensitivity -= 0.1f;
+		m_sensitivity -= 0.01f;
 	}
 }
 void Camera::increaseFov()
@@ -80,7 +80,7 @@ void Camera::decreaseFov()
 float Camera::getSensitivity()
 {
 	
-	return m_sensitivity * 10;
+	return m_sensitivity * 100;
 }
 const XMVECTOR& Camera::getRotation() const
 {

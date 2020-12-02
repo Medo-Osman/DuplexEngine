@@ -127,6 +127,11 @@ void GUIHandler::setImageStyle(int index, GUIImageStyle style)
 	static_cast<GUIImageLabel*>(m_elements[index])->setStyle(style);
 }
 
+void GUIHandler::setButtonStyle(int index, GUIButtonStyle style)
+{
+	static_cast<GUIButton*>(m_elements[index])->setStyle(style);
+}
+
 std::vector<GUIElement*>* GUIHandler::getElementMap()
 {
 	return &this->m_elements;
