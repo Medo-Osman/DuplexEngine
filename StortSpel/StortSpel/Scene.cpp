@@ -216,7 +216,7 @@ void Scene::addCheckpoint(const Vector3& position)
 
 void Scene::addBarrelDrop(Vector3 Position)
 {
-	Entity* rollingBarrel = addEntity("barrel");
+	Entity* rollingBarrel = addEntity("barrel"+std::to_string(m_nrOfBarrelDrops++));
 
 	if (rollingBarrel)
 	{
@@ -227,7 +227,7 @@ void Scene::addBarrelDrop(Vector3 Position)
 		createNewPhysicsComponent(rollingBarrel, true, "", PxGeometryType::eSPHERE, "wood", true);
 		static_cast<PhysicsComponent*>(rollingBarrel->getComponent("physics"))->setMass(100.0f);
 		addComponent(rollingBarrel, "barrel", new BarrelComponent());
-		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 1,1,1 });
+		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 2,1,1 });
 		m_despawnBarrelTimer.restart();
 		addedBarrel = true;
 	}
@@ -1643,9 +1643,13 @@ void Scene::updateScene(const float& dt)
 
 	if (addedBarrel)
 	{
-		static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->clearForce();
-		static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->setPosition({ -30, 50, 130 });
-		m_despawnBarrelTimer.restart();
+		for (int i = 0; i < m_nrOfBarrelDrops; i++)
+		{
+
+			//static_cast<PhysicsComponent*>(m_entities["barrel" + std::to_string(i)]->getComponent("physics"))->clearForce();
+			//static_cast<PhysicsComponent*>(m_entities["barrel" + std::to_string(i)]->getComponent("physics"))->setPosition({ -30, 50, 130 });
+			//m_despawnBarrelTimer.restart();
+		}
 
 		addedBarrel = false;
 	}
