@@ -811,8 +811,8 @@ void Scene::addPrefabFromFile(char* params)
 		Vector3 wallpos1, wallpos2, rot;
 		wallpos1 = readDataFromChar<Vector3>(params, offset);
 		wallpos2 = readDataFromChar<Vector3>(params, offset);
-		wallpos1.x = -wallpos1.x;
-		wallpos2.x = -wallpos2.x;
+		flipX(wallpos1);
+		flipX(wallpos2);
 		std::string mesh = readStringFromChar(params, offset);
 		mesh.append(".lrm");
 		//std::wstring wMesh = std::wstring(mesh.begin(), mesh.end());
