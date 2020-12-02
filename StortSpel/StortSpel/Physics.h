@@ -680,6 +680,7 @@ public:
 	void makeActorKinematic(PxRigidBody* actor)
 	{
 		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
+		actor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_SPECULATIVE_CCD, true);
 	}
 
 	void makeKinematicActorDynamic(PxRigidBody* actor, float newMass)
