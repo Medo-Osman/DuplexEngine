@@ -329,7 +329,7 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 		textureName = L"TrampolinIcon.png";
 		break;
 	case 2:
-		pickupName = "CannonPickup_Circle.lrm";
+		pickupName = "CanonPickup_Circle.lrm";
 		textureName = L"CanonIcon.png";
 		break;
 	}
