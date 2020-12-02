@@ -107,6 +107,7 @@ enum class TriggerType
 	PROJECTILE,
 	TRAP,
 	BARREL,
+	RESPAWN
 };
 
 enum class EventType

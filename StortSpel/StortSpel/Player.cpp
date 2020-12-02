@@ -350,6 +350,9 @@ void Player::updatePlayer(const float& dt)
 	if(m_state != PlayerState::ROLL)
 		handleRotation(dt);
 
+	if (m_respawnNextFrame)
+		respawnPlayer();
+
 	playerStateLogic(dt);
 
 	ImGui::Begin("Player Information", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
@@ -419,6 +422,7 @@ void Player::increaseScoreBy(int value)
 
 void Player::respawnPlayer()
 {
+	m_respawnNextFrame = false;
 	m_state = PlayerState::IDLE;
 	m_controller->setPosition(m_checkpointPos);
 }
@@ -533,6 +537,12 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 	}
 	if (!shouldTriggerEntityBeRemoved)
 	{
+
+		if (physicsData.triggerType == TriggerType::RESPAWN)
+		{
+			m_respawnNextFrame = true;
+		}
+
 
 		if (physicsData.triggerType == TriggerType::CHECKPOINT)
 		{

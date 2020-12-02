@@ -125,6 +125,8 @@ private:
     void rollAnimation();
     void dashAnimation();
     void idleAnimation();
+
+    bool m_respawnNextFrame = false; //PhysX won't allow you to read and write at the same time.
   
 public:
     Player();
