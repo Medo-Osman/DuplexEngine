@@ -15,8 +15,6 @@ enum class ScenesEnum
 	ENDSCENE,
 };
 
-
-
 enum PrefabType
 {
 	PARIS_WHEEL,
@@ -28,7 +26,9 @@ enum PrefabType
 	SLOWTRAP,
 	PUSHTRAP,
 	BARRELDROP,
-	GOAL_TRIGGER
+	GOAL_TRIGGER,
+	SWINGING_HAMMER,
+	pfSKYBOX
 };
 
 class Scene : public PhysicsObserver, public BossObserver, public PlayerObserver
@@ -46,6 +46,7 @@ private:
 	void createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 scale, std::string meshPath, std::wstring texPath = L"GrayTexture.png");
 	int m_nrOfSweepingPlatforms = 0;
 	void createSweepingPlatform(Vector3 startPos, Vector3 endPos);
+	void createTimedSweepPlatform(Vector3 startPos, Vector3 endPos, bool startEnd, float interval);
 	int m_nrOfSpotLight = 0;
 	void createSpotLight(Vector3 position, Vector3 rotation, Vector3 color, float intensity);
 	int m_nrOfPointLight = 0;
@@ -53,13 +54,15 @@ private:
 	int m_nrSwingningHammers = 0;
 	void createSwingingHammer(Vector3 position, Vector3 rotation, float swingSpeed);
 
+	void createSkybox(std::wstring textureName = std::wstring(L"Skybox_Texture.dds"));
+
 	//---------------------------------------------------------------Boss sstuff
 	UINT m_nrOfProjectiles = 0;
 	float m_projectileLifeTime = 10.f;
 	void createProjectile(Vector3 origin, Vector3 dir, float speed);
 	void checkProjectiles();
 
-	UINT m_nrOfLasers = 0;
+	UINT m_nrOfLasers = 1;
 	void createLaser(BossStructures::BossActionData data);
 	void checkLasers(float dt);
 
@@ -69,7 +72,16 @@ private:
 	void physicallyMovePlatform(Entity* entity);
 	bool findPlatformAlready(Entity* entity);
 
-
+	AudioComponent* m_bossMusicComp = nullptr;
+	GUIImageStyle imageStyle;
+	int m_bossHP_barGuiIndex = 0;
+	int m_bossHP_barBackgroundGuiIndex = 0;
+	int m_endBossAtPecentNrOfStarts = 0;
+	int m_nrOfRespawnBoxes = 0;
+	void removeBoss();
+	void createPortal();
+	void createEndScenePortal();
+	void createRespawnBox(Vector3 position, Vector3 scale, bool boxVisible = true);
 
 	//For projectiles
 	std::unordered_map<UINT, Entity*> m_projectiles;
@@ -118,7 +130,6 @@ private:
 	void addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox);
 	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 
-
 	//void addSlowTrap(const Vector3& position, Vector3 scale);
 	//void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 
@@ -154,6 +165,8 @@ public:
 	static void loadArena(Scene* sceneObject, bool* finished);
 	static void loadMaterialTest(Scene* sceneObject, bool* finished);
 	static void loadBossTest(Scene* sceneObject, bool* finished);
+	static void loadEmpty(Scene* sceneObject, bool* finished);
+	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
 	
