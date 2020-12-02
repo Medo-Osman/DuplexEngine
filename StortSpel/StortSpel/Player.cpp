@@ -16,6 +16,7 @@ Player::Player()
 	m_currentDistance = 0;
 	m_hasDashed = false;
 	m_transitionTime = MAX_TRANSITION_TIME;
+	m_angleY = 0;
 	m_playerEntity = nullptr;
 	m_animMesh = nullptr;
 	m_cameraTransform = nullptr;
@@ -43,19 +44,13 @@ Player::Player()
 	
 	//GUI
 	m_score = 0;
-	//style.position.y = 70.f;
-	//style.scale = { 0.5f };
-	//m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
-	GUIImageStyle iStyle;
-	iStyle.position = Vector2(1750, 150);
-	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Power-up_BG.png", iStyle);
-	iStyle.position = Vector2(1700, 50);
-	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Point_BG.png", iStyle);
 	GUITextStyle style;
-	style.position = Vector2(1717, 62);
-	style.color = Colors::White;
+	style.position.y = 70.f;
+	style.scale = { 0.5f };
+	m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
+	style.position.x = 160.f;
+	style.color = Colors::Yellow;
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
-
 
 	GUIImageStyle imageStyle;
 	imageStyle.position = Vector2(400.f, 50.f);
@@ -127,7 +122,6 @@ void Player::setStates(InputData& inputData)
 	m_movementVector = Vector3();
 	if (m_state != PlayerState::DASH && m_state != PlayerState::ROLL && m_state != PlayerState::CANNON && m_state != PlayerState::FLYINGBALL)
 	{
-		bool hasJumped = false;
 		Quaternion cameraRot = m_cameraTransform->getRotation();
 		for (size_t i = 0; i < states.size(); i++)
 		{
@@ -137,20 +131,9 @@ void Player::setStates(InputData& inputData)
 			case WALK_RIGHT:	m_movementVector += XMVector3Rotate(Vector3(1.f, 0.f, 0.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
 			case WALK_FORWARD:	m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, 1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
 			case WALK_BACKWARD: m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, -1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
-			case JUMPING:
-				hasJumped = true;
-				m_lastJumpPressed = m_jumpPressed;
-				m_jumpPressed = true;
-				break;
 			default: break;
 			}
 		}
-		if (!hasJumped)
-		{
-			m_lastJumpPressed = m_jumpPressed;
-			m_jumpPressed = false;
-		}
-
 		for (size_t i = 0; i < range.size(); i++) // Get Analog input for walking/running
 		{
 			if (range[i].rangeFlag == Range::WALK)
@@ -158,6 +141,8 @@ void Player::setStates(InputData& inputData)
 				Vector3 analogWalkW(range[i].pos.x, 0.f, range[i].pos.y);
 				Quaternion cameraRot = m_cameraTransform->getRotation();
 				m_movementVector += XMVector3Rotate(analogWalkW, Vector4(0.f , cameraRot.y, 0.f, cameraRot.w));
+				//if (m_timeCounter > 0.1f)
+					std::cout << range[i].pos.x << ", " << range[i].pos.y << "\n";
 			}
 		}
 	}
@@ -171,6 +156,9 @@ void Player::handleRotation(const float &dt)
 	Quaternion targetRot;
 
 	m_movementVector = XMVector3Normalize(m_movementVector);
+
+	if (Vector3(m_movementVector).LengthSquared() > 0.f) //Only update when moving
+		m_angleY = XMVectorGetY(XMVector3AngleBetweenNormals(XMVectorSet(0, 0, 1, 0), m_movementVector));
 
 	if (Vector3(m_movementVector).LengthSquared() > 0.f)
 	{
@@ -188,10 +176,13 @@ void Player::handleRotation(const float &dt)
 
 		//if this vector has posisitv value the character is facing the positiv x axis, checks movementVec against cameraForward
 		if (XMVectorGetY(XMVector3Cross(m_movementVector, cameraForward)) > 0.0f)
+		{
+			//m_angleY = -m_angleY;
 			offset.y = -offset.y;
+		}
 
 		//This is the angleY target quaternion
-		targetRot = Quaternion(0, cameraRot.y, 0, cameraRot.w) * Quaternion::CreateFromYawPitchRoll(offset.y, 0, 0);
+		targetRot = Quaternion(0, cameraRot.y, 0, cameraRot.w) * Quaternion::CreateFromYawPitchRoll(offset.y, 0, 0);//Quaternion::CreateFromYawPitchRoll(m_angleY, 0, 0);
 		targetRot.Normalize();
 
 		//Land somewhere in between target and current
@@ -281,10 +272,20 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 
 void Player::playerStateLogic(const float& dt)
 {
-	Vector3 directionalMovement = Vector3(m_movementVector.x, 0, m_movementVector.z);
+	Vector3 directionalMovement;
+	//if (m_lastDirectionalMovement.LengthSquared() == 0.f || m_lastDirectionalMovement.LengthSquared() < 0.1f)
+	//{
+		directionalMovement = Vector3(m_movementVector.x, 0, m_movementVector.z);
+	//}
+	//else
+	//{
+	//	//float directionDifference = XMVectorGetX(XMVector3Dot(m_lastDirectionalMovement, m_movementVector));
+	//	Vector3 velocityDirection = Vector3(m_velocity.x, 0.f, m_velocity.z);
+	//	velocityDirection.Normalize();
+	//	directionalMovement = XMVectorLerp(velocityDirection, m_movementVector, 0.5f);
+	//}
 
-	float currentY = m_playerEntity->getTranslation().y;
-
+		//directionalMovement = Vector3(m_lastDirectionalMovement.x + (m_movementVector.x * directionDifference), 0, m_lastDirectionalMovement.z + (m_movementVector.z * directionDifference));
 	switch (m_state)
 	{
 	case PlayerState::ROLL:
@@ -304,13 +305,19 @@ void Player::playerStateLogic(const float& dt)
 			else
 			{
 				if (m_controller->checkGround())
+				{
 					m_state = PlayerState::IDLE;
+					std::cout << "-------------ROLL CHANGED TO IDLE!!!\n";
+				}
 				else
+				{
 					m_state = PlayerState::FALLING;
+					std::cout << "-------------ROLL CHANGED TO FALLING!!!\n";
+				}
 			}
 			
 			m_controller->setControllerSize(m_controller->getOriginalHeight());
-			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
+			m_controller->setControllerRadius(m_controller->getOriginalRadius());
 			idleAnimation();
 		}
 		else
@@ -342,11 +349,17 @@ void Player::playerStateLogic(const float& dt)
 			m_velocity += m_moveDirection * DASH_SPEED * DASH_TRAVEL_DISTANCE;*/
 
 			float t = m_currentDistance / DASH_TRAVEL_DISTANCE;
-			float speedValue = lerp(DASH_SPEED * m_currentSpeedModifier, DASH_OUT_SPEED, t);
+			/*float sqt = t * t;
+			float parametricBlend = sqt / (2.0f * (sqt - t) + 1.0f);*/
+			//m_dashEndPosition - m_dashStartPosition;
+			float speedValue = lerp(DASH_SPEED * m_currentSpeedModifier, DASH_OUT_SPEED, t); // m_beginDashSpeed is set in dash() function
+			//float speedValue = lerp(m_beginDashSpeed * dt, DASH_TRAVEL_DISTANCE * m_currentSpeedModifier, parametricBlend); // m_beginDashSpeed is set in dash() function
 			m_horizontalMultiplier = speedValue + 0.1f;
 			m_currentDistance += (speedValue + 0.1f) * dt;
+			std::cout << t << " \n";
 
 			directionalMovement = m_moveDirection;
+			//m_horizontalMultiplier += m_currentDistance * DASH_SPEED * dt;
 			m_verticalMultiplier = 0.f;
 		}
 		break;
@@ -370,31 +383,14 @@ void Player::playerStateLogic(const float& dt)
 		// On Ground Check
 		if (m_controller->checkGround())
 		{
-			if (m_jumps == 1)
-				endJump_First();
-			else
-				endJump_Second();
 			m_lastState = PlayerState::FALLING;
 			m_state = PlayerState::IDLE;
 			m_jumps = 0;
 			m_hasDashed = false;
 		}
-		else if (m_jumpPressed && !m_lastJumpPressed && m_jumps < ALLOWED_NR_OF_JUMPS)
-			jump(dt);
-		
 		break;
 
 	case PlayerState::JUMPING:
-
-		if (m_jumps == 1)
-			m_jumpLimit = JUMP_HEIGHT_FORCE_LIMIT;
-		else
-			m_jumpLimit = JUMP_HEIGHT_FORCE_LIMIT * .8f;
-
-		if (m_jumpPressed && (currentY - m_jumpStartY < m_jumpLimit)) // Jump Limit Not Reached
-		{
-			m_verticalMultiplier += JUMP_SPEED * dt; // Apply Jump Force
-		}
 
 		if (directionalMovement.LengthSquared() > 0)
 		{
@@ -412,8 +408,6 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::JUMPING;
 			m_state = PlayerState::FALLING;
 		}
-		else if (m_jumpPressed && !m_lastJumpPressed && m_jumps < ALLOWED_NR_OF_JUMPS)
-			jump();
 
 		break;
 
@@ -435,9 +429,6 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::FALLING;
 			m_verticalMultiplier = 0.f;
 		}
-		else if (m_jumpPressed && !m_lastJumpPressed)
-			jump();
-
 		break;
 	case PlayerState::CANNON:
 		m_controller->setPosition(m_cannonEntity->getTranslation());
@@ -451,7 +442,7 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::FLYINGBALL;
 			m_lastState = PlayerState::CANNON;
 			m_direction = m_cameraTransform->getForwardVector();
-			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
+			m_cameraOffset = Vector3(0.f, 0.f, 0.f);
 			m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
 			m_shouldDrawLine = false;
@@ -532,7 +523,6 @@ void Player::playerStateLogic(const float& dt)
 		//std::cout << m_verticalMultiplier << "\n";
 		//std::cout << m_currentSpeedModifier << "\n";
 
-
 		/*switch (m_state)
 		{
 		case PlayerState::DASH:		std::cout << "DASH\n"; break;
@@ -541,20 +531,16 @@ void Player::playerStateLogic(const float& dt)
 		case PlayerState::FALLING:	std::cout << "FALLING\n"; break;
 		case PlayerState::IDLE:		std::cout << "IDLE\n"; break;
 		default: break;
-		}
-		std::cout << "\n";*/
+		}*/
+
+		//std::cout << "\n";
 
 		m_timeCounter -= 0.1f;
 	}
 
-	
 	// Final frame velocity
-	if (directionalMovement.LengthSquared() > 0.f) 
-	{
-		// Compensate for larger directional change
-		m_horizontalMultiplier = m_horizontalMultiplier * max(directionalMovement.Dot(m_lastDirectionalMovement), 0.2f);
+	if (directionalMovement.LengthSquared() > 0.f)
 		m_lastDirectionalMovement = directionalMovement;
-	}
 
 	m_velocity = ((m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier)) * dt;
 
@@ -571,7 +557,7 @@ void Player::playerStateLogic(const float& dt)
 		if ((PLAYER_MAX_SPEED * dt) <= 0.0f)
 			blend = 0.0f;
 
-		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
+		m_animMesh->setCurrentBlend( std::fmin(blend, 1.4f) );
 
 		//// analog animation:
 		//if (vectorLen > 0)
@@ -692,9 +678,6 @@ void Player::updatePlayer(const float& dt)
 		handleRotation(dt);
 
 	//PlayerState logic Update
-	if (m_respawnNextFrame)
-		respawnPlayer();
-
 	playerStateLogic(dt);
 
 	ImGui::Begin("Player Information", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
@@ -722,24 +705,9 @@ Vector3 Player::getVelocity()
 	return m_velocity;
 }
 
-
 LineData* Player::getLineDataArray()
 {
 	return m_lineData;
-}	
-PlayerState Player::getState()
-{
-	return m_state;
-}
-
-PlayerState Player::getLastState()
-{
-	return m_lastState;
-}
-
-Vector3 Player::getFeetPosition()
-{
-	return m_controller->getFootPosition();
 }
 
 void Player::setCheckpoint(Vector3 newPosition)
@@ -767,32 +735,31 @@ void Player::increaseScoreBy(int value)
 {
 	m_score += value;
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
-	
-	if (m_score >= 10 && m_score < 100)
-	{
-		GUITextStyle style;
-		style.position = Vector2(1705, 62);
-		style.color = Colors::White;
-		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
-	}
-	if (m_score >= 100)
-	{
-		
-		GUITextStyle style;
-		style.position = Vector2(1678, 62);
-		style.color = Colors::White;
-		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
-	}
 }
 
 void Player::respawnPlayer()
 {
-	m_respawnNextFrame = false;
+	if (m_pickupPointer)
+	{
+		if (m_pickupPointer->isActive())
+		{
+			m_pickupPointer->onDepleted();
+			m_pickupPointer->onRemove();
+			SAFE_DELETE(m_pickupPointer);
+
+		}
+	}
+
 	m_state = PlayerState::IDLE;
 	m_controller->setPosition(m_checkpointPos);
 	m_velocity = Vector3();
 	m_horizontalMultiplier = 0.f;
 	m_verticalMultiplier = 0.f;
+}
+
+float Player::getPlayerScale() const
+{
+	return this->m_playerScale;
 }
 
 int Player::getScore()
@@ -876,12 +843,18 @@ void Player::inputUpdate(InputData& inputData)
 		}		
 	}
 
+
 	this->setStates(inputData);
 
 	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
 	{
 		switch (inputData.actionData[i])
 		{
+		case JUMP:
+			if (m_state == PlayerState::IDLE || ((m_state == PlayerState::JUMPING || m_state == PlayerState::FALLING) && m_jumps < ALLOWED_NR_OF_JUMPS))
+				jump();
+			break;
+
 		case DASH:
 			if (m_state == PlayerState::IDLE)
 			{
@@ -941,25 +914,41 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 			direction.Normalize();
 			m_playerEntity->translate(direction);*/
 
-			jump(false);
+			jump();
 		}
 
-		if (!shouldTriggerEntityBeRemoved)
+		//Checkpoints
+		if (physicsData.triggerType == TriggerType::CHECKPOINT)
 		{
+			Entity* ptr = static_cast<Entity*>(physicsData.pointer);
 
-			if (physicsData.triggerType == TriggerType::RESPAWN)
+			CheckpointComponent* checkpointPtr = dynamic_cast<CheckpointComponent*>(ptr->getComponent("checkpoint"));
+			if (!checkpointPtr->isUsed())
 			{
-				m_respawnNextFrame = true;
+				AudioComponent* audioPtr = dynamic_cast<AudioComponent*>(ptr->getComponent("sound"));
+				audioPtr->playSound();
+
+				m_checkpointPos = ptr->getTranslation();
+
+				checkpointPtr->setUsed(true);
 			}
+		}
 
-
-			//Checkpoints
-			if (physicsData.triggerType == TriggerType::CHECKPOINT)
+		//Pickup 
+		if (physicsData.triggerType == TriggerType::PICKUP)
+		{
+			/*
+				assosiatedTriggerEnum - PickupType
+				intData - used currently for heightBoost to check if they use trampoline object or if they pickedup the item(intData = fromPickup
+				stringData -free
+				floatData - modifier for speedboost.
+			*/
+			
+			if (m_pickupPointer == nullptr || ((bool)!physicsData.intData && (PickupType)physicsData.associatedTriggerEnum == PickupType::HEIGHTBOOST ))
 			{
-				Entity* ptr = static_cast<Entity*>(physicsData.pointer);
-
-				CheckpointComponent* checkpointPtr = dynamic_cast<CheckpointComponent*>(ptr->getComponent("checkpoint"));
-				if (!checkpointPtr->isUsed())
+				bool environmenPickup = false;
+				bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
+				switch ((PickupType)physicsData.associatedTriggerEnum)
 				{
 				case PickupType::SPEED:
 					shouldTriggerEntityBeRemoved = true; //We want to remove speedpickup entity after we've used it.
@@ -986,105 +975,55 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 							m_playerObservers.at(i)->reactOnPlayer(data);
 						}
 					}
-					AudioComponent* audioPtr = dynamic_cast<AudioComponent*>(ptr->getComponent("sound"));
-					audioPtr->playSound();
 
-					m_checkpointPos = ptr->getTranslation();
 
-					checkpointPtr->setUsed(true);
+					break;
+				case PickupType::CANNON:
+					shouldTriggerEntityBeRemoved = true;
+					break;
+				case PickupType::SCORE:
+					addPickupByAssosiatedID = false;
+					break;
+				default:
+					break;
 				}
-			}
-
-			//Pickup 
-			if (physicsData.triggerType == TriggerType::PICKUP)
-			{
-				/*
-					assosiatedTriggerEnum - PickupType
-					intData - used currently for heightBoost to check if they use trampoline object or if they pickedup the item(intData = fromPickup
-					stringData -free
-					floatData - modifier for speedboost.
-				*/
-
-				if (m_pickupPointer == nullptr || ((bool)!physicsData.intData && (PickupType)physicsData.associatedTriggerEnum == PickupType::HEIGHTBOOST))
+				if (addPickupByAssosiatedID)
 				{
-					bool environmenPickup = false;
-					bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
-					switch ((PickupType)physicsData.associatedTriggerEnum)
+					Pickup* pickupPtr = getCorrectPickupByID(physicsData.associatedTriggerEnum);
+					pickupPtr->setModifierValue(physicsData.floatData);
+
+
+					if (environmenPickup)
 					{
-					case PickupType::SPEED:
-						shouldTriggerEntityBeRemoved = true; //We want to remove speedpickup entity after we've used it.
-						m_currentSpeedModifier = 1.f;
-						m_goalSpeedModifier = physicsData.floatData;
-						m_speedModifierTime = 0;
-						break;
-					case PickupType::HEIGHTBOOST:
-						if ((bool)physicsData.intData) //fromPickup -true/false
+
+						if (m_environmentPickup) //If we already have an environmentpickup (SInce they can be force added, we need to, if it exist, remove the "old" enironmentPickup before creating/getting a new.
 						{
-							shouldTriggerEntityBeRemoved = true;
-						}
-						else
-						{
-							jump(false, 1.5f);
-							environmenPickup = true;
+							m_environmentPickup->onRemove();
+							delete m_environmentPickup;
+							m_environmentPickup = nullptr;
 						}
 						pickupPtr->onPickup(m_playerEntity, true);
 						pickupPtr->onUse();
 						m_environmentPickup = pickupPtr;
-
-						break;
-					case PickupType::CANNON:
-						shouldTriggerEntityBeRemoved = true;
-						break;
-					case PickupType::SCORE:
-						addPickupByAssosiatedID = false;
-						break;
-					default:
-						break;
 					}
-					if (addPickupByAssosiatedID)
+					else
 					{
 						m_pickupPointer = pickupPtr;
 						pickupPtr->onPickup(m_playerEntity, false);
 						if (pickupPtr->shouldActivateOnPickup())
-						{
-							Pickup* pickupPtr = getCorrectPickupByID(physicsData.associatedTriggerEnum);
-							pickupPtr->setModifierValue(physicsData.floatData);
-
-
-							if (environmenPickup)
-							{
-
-								if (m_environmentPickup) //If we already have an environmentpickup (SInce they can be force added, we need to, if it exist, remove the "old" enironmentPickup before creating/getting a new.
-								{
-									m_environmentPickup->onRemove();
-									delete m_environmentPickup;
-									m_environmentPickup = nullptr;
-								}
-								pickupPtr->onPickup(m_playerEntity);
-
-								pickupPtr->onUse();
-								m_environmentPickup = pickupPtr;
-							}
-							else
-							{
-								m_pickupPointer = pickupPtr;
-								pickupPtr->onPickup(m_playerEntity);
-								if (pickupPtr->shouldActivateOnPickup())
-									pickupPtr->onUse();
-							}
-						}
+							pickupPtr->onUse();
 					}
 				}
-				//Score
-				if ((PickupType)physicsData.associatedTriggerEnum == PickupType::SCORE)
-				{
-					int amount = (int)physicsData.floatData;
-					this->increaseScoreBy(amount);
-					m_audioComponent->playSound();
-					shouldTriggerEntityBeRemoved = true;
-				}
-
 			}
+			//Score
+				if((PickupType)physicsData.associatedTriggerEnum == PickupType::SCORE)
+			{
+				int amount = (int)physicsData.floatData;
+				this->increaseScoreBy(amount);
+				m_audioComponent->playSound();
+				shouldTriggerEntityBeRemoved = true;
+			}
+
 		}
 	}
 }
@@ -1136,7 +1075,6 @@ void Player::update(GUIUpdateType type, GUIElement* guiElement)
 		button->setTexture(L"closeButton.png");
 	}
 }
-
 void Player::serverPlayerAnimationChange(PlayerState currentState, float currentBlend)
 {
 	m_animMesh->setCurrentBlend(currentBlend);
@@ -1168,22 +1106,11 @@ void Player::serverPlayerAnimationChange(PlayerState currentState, float current
 
 void Player::jump(const bool& incrementCounter, const float& multiplier)
 {
-	if (incrementCounter)
-	{
-		m_state = PlayerState::JUMPING;
-		m_jumpStartY = m_playerEntity->getTranslation().y;
-		m_jumps++;
-	}
-	else
-		m_state = PlayerState::JUMPING;
-
-	if (m_jumps == 1)
-		startJump_First();
-	else
-		startJump_Second();
-
 	m_currentDistance = 0;
-	m_verticalMultiplier = JUMP_START_SPEED * multiplier; // Apply Jump Force
+	m_state = PlayerState::JUMPING;
+	m_verticalMultiplier = JUMP_SPEED * m_playerScale * multiplier;
+	if(incrementCounter)
+		m_jumps++;
 }
 
 bool Player::canRoll() const
@@ -1195,8 +1122,10 @@ void Player::roll()
 {
 	prepDistVariables();
 	m_controller->setControllerSize(ROLL_HEIGHT);
+	m_controller->setControllerRadius(ROLL_RADIUS);
 	m_state = PlayerState::ROLL;
 	m_verticalMultiplier = 0.f;
+	std::cout << "ROLL PRESSED!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	rollAnimation();
 }
 
@@ -1222,44 +1151,17 @@ void Player::prepDistVariables()
 
 void Player::rollAnimation()
 {
-
-	m_animMesh->playSingleAnimation("Slide", 0.2f, false, false);
-	m_animMesh->setAnimationSpeed(1.2f);
+	m_animMesh->playSingleAnimation("platformer_guy_roll1", 0.1f, false, true);
+	m_animMesh->setAnimationSpeed(1.5f);
 }
 
 void Player::dashAnimation()
 {
-	m_animMesh->playSingleAnimation("Dash", 0.1f, false, true);
-	m_animMesh->setAnimationSpeed(1.f);
+	m_animMesh->playSingleAnimation("platformer_guy_pose", 0.2f, true, true);
 }
 
 void Player::idleAnimation()
 {
 	m_animMesh->playBlendState("runOrIdle", 0.3f);
-	m_animMesh->setAnimationSpeed(1.5f);
-}
-
-void Player::startJump_First()
-{
-	m_animMesh->playSingleAnimation("JumpStart_First", 0.01f, true, false);
-	m_animMesh->queueSingleAnimation("JumpLoop_First", 0.f, true, false);
-}
-
-void Player::endJump_First()
-{
-	m_animMesh->playSingleAnimation("JumpEnd_First", 0.01f, false, false);
-	//m_animMesh->setAnimationSpeed(0.1f);
-	m_animMesh->queueBlendState("runOrIdle", 0.05f);
-}
-
-void Player::startJump_Second()
-{
-	m_animMesh->playSingleAnimation("JumpStart_Second", 0.1f, true, false);
-	m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.1f, true, false);
-}
-
-void Player::endJump_Second()
-{
-	m_animMesh->playSingleAnimation("JumpEnd_Second", 0.1f, false, false);
-	m_animMesh->queueBlendState("runOrIdle", 0.3f);
+	m_animMesh->setAnimationSpeed(1.0f);
 }

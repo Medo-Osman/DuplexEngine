@@ -83,12 +83,6 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 			}
 		}
 
-
-		//if (key == VK_LEFTALT)
-		//{
-
-		//}
-
 		return 0;
 	}
 	case WM_KEYUP:
@@ -226,44 +220,6 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 				ClipCursor(nullptr);
 			}
 		}
-
-	}
-	case WA_INACTIVE:
-	{
-		m_currentInputData.actionData.clear();
-		m_currentInputData.rangeData.clear();
-		m_currentInputData.stateData.clear();
-	}
-	case WM_SYSKEYDOWN:
-	{
-		return (LRESULT)1;
-	}
-	case WM_SYSKEYUP:
-	{
-		// NEEDED FOR WINDOW FREEZE BUG WHEN PRESSING ONLY ALT UNTIL THE WINDOW IS CLICKED!!!!
-		INPUT    Input = { 0 };
-		// left down 
-		Input.type = INPUT_MOUSE;
-		Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-		::SendInput(1, &Input, sizeof(INPUT));
-
-		// left up
-		::ZeroMemory(&Input, sizeof(INPUT));
-		Input.type = INPUT_MOUSE;
-		Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-		::SendInput(1, &Input, sizeof(INPUT));
-
-		return (LRESULT)0;
-	}
-	case WM_SYSCHAR:
-	{
-		return (LRESULT)1;
-	}
-	case WM_SYSCOMMAND:
-	{
-		if (wParam == SC_KEYMENU && (lParam >> 16) <= 0)
-			return 0;
-		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
 
 	}

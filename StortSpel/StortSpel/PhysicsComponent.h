@@ -19,12 +19,11 @@ private:
 	bool m_kinematic;
 	bool m_slide;
 	bool m_hasMirrored;
-	
-	Vector3 m_scale = {1.f, 1.f, 1.f}; 
+
 	Vector3 m_centerOffset = {0.f, 0.f, 0.f};
 	Vector3 m_meshOffset = {0.f, 0.f, 0.f};
 
-	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, MeshResource* meshResource)
+	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, MeshResource* meshResource, Vector3 scale = {1, 1, 1 })
 	{
 		PxTriangleMesh* tringMesh;
 		PositionVertex* vertexArray;
@@ -56,18 +55,11 @@ private:
 			createdGeometry = new physx::PxSphereGeometry(radius);
 			break;
 		case physx::PxGeometryType::eBOX:
-			if (max.y == min.y)
-				max.y += 0.1f;
-			if (max.x == min.x)
-				max.x += 0.1f;
-			if (max.z == min.z)
-				max.z += 0.1f;
-
 			createdGeometry = new physx::PxBoxGeometry((max.x - min.x) / 2, (max.y - min.y) / 2, (max.z - min.z) / 2);
 			break;
 		case physx::PxGeometryType::eTRIANGLEMESH:
 			tringMesh = m_physicsPtr->getTriangleMeshe(meshResource->getFilePath(), meshResource->getVertexArraySize(), meshResource->getVertexArray(), meshResource->getIndexArraySize(), meshResource->getIndexArray(), m_centerOffset);
-			createdGeometry = new physx::PxTriangleMeshGeometry(tringMesh, PxMeshScale(PxVec3(m_scale.x, m_scale.y, m_scale.z)), PxMeshGeometryFlag::eDOUBLE_SIDED);
+			createdGeometry = new physx::PxTriangleMeshGeometry(tringMesh, PxMeshScale(PxVec3(scale.x, scale.y, scale.z)), PxMeshGeometryFlag::eDOUBLE_SIDED);
 			break;
 		default:
 			break;
@@ -127,12 +119,10 @@ public:
 
 	void initActorAndShape(int sceneID, Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
 	{
-		bool loaded = false;
 		bool forceMakeKinematic = geometryType == PxGeometryType::eTRIANGLEMESH && dynamic;
 		m_dynamic = dynamic;
 		m_transform = entity;
 		XMFLOAT3 scale = entity->getScaling() * meshComponent->getScaling();
-		m_scale = scale;
 		std::string name = meshComponent->getFilePath() + std::to_string(geometryType);
 		PxGeometry* geometry; 
 		XMFLOAT3 boundsCenter;
@@ -163,7 +153,7 @@ public:
 					}
 					else //Create shape and add shape for sharing
 					{
-						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true, loaded);
+						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true);
 						m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
 						m_physicsPtr->addShapeForSharing(m_shape, name);
 					}
@@ -173,10 +163,9 @@ public:
 			}
 			if (addGeom)
 			{
-				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false, loaded);
+				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false);
 				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
-				if(!loaded)
-					delete geometry;
+				delete geometry;
 			}
 
 		}
@@ -283,7 +272,7 @@ public:
 	}
 
 
-	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool saveGeometry, bool &outLoaded)
+	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool saveGeometry)
 	{
 		XMFLOAT3 min, max;
 		PxGeometry* bb = nullptr;
@@ -295,11 +284,9 @@ public:
 		if (!bb)
 		{
 			bb = createPrimitiveGeometry(geometry, min, max, meshComponent->getMeshResourcePtr());
-			if (saveGeometry)
+			if(saveGeometry)
 				m_physicsPtr->addGeometry(name, bb);
 		}
-		else
-			outLoaded = true;
 		
 		return bb;
 	}

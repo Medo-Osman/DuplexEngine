@@ -28,8 +28,8 @@ struct Settings
 };
 
 const std::string PLAYER_ENTITY_NAME = "playerEntity";
-const float PLAYER_CAPSULE_HEIGHT = 1.f;
-const float PLAYER_CAPSULE_RADIUS = .2f;
+const float PLAYER_CAPSULE_HEIGHT = 1.75f;
+const float PLAYER_CAPSULE_RADIUS = 0.4f;
 
 class Engine
 {

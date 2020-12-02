@@ -23,7 +23,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_dContextPtr = NULL;
 	Microsoft::WRL::ComPtr<IDXGISwapChain> m_swapChainPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11Debug> m_debugPtr = NULL;
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_deferredContext = nullptr; //For multithreading
 
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_geometryRenderTargetViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_finalRenderTargetViewPtr = NULL;
@@ -71,7 +70,6 @@ private:
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
-	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_particleRasterizerStatePtr = NULL;
 
 	D3D11_VIEWPORT m_defaultViewport;
 
@@ -120,7 +118,6 @@ private:
 	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	Renderer(); //{};
 
-
 	int m_drawn = 0;
 
 public:
@@ -142,7 +139,6 @@ public:
 	void render();
 	ID3D11Device* getDevice();
 	ID3D11DeviceContext* getDContext();
-	ID3D11DeviceContext* getDeferredDContext();
 	ID3D11DepthStencilView* getDepthStencilView();
 	void printLiveObject();
 

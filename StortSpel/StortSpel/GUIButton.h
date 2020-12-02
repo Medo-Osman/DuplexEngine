@@ -79,7 +79,7 @@ public:
 
 	void setTexture(std::wstring texturePath)
 	{
-		texture = ResourceHandler::get().loadTexture(texturePath.data())->view;
+		texture = ResourceHandler::get().loadTexture(texturePath.data());
 
 		//Messy way to get the texture width and height
 		D3D11_TEXTURE2D_DESC desc;
@@ -124,6 +124,7 @@ public:
 			y = (float)p.y;
 			
 		}
+		//std::cout << " mouuse Y pos: " << y << " button position y: " << m_style.position.y << std::endl;
 
 		//Check if mouse is hovering over button
 		if (x > m_style.position.x && x < (m_style.position.x + (m_textureWidth * m_style.scale.x))

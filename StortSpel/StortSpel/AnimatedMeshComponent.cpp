@@ -29,7 +29,6 @@ void AnimatedMeshComponent::init(const char* filepath)
 		m_cBufferStruct.boneMatrixPallet[i] = XMMatrixIdentity();
 	}
 
-	getMeshResourcePtr()->addRef();
 	// when the temp rotation values go this might not need to be here
 	//applyPoseToJoints(XMMatrixIdentity());
 }
@@ -147,6 +146,7 @@ void AnimatedMeshComponent::playSingleAnimation(std::string animationName, float
 {
 	if (!m_inBindPose)
 	{
+
 		if (m_transitionTime > 0.f || transistionTime > 0.f)
         {
             if (!m_animationQueue.empty() && m_animationQueue.front()->stateName == animationName)
@@ -629,9 +629,6 @@ void AnimatedMeshComponent::update(float dt)
 
 			if(keepPlayingCurrent)
 				m_currentState->structs.at(i).animationTime += dt * m_currentState->structs.at(i).animationSpeed;
-			
-			if ((inTransition && !m_currentState->playDuringEndTransistion))
-				m_currentState->structs.at(i).animationTime = m_currentState->structs.at(i).animationResource->getTimeSpan();
 		}
 		if (inTransition)
 		{

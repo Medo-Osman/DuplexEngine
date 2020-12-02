@@ -29,19 +29,14 @@ void Boss::update(const float& dt)
 	{
 		m_bossSegments.at(i)->update(dt);
 
-		PhysicsComponent* physComp = m_bossSegments.at(i)->m_bossEntity->getComponentsByType<PhysicsComponent>(ComponentType::PHYSICS);
-		if (physComp)
+		Component* compPtr = m_bossSegments.at(i)->m_bossEntity->getComponent("physics");
+		if (compPtr)
 		{
-			//PhysicsComponent* physComp = static_cast<PhysicsComponent*>(m_bossSegments.at(i)->m_bossEntity->getComponentsByType<PhysicsComponent>(ComponentType::PHYSICS));
+			PhysicsComponent* physComp = static_cast<PhysicsComponent*>(m_bossSegments.at(i)->m_bossEntity->getComponent("physics"));
 			physComp->setPosition(m_bossEntity->getTranslation() + m_bossSegments.at(i)->m_entityOffset);
-
-			//std::cout << "X = " << m_bossEntity->getTranslation().x << std::endl <<
-			//			 "Y = " << m_bossEntity->getTranslation().y << std::endl <<
-			//			 "Z = " << m_bossEntity->getTranslation().z << std::endl;
-
 		}
-		else
-			m_bossSegments.at(i)->m_bossEntity->setPosition(m_bossEntity->getTranslation() + (m_bossSegments.at(i)->m_bossEntity->getTranslation() - m_bossEntity->getTranslation()));
+
+		m_bossSegments.at(i)->m_bossEntity->setPosition(m_bossEntity->getTranslation() + (m_bossSegments.at(i)->m_bossEntity->getTranslation() - m_bossEntity->getTranslation()));
 	}
 
 
@@ -67,32 +62,6 @@ BossStructures::IntVec Boss::getNewPlatformTarget() //Generate new random target
 	int numberY = (int)distribution(generator);
 
 	return BossStructures::IntVec{ numberX, numberY };
-}
-
-void Boss::dropStar(int dropAmount)
-{
-	m_currentStarCount = m_currentStarCount - dropAmount;
-}
-
-int Boss::getCurrnentNrOfStars()
-{
-	return m_currentStarCount;
-}
-
-void Boss::setNrOfMaxStars(int maxValue)
-{
-	m_maxStarCount = maxValue;
-	m_currentStarCount = m_maxStarCount;
-}
-
-int Boss::getNrOfMaxStars()
-{
-	return m_maxStarCount;
-}
-
-int Boss::getNrOfPlatforms()
-{
-	return NR_OF_PLATFORMS;
 }
 
 

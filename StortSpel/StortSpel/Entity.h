@@ -18,31 +18,15 @@ public:
 	Entity(std::string identifier) { m_identifier = identifier; }
 	~Entity()
 	{
-
-		//std::vector<std::string> stringsToRemove;
-		//std::cout << m_identifier << std::endl;
 		for (auto& component : m_components)
-		{
-			//std::cout << "\t" << component.second->getIdentifier() << std::endl;
-
-			//stringsToRemove.push_back(component.first);
 			delete component.second;
-			component.second = nullptr;
-		}
-
-		/*for (int i = 0; i < stringsToRemove.size(); i++)
-		{
-			m_components.erase(stringsToRemove.at(i));
-			delete m_components[stringsToRemove.at(i)];
-		}*/
-		
 
 		m_components.clear();
 	}
 
 	void onSceneLoad()
 	{
-		for (auto component : m_components)
+		for (auto& component : m_components)
 			component.second->onSceneLoad();
 	}
 
@@ -75,28 +59,13 @@ public:
 	{
 		if (m_components.find(componentName) == m_components.end()) // If component does not exist
 		{
-			//ErrorLogger::get().logError("Attempt to retrieve component by name failed, does not exist.");
+			ErrorLogger::get().logError("Attempt to retrieve component by name failed, does not exist.");
 
-			//No longer an error, it is a valid way to check if a component exists externally.
 			return nullptr;
 		}
 			
 		return m_components[componentName];
 	}
-
-	template<typename T>
-	T* getComponentsByType(ComponentType type)
-	{
-		for (std::pair<std::string, Component*> component : m_components)
-		{
-			if (component.second->getType() == type)
-			{
-				return static_cast<T*>(component.second);
-			}
-		}
-		return nullptr;
-	}
-
 	
 	void getComponentsOfType(std::vector<Component*> &compVec, ComponentType type)
 	{

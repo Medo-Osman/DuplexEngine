@@ -81,9 +81,4 @@ public:
 		m_spriteFont->DrawString(spriteBatch, m_textString.c_str(), m_style.position, m_style.color, m_style.rotation, m_style.origin, m_style.scale);
 	}
 
-	void setStyle(GUITextStyle style)
-	{
-		m_style = style;
-	}
-
 };

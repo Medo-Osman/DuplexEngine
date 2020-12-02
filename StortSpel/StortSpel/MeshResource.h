@@ -1,9 +1,9 @@
 #include "3DPCH.h"
-#include "VertexStructs.h"
-#include "ReferenceCounted.h"
 #pragma once
 
-class MeshResource : public ReferenceCounted
+
+
+class MeshResource
 {
 private:
 	
@@ -19,15 +19,14 @@ private:
 
 	std::vector<std::uint32_t> m_materialOffsets;
 	
-	int refCount = 0;
 public:
 	int m_vertCount = 0;
 	int m_indexCount = 0;
 	virtual ~MeshResource()
 	{
-		//SAFE_DELETE(m_vertexArray);
-		m_vertexBuffer.release();
-		m_indexBuffer.release();
+		SAFE_DELETE(m_vertexArray);
+		//m_vertexBuffer.release();
+		//m_indexBuffer.release();
 		delete[] m_vertexArray;
 	}
 	
@@ -156,5 +155,4 @@ public:
 		
 		return { offset, size };
 	}
-
 };

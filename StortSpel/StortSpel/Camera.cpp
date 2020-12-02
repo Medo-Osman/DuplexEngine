@@ -113,6 +113,16 @@ void Camera::inputUpdate(InputData& inputData)
 
 void Camera::update(const float &dt)
 {
+	//if (m_newIncrements)
+	//{
+	//	this->m_rotation += m_incrementRotation * dt * 2;
+	//	m_transform.rotate(m_rotation);
+	//	m_newIncrements = false;
+	//}
+	Player* ply = Engine::get().getPlayerPtr();
+	m_position = ply->getPlayerEntity()->getTranslation() + ply->getCameraOffset() + Vector3(0, 2, -5);
+	m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
+
 	//endscene fixed camera position
 	if (endSceneCamera)
 	{
@@ -142,16 +152,15 @@ void Camera::updateViewMatrix()
 	float currentRotationAngleY = XMVectorGetY(m_rotation);
 	float currentRotationAngleX = XMVectorGetX(m_rotation);
 	
-	XMVECTOR currentRotation = XMQuaternionRotationRollPitchYaw(currentRotationAngleX, currentRotationAngleY, 0.f);
+	XMVECTOR currentRotation = XMQuaternionRotationRollPitchYaw(currentRotationAngleX, currentRotationAngleY, 0);
 
-	Vector3 playerPos = Vector3(dynamic_cast<CharacterControllerComponent*>(ply->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + Vector3(0.f, PLAYER_CAPSULE_HEIGHT / 2.f, 0.f);
-	
+	XMVECTOR playerPos = Vector3(dynamic_cast<CharacterControllerComponent*>(ply->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + ply->getCameraOffset() + Vector3(0, 0.5, 0);//->getTranslation();
+
+	playerPos += Vector3(0, 1.75f, 0);
 	m_position = playerPos;
-	XMVECTOR offsetVector = ply->getCameraOffset();
+	XMVECTOR offsetVector = Vector3(0, 0, 1) * 5;
 	offsetVector = XMVector3Rotate(offsetVector, currentRotation);
 	m_position -= offsetVector;
-
-	
 	
 	Vector3 fromPlayerToCamera = m_position - playerPos;
 	if (Physics::get().castRay(playerPos, DirectX::XMVector3Normalize(fromPlayerToCamera), 5, hitPos))
@@ -164,11 +173,15 @@ void Camera::updateViewMatrix()
 		playerPos.m128_f32[1] += 0.00001f;
 	}
 
-	m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
+	
 
 	XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
 	XMVECTOR up = XMVector3TransformCoord(this->upVector, cameraRotation);
 	m_viewMatrix = XMMatrixLookAtLH(m_position, playerPos, up);
+
+	// = XMVector3TransformCoord(this->forwardVector, cameraRotation);
+	//m_curUp = XMVector3TransformCoord(this->upVector, cameraRotation);
+	//m_curRight = XMVector3TransformCoord(this->rightVector, cameraRotation);
 }
 
 void Camera::updateViewMatrixEndScene()

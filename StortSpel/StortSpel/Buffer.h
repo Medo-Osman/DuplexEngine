@@ -1,6 +1,5 @@
 #pragma once
 #include"3DPCH.h"
-#include <mutex>
 
 template <typename T>
 class Buffer
@@ -9,9 +8,7 @@ private:
 	UINT m_numberOfDataElements;
 	UINT m_stride;
 	bool m_dynamic;
-	ID3D11Buffer* m_bufferPtr;
-
-	std::mutex m_lock;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_bufferPtr;
 public:
 	Buffer()
 	{
@@ -23,13 +20,7 @@ public:
 	~Buffer()
 	{
 		if (m_bufferPtr != nullptr)
-		{
-			//m_bufferPtr.ReleaseAndGetAddressOf();
-
-			int nr = m_bufferPtr->Release();
-			m_bufferPtr = nullptr;
-			int te = 1;
-		}
+			m_bufferPtr.Reset();
 	}
 
 	HRESULT initializeBuffer(ID3D11Device* device, bool dynamic, D3D11_BIND_FLAG bindFlag, T* data, int nrOf, bool defaultUse = false, UINT stride = 0)
@@ -68,31 +59,30 @@ public:
 			bufferData.SysMemPitch = 0;
 			bufferData.SysMemSlicePitch = 0;
 
-			hr = device->CreateBuffer(&bufferDesc, &bufferData, &m_bufferPtr);
+			hr = device->CreateBuffer(&bufferDesc, &bufferData, m_bufferPtr.GetAddressOf());
 			assert(SUCCEEDED(hr) && "Failed to create buffer");
 			
 		}
 		else
 		{
-			hr = device->CreateBuffer(&bufferDesc, nullptr, &m_bufferPtr);
+			hr = device->CreateBuffer(&bufferDesc, nullptr, m_bufferPtr.GetAddressOf());
 
 		}
 		return hr;
 	}
 	HRESULT updateBuffer(ID3D11DeviceContext* dContext, T* data, int nrOf = 1)
 	{
-
 		HRESULT hr;
 		if (m_dynamic)
 		{
 			D3D11_MAPPED_SUBRESOURCE mappedData;
-			hr = dContext->Map(m_bufferPtr, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
+			hr = dContext->Map(m_bufferPtr.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
 			if (FAILED(hr))
 			{
 				OutputDebugString(L"Faied to map buffer\n");
 			}
 			CopyMemory(mappedData.pData, data, sizeof(T) * nrOf);
-			dContext->Unmap(m_bufferPtr, 0);
+			dContext->Unmap(m_bufferPtr.Get(), 0);
 		}
 		else
 		{
@@ -105,19 +95,12 @@ public:
 
 	void release()
 	{
-		if (m_bufferPtr != nullptr)
-		{
-			//m_bufferPtr.ReleaseAndGetAddressOf();
-			int nr = m_bufferPtr->Release();
-			//std::cout << "refcount: " << nr << std::endl;
-			m_bufferPtr = nullptr;
-			int te = 1;
-		}
-
+		if(m_bufferPtr != nullptr)
+			m_bufferPtr.Reset();
 	}
 
-	ID3D11Buffer* Get() const { return m_bufferPtr; }
-	ID3D11Buffer* const* GetAddressOf() const { return &m_bufferPtr; }
+	ID3D11Buffer* Get() const { return m_bufferPtr.Get(); }
+	ID3D11Buffer* const* GetAddressOf() const { return m_bufferPtr.GetAddressOf(); }
 
 	const UINT getStride() const { return *m_stride; }
 	const UINT* getStridePointer() const { return &m_stride; }

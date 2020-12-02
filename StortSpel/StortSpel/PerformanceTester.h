@@ -22,14 +22,6 @@ private:
 
 	float m_frameRate = 0;
 
-
-	PerformanceTester() {
-		m_internalTimer.start();
-	};
-
-	std::vector<float> fps;
-
-public:
 	float checkRam()
 	{
 		HANDLE hProcess = GetCurrentProcess();
@@ -78,10 +70,16 @@ public:
 		return vram;
 	}
 
+	PerformanceTester() {
+		m_internalTimer.start();
+	};
+
+	std::vector<float> fps;
+
+public:
 	static PerformanceTester& get()
 	{
 		static PerformanceTester instance;
-	
 		return instance;
 	}
 
