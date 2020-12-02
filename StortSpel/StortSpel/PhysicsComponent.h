@@ -107,6 +107,7 @@ public:
 
 	void initActorAndShape(int sceneID, Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
 	{
+		bool hasLoaded;
 		m_dynamic = dynamic;
 		m_transform = entity;
 		XMFLOAT3 scale = entity->getScaling() * meshComponent->getScaling();
@@ -132,7 +133,7 @@ public:
 					}
 					else //Create shape and add shape for sharing
 					{
-						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true);
+						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true, hasLoaded);
 						m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
 						m_physicsPtr->addShapeForSharing(m_shape, name);
 					}
@@ -142,9 +143,10 @@ public:
 			}
 			if (addGeom)
 			{
-				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false);
+				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false, hasLoaded);
 				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
-				delete geometry;
+				if(!hasLoaded)
+					delete geometry;
 			}
 
 		}
@@ -251,8 +253,9 @@ public:
 	}
 
 
-	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool saveGeometry)
+	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool saveGeometry, bool &hasLoaded)
 	{
+		bool loaded = true;
 		XMFLOAT3 min, max;
 		PxGeometry* bb = nullptr;
 		meshComponent->getMeshResourcePtr()->getMinMax(min, max);
@@ -262,10 +265,12 @@ public:
 
 		if (!bb)
 		{
+			loaded = false;
 			bb = createPrimitiveGeometry(geometry, min, max, meshComponent->getMeshResourcePtr()->getVertexArray(), meshComponent->getMeshResourcePtr()->getVertexBuffer().getSize());
 			if(saveGeometry)
 				m_physicsPtr->addGeometry(name, bb);
 		}
+		hasLoaded = loaded;
 		
 		return bb;
 	}
