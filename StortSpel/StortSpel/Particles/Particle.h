@@ -15,6 +15,7 @@ enum class ParticleEffect
 	RAININGDOG,
 	SCOREPICKUP,
 	PLAYERLINES,
+	LINEARRAY,
 };
 
 class Particle

@@ -70,10 +70,24 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 
 		if (key == VK_TAB)
 		{
-			//m_contexts[0]->setMute(!m_contexts[0]->getMute());
 			m_cursorEnabled = !m_cursorEnabled;
-			ShowCursor(CURSOR_SHOWING);
+			if (m_cursorEnabled)
+			{
+				while (::ShowCursor(TRUE) < 0);
+				m_contexts[0]->setMute(true);
+			}
+			else
+			{
+				while (::ShowCursor(FALSE) >= 0);
+				m_contexts[0]->setMute(false);
+			}
 		}
+
+
+		//if (key == VK_LEFTALT)
+		//{
+
+		//}
 
 		return 0;
 	}
@@ -212,6 +226,44 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 				ClipCursor(nullptr);
 			}
 		}
+
+	}
+	case WA_INACTIVE:
+	{
+		m_currentInputData.actionData.clear();
+		m_currentInputData.rangeData.clear();
+		m_currentInputData.stateData.clear();
+	}
+	case WM_SYSKEYDOWN:
+	{
+		return (LRESULT)1;
+	}
+	case WM_SYSKEYUP:
+	{
+		// NEEDED FOR WINDOW FREEZE BUG WHEN PRESSING ONLY ALT UNTIL THE WINDOW IS CLICKED!!!!
+		INPUT    Input = { 0 };
+		// left down 
+		Input.type = INPUT_MOUSE;
+		Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+		::SendInput(1, &Input, sizeof(INPUT));
+
+		// left up
+		::ZeroMemory(&Input, sizeof(INPUT));
+		Input.type = INPUT_MOUSE;
+		Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+		::SendInput(1, &Input, sizeof(INPUT));
+
+		return (LRESULT)0;
+	}
+	case WM_SYSCHAR:
+	{
+		return (LRESULT)1;
+	}
+	case WM_SYSCOMMAND:
+	{
+		if (wParam == SC_KEYMENU && (lParam >> 16) <= 0)
+			return 0;
+		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
 
 	}
@@ -219,7 +271,7 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 	return 0;
 }
 
-void Input::readBuffers()
+void Input::readBuffers(const float& dt)
 {
 	m_currentInputData.actionData.clear();
 	m_currentInputData.rangeData.clear();
@@ -262,50 +314,51 @@ void Input::readBuffers()
 		}
 	}
 	// Gamepad
-	auto gamepadState = m_gamepad->GetState(0);
+	auto gamepadState = m_gamepad->GetState(0, GamePad::DEAD_ZONE_CIRCULAR);
 
 	if (gamepadState.IsConnected())
 	{
 		// Actions
 		m_tracker.Update(gamepadState);
+		using BState = GamePad::ButtonStateTracker;
 
 		// A
-		if (m_tracker.a == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.a == BState::PRESSED)
 			inputDataChanged = this->fillInputDataUsingKey(' ', true) || inputDataChanged; // Space
-		else if (m_tracker.a == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.a == BState::RELEASED)
 			inputDataChanged = this->fillInputDataUsingKey(' ', false) || inputDataChanged; // Space
 
 		// X
-		if (m_tracker.x == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.x == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('\x10', true) || inputDataChanged; // Shift
 			//if (m_gamepad->SetVibration(0, 0.1f, 0.1f)) {} // player 0, leftMotor, rightMotor
 		}
-		else if (m_tracker.x == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.x == BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('\x10', false) || inputDataChanged; // Shift
 			//if (m_gamepad->SetVibration(0, 0.f, 0.f)) {}
 		}
 
 		// B
-		if (m_tracker.b == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.b == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('\x10', true) || inputDataChanged;
 			//if (m_gamepad->SetVibration(0, 0.1f, 0.1f)) {}
 		}
-		else if (m_tracker.b == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.b == BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('\x10', false) || inputDataChanged;
 			//if (m_gamepad->SetVibration(0, 0.f, 0.f)) {}
 		}
 
 		// Y
-		if (m_tracker.y == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.y == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('F', true) || inputDataChanged;
 			if (m_gamepad->SetVibration(0, 0.5f, 0.5f)) {}
 		}
-		else if (m_tracker.y == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.y == BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('F', false) || inputDataChanged;
 			if (m_gamepad->SetVibration(0, 0.f, 0.f)) {}
@@ -318,86 +371,90 @@ void Input::readBuffers()
 			inputDataChanged = this->fillInputDataUsingKey('\x1B', false) || inputDataChanged;
 
 		// View / Back
-		if (m_tracker.view == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.view == BState::PRESSED)
 			inputDataChanged = this->fillInputDataUsingKey('\x0D', true) || inputDataChanged; //Enter 
-		else if (m_tracker.view == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.view == BState::RELEASED)
 			inputDataChanged = this->fillInputDataUsingKey('\x0D', false) || inputDataChanged; //Enter 
 
 		// Walk / Menu Navigation
-
 		// Up
-		if (m_tracker.dpadUp		== GamePad::ButtonStateTracker::PRESSED ||
-			m_tracker.leftStickUp	== GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.dpadUp == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('W', true) || inputDataChanged;
 			inputDataChanged = this->fillInputDataUsingKey('\x26', true) || inputDataChanged; // Arrow Up
 		}
-		else
-		if (m_tracker.dpadUp		== GamePad::ButtonStateTracker::RELEASED ||
-			m_tracker.leftStickUp	== GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.dpadUp == BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('W', false) || inputDataChanged;
 			inputDataChanged = this->fillInputDataUsingKey('\x26', false) || inputDataChanged; // Arrow Up
 		}
 
 		// Left
-		if (m_tracker.dpadLeft		== GamePad::ButtonStateTracker::PRESSED ||
-			m_tracker.leftStickLeft	== GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.dpadLeft == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('A', true) || inputDataChanged;
 		}
-		else 
-		if (m_tracker.dpadLeft		== GamePad::ButtonStateTracker::RELEASED ||
-			m_tracker.leftStickLeft == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.dpadLeft == BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('A', false) || inputDataChanged;
 		}
 
 		// Down
-		if (m_tracker.dpadDown		== GamePad::ButtonStateTracker::PRESSED ||
-			m_tracker.leftStickDown == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.dpadDown == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('S', true) || inputDataChanged;
 			inputDataChanged = this->fillInputDataUsingKey('\x28', true) || inputDataChanged; // Arrow Down
 		}
-		else 
-		if (m_tracker.dpadDown		== GamePad::ButtonStateTracker::RELEASED ||
-			m_tracker.leftStickDown == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.dpadDown	== BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('S', false) || inputDataChanged;
 			inputDataChanged = this->fillInputDataUsingKey('\x28', false) || inputDataChanged; // Arrow Down
 		}
 
 		// Right
-		if (m_tracker.dpadRight		 == GamePad::ButtonStateTracker::PRESSED ||
-			m_tracker.leftStickRight == GamePad::ButtonStateTracker::PRESSED)
+		if (m_tracker.dpadRight == BState::PRESSED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('D', true) || inputDataChanged;
 		}
-		else 
-		if (m_tracker.dpadRight		 == GamePad::ButtonStateTracker::RELEASED ||
-			m_tracker.leftStickRight == GamePad::ButtonStateTracker::RELEASED)
+		else if (m_tracker.dpadRight == BState::RELEASED)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('D', false) || inputDataChanged;
 		}
 
+		// Analog Left Stick input
+		if (!m_contexts[0]->getMute()) // only for Movement Context for now
+		{
+			MousePos pos({ gamepadState.thumbSticks.leftX, gamepadState.thumbSticks.leftY });
+			if (pos.x > -m_centerDeadzoneLeftLimit && pos.x < m_centerDeadzoneLeftLimit) // Check if pos X is within center Deadzone
+				pos.x = 0;
+				
+			if (pos.y > -m_centerDeadzoneLeftLimit && pos.y < m_centerDeadzoneLeftLimit) // Check if pos X is within center Deadzone
+				pos.y = 0;
+				
+			if (pos.x != 0.f || pos.y != 0.f) // only send input if it has changed
+			{
+				m_currentInputData.rangeData.emplace_back(WALK, pos);
+				inputDataChanged = true;
+			}
+		}
+
 		// Camera
-		float posX = gamepadState.thumbSticks.rightX * m_rightStickSensetivity;
-		float posY = gamepadState.thumbSticks.rightY * m_rightStickSensetivity;
+		float posX = gamepadState.thumbSticks.rightX * m_rightStickSensetivity * dt;
+		float posY = gamepadState.thumbSticks.rightY * m_rightStickSensetivity * dt;
 
 		if (posX != 0.f || posY != 0.f)
 		{
-			if (!m_invertedRightStickY)
-				posY *= -1.f;
-
-			if (!m_contexts[0]->getMute())
+			if (!m_contexts[0]->getMute()) // only for Movement Context for now
 			{
+				if (!m_invertedRightStickY)
+					posY *= -1.f;
 				MousePos pos({ posX, posY });
 				this->m_currentInputData.rangeData.emplace_back(RAW, pos);
 				inputDataChanged = true;
 			}
 		}
 
+		// Example code
 		//if (gamepadState.buttons.y)
 			// Do action for button Y being down
 

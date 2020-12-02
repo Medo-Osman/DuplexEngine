@@ -1,4 +1,4 @@
-#include "3DPCH.h"
+ï»¿#include "3DPCH.h"
 #include "SceneManager.h"
 
 SceneManager::SceneManager()
@@ -19,6 +19,20 @@ SceneManager::~SceneManager()
 
 void SceneManager::initalize()
 {
+	//ImGui::NewFrame();
+	//ImGui::Begin("My First Tool", &my_test_active, ImGuiWindowFlags_MenuBar);
+	//if (ImGui::BeginMenuBar())
+	//{
+	//	if (ImGui::BeginMenu("File"))
+	//	{
+	//		if (ImGui::MenuItem("Open..", "Ctrl+O")) { /* Do stuff */ }
+	//		if (ImGui::MenuItem("Save", "Ctrl+S")) { /* Do stuff */ }
+	//		if (ImGui::MenuItem("Close", "Ctrl+W")) { my_test_active = false; }
+	//		ImGui::EndMenu();
+	//	}
+	//	ImGui::EndMenuBar();
+	//}
+
 	m_camera = Engine::get().getCameraPtr(); // Neeeds to be before uiMenuInitialize()
 	uiMenuInitialize();
 
@@ -101,7 +115,7 @@ void SceneManager::updateScene(const float &dt)
 
 	if (m_swapScene && !m_loadNextSceneWhenReady)
 	{
-
+		
 		m_nextScene = new Scene();
 		std::thread sceneLoaderThread;
 		switch (m_nextSceneEnum)
@@ -130,6 +144,8 @@ void SceneManager::updateScene(const float &dt)
 			m_gameStarted = false;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			m_camera->endSceneCamera = false;
+			
+			
 			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::START:
@@ -164,6 +180,8 @@ void SceneManager::updateScene(const float &dt)
 			Engine::get().getPlayerPtr()->getPlayerEntity()->setRotationQuat(Quaternion());
 			hideScore();
 			GUIHandler::get().setVisible(m_backToLobbyIndex, false);
+			
+		
 			GUIHandler::get().setInMenu(true, m_singleplayerIndex);
 			break;
 		case ScenesEnum::ENDSCENE:
@@ -219,7 +237,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 		else if (inputData.actionData[i] == LOAD_SCENE)
 		{
 			m_nextScene = new Scene();
-			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest1", m_nextSceneReady);
+			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Skyway_1", m_nextSceneReady);
 			sceneLoaderThread.detach();
 			//Scene::loadScene(m_nextScene, "levelMeshTest1", m_nextSceneReady);
 
@@ -390,6 +408,16 @@ std::vector<std::pair<int, std::string>>* SceneManager::getScorePtr()
 	return m_scores;
 }
 
+void SceneManager::inputIP()
+{
+
+	ImGui::Begin("Input IP", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+	ImGui::InputText("IP", charPtr,IM_ARRAYSIZE(charPtr));
+	
+	ImGui::End();
+	std::string IP = std::string(charPtr, charPtr + sizeof(char)*256);
+	
+}
 void SceneManager::swapScenes()
 {
 
@@ -405,6 +433,8 @@ void SceneManager::swapScenes()
 		if (m_currentScene->m_boss)
 			m_currentScene->m_boss->Detach(m_currentScene);
 
+		m_currentScene->deactivateScene();
+
 		// Swap
 		delete m_currentScene;
 		m_currentScene = m_nextScene;
@@ -416,11 +446,13 @@ void SceneManager::swapScenes()
 		Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 		Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
+		m_currentScene->activateScene();
+
 		// Set as PhysicsObserver
 		Physics::get().Attach(m_currentScene, false, true);
 		Physics::get().changeScene(m_currentScene->getSceneID());
 		CharacterControllerComponent* ccc = static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"));
-		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), 1.75f, 0.5f, "human");
+		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), PLAYER_CAPSULE_HEIGHT, PLAYER_CAPSULE_RADIUS, "human");
 		ccc->setPosition(m_currentScene->getEntryPosition());
 
 		m_currentScene->onSceneLoaded();
@@ -601,7 +633,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		}
 		if (guiElement->m_index == m_tutorialIndex)
 		{
-			// LADDA IN TUTORIAL NIVÅ HÄR!!!!!!
+			// LADDA IN TUTORIAL NIVÃ… HÃ„R!!!!!!
 			//-----------------------------------------------------
 			/*GUIHandler::get().setVisible(m_singleplayerIndex, false);
 			GUIHandler::get().setVisible(m_tutorialIndex, false);
@@ -618,7 +650,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_fovIndex, false);
 			GUIHandler::get().setVisible(m_fullscreenText, false);*/
 
-			//m_nextSceneEnum = ScenesEnum::START; // GLÖM INTE ATT SKAPA OCH SÄTTA TUTORIAL ENUM!!!!!!
+			//m_nextSceneEnum = ScenesEnum::START; // GLÃ–M INTE ATT SKAPA OCH SÃ„TTA TUTORIAL ENUM!!!!!!
 			//m_swapScene = true;
 		}
 		if (guiElement->m_index == m_joinGameIndex)
@@ -628,6 +660,16 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_hostGameIndex)
 		{
 			//do stuff
+			if (showInputBar == false)
+			{
+				
+			}
+			else
+			{
+				
+
+			}
+			showInputBar = !showInputBar;
 		}
 		if (guiElement->m_index == m_exitIndex)
 		{

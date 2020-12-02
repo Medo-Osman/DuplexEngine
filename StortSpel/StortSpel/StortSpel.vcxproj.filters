@@ -79,12 +79,18 @@
     <Filter Include="Source Files\Graphics\Particles\RainingDog\Draw">
       <UniqueIdentifier>{cb4f9acb-35a2-4e50-afe7-523299c12978}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Graphics\Particles\PlayerLines">
-      <UniqueIdentifier>{a1c79bd5-2660-43a9-b262-d5a650067a8a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Game\Traps">
       <UniqueIdentifier>{fda73094-e463-4574-9c83-c0425d6076d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Graphics\Particles\Lines">
+      <UniqueIdentifier>{a1c79bd5-2660-43a9-b262-d5a650067a8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\Lines\PlayerLines">
+      <UniqueIdentifier>{81cd15a0-dc26-411b-960a-cd15bfe82696}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Particles\Lines\LineArray">
+      <UniqueIdentifier>{76330652-4474-42fc-9b9d-736c26b0023a}</UniqueIdentifier>
+	</Filter>
     <Filter Include="Source Files\Graphics\Particles\PlatformWarning">
       <UniqueIdentifier>{ea91ae63-a675-4fa1-a31d-4759086d677a}</UniqueIdentifier>
     </Filter>
@@ -386,9 +392,6 @@
     <ClInclude Include="Particles\RainingDogsParticle.h">
       <Filter>Source Files\Graphics\Particles\RainingDog</Filter>
     </ClInclude>
-    <ClInclude Include="Particles\PlayerLineParticle.h">
-      <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
-    </ClInclude>
     <ClInclude Include="BarrelComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
@@ -428,6 +431,18 @@
     <ClInclude Include="MoveToAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
     </ClInclude>
+    <ClInclude Include="HeightPickup.h">
+      <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
+    <ClInclude Include="CannonPickup.h">
+      <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles\PlayerLineParticle.h">
+      <Filter>Source Files\Graphics\Particles\Lines\PlayerLines</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles\LineArrayParticle.h">
+      <Filter>Source Files\Graphics\Particles\Lines\LineArray</Filter>
+    </ClInclude>
     <ClInclude Include="DataHelper.h">
       <Filter>Source Files\Utilities</Filter>
     </ClInclude>
@@ -455,6 +470,12 @@
     <ClInclude Include="GrowingComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="SwingComponent.h">
+      <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>Source Files\Components</Filter>
+	</ClInclude>
     <ClInclude Include="ReferenceCounted.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
@@ -464,10 +485,16 @@
     <ClInclude Include="AudioResource.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
+    <ClInclude Include="HeightPickup.h">
+      <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
+    <ClInclude Include="CannonPickup.h">
+      <Filter>Source Files\Game\Pickup</Filter>
+    </ClInclude>
     <ClInclude Include="SwingComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Component.h">
+    <ClInclude Include="TrampolineComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
     <ClInclude Include="ThunderAction.h">
@@ -555,14 +582,11 @@
     <FxCompile Include="Particles\DrawLineByVelocityGS.hlsl">
       <Filter>Source Files\Graphics\Particles\Score</Filter>
     </FxCompile>
-    <FxCompile Include="Particles\PlayerLineStreamOutGS.hlsl">
-      <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
-    </FxCompile>
     <FxCompile Include="Particles\PlayerLineDrawVertexShader.hlsl">
-      <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
+      <Filter>Source Files\Graphics\Particles\Lines</Filter>
     </FxCompile>
     <FxCompile Include="Particles\PlayerLineDrawGS.hlsl">
-      <Filter>Source Files\Graphics\Particles\PlayerLines</Filter>
+      <Filter>Source Files\Graphics\Particles\Lines</Filter>
     </FxCompile>
     <FxCompile Include="ShadowVertex.hlsl">
       <Filter>Resource Files\Shader</Filter>
@@ -577,6 +601,15 @@
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
     <FxCompile Include="EmissivePixelShader.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\PlayerLineStreamOutGS.hlsl">
+      <Filter>Source Files\Graphics\Particles\Lines\PlayerLines</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\ArrayOfLinesStreamOut.hlsl">
+      <Filter>Source Files\Graphics\Particles\Lines\LineArray</Filter>
+	</FxCompile>
+    <FxCompile Include="RainbowShader.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
   </ItemGroup>

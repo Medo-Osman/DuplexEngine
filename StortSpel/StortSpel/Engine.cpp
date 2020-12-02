@@ -193,12 +193,13 @@ void Engine::initialize(Input* input)
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
-	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
 	playerEntity->addComponent("mesh", animMeshComp);
+	playerEntity->setScaleUniform(0.5f);
 
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
-	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true, true);
+	animMeshComp->addAndPlayBlendState({ {"Idle", 0.f}, {"RunLoop", 1.f} }, "runOrIdle", 0.f, true, true);
 
 	m_player->setAnimMeshPtr(animMeshComp);
 
@@ -206,7 +207,7 @@ void Engine::initialize(Input* input)
 	// - Physics Componenet
 	playerEntity->addComponent("CCC", new CharacterControllerComponent());
 	CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(playerEntity->getComponent("CCC"));
-	pc->initController(playerEntity, 1.75f, 0.5, "human");
+	pc->initController(playerEntity, PLAYER_CAPSULE_HEIGHT, PLAYER_CAPSULE_RADIUS, "human");
 
 	// - Camera Follow Transform ptr
 	m_player->setCameraTranformPtr(m_camera.getTransform());

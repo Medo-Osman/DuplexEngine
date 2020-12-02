@@ -20,6 +20,7 @@ private:
 	ScenesEnum m_currectSceneEnum;
 	ScenesEnum m_nextSceneEnum;
 	Camera* m_camera;
+	std::string str;
 	bool m_swapScene;
 
 	//GUI score
@@ -39,8 +40,9 @@ private:
 	int m_cameraSense;
 	int m_volumeAmount;
 	std::vector<iContext*>* m_contexts;
-	
-	//button index
+	bool showInputBar = true;
+
+	char charPtr[256] = { 0 };
 	int m_singleplayerIndex = 0;
 	int m_tutorialIndex = 0;
 	int m_exitIndex = 0;
@@ -99,6 +101,8 @@ public:
 
 	void setScorePtr(std::vector<std::pair<int, std::string>>* m_scores);
 	std::vector<std::pair<int, std::string>>* getScorePtr();
+
+	void inputIP();
 
 	void swapScenes();
 

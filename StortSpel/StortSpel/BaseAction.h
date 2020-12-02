@@ -14,9 +14,9 @@ namespace BossStructures
 		Vector3 origin;
 		Vector3 rotation;
 		float speed = 0;
-		int maxStarCount;
-		int currentStarCount;
+		int number0;
 		void* pointer0 = nullptr;
+		void* pointer1 = nullptr;
 	};
 
 	struct BossLaser

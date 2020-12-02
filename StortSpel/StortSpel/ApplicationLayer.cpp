@@ -1,5 +1,7 @@
 #include"3DPCH.h"
 #include"ApplicationLayer.h"
+#include <cstdlib>
+#include<ctime>
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -63,7 +65,10 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	if (SUCCEEDED(hr))
 	{
 		initOK = true;
-		ShowWindow(m_window, showCmd);
+		if (m_height >= 1080)
+			ShowWindow(m_window, SW_MAXIMIZE);
+		else
+			ShowWindow(m_window, showCmd);
 	}
 	// Audio
 	AudioHandler::get().initialize(m_window);
@@ -71,7 +76,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	// PhysX
 	m_physics = &Physics::get();
 	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
-	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input, &m_window);
+	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input, &m_window, this->getWindowSize());
 
 	// Engine
 	Engine::get().initialize(&m_input);
@@ -83,8 +88,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	m_scenemanager.initalize();
 	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 
-	srand(static_cast <unsigned> (time(0)));
-
+	srand(static_cast<unsigned>(std::time(0)));
 	return initOK;
 }
 
@@ -159,7 +163,7 @@ void ApplicationLayer::applicationLoop()
 			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
-			m_input.readBuffers();
+			m_input.readBuffers(m_dt);
 			m_physics->update(m_dt);
 
 			m_enginePtr->update(m_dt);

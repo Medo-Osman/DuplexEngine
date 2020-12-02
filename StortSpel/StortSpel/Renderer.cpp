@@ -208,6 +208,10 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_skelAnimationConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skeletonAnimationCBuffer, 1);
 	m_dContextPtr->VSSetConstantBuffers(2, 1, m_skelAnimationConstantBuffer.GetAddressOf());
 
+	globalConstBuffer globalConstBuffer;
+	m_globalConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &globalConstBuffer, 1);
+	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
+
 	lightBufferStruct initalLightData; //Not sure why, but it refuses to take &lightBufferStruct() as argument on line below
 	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);
 	m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
@@ -273,6 +277,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.BufferCount = 2;
 	sChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sChainDesc.Windowed = true; //Windowed or fullscreen
+	//sChainDesc.Windowed = false; //Windowed or fullscreen
 	sChainDesc.BufferDesc.Height = m_settings.height; //Size of buffer in pixels, height
 	sChainDesc.BufferDesc.Width = m_settings.width; //Size of window in pixels, width
 	sChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; //DXGI Format, 8 bits for Red, green, etc
@@ -586,6 +591,8 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		
 		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
 			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+		else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
+			parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
 		else
 			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
@@ -778,6 +785,23 @@ void Renderer::update(const float& dt)
 	{
 		m_camera->frustumCullingOn = !m_camera->frustumCullingOn;
 	}
+
+	// Constant buffer updates and settings
+	static globalConstBuffer tempGlobalConstBuffer;
+
+	tempGlobalConstBuffer.time += dt;
+
+	m_globalConstBuffer.updateBuffer(m_dContextPtr.Get(), &tempGlobalConstBuffer);
+
+	//ImGui::SetNextWindowPos(ImVec2(1300.0f, 600.0f));
+	//ImGui::SetNextWindowSize(ImVec2(550.0f, 500.0f));
+	//ImGui::Begin("Time");
+
+	//ImGui::Text("");
+	//ImGui::Text("%.0f Time 1 ", tempGlobalConstBuffer.time);
+	//ImGui::Text("%.0f Dt ", dt);;
+
+	//ImGui::End();
 }
 
 void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
@@ -901,7 +925,7 @@ void Renderer::render()
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-	m_swapChainPtr->Present(1, 0);
+	m_swapChainPtr->Present(0, 0);
 }
 
 ID3D11Device* Renderer::getDevice()
