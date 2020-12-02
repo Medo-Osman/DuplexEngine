@@ -31,9 +31,9 @@ private:
 	int m_rankingScoreIndecThree;
 	//
 	std::vector<iContext*>* m_contexts;
-	bool showInputBar = false;
+	bool showInputBar = true;
 
-
+	char charPtr[256] = { 0 };
 	int m_singleplayerIndex = 0;
 	int m_exitIndex = 0;
 	int m_joinGameIndex = 0;

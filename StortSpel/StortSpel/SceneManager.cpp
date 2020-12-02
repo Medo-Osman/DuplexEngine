@@ -142,6 +142,7 @@ void SceneManager::initalize()
 	hideScore();
 
 	GUIHandler::get().setVisible(m_backToLobbyIndex, false);
+
 }
 
 void SceneManager::updateScene(const float &dt)
@@ -149,7 +150,7 @@ void SceneManager::updateScene(const float &dt)
 	inputIP();
 	if (m_swapScene && !m_loadNextSceneWhenReady)
 	{
-
+		
 		m_nextScene = new Scene();
 		std::thread sceneLoaderThread;
 		switch (m_nextSceneEnum)
@@ -169,7 +170,7 @@ void SceneManager::updateScene(const float &dt)
 			m_gameStarted = false;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			m_camera->endSceneCamera = false;
-
+			
 			
 			GUIHandler::get().setInMenu(false);
 			break;
@@ -203,6 +204,8 @@ void SceneManager::updateScene(const float &dt)
 			m_camera->endSceneCamera = false; // if this is false the camera follows the player as usual
 			hideScore();
 			GUIHandler::get().setVisible(m_backToLobbyIndex, false);
+			
+		
 			GUIHandler::get().setInMenu(true, m_singleplayerIndex);
 			
 			break;
@@ -368,14 +371,13 @@ std::vector<std::pair<int, std::string>>* SceneManager::getScorePtr()
 
 void SceneManager::inputIP()
 {
-	char charPtr[256] = { 0 };
+
 	ImGui::Begin("Input IP", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 	ImGui::InputText("IP", charPtr,IM_ARRAYSIZE(charPtr));
 	
 	ImGui::End();
-	std::string string = std::string(charPtr, charPtr + sizeof(char)*256);
-	std::cout << string << std::endl;
-
+	std::string IP = std::string(charPtr, charPtr + sizeof(char)*256);
+	
 }
 void SceneManager::swapScenes()
 {
@@ -486,12 +488,13 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_hostGameIndex)
 		{
 			//do stuff
-			if (showInputBar == true)
+			if (showInputBar == false)
 			{
 				
 			}
 			else
 			{
+				
 
 			}
 			showInputBar = !showInputBar;
