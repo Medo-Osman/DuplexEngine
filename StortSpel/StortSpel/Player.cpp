@@ -37,13 +37,19 @@ Player::Player()
 	
 	//GUI
 	m_score = 0;
+	//style.position.y = 70.f;
+	//style.scale = { 0.5f };
+	//m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
+	GUIImageStyle iStyle;
+	iStyle.position = Vector2(1750, 150);
+	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Power-up_BG.png", iStyle);
+	iStyle.position = Vector2(1700, 50);
+	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Point_BG.png", iStyle);
 	GUITextStyle style;
-	style.position.y = 70.f;
-	style.scale = { 0.5f };
-	m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
-	style.position.x = 160.f;
-	style.color = Colors::Yellow;
+	style.position = Vector2(1717, 62);
+	style.color = Colors::White;
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
+
 
 	GUIImageStyle imageStyle;
 	imageStyle.position = Vector2(400.f, 50.f);
@@ -509,8 +515,6 @@ void Player::playerStateLogic(const float& dt)
 		if ((PLAYER_MAX_SPEED * dt) <= 0.0f)
 			blend = 0.0f;
 
-		std::cout << sizeof(float) << std::endl;
-
 		m_animMesh->setCurrentBlend( std::fmin(blend, 1.55f) );
 		//// analog animation:
 		//if (vectorLen > 0)
@@ -629,6 +633,9 @@ void Player::updatePlayer(const float& dt)
 		handleRotation(dt);
 
 	//PlayerState logic Update
+	if (m_respawnNextFrame)
+		respawnPlayer();
+
 	playerStateLogic(dt);
 
 	ImGui::Begin("Player Information", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
@@ -698,21 +705,27 @@ void Player::increaseScoreBy(int value)
 {
 	m_score += value;
 	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+	
+	if (m_score >= 10 && m_score < 100)
+	{
+		GUITextStyle style;
+		style.position = Vector2(1705, 62);
+		style.color = Colors::White;
+		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
+	}
+	if (m_score >= 100)
+	{
+		
+		GUITextStyle style;
+		style.position = Vector2(1678, 62);
+		style.color = Colors::White;
+		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
+	}
 }
 
 void Player::respawnPlayer()
 {
-	if (m_pickupPointer)
-	{
-		if (m_pickupPointer->isActive())
-		{
-			m_pickupPointer->onDepleted();
-			m_pickupPointer->onRemove();
-			SAFE_DELETE(m_pickupPointer);
-
-		}
-	}
-
+	m_respawnNextFrame = false;
 	m_state = PlayerState::IDLE;
 	m_controller->setPosition(m_checkpointPos);
 	m_velocity = Vector3();
@@ -859,8 +872,17 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 			direction.Normalize();
 			m_playerEntity->translate(direction);*/
 
-			jump(false);
+		jump(false);
+	}
+
+	if (!shouldTriggerEntityBeRemoved)
+	{
+
+		if (physicsData.triggerType == TriggerType::RESPAWN)
+		{
+			m_respawnNextFrame = true;
 		}
+
 
 		//Checkpoints
 		if (physicsData.triggerType == TriggerType::CHECKPOINT)

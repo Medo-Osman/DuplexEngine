@@ -53,9 +53,6 @@ void Engine::update(const float& dt)
 
 }
 
-void Engine::updatePlayerAndCamera(const float& dt)
-{
-}
 void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities)
 {
 	m_entities = entities;
@@ -102,18 +99,6 @@ bool Engine::addComponentToPlayer(std::string componentIdentifier, Component* co
 	return true;
 }
 
-void Engine::removeLightComponentFromPlayer(LightComponent* component)
-{
-	//m_player->getPlayerEntity()->removeComponent(component);
-
-	//int nrOfErased = m_lightComponentMap->erase(component->getIdentifier());
-	//if (nrOfErased > 0) //if it deleted more than 0 elements
-	//{
-	//	m_lightCount -= nrOfErased;
-	//}
-	//m_currentScene->removeLightComponentFromMap(component);
-
-}
 
 std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 {
@@ -158,9 +143,6 @@ Player* Engine::getPlayerPtr()
 	return m_player;
 }
 
-
-
-
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
 	m_devicePtr = devicePtr;
@@ -184,14 +166,16 @@ void Engine::initialize(Input* input)
 
 	// Audio Handler Listener setup
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
-	
+
 	// Player
 	m_player = new Player();
+
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
 
 	// - Entity
 	Entity* playerEntity = new Entity(PLAYER_ENTITY_NAME);
 	playerEntity->setPosition({ 0, 0, 0 });
+
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
@@ -203,11 +187,9 @@ void Engine::initialize(Input* input)
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
 	animMeshComp->addAndPlayBlendState({ {"Idle", 0.f}, {"RunLoop", 1.f} }, "runOrIdle", 0.f, true, true);
 
-
 	m_player->setAnimMeshPtr(animMeshComp);
 
 	//a4->setAnimationSpeed(0.05f);
-
 	// - Physics Componenet
 	playerEntity->addComponent("CCC", new CharacterControllerComponent());
 	CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(playerEntity->getComponent("CCC"));
@@ -215,7 +197,7 @@ void Engine::initialize(Input* input)
 
 	// - Camera Follow Transform ptr
 	m_player->setCameraTranformPtr(m_camera.getTransform());
-	
+
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
 	//GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());

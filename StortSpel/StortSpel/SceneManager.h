@@ -5,6 +5,8 @@
 #include "Boss.h"
 #include <thread>
 #include <future>
+#include "Camera.h"
+#include <Windows.h>
 
 
 class SceneManager : public InputObserver, public PhysicsObserver, public GUIObserver
@@ -14,19 +16,34 @@ private:
 	Scene* m_nextScene;
 	Input* inputPtr;
 	ScenesEnum m_nextSceneEnum;
-
+	Camera* m_camera;
 
 	bool m_swapScene;
 
+	//GUI score
+	int m_highScoreLabelIndex;
+	int m_playerOneScoreIndex;
+	int m_playerTwoScoreIndex;
+	int m_playerThreeScoreIndex;
+
+	int m_rankingScoreIndecOne;
+	int m_rankingScoreIndecTwo;
+	int m_rankingScoreIndecThree;
+	//
 	std::vector<iContext*>* m_contexts;
 
 	int m_singleplayerIndex = 0;
 	int m_exitIndex = 0;
 	int m_joinGameIndex = 0;
 	int m_hostGameIndex = 0;
+	int m_backToLobbyIndex = 0;
 
 	bool* m_nextSceneReady = new bool;
 	bool m_loadNextSceneWhenReady = false;
+	std::vector<std::pair<int, std::string>>* m_scores;
+	void hideScore();
+	void showScore(); 
+
 
 public:
 	SceneManager();
@@ -44,9 +61,11 @@ public:
 	void disableMovement();
 	void enableMovement();
 
-	void setContextPtr(std::vector<iContext*>* m_contexts);
-	//std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
+	void setContextPtr(std::vector<iContext*>* contexts);
 	std::vector<iContext*>* getContextPtr();
+
+	void setScorePtr(std::vector<std::pair<int, std::string>>* m_scores);
+	std::vector<std::pair<int, std::string>>* getScorePtr();
 
 	void swapScenes();
 

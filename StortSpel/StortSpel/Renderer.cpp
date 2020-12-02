@@ -215,7 +215,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_dContextPtr->PSSetConstantBuffers(3, 1, m_currentMaterialConstantBuffer.GetAddressOf());
 
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
-	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
+	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get(), m_deferredContext.Get());
 	m_camera = Engine::get().getCameraPtr();
 
 
@@ -292,7 +292,9 @@ HRESULT Renderer::createDeviceAndSwapChain()
 		&m_fLevel, //Feature Level
 		m_dContextPtr.GetAddressOf() //Device COntext Pointer
 	);
+	assert(SUCCEEDED(hr));
 
+	hr = m_devicePtr->CreateDeferredContext(0, m_deferredContext.GetAddressOf());
 	assert(SUCCEEDED(hr));
 
 	return hr;
@@ -580,7 +582,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
 
-		if (m_frustumCullingOn && parentEntity->m_canCull)
+		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
 		{
 			//Culling
 			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
@@ -740,14 +742,19 @@ void Renderer::rasterizerSetup()
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
 
-	
+
+
+	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+
+	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_particleRasterizerStatePtr.GetAddressOf());
+	assert(SUCCEEDED(hr) && "Error creating particleRasterizerState");
 }
 
 void Renderer::update(const float& dt)
 {
 	if (ImGui::Button("Toggle FrustumCulling"))
 	{
-		m_frustumCullingOn = !m_frustumCullingOn;
+		m_camera->frustumCullingOn = !m_camera->frustumCullingOn;
 	}
 }
 
@@ -762,7 +769,9 @@ void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* h
 
 void Renderer::render()
 {
-	
+	//m_deferredContext->ExecuteCommandList();
+	m_dContextPtr->ExecuteCommandList(ResourceHandler::get().m_commandList, TRUE);
+
 	//Update camera position for pixel shader buffer
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
@@ -834,6 +843,7 @@ void Renderer::render()
 
 
 	//Particles
+	m_dContextPtr->RSSetState(m_particleRasterizerStatePtr.Get());
 	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
 	//Draw all particles here
 	//this->particle.draw(this->m_dContextPtr.Get());
@@ -848,6 +858,7 @@ void Renderer::render()
 			static_cast<ParticleComponent*>(vec[i])->draw(m_dContextPtr.Get());
 		}
 	}
+	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
 	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
 	this->m_dContextPtr->PSSetSamplers(1, 1, this->m_psSamplerState.GetAddressOf());
@@ -879,6 +890,11 @@ ID3D11Device* Renderer::getDevice()
 ID3D11DeviceContext* Renderer::getDContext()
 {
 	return m_dContextPtr.Get();
+}
+
+ID3D11DeviceContext* Renderer::getDeferredDContext()
+{
+	return m_deferredContext.Get();
 }
 
 ID3D11DepthStencilView* Renderer::getDepthStencilView()

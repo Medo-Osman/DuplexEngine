@@ -29,6 +29,7 @@ void AnimatedMeshComponent::init(const char* filepath)
 		m_cBufferStruct.boneMatrixPallet[i] = XMMatrixIdentity();
 	}
 
+	getMeshResourcePtr()->addRef();
 	// when the temp rotation values go this might not need to be here
 	//applyPoseToJoints(XMMatrixIdentity());
 }

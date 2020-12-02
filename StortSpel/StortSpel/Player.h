@@ -159,6 +159,8 @@ private:
     int m_score;
     int m_scoreLabelGUIIndex;
     int m_scoreGUIIndex;
+    int m_scoreBG_GUIIndex;
+    int m_powerUp_GUIIndex;
     std::wstring m_scoreSound = L"StarSound.wav";
     AudioComponent* m_audioComponent;
 
@@ -198,6 +200,8 @@ private:
     void endJump_First();
     void startJump_Second();
     void endJump_Second();
+  
+    bool m_respawnNextFrame = false; //PhysX won't allow you to read and write at the same time.
   
 public:
     Player();

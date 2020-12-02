@@ -85,6 +85,9 @@
     <Filter Include="Source Files\Game\Traps">
       <UniqueIdentifier>{fda73094-e463-4574-9c83-c0425d6076d2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Graphics\Particles\PlatformWarning">
+      <UniqueIdentifier>{ea91ae63-a675-4fa1-a31d-4759086d677a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -452,6 +455,15 @@
     <ClInclude Include="GrowingComponent.h">
       <Filter>Source Files\Components</Filter>
     </ClInclude>
+    <ClInclude Include="ReferenceCounted.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureResource.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioResource.h">
+      <Filter>Source Files\Application</Filter>
+    </ClInclude>
     <ClInclude Include="HeightPickup.h">
       <Filter>Source Files\Game\Pickup</Filter>
     </ClInclude>
@@ -463,6 +475,9 @@
     </ClInclude>
     <ClInclude Include="Component.h">
       <Filter>Source Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ThunderAction.h">
+      <Filter>Source Files\Game\Boss\Moves</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
