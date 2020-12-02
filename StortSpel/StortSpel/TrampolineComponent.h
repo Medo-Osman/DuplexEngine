@@ -9,9 +9,9 @@ private:
 	MeshComponent* m_springMesh;
 	MeshComponent* m_movingPart;
 
-	const float WAIT_TIME_AT_EXTENDED = 0.2f;
+	const float WAIT_TIME_AT_EXTENDED = 0.13f;
 	const float HALF_TIME = 0.25f;
-	Vector3 SCALE_MOD = {0.f, -2.4f, 0.f};
+	Vector3 SCALE_MOD = {0.f, -2.3f, 0.f};
 
 	bool m_active;
 	bool m_switchedDirection;
@@ -29,6 +29,7 @@ public:
 		m_switchedDirection = false;
 		m_scale = { 1, 1, 1 };
 		m_originalPos = m_movingPart->getTranslation();
+		m_timer = 0;
 
 	}
 	~TrampolineComponent() {}
@@ -71,14 +72,13 @@ public:
 					m_active = false;
 					m_timer = 0.f;
 					m_direction *= -1;
+					m_scale = { 1.f, 1.f, 1.f };
 					SCALE_MOD *= -1;
 					m_switchedDirection = false;
 					m_springMesh->setScale(1, 1, 1);
 					m_movingPart->setPosition(m_originalPos);
 
 				}
-
-
 		}
 	}
 
