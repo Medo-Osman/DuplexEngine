@@ -1,4 +1,4 @@
-#include "3DPCH.h"
+﻿#include "3DPCH.h"
 #include "SceneManager.h"
 
 SceneManager::SceneManager()
@@ -360,6 +360,10 @@ void SceneManager::swapScenes()
 		if (m_currentScene->m_boss)
 			m_currentScene->m_boss->Detach(m_currentScene);
 
+		m_currentScene->deactivateScene();
+	
+
+		//hej detta �r big changes
 		// Swap
 		delete m_currentScene;
 		m_currentScene = m_nextScene;
@@ -370,11 +374,13 @@ void SceneManager::swapScenes()
 		Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 		Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
+		m_currentScene->activateScene();
+
 		// Set as PhysicsObserver
 		Physics::get().Attach(m_currentScene, false, true);
 		Physics::get().changeScene(m_currentScene->getSceneID());
 		CharacterControllerComponent* ccc = static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"));
-		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), 1.75f, 0.5f, "human");
+		ccc->initController(Engine::get().getPlayerPtr()->getPlayerEntity(), PLAYER_CAPSULE_HEIGHT, PLAYER_CAPSULE_RADIUS, "human");
 		ccc->setPosition(m_currentScene->getEntryPosition());
 
 		m_currentScene->onSceneLoaded();
