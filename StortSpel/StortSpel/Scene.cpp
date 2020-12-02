@@ -216,7 +216,7 @@ void Scene::addCheckpoint(const Vector3& position)
 
 void Scene::addBarrelDrop(Vector3 Position)
 {
-	Entity* rollingBarrel = addEntity("barrel"+std::to_string(m_nrOfBarrelDrops++));
+	Entity* rollingBarrel = addEntity("barrel"+std::to_string(m_player->m_nrOfBarrelDrops++));
 
 	if (rollingBarrel)
 	{
@@ -227,9 +227,23 @@ void Scene::addBarrelDrop(Vector3 Position)
 		createNewPhysicsComponent(rollingBarrel, true, "", PxGeometryType::eSPHERE, "wood", true);
 		static_cast<PhysicsComponent*>(rollingBarrel->getComponent("physics"))->setMass(100.0f);
 		addComponent(rollingBarrel, "barrel", new BarrelComponent());
-		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 2,1,1 });
-		m_despawnBarrelTimer.restart();
-		addedBarrel = true;
+		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 4,2,2 });
+	}
+}
+
+void Scene::addBarrelDropTrigger(Vector3 position)
+{
+	Entity* barrelDropTrigger = addEntity("dropTrigger" + std::to_string(m_nrOfBarrelTrigger++));
+	if (barrelDropTrigger)
+	{
+		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
+		addComponent(barrelDropTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material()));
+
+		barrelDropTrigger->setPosition(position);
+
+		addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
+		barrelComponentTrigger->initTrigger(m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
 	}
 }
 
@@ -837,7 +851,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->addSlowTrap(Vector3(0.f, 13.f, 30.f), Vector3(3.f,3.f,3.f), Vector3(1.5f, 1.5f, 1.5f));
 	sceneObject->addPushTrap(Vector3(-5.f, 20.f, 58.f), Vector3(5.f, 20.f, 58.f), Vector3(0.f, 18.f, 50.f));
-
+	sceneObject->addBarrelDropTrigger(Vector3(-30.f, 30.f, 105.f));
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 	
 	Entity* endSceneTrigger = sceneObject->addEntity("endSceneTrigger");
@@ -859,22 +873,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->createTimedSweepPlatform({ 0, 7.5f, 5.f }, { 0, 7.5f, 10.f }, true, 2.5f);
 
-
-
-
-	Entity* barrelDropTrigger = sceneObject->addEntity("dropTrigger");
-	if (barrelDropTrigger)
-	{
-		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
-		sceneObject->addComponent(barrelDropTrigger, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material()));
-
-		barrelDropTrigger->setPosition(-30.f, 30.f, 105.f);
-
-		sceneObject->addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
-		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
-	}
-
 	/*for (int i = 0; i < 3; i++)
 	{
 		Entity* stressObject = sceneObject->addEntity("stressObject" + std::to_string(i));
@@ -887,7 +885,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 		}
 	}*/
-
 
 
 	Entity* floor = sceneObject->addEntity("floor"); // Floor:
@@ -1640,19 +1637,6 @@ void Scene::updateScene(const float& dt)
 		deferredPointInstantiationList.clear();
 	}
 	
-
-	if (addedBarrel)
-	{
-		for (int i = 0; i < m_nrOfBarrelDrops; i++)
-		{
-
-			//static_cast<PhysicsComponent*>(m_entities["barrel" + std::to_string(i)]->getComponent("physics"))->clearForce();
-			//static_cast<PhysicsComponent*>(m_entities["barrel" + std::to_string(i)]->getComponent("physics"))->setPosition({ -30, 50, 130 });
-			//m_despawnBarrelTimer.restart();
-		}
-
-		addedBarrel = false;
-	}
 
 	for (int i = 0; i < m_tempParticleComponent.size(); i++)
 	{

@@ -87,7 +87,7 @@ private:
    
     //
     TrapType m_activeTrap;
-
+    TriggerType m_triggerType;
     Vector3 m_velocity = Vector3();
     Vector3 m_lastPosition = Vector3();
     float m_previousVerticalMovement = 0.f;
@@ -152,6 +152,7 @@ public:
 
     float getPlayerScale() const;
 
+    int m_nrOfBarrelDrops = 0;
     int getScore();
     void setScore(int newScore);
     Entity* getPlayerEntity() const;

@@ -127,6 +127,7 @@ private:
 	void addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox);
 	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 	void createParticleEntity(void* particleComponent, Vector3 position);
+	
 
 	//void addSlowTrap(const Vector3& position, Vector3 scale);
 	//void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
@@ -137,9 +138,10 @@ private:
 	const std::string m_LEVELS_PATH = "../res/levels/";
 
 	int m_nrOfCheckpoints = 0;
-	int m_nrOfBarrelDrops = 0;
+
 	int m_nrOftraps = 0;
 	int m_nrOfPlayers = 4;
+	int m_nrOfBarrelTrigger = 0;
 
 
 	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
@@ -181,7 +183,7 @@ public:
 	bool addedBarrel = false;
 	bool gameStarted = false;
 
-
+	
 
 
 
@@ -189,6 +191,7 @@ public:
 	void addMeshComponent(MeshComponent* component);
 	void addLightComponent(LightComponent* component);
 	void addBarrelDrop(Vector3 Position);
+	void addBarrelDropTrigger(Vector3 Position);
 
 	int getSceneID();
 

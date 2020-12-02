@@ -289,7 +289,7 @@ void Player::updatePlayer(const float& dt)
 		break;
 	case TrapType::SLOW:
 		m_slowTimer += dt;
-		if (m_slowTimer >= m_slowTime)
+ 		if (m_slowTimer >= m_slowTime)
 		{
 			m_slowTimer = 0;
 			m_currentSpeedModifier = 1;
@@ -299,8 +299,18 @@ void Player::updatePlayer(const float& dt)
 	default:
 		break;
 	}
+	
+	switch (m_triggerType)
+	{
+	case TriggerType::BARREL:
+		std::cout << "dgs" << std::endl;
+		break;
+	default:
+		break;
+	}
+	
 
-
+	
 	if (m_pickupPointer)
 	{
 		if (m_pickupPointer->isActive())
@@ -518,7 +528,6 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 		case TrapType::SLOW:
 			m_activeTrap = (TrapType)physicsData.associatedTriggerEnum;
 			m_currentSpeedModifier = 0.5f;
-			m_goalSpeedModifier = physicsData.floatData;
 			m_speedModifierTime = 0;
 			break;
 		}
@@ -528,12 +537,15 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 	if (physicsData.triggerType == TriggerType::BARREL)
 	{
 
-		//spelare - barrel
-		/*	Vector3 direction = ->getTranslation() - m_playerEntity->getTranslation();
-		direction.Normalize();
-		m_playerEntity->translate(direction);*/
 
-		jump();
+		m_activeTrap = TrapType::SLOW;
+		m_currentSpeedModifier = 0.5f;
+		
+		m_speedModifierTime = 0;
+		//PacketHandler::get().functionnamn(int m_nrOfBarrelDrops")
+		//do stuff jonas
+	
+
 	}
 	if (!shouldTriggerEntityBeRemoved)
 	{
