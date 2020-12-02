@@ -872,116 +872,117 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 			direction.Normalize();
 			m_playerEntity->translate(direction);*/
 
-		jump(false);
-	}
-
-	if (!shouldTriggerEntityBeRemoved)
-	{
-
-		if (physicsData.triggerType == TriggerType::RESPAWN)
-		{
-			m_respawnNextFrame = true;
+			jump(false);
 		}
 
-
-		//Checkpoints
-		if (physicsData.triggerType == TriggerType::CHECKPOINT)
+		if (!shouldTriggerEntityBeRemoved)
 		{
-			Entity* ptr = static_cast<Entity*>(physicsData.pointer);
 
-			CheckpointComponent* checkpointPtr = dynamic_cast<CheckpointComponent*>(ptr->getComponent("checkpoint"));
-			if (!checkpointPtr->isUsed())
+			if (physicsData.triggerType == TriggerType::RESPAWN)
 			{
-				AudioComponent* audioPtr = dynamic_cast<AudioComponent*>(ptr->getComponent("sound"));
-				audioPtr->playSound();
-
-				m_checkpointPos = ptr->getTranslation();
-
-				checkpointPtr->setUsed(true);
+				m_respawnNextFrame = true;
 			}
-		}
 
-		//Pickup 
-		if (physicsData.triggerType == TriggerType::PICKUP)
-		{
-			/*
-				assosiatedTriggerEnum - PickupType
-				intData - used currently for heightBoost to check if they use trampoline object or if they pickedup the item(intData = fromPickup
-				stringData -free
-				floatData - modifier for speedboost.
-			*/
-			
-			if (m_pickupPointer == nullptr || ((bool)!physicsData.intData && (PickupType)physicsData.associatedTriggerEnum == PickupType::HEIGHTBOOST ))
+
+			//Checkpoints
+			if (physicsData.triggerType == TriggerType::CHECKPOINT)
 			{
-				bool environmenPickup = false;
-				bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
-				switch ((PickupType)physicsData.associatedTriggerEnum)
+				Entity* ptr = static_cast<Entity*>(physicsData.pointer);
+
+				CheckpointComponent* checkpointPtr = dynamic_cast<CheckpointComponent*>(ptr->getComponent("checkpoint"));
+				if (!checkpointPtr->isUsed())
 				{
-				case PickupType::SPEED:
-					shouldTriggerEntityBeRemoved = true; //We want to remove speedpickup entity after we've used it.
-					m_currentSpeedModifier = 1.f;
-					m_goalSpeedModifier = physicsData.floatData;
-					m_speedModifierTime = 0;
-					break;
-				case PickupType::HEIGHTBOOST:
-					if ((bool)physicsData.intData) //fromPickup -true/false
-					{
-						shouldTriggerEntityBeRemoved = true;
-					}	
-					else
-					{
-						jump(false, 1.5f);
-						environmenPickup = true;
-					}
+					AudioComponent* audioPtr = dynamic_cast<AudioComponent*>(ptr->getComponent("sound"));
+					audioPtr->playSound();
 
+					m_checkpointPos = ptr->getTranslation();
 
-					break;
-				case PickupType::CANNON:
-					shouldTriggerEntityBeRemoved = true;
-					break;
-				case PickupType::SCORE:
-					addPickupByAssosiatedID = false;
-					break;
-				default:
-					break;
+					checkpointPtr->setUsed(true);
 				}
-				if (addPickupByAssosiatedID)
+			}
+
+			//Pickup 
+			if (physicsData.triggerType == TriggerType::PICKUP)
+			{
+				/*
+					assosiatedTriggerEnum - PickupType
+					intData - used currently for heightBoost to check if they use trampoline object or if they pickedup the item(intData = fromPickup
+					stringData -free
+					floatData - modifier for speedboost.
+				*/
+
+				if (m_pickupPointer == nullptr || ((bool)!physicsData.intData && (PickupType)physicsData.associatedTriggerEnum == PickupType::HEIGHTBOOST))
 				{
-					Pickup* pickupPtr = getCorrectPickupByID(physicsData.associatedTriggerEnum);
-					pickupPtr->setModifierValue(physicsData.floatData);
-
-
-					if (environmenPickup)
+					bool environmenPickup = false;
+					bool addPickupByAssosiatedID = true; // If we do not want to add pickup change this to false in switchCase.
+					switch ((PickupType)physicsData.associatedTriggerEnum)
 					{
-
-						if (m_environmentPickup) //If we already have an environmentpickup (SInce they can be force added, we need to, if it exist, remove the "old" enironmentPickup before creating/getting a new.
+					case PickupType::SPEED:
+						shouldTriggerEntityBeRemoved = true; //We want to remove speedpickup entity after we've used it.
+						m_currentSpeedModifier = 1.f;
+						m_goalSpeedModifier = physicsData.floatData;
+						m_speedModifierTime = 0;
+						break;
+					case PickupType::HEIGHTBOOST:
+						if ((bool)physicsData.intData) //fromPickup -true/false
 						{
-							m_environmentPickup->onRemove();
-							delete m_environmentPickup;
-							m_environmentPickup = nullptr;
+							shouldTriggerEntityBeRemoved = true;
 						}
-						pickupPtr->onPickup(m_playerEntity);
-						pickupPtr->onUse();
-						m_environmentPickup = pickupPtr;
+						else
+						{
+							jump(false, 1.5f);
+							environmenPickup = true;
+						}
+
+
+						break;
+					case PickupType::CANNON:
+						shouldTriggerEntityBeRemoved = true;
+						break;
+					case PickupType::SCORE:
+						addPickupByAssosiatedID = false;
+						break;
+					default:
+						break;
 					}
-					else
+					if (addPickupByAssosiatedID)
 					{
-						m_pickupPointer = pickupPtr;
-						pickupPtr->onPickup(m_playerEntity);
-						if (pickupPtr->shouldActivateOnPickup())
+						Pickup* pickupPtr = getCorrectPickupByID(physicsData.associatedTriggerEnum);
+						pickupPtr->setModifierValue(physicsData.floatData);
+
+
+						if (environmenPickup)
+						{
+
+							if (m_environmentPickup) //If we already have an environmentpickup (SInce they can be force added, we need to, if it exist, remove the "old" enironmentPickup before creating/getting a new.
+							{
+								m_environmentPickup->onRemove();
+								delete m_environmentPickup;
+								m_environmentPickup = nullptr;
+							}
+							pickupPtr->onPickup(m_playerEntity);
 							pickupPtr->onUse();
+							m_environmentPickup = pickupPtr;
+						}
+						else
+						{
+							m_pickupPointer = pickupPtr;
+							pickupPtr->onPickup(m_playerEntity);
+							if (pickupPtr->shouldActivateOnPickup())
+								pickupPtr->onUse();
+						}
 					}
 				}
-			}
-			//Score
-				if((PickupType)physicsData.associatedTriggerEnum == PickupType::SCORE)
-			{
-				int amount = (int)physicsData.floatData;
-				this->increaseScoreBy(amount);
-				m_audioComponent->playSound();
-				shouldTriggerEntityBeRemoved = true;
-			}
+				//Score
+				if ((PickupType)physicsData.associatedTriggerEnum == PickupType::SCORE)
+				{
+					int amount = (int)physicsData.floatData;
+					this->increaseScoreBy(amount);
+					m_audioComponent->playSound();
+					shouldTriggerEntityBeRemoved = true;
+				}
 
+			}
 		}
 	}
 }
@@ -1033,6 +1034,7 @@ void Player::update(GUIUpdateType type, GUIElement* guiElement)
 		button->setTexture(L"closeButton.png");
 	}
 }
+
 void Player::serverPlayerAnimationChange(PlayerState currentState, float currentBlend)
 {
 	m_animMesh->setCurrentBlend(currentBlend);
