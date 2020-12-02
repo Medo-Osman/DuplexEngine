@@ -25,8 +25,8 @@ Material::Material(std::wstring materialName, bool isPBR)
 {
 	if (isPBR)
 	{
-		addTexture(L"skybox1IR.dds", true);
-		addTexture(L"skybox1.dds", true);
+		addTexture(L"Skybox_Texture2.dds", true);
+		addTexture(L"Skybox_Texture2.dds", true);
 		addTexture(L"ibl_brdf_lut.png");
 	}
 	
@@ -257,7 +257,10 @@ void Material::readMaterials()
 
 			for (int l = 0; l < 4; l++)
 			{
-				if (rawFileName.substr(rawFileName.size() - 2, std::wstring::npos) == L"_" + letters[l])
+				std::wstring testVariable1 = rawFileName.substr(rawFileName.size() - (l == 3 ? 4 : 2), std::wstring::npos);
+				std::wstring testVariable2 = L"_" + letters[l];
+
+				if (rawFileName.substr(rawFileName.size() - (l == 3 ? 4 : 2), std::wstring::npos) == L"_" + letters[l])
 				{
 					materials[textureName][letters[l]] = (rawFileName);
 					isTextrue = true;
