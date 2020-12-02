@@ -16,6 +16,7 @@ public:
 		//Mouse click
 		m_actionMapping[(char)'m_rp'] = Action::USE; // Example of using mouse for action, m_rp is right mouse pressed.
 		m_actionMapping[(char)' '] = Action::SELECT; // Space
+		m_actionMapping['\x1B'] = Action::MENU;
 
 		//Range
 		m_rangeMapping[(char)'move'] = Range::REL; //Mouse position, can be used for UI and such. Leave it in here for example.
