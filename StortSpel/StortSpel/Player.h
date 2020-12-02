@@ -93,7 +93,7 @@ private:
     const float MAX_FALL_SPEED = 20.f;
     float m_gravityScale = 4.f;
 
-    //DASH CONFIG 
+    //DASH CONFIG
     const float DASH_TRAVEL_DISTANCE = 3.f;
     const float DASH_SPEED = 30.0f;
     const float DASH_OUT_SPEED = 10.0f;
@@ -140,7 +140,7 @@ private:
     Entity* m_playerEntity;
     AnimatedMeshComponent* m_animMesh;
     CharacterControllerComponent* m_controller;
-   
+
     // Camera
     Transform* m_cameraTransform;
     const Vector3 ORIGINAL_CAMERA_OFFSET = Vector3(0.f, 0.0f, 2.5f);
@@ -200,9 +200,9 @@ private:
     void endJump_First();
     void startJump_Second();
     void endJump_Second();
-  
+
     bool m_respawnNextFrame = false; //PhysX won't allow you to read and write at the same time.
-  
+
 public:
     Player();
     ~Player();
@@ -231,7 +231,7 @@ public:
     bool isRunning();
 
     void updatePlayer(const float& dt);
-    
+
     void setPlayerEntity(Entity* entity);
 
     Vector3 getCheckpointPos();
@@ -243,12 +243,14 @@ public:
 
     void setCameraTranformPtr(Transform* transform);
     void setAnimMeshPtr(AnimatedMeshComponent* animatedMesh);
-    
+
     void incrementScore();
 
     void increaseScoreBy(int value);
     void respawnPlayer();
 
+
+    int m_nrOfBarrelDrops = 0;
     int getScore();
     void setScore(int newScore);
     Entity* getPlayerEntity() const;
