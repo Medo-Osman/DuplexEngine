@@ -19,7 +19,7 @@ struct starStruct
 {
 	Timer timer;
 	Entity* starEntity = nullptr;
-	float lifeTime = 10;
+	float lifeTime = 5;
 };
 
 enum PrefabType

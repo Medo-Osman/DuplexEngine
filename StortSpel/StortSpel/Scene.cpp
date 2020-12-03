@@ -1523,14 +1523,14 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	if (bossEnt)
 	{
 		bossEnt->scale({ 1, 1, 1 });
-		bossEnt->translate({ 0,2.5,0 });
+		bossEnt->translate({ 15, 4.6f, 15 });
 
 		sceneObject->addComponent(bossEnt, "sound", sceneObject->m_bossMusicComp);
 
 		sceneObject->m_boss = new Boss();
 		sceneObject->m_boss->Attach(sceneObject);
 		sceneObject->m_boss->initialize(bossEnt, true);
-		sceneObject->m_boss->setNrOfMaxStars(10);
+		sceneObject->m_boss->setNrOfMaxStars(100);
 		sceneObject->m_endBossAtPecentNrOfStarts = 0; // if this is 0 the end secene will be triggered
 
 		//// Init grid structure
@@ -1588,15 +1588,32 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 
 
 		//Generate a set of segments on the boss, primarily to display the interface.
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < 1; i++)
 		{
 			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
-			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("Boss_Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+
+			Material emissiveMat({ L"DarkGrayTexture.png", L"RedCrystalEmissive.png" });
+			emissiveMat.setEmissiveStrength(20);
+
+			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("BossModel_polySurface188.lrm", 
+				{
+					DEFAULT,
+					EMISSIVE
+				},
+				{
+					Material({ L"Boss_Albedo.png" }),
+					emissiveMat
+				}));
+
+			LightComponent* light = new LightComponent(Vector3(0, 0, 0), Vector3(1, 0, 0), 0.5f);
+
+			sceneObject->addComponent(segmentEntity, "light", new LightComponent(Vector3(0, 0, 0), Vector3(1, 0, 0), 1));
+
 			segmentEntity->setScale({ 0.5f, 0.5f, 0.5f });
 
 			BossSegment* projectileSegment = new BossSegment();
 			projectileSegment->initializeSegment(segmentEntity, false);
-			projectileSegment->m_entityOffset = Vector3(0, 1.5 * sceneObject->m_boss->m_bossSegments.size(), 0);
+			projectileSegment->m_entityOffset = Vector3(0, 2.5 * sceneObject->m_boss->m_bossSegments.size(), 0);
 			sceneObject->m_boss->addSegment(projectileSegment);
 			sceneObject->createNewPhysicsComponent(segmentEntity, true, "physics");
 			PhysicsComponent* pys = (PhysicsComponent*)segmentEntity->getComponent("physics");
@@ -1688,8 +1705,8 @@ void Scene::updateScene(const float& dt)
 		if (m_boss->getActionQueue()->size() == 0 && m_boss->getCurrnentNrOfStars() >= 0)
 		{
 			BossStructures::IntVec platformTargetIndex = m_boss->getNewPlatformTarget();
+			//m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 20)); //Wait before moving again
 			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 5.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
-			//m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 2)); //Wait before moving again
 			m_boss->addAction(new ShootLaserAction(m_boss->m_bossSegments.at(0)->m_bossEntity, m_boss, 1));
 			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 5.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
 			//m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 5)); //Wait before moving again
@@ -2049,8 +2066,12 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 		Entity* platformEntity = static_cast<Entity*>(data.pointer0);
 		MeshComponent* platformMeshComponent = (MeshComponent*)(platformEntity->getComponent("mesh"));
 		Material* platformMaterial = platformMeshComponent->getMaterialPtr(0);
-
 		platformMaterial->swapTexture(L"RedEmissive.png", 1);
+
+		Entity* boss = m_entities.at("projectileSegment0");
+		MeshComponent* bossMeshComponent = (MeshComponent*)(boss->getComponent("mesh"));
+		Material* bossMaterial = bossMeshComponent->getMaterialPtr(1);
+		bossMaterial->setEmissiveStrength(700);
 		
 		{
 			Entity* bossEnt = static_cast<Entity*>(data.pointer1);
@@ -2061,6 +2082,13 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 		}
 	}
 	
+	if (type == BossMovementType::I_AM_TIRED_THIS_LOWERS_THE_EMISSIVE_ON_THE_CRYSTAL)
+	{
+		Entity* boss = m_entities.at("projectileSegment0");
+		MeshComponent* bossMeshComponent = (MeshComponent*)(boss->getComponent("mesh"));
+		Material* bossMaterial = bossMeshComponent->getMaterialPtr(1);
+		bossMaterial->setEmissiveStrength(20);
+	}
 
 }
 
@@ -2289,7 +2317,7 @@ void Scene::createLaser(BossStructures::BossActionData data)
 	if (laserEntity)
 	{
 		laserEntity->setRotation(data.rotation);
-		laserEntity->setPosition(data.origin);
+		laserEntity->setPosition(data.origin - Vector3(0, 1.5f, 0));
 		laserEntity->m_canCull = false;
 		Material mat = Material({ L"red.png", L"red.png" });
 		mat.setEmissiveStrength(700.f);
@@ -2332,10 +2360,10 @@ void Scene::checkLasers(float dt)
 			idsToRemove.push_back(laserStruct.first);
 		}
 
-		float maxSize = 0.1f;
+		float maxSize = 0.3f;
 		Entity* entity = laserStruct.second->entity;
 		float size = (currTime / lifeTime) * maxSize;
-		entity->setScale({ 1+size, 1 + size, entity->getScaling().z });
+		entity->setScale({ size, size, entity->getScaling().z });
 	}
 
 	//can not remove mid-loop
@@ -2368,7 +2396,6 @@ void Scene::checkPlatforms(float dt)
 			Entity* platformEntity = displacedPlatformStruct.second->entity;
 			MeshComponent* platformMeshComponent = (MeshComponent*)(platformEntity->getComponent("mesh"));
 			Material* platformMaterial = platformMeshComponent->getMaterialPtr(0);
-
 			platformMaterial->swapTexture(L"BlueEmissive.png", 1);
 
 			PhysicsComponent* comp = static_cast<PhysicsComponent*>(entity->getComponent("physics"));
