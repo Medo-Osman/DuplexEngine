@@ -19,7 +19,7 @@ public:
 	
 		m_activateOnPickup = false;
 		m_isTimeBased = false;
-		m_pickupIcon = L"spring.png";
+		m_pickupIcon = L"TrampolinIcon.png";
 	}
 	virtual void update(const float& dt)
 	{

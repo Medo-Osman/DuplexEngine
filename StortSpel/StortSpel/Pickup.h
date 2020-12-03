@@ -57,10 +57,10 @@ public:
 		Vector2 scaleToUse = windowSize / targetScale;
 
 		//Picture info
-		float sizeX = 256, sizeY = 256; //Full Image Size
-		float scaleX = 0.4 * scaleToUse.x, scaleY = 0.4f * scaleToUse.y; //Final Scale
+		float sizeX = 118, sizeY = 118; //Full Image Size
+		float scaleX = 0.8 * scaleToUse.x, scaleY = 0.8 * scaleToUse.y; //Final Scale
 		style.origin = { (sizeX/2), (sizeY/2) };
-		style.position = { windowSize.x - (sizeX/2 * scaleX + 58) , windowSize.y * 0.15f + (sizeY/2 * scaleY) };
+		style.position = { windowSize.x - (sizeX/2 * scaleX + 62) , windowSize.y * 0.150f + (sizeY/2 * scaleY) };
 		style.scale = { scaleX, scaleY };
 		ICON_ID = GUIHandler::get().addGUIImage(L"placeholderPickup.png", style);
 		GUIImageLabel* icon = dynamic_cast<GUIImageLabel*>(GUIHandler::get().getElementMap()->at(ICON_ID));

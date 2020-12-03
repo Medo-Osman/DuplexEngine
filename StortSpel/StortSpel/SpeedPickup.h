@@ -18,7 +18,7 @@ public:
 		m_activateOnPickup = false;
 		m_duration = SPEEDDURATION;
 		m_isTimeBased = true;
-		m_pickupIcon = L"adrenaline.png";
+		m_pickupIcon = L"SpeedIcon.png";
 	}
 	virtual void update(const float& dt)
 	{

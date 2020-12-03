@@ -727,7 +727,7 @@ void Player::setPlayerEntity(Entity* entity)
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
-	m_pickupPointer = new CannonPickup();
+	m_pickupPointer = new HeightPickup();
 	m_pickupPointer->onPickup(m_playerEntity, false);
 }
 
@@ -1022,7 +1022,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 						data.playerActionType = PlayerActions::ON_ENVIRONMENTAL_USE;
 						data.intEnum = physicsData.associatedTriggerEnum;
 						data.entityIdentifier = physicsData.entityIdentifier;
-
+						
 						for (int i = 0; i < (int)m_playerObservers.size(); i++)
 						{
 							m_playerObservers.at(i)->reactOnPlayer(data);
@@ -1048,16 +1048,27 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 
 					if (environmenPickup)
 					{
-
+						bool usePickup = true;
 						if (m_environmentPickup) //If we already have an environmentpickup (SInce they can be force added, we need to, if it exist, remove the "old" enironmentPickup before creating/getting a new.
 						{
-							m_environmentPickup->onRemove();
-							delete m_environmentPickup;
-							m_environmentPickup = nullptr;
+							usePickup = false;
+							if (m_trampolineEntityIdentifier != physicsData.entityIdentifier)
+							{
+									m_environmentPickup->onRemove();
+									delete m_environmentPickup;
+									m_environmentPickup = nullptr;
+									usePickup = true;
+							}
+
 						}
-						pickupPtr->onPickup(m_playerEntity, true);
-						pickupPtr->onUse();
-						m_environmentPickup = pickupPtr;
+						if (usePickup)
+						{
+							pickupPtr->onPickup(m_playerEntity, true);
+							pickupPtr->onUse();
+							m_environmentPickup = pickupPtr;
+							m_trampolineEntityIdentifier = physicsData.entityIdentifier;
+						}
+
 					}
 					else
 					{

@@ -22,7 +22,7 @@ public:
 		m_isTimeBased = false;
 		m_shootAudioComponent = nullptr;
 		m_particleEffect = nullptr;
-		m_pickupIcon = L"Cannon.png";
+		m_pickupIcon = L"CanonIcon.png";
 	}
 	virtual void update(const float& dt)
 	{
