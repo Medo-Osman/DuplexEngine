@@ -45,8 +45,7 @@ struct HS_CONSTANT_DATA_OUTPUT
 
 #define NUM_CONTROL_POINTS 3
 
-Texture2D displacement1 : register(t3);
-//Texture2D displacement2 : register(t4);
+Texture2D displacementORM : register(t6);
 
 SamplerState sampState : SAMPLER : register(s0);
 
@@ -71,7 +70,7 @@ ds_out main(
 	Output.tangent = finalBiTangent;
 	
 	float2 vUV = BarycentricCoordinates.x * tri[0].uv + BarycentricCoordinates.y * tri[1].uv + BarycentricCoordinates.z * tri[2].uv;
-	Output.uv = vUV + (time * 0.005);
+	Output.uv = (vUV + (time * 0.0005));
 	
 	// Displacement
 	float3 vDirection = vNormal;
@@ -79,13 +78,15 @@ ds_out main(
 	//float fDisplacement = displacement1.SampleLevel(sampState, Output.uv * vUV + (time * 0.005), 0).r;
 	//float fDisplacement2 = displacement2.SampleLevel(sampState, Output.uv * vUV + float2(0.133564, 0.785994) + (time * 0.006), 0).r;
 	
-	float fDisplacement = displacement1.SampleLevel(sampState, Output.uv + (0.001 * time), 0).r;
-	//float fDisplacement2 = displacement2.SampleLevel(sampState, Output.uv + (0.001 * time), 0).r;
+	Output.uv *= 5;
 	
-	//float finalDisplacement = fDisplacement * fDisplacement2;
-	float finalDisplacement = fDisplacement;
+	float fDisplacement1 = displacementORM.SampleLevel(sampState, Output.uv, 0).r;
+	float fDisplacement2 = displacementORM.SampleLevel(sampState, Output.uv, 0).g;
 	
-	vWorldPos += vDirection * finalDisplacement * 5;
+	float finalDisplacement = fDisplacement1 * fDisplacement2;
+	//float finalDisplacement = fDisplacement1;
+	
+	vWorldPos += vDirection * finalDisplacement * 4;
 
 	float4x4 viewProjMatrix = mul(viewMatrix, projectionMatrix);
 	

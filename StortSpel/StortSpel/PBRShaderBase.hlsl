@@ -76,6 +76,8 @@ cbuffer atmosphericFogConstantBuffer : register(b5)
 	float FogGlobalDensity;
 	float3 FogSunDir;
 	float FogHeightFalloff;
+	float FogStartDepthSkybox;
+	float3 padding;
 }
 
 struct ps_in

@@ -97,7 +97,7 @@ HS_CONSTANT_DATA_OUTPUT ConstantHS(
 	
 	//Output.InsideTessFactor = gTessFactor;
 	
-	float gTessFactor = 8.0f;
+	float gTessFactor = 10.0f;
 	
 	[unroll]
 	for (int vert = 0; vert < 3; vert++)

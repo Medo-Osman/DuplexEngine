@@ -197,10 +197,14 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_psSamplerState);
 	assert(SUCCEEDED(hr) && "Failed to create SampleState");
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
+	m_dContextPtr->DSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 
 	perObjectMVP perObjectMVP;
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP, 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+	m_dContextPtr->HSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+	m_dContextPtr->DSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+
 	skyboxMVP skyboxMVP;
 	m_skyboxConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skyboxMVP, 1);
 	m_dContextPtr->VSSetConstantBuffers(1, 1, m_skyboxConstantBuffer.GetAddressOf());
@@ -211,6 +215,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	globalConstBuffer globalConstBuffer;
 	m_globalConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &globalConstBuffer, 1);
 	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
+	m_dContextPtr->DSSetConstantBuffers(1, 1, m_globalConstBuffer.GetAddressOf());
 
 	lightBufferStruct initalLightData; //Not sure why, but it refuses to take &lightBufferStruct() as argument on line below
 	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);

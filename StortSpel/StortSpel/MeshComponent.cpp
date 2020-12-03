@@ -50,7 +50,7 @@ MeshComponent::MeshComponent(char* paramData)
 
 			ShaderProgramsEnum sp = charToShaderEnum(suffix);
 
-			if (sp == PBRTEST || sp == LUCY_FACE || sp == SKEL_PBR)
+			if (sp == PBRTEST || sp == LUCY_FACE || sp == SKEL_PBR || sp == CLOUD)
 				isPBR = true;
 
 			//if (sp == PBRTEST) // temp

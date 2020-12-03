@@ -72,9 +72,9 @@ TextureCube skyIR : register(t0);
 TextureCube skyPrefilter : register(t1);
 Texture2D brdfLUT : register(t2);
 
-Texture2D displacement1 : register(t3);
-Texture2D normal1 : register(t5);
-//Texture2D normal2 : register(t6);
+Texture2D perlin32N : register(t3);
+Texture2D perlin64N : register(t5);
+Texture2D displacement1 : register(t6);
 
 SamplerState sampState : SAMPLER : register(s0);
 
@@ -83,7 +83,7 @@ float4 main(ps_in input) : SV_TARGET
 	float3 N = normalize(input.normal);
 	
 	//float3 normalFromMap = normal1.Sample(sampState, input.uv).xyz * 2 - 1;
-	float3 normalFromMap = normal1.Sample(sampState, input.uv).xyz;
+	float3 normalFromMap = perlin32N.Sample(sampState, input.uv).xyz;
 	N = normalize(normalFromMap);
 	
 	//input.tangent = normalize(input.tangent);
@@ -94,7 +94,7 @@ float4 main(ps_in input) : SV_TARGET
 	//float3x3 TBN = float3x3(T, B, N);
 	//N = normalize(mul(normalFromMap, TBN));
 	
-	float3 V = normalize(cameraPosition - input.worldPos);
+	//float3 V = normalize(cameraPosition - input.worldPos);
 	
 	float yMask = -N.g;
 	
@@ -105,7 +105,6 @@ float4 main(ps_in input) : SV_TARGET
 	float skyLightDot = dot(-skyLightDirection, N);
   
 	float3 irradiance = skyIR.Sample(sampState, N).rgb;
-	//float3 diffuse = irradiance * albedo;
 	float3 diffuse = lerp(irradiance, albedo, 0.7f);
 	
 	float backSideMask = skyLightDot;
@@ -144,10 +143,13 @@ float4 main(ps_in input) : SV_TARGET
 	
 	//return float4(finalDisplacement.r, 0.0, 0.0, 1.0);
 	return float4(simpleDotColorColor, 1.0);
+	//return float4(N, 1.0);
 	//return float4(skyLightDot, skyLightDot, skyLightDot, 1.0);
 	
 	//float3 contrastN = AdjustContrast(N, 2);
 	//return float4(contrastN, 1.0f);
+	//return float4(color, 1.0f);
+	//return float4(shaded, shaded, shaded, 1.0);
 	
 	//return float4(normalFromMap, 1.0f);
 }
