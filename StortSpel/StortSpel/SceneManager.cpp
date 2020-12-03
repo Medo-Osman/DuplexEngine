@@ -149,7 +149,8 @@ void SceneManager::updateScene(const float &dt)
 			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::START:
-			sceneLoaderThread = std::thread(Scene::loadTestLevel, m_nextScene,m_nextSceneReady);
+			//sceneLoaderThread = std::thread(Scene::loadTestLevel, m_nextScene,m_nextSceneReady);
+			sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Skyway_1", m_nextSceneReady);
 			sceneLoaderThread.detach();
 			m_nextScene->hidescore = true;
 			m_gameStarted = true;

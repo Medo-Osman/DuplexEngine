@@ -81,7 +81,7 @@ struct ps_out
 Texture2D diffuseTexture : TEXTURE : register(t0);
 SamplerState sampState : SAMPLER : register(s0);
 SamplerComparisonState shadowSampState : SAMPLER1 : register(s1);
-Texture2D shadowMap : TEXTURE : register(t9);
+Texture2D shadowMap : TEXTURE : register(t7);
 
 struct lightComputeResult
 {
@@ -166,7 +166,7 @@ lightComputeResult computeLightFactor(ps_in input)
     if (length(cameraPosition - input.worldPos) > RANGE)
         shadowFactor = 1.f;
     
-    finalColor = finalColor + shadowFactor*saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
+    finalColor = finalColor + shadowFactor*saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness * 0.2f;
     
     result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel));
     

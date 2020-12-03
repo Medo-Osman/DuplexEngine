@@ -615,8 +615,23 @@
     <FxCompile Include="SeeThroughPixel.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
+    <FxCompile Include="CloudShaderDS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="CloudShaderHS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="CloudShaderPS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="CloudShaderVS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="UtilityLibrary.hlsli">
+      <Filter>Resource Files\Shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

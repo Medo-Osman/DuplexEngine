@@ -1,5 +1,9 @@
 #define MAX_LIGHTS 8
 
+static const float SHADOW_MAP_SIZE = 4096.f;
+static const float SHADOW_MAP_DELTA = 1.f / SHADOW_MAP_SIZE;
+static const float RANGE = 90.f;
+
 struct pointLight
 {
 	float4 position;
@@ -57,46 +61,22 @@ cbuffer MaterialBuffer : register(b3)
     float materialEmissiveStrength;
 }
 
-// Shadow mapping stuff
-//struct lightComputeResult
-//{
-//	float3 lightColor;
-//	float diffuseLightFactor;
-//	float intensity;
-//};
+cbuffer globalConstBuffer : register(b4)
+{
+	float3 playerPosition;
+	float environmentMapBrightness;
+	float time;
+}
 
-//float2 texOffset(int u, int v)
-//{
-//	return float2(u * SHADOW_MAP_DELTA, v * SHADOW_MAP_DELTA);
-//}
-
-//float computeShadowFactor(float4 shadowPosH)
-//{
-//	float2 shadowUV = shadowPosH.xy / shadowPosH.w * 0.5f + 0.5f;
-//	shadowUV.y = 1.0f - shadowUV.y;
-    
-//	float depth = shadowPosH.z / shadowPosH.w; //In NDC, depthFromLightPosToPoint
-    
-//	const float delta = SHADOW_MAP_DELTA;
-//	float percentLit = 0.0f;
-    
-//    //PCF sampling for shadow map
-//	const int sampleRange = 2;
-//    [unroll]
-//	for (int x = -sampleRange; x <= sampleRange; x++)
-//	{
-//        [unroll]
-//		for (int y = -sampleRange; y <= sampleRange; y++)
-//		{
-//			percentLit += shadowMap.SampleCmpLevelZero(shadowSampState, shadowUV, depth, int2(x, y));
-//		}
-//	}
-//    //Avg of all samples
-//	percentLit /= ((sampleRange * 2 + 1) * (sampleRange * 2 + 1));
-    
-//	return;
-//}
-
+cbuffer atmosphericFogConstantBuffer : register(b5)
+{
+	float3 FogColor;
+	float FogStartDepth;
+	float3 FogHighlightColor;
+	float FogGlobalDensity;
+	float3 FogSunDir;
+	float FogHeightFalloff;
+}
 
 struct ps_in
 {
@@ -120,13 +100,78 @@ TextureCube skyPrefilter : register(t1);
 Texture2D brdfLUT : register(t2);
 
 Texture2D albedoTexture		: TEXTURE : register(t3);
-Texture2D normalTexture		: TEXTURE : register(t4);
-Texture2D ORMtexture		: TEXTURE : register(t5);
-Texture2D emissiveTexture	: TEXTURE : register(t6);
+Texture2D emissiveTexture	: TEXTURE : register(t4);
+Texture2D normalTexture		: TEXTURE : register(t5);
+Texture2D ORMtexture		: TEXTURE : register(t6);
 Texture2D shadowMap			: TEXTURE : register(t7);
+
 SamplerState sampState		: SAMPLER : register(s0);
+SamplerComparisonState shadowSampState : SAMPLER1 : register(s1);
 
 static const float PI = 3.14159265359;
+
+struct lightComputeResult
+{
+	float3 lightColor;
+	float diffuseLightFactor;
+	float intensity;
+};
+
+float2 texOffset(int u, int v)
+{
+	return float2(u * SHADOW_MAP_DELTA, v * SHADOW_MAP_DELTA);
+}
+
+float computeShadowFactor(float4 shadowPosH)
+{
+	float2 shadowUV = shadowPosH.xy / shadowPosH.w * 0.5f + 0.5f;
+	shadowUV.y = 1.0f - shadowUV.y;
+    
+	float depth = shadowPosH.z / shadowPosH.w; //In NDC, depthFromLightPosToPoint
+    
+	const float delta = SHADOW_MAP_DELTA;
+	float percentLit = 0.0f;
+    
+    //PCF sampling for shadow map
+	const int sampleRange = 2;
+    [unroll]
+	for (int x = -sampleRange; x <= sampleRange; x++)
+	{
+        [unroll]
+		for (int y = -sampleRange; y <= sampleRange; y++)
+		{
+			percentLit += shadowMap.SampleCmpLevelZero(shadowSampState, shadowUV, depth, int2(x, y));
+		}
+	}
+    //Avg of all samples
+	percentLit /= ((sampleRange * 2 + 1) * (sampleRange * 2 + 1));
+    
+	return percentLit;
+};
+
+float3 ApplyFog(float3 originalColor, float eyePosY, float3 eyeToPixel)
+{
+	float pixelDist = length(eyeToPixel);
+	float3 eyeToPixelNorm = eyeToPixel / pixelDist;
+	// Find the fog staring distance to pixel distance
+	float fogDist = max(pixelDist - FogStartDepth, 0.0);
+	// Distance based fog intensity
+	float fogHeightDensityAtViewer = exp(-FogHeightFalloff * eyePosY);
+	float fogDistInt = fogDist * fogHeightDensityAtViewer;
+	// Height based fog intensity
+	float eyeToPixelY = eyeToPixel.y * (fogDist / pixelDist);
+	float t = FogHeightFalloff * eyeToPixelY;
+	const float thresholdT = 0.01;
+	float fogHeightInt = abs(t) > thresholdT ? (1.0 - exp(-t)) / t : 1.0;
+	// Combine both factors to get the final factor
+	float fogFinalFactor = exp(-FogGlobalDensity * fogDistInt * fogHeightInt);
+	// Find the sun highlight and use it to blend the fog color
+	float sunHighlightFactor = saturate(dot(eyeToPixelNorm, normalize(FogSunDir)));
+	sunHighlightFactor = pow(sunHighlightFactor, 8.0);
+
+	float3 fogFinalColor = lerp(FogColor, FogHighlightColor, sunHighlightFactor);
+	return lerp(fogFinalColor, originalColor, fogFinalFactor);
+}
 
 float DistributionGGX(float3 N, float3 H, float roughness)
 {
@@ -241,14 +286,11 @@ ps_out main(ps_in input) : SV_TARGET
 		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 	}
 	
-	{
-		float3 lightCol = skyLight.color;
-		float lightIntensity = 120.0f;
-		
+	{		
 		// Calculate per-light radiance
 		float3 L = normalize(-skyLight.direction);
 		float3 H = normalize(V + L);
-		float3 radiance = lightCol;
+		float3 radiance = skyLight.color * skyLight.brightness;
         
 		// Cook-Torrance BRDF
 		float NDF = DistributionGGX(N, H, roughness);
@@ -267,7 +309,14 @@ ps_out main(ps_in input) : SV_TARGET
 		float NdotL = max(dot(N, L), 0.0);
 		
 		// Accumulate radiance
-		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+		float shadowFactor = computeShadowFactor(input.shadowPos);
+		
+		if (length(cameraPosition - input.worldPos) > RANGE)
+			shadowFactor = 1.f;
+		
+		Lo += (kD * albedo / PI + specular) * radiance * NdotL * shadowFactor;
+	
+		//Lo = Lo + shadowFactor * saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
 	}
 	
 	float3 ambient = float3(0.0, 0.0, 0.0);
@@ -310,6 +359,10 @@ ps_out main(ps_in input) : SV_TARGET
 	
 	// Combine ambience and specular
 	float3 color = ambient + Lo;
+	
+	// Atmospheric fog
+	float3 eyeToPixel = input.worldPos.xyz - cameraPosition.xyz;
+	color = ApplyFog(color, cameraPosition.y, eyeToPixel);
 	
 	// HDR tonemapping
 	color = color / (color + float3(1.0, 1.0, 1.0));
