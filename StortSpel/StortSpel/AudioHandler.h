@@ -23,7 +23,7 @@ private:
 	AudioEmitter m_emitter;
 	AudioListener m_listener;
 	Transform* m_listenerTransformPtr;
-	int m_volumeAmount = 3;
+	int m_volumeAmount = 1;
 
 	bool m_isReleased = false;
 
