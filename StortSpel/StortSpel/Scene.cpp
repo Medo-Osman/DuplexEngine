@@ -212,6 +212,7 @@ Entity* Scene::addScore(const Vector3& position, const int tier, std::string nam
 
 
 	pickupPtr->setPosition(position);
+	pickupPtr->scaleUniform(0.5f);
 
 	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST, mat));
 	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
@@ -782,7 +783,12 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 		break;
 	}
 	case ComponentType::SWEEPING:
-		newComponent = new SweepingComponent(paramData, entity);
+		newComponent = new SweepingComponent(paramData, entity, false);
+		needsDynamicPhys = true;
+		needsKinematicPhys = true;
+		break;
+	case ComponentType::SWEEPING2:
+		newComponent = new SweepingComponent(paramData, entity, true);
 		needsDynamicPhys = true;
 		needsKinematicPhys = true;
 		break;
