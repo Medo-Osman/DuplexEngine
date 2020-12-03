@@ -954,21 +954,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	Entity* itemBox = sceneObject->addEntity("itemBox");
-	if (itemBox)
-	{
-		sceneObject->addComponent(itemBox, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", RAINBOW, Material()));
-		sceneObject->addComponent(itemBox, "speedItem", new MeshComponent("SpeedPickup_Plane.lrm", ShaderProgramsEnum::DEFAULT, Material({ L"SpeedIcon.png" })));
-
-		itemBox->translate({ 2, 12, 2 });
-		itemBox->translate({ 2, 12, 2 });
-		itemBox->scale({ 3, 3, 3 });
-		Vector3 start = itemBox->getTranslation();
-		Vector3 end = Vector3(itemBox->getTranslation().x, itemBox->getTranslation().y, itemBox->getTranslation().z + 10);
-		sceneObject->addComponent(itemBox, "rotate", new RotateComponent(itemBox, { 0.f, 1.0f, 0.f }, 1.f));
-
-	}
-
 	Entity* test = sceneObject->addEntity("test");
 	if (test)
 	{
