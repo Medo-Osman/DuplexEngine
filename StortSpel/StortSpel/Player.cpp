@@ -716,8 +716,12 @@ void Player::setPlayerEntity(Entity* entity)
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
-	//m_pickupPointer = new CannonPickup();
-	//m_pickupPointer->onPickup(m_playerEntity, false); //REEEEEEEEEEE
+	if (DEBUGMODE)
+	{
+		m_pickupPointer = new CannonPickup();
+		m_pickupPointer->onPickup(m_playerEntity, false);
+	}
+		
 }
 
 Vector3 Player::getCheckpointPos()
