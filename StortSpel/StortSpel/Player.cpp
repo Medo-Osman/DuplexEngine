@@ -474,6 +474,15 @@ void Player::playerStateLogic(const float& dt)
 			m_shouldDrawLine = false;
 			m_verticalMultiplier = 5;
 			m_horizontalMultiplier = CANNON_POWER;
+
+			static_cast<CannonPickup*>(m_pickupPointer)->geFyr();
+			PlayerMessageData d;
+			d.playerActionType = PlayerActions::ON_FIRE_CANNON;
+			d.playerPtr = this;
+
+			this->sendPlayerMSG(d);
+			
+
 		}
 		else //Draw marker
 		{
@@ -707,8 +716,8 @@ void Player::setPlayerEntity(Entity* entity)
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
-	//m_pickupPointer = new HeightPickup();
-	//m_pickupPointer->onPickup(m_playerEntity, false); REEEEEEEEEEE
+	m_pickupPointer = new CannonPickup();
+	m_pickupPointer->onPickup(m_playerEntity, false); //REEEEEEEEEEE
 }
 
 Vector3 Player::getCheckpointPos()
