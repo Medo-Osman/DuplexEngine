@@ -220,129 +220,132 @@ void SceneManager::updateScene(const float &dt)
 
 void SceneManager::inputUpdate(InputData& inputData)
 {
-	for (size_t i = 0; i < inputData.actionData.size(); i++)
+	if (DEBUGMODE)
 	{
-		if (inputData.actionData[i] == TEST_SCENE)
+		for (size_t i = 0; i < inputData.actionData.size(); i++)
 		{
-			if (!m_gameStarted)
+			if (inputData.actionData[i] == TEST_SCENE)
+			{
+				if (!m_gameStarted)
+				{
+					m_nextScene = new Scene();
+
+					std::thread sceneLoaderThread(Scene::loadTestLevel, m_nextScene, m_nextSceneReady);
+					sceneLoaderThread.detach();
+
+					m_gameStarted = true;
+					m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+				}
+			}
+			else if (inputData.actionData[i] == LOAD_SCENE)
 			{
 				m_nextScene = new Scene();
+				std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Skyway_1", m_nextSceneReady);
+				//std::thread sceneLoaderThread = std::thread(Scene::loadMaterialTest, m_nextScene, m_nextSceneReady);
+				sceneLoaderThread.detach();
+				//Scene::loadScene(m_nextScene, "levelMeshTest1", m_nextSceneReady);
 
-				std::thread sceneLoaderThread(Scene::loadTestLevel, m_nextScene, m_nextSceneReady);
+				//Scene::loadLobby(m_nextScene, m_nextSceneReady);
+
+				m_gameStarted = false;
+				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			}
+			else if (inputData.actionData[i] == LOAD_TEST_SCENE)
+			{
+				m_nextScene = new Scene();
+				//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+				std::thread sceneLoaderThread = std::thread(Scene::loadBossTest, m_nextScene, m_nextSceneReady);
 				sceneLoaderThread.detach();
 
 				m_gameStarted = true;
 				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			}
-		}
-		else if (inputData.actionData[i] == LOAD_SCENE)
-		{
-			m_nextScene = new Scene();
-			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Skyway_1", m_nextSceneReady);
-			//std::thread sceneLoaderThread = std::thread(Scene::loadMaterialTest, m_nextScene, m_nextSceneReady);
-			sceneLoaderThread.detach();
-			//Scene::loadScene(m_nextScene, "levelMeshTest1", m_nextSceneReady);
-
-			//Scene::loadLobby(m_nextScene, m_nextSceneReady);
-
-			m_gameStarted = false;
-			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
-		}
-		else if (inputData.actionData[i] == LOAD_TEST_SCENE)
-		{
-			m_nextScene = new Scene();
-			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
-			std::thread sceneLoaderThread = std::thread(Scene::loadBossTest, m_nextScene, m_nextSceneReady);
-			sceneLoaderThread.detach();
-
-			m_gameStarted = true;
-			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
-		}
-		else if (inputData.actionData[i] == LOAD_ARENA)
-		{
-			m_nextScene = new Scene();
-			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
-			std::thread sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
-			sceneLoaderThread.detach();
-
-			m_gameStarted = true;
-			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
-		}
-		else if (inputData.actionData[i] == LOAD_EMPTY)
-		{
-			m_nextScene = new Scene();
-			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
-			std::thread sceneLoaderThread = std::thread(Scene::loadEmpty, m_nextScene, m_nextSceneReady);
-			sceneLoaderThread.detach();
-
-			m_gameStarted = true;
-			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
-		}
-		else if (inputData.actionData[i] == LOAD_ALMOST_EMPTY)
-		{
-			m_nextScene = new Scene();
-			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
-			std::thread sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
-			sceneLoaderThread.detach();
-
-			m_gameStarted = false;
-			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
-		}
-
-		else if (inputData.actionData[i] == MENU)
-		{
-			if (m_currectSceneEnum != ScenesEnum::MAINMENU && m_currectSceneEnum != ScenesEnum::ENDSCENE)
+			else if (inputData.actionData[i] == LOAD_ARENA)
 			{
-				if (!m_inPause || m_inPauseSettings)
+				m_nextScene = new Scene();
+				//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+				std::thread sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+				sceneLoaderThread.detach();
+
+				m_gameStarted = true;
+				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			}
+			else if (inputData.actionData[i] == LOAD_EMPTY)
+			{
+				m_nextScene = new Scene();
+				//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+				std::thread sceneLoaderThread = std::thread(Scene::loadEmpty, m_nextScene, m_nextSceneReady);
+				sceneLoaderThread.detach();
+
+				m_gameStarted = true;
+				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			}
+			else if (inputData.actionData[i] == LOAD_ALMOST_EMPTY)
+			{
+				m_nextScene = new Scene();
+				//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+				std::thread sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
+				sceneLoaderThread.detach();
+
+				m_gameStarted = false;
+				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			}
+
+			else if (inputData.actionData[i] == MENU)
+			{
+				if (m_currectSceneEnum != ScenesEnum::MAINMENU && m_currectSceneEnum != ScenesEnum::ENDSCENE)
 				{
-					disableMovement();
-					GUIHandler::get().setVisible(m_pauseText, true);
-					GUIHandler::get().setVisible(m_resumeBtnIndex, true);
-					GUIHandler::get().setVisible(m_backToLobbyIndex, true);
-					GUIHandler::get().setVisible(m_settingsIndex, true);
-					
-					// close Pause Settings
-					if (m_inPauseSettings) // if back from pause settings, hide settings
+					if (!m_inPause || m_inPauseSettings)
 					{
-						GUIHandler::get().setVisible(m_settingsText, false);
+						disableMovement();
+						GUIHandler::get().setVisible(m_pauseText, true);
+						GUIHandler::get().setVisible(m_resumeBtnIndex, true);
+						GUIHandler::get().setVisible(m_backToLobbyIndex, true);
+						GUIHandler::get().setVisible(m_settingsIndex, true);
 
-						GUIHandler::get().setVisible(m_senseTextIndex, false);
-						GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
-						GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
-						GUIHandler::get().setVisible(m_sensitivityIndex, false);
+						// close Pause Settings
+						if (m_inPauseSettings) // if back from pause settings, hide settings
+						{
+							GUIHandler::get().setVisible(m_settingsText, false);
 
-						GUIHandler::get().setVisible(m_volumeTextIndex, false);
-						GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
-						GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
-						GUIHandler::get().setVisible(m_volumeAmountIndex, false);
+							GUIHandler::get().setVisible(m_senseTextIndex, false);
+							GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
+							GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
+							GUIHandler::get().setVisible(m_sensitivityIndex, false);
 
-						GUIHandler::get().setVisible(m_fovText, false);
-						GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
-						GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
-						GUIHandler::get().setVisible(m_fovIndex, false);
+							GUIHandler::get().setVisible(m_volumeTextIndex, false);
+							GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
+							GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
+							GUIHandler::get().setVisible(m_volumeAmountIndex, false);
 
-						GUIHandler::get().setVisible(m_fullscreenText, false);
-						GUIHandler::get().setVisible(m_fullscreenIndex, false);
+							GUIHandler::get().setVisible(m_fovText, false);
+							GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
+							GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
+							GUIHandler::get().setVisible(m_fovIndex, false);
 
-						m_inPauseSettings = false;
+							GUIHandler::get().setVisible(m_fullscreenText, false);
+							GUIHandler::get().setVisible(m_fullscreenIndex, false);
+
+							m_inPauseSettings = false;
+						}
+						else
+						{
+							m_inputPtr->setCursor(true);
+						}
+
+						m_inPause = true;
 					}
 					else
 					{
-						m_inputPtr->setCursor(true);
+						enableMovement();
+						m_inputPtr->setCursor(false);
+						GUIHandler::get().setVisible(m_pauseText, false);
+						GUIHandler::get().setVisible(m_settingsIndex, false);
+						GUIHandler::get().setVisible(m_resumeBtnIndex, false);
+						GUIHandler::get().setVisible(m_backToLobbyIndex, false);
+						GUIHandler::get().setInMenu(false);
+						m_inPause = false;
 					}
-
-					m_inPause = true;
-				}
-				else
-				{
-					enableMovement();
-					m_inputPtr->setCursor(false);
-					GUIHandler::get().setVisible(m_pauseText, false);
-					GUIHandler::get().setVisible(m_settingsIndex, false);
-					GUIHandler::get().setVisible(m_resumeBtnIndex, false);
-					GUIHandler::get().setVisible(m_backToLobbyIndex, false);
-					GUIHandler::get().setInMenu(false);
-					m_inPause = false;
 				}
 			}
 		}

@@ -808,28 +808,32 @@ void Renderer::update(const float& dt)
 	static float tempSunDirectionY = -1.0f;
 	static float tempSunDirectionZ = 1.0f;
 
-	ImGui::SetNextWindowPos(ImVec2(1300.0f, 200.0f));
-	ImGui::SetNextWindowSize(ImVec2(550.0f, 500.0f));
-	ImGui::Begin("Global Shader Settings");
+	if (DEBUGMODE)
+	{
+		ImGui::SetNextWindowPos(ImVec2(1300.0f, 200.0f));
+		ImGui::SetNextWindowSize(ImVec2(550.0f, 500.0f));
+		ImGui::Begin("Global Shader Settings");
 
-	ImGui::Text("");
-	ImGui::Text("Directional Light");
-	ImGui::SliderFloat("Intensity", (float*)&lightBufferTemp.skyLight.brightness, 0.0f, 100.0f);
-	ImGui::SliderFloat("Sun direction X", (float*)&tempSunDirectionX, -1.0f, 1.0f);
-	ImGui::SliderFloat("Sun direction Y", (float*)&tempSunDirectionY, -1.0f, 1.0f);
-	ImGui::SliderFloat("Sun direction Z", (float*)&tempSunDirectionZ, -1.0f, 1.0f);
-	ImGui::ColorEdit3("Color:", (float*)&lightBufferTemp.skyLight.color);
+		ImGui::Text("");
+		ImGui::Text("Directional Light");
+		ImGui::SliderFloat("Intensity", (float*)&lightBufferTemp.skyLight.brightness, 0.0f, 100.0f);
+		ImGui::SliderFloat("Sun direction X", (float*)&tempSunDirectionX, -1.0f, 1.0f);
+		ImGui::SliderFloat("Sun direction Y", (float*)&tempSunDirectionY, -1.0f, 1.0f);
+		ImGui::SliderFloat("Sun direction Z", (float*)&tempSunDirectionZ, -1.0f, 1.0f);
+		ImGui::ColorEdit3("Color:", (float*)&lightBufferTemp.skyLight.color);
 
-	ImGui::Text("");
-	ImGui::Text("Atmospheric Fog Settings");
-	ImGui::ColorEdit3("Color", (float*)&fogConstBufferTemp.FogColor);
-	ImGui::SliderFloat("Start depth", (float*)&fogConstBufferTemp.FogStartDepth, 0.0f, 100.0f);
-	ImGui::SliderFloat("Start depth (Skybox)", (float*)&fogConstBufferTemp.FogStartDepthSkybox, 0.0f, 100.0f);
-	ImGui::ColorEdit3("Highlight color", (float*)&fogConstBufferTemp.FogHighlightColor);
-	ImGui::SliderFloat("Global Density", (float*)&fogConstBufferTemp.FogGlobalDensity, 0.0f, 2.0f);
-	ImGui::SliderFloat("Height falloff", (float*)&fogConstBufferTemp.FogHeightFalloff, 0.0f, 100.0f);
+		ImGui::Text("");
+		ImGui::Text("Atmospheric Fog Settings");
+		ImGui::ColorEdit3("Color", (float*)&fogConstBufferTemp.FogColor);
+		ImGui::SliderFloat("Start depth", (float*)&fogConstBufferTemp.FogStartDepth, 0.0f, 100.0f);
+		ImGui::SliderFloat("Start depth (Skybox)", (float*)&fogConstBufferTemp.FogStartDepthSkybox, 0.0f, 100.0f);
+		ImGui::ColorEdit3("Highlight color", (float*)&fogConstBufferTemp.FogHighlightColor);
+		ImGui::SliderFloat("Global Density", (float*)&fogConstBufferTemp.FogGlobalDensity, 0.0f, 2.0f);
+		ImGui::SliderFloat("Height falloff", (float*)&fogConstBufferTemp.FogHeightFalloff, 0.0f, 100.0f);
 
-	ImGui::End();
+		ImGui::End();
+	}
+
 
 	// Misc updates
 	lightBufferTemp.skyLight.direction = { tempSunDirectionX, tempSunDirectionY, tempSunDirectionZ };

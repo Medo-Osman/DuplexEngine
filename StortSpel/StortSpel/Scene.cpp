@@ -101,7 +101,7 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	Entity* test = sceneObject->addEntity("test");
+	/*Entity* test = sceneObject->addEntity("test");
 	if (test)
 	{
 		sceneObject->addComponent(test, "mesh",
@@ -117,7 +117,7 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 
 		sceneObject->addComponent(test, "flipp",
 			new FlippingComponent(test, 1, 1));
-	}
+	}*/
 
 	/*Entity* sign = sceneObject->addEntity("sign");
 	if (sign)
