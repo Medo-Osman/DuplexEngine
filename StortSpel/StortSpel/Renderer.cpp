@@ -197,10 +197,14 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_psSamplerState);
 	assert(SUCCEEDED(hr) && "Failed to create SampleState");
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
+	m_dContextPtr->DSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 
 	perObjectMVP perObjectMVP;
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP, 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+	m_dContextPtr->HSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+	m_dContextPtr->DSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+
 	skyboxMVP skyboxMVP;
 	m_skyboxConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skyboxMVP, 1);
 	m_dContextPtr->VSSetConstantBuffers(1, 1, m_skyboxConstantBuffer.GetAddressOf());
@@ -211,6 +215,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	globalConstBuffer globalConstBuffer;
 	m_globalConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &globalConstBuffer, 1);
 	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
+	m_dContextPtr->DSSetConstantBuffers(1, 1, m_globalConstBuffer.GetAddressOf());
 
 	lightBufferStruct initalLightData; //Not sure why, but it refuses to take &lightBufferStruct() as argument on line below
 	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);
@@ -228,6 +233,10 @@ HRESULT Renderer::initialize(const HWND& window)
 	MATERIAL_CONST_BUFFER MATERIAL_CONST_BUFFER;
 	m_currentMaterialConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &MATERIAL_CONST_BUFFER, 1);
 	m_dContextPtr->PSSetConstantBuffers(3, 1, m_currentMaterialConstantBuffer.GetAddressOf());
+
+	atmosphericFogConstBuffer atmosphericFogConstBuffer;
+	m_atmosphericFogConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &atmosphericFogConstBuffer, 1);
+	m_dContextPtr->PSSetConstantBuffers(5, 1, m_atmosphericFogConstBuffer.GetAddressOf());
 
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get(), m_deferredContext.Get());
@@ -624,8 +633,6 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 			{
 				draw = true;
 			}
-			
-
 		}
 
 		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
@@ -675,7 +682,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
-				m_dContextPtr->PSSetShaderResources(9, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
+				m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 
 				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
 				
@@ -793,21 +800,45 @@ void Renderer::update(const float& dt)
 
 
 	// Constant buffer updates and settings
-	static globalConstBuffer tempGlobalConstBuffer;
+	static globalConstBuffer globalConstBufferTemp;
+	static atmosphericFogConstBuffer fogConstBufferTemp;
+	static lightBufferStruct lightBufferTemp;
 
-	tempGlobalConstBuffer.time += dt;
+	static float tempSunDirectionX = 0.0f;
+	static float tempSunDirectionY = -1.0f;
+	static float tempSunDirectionZ = 1.0f;
 
-	m_globalConstBuffer.updateBuffer(m_dContextPtr.Get(), &tempGlobalConstBuffer);
+	ImGui::SetNextWindowPos(ImVec2(1300.0f, 200.0f));
+	ImGui::SetNextWindowSize(ImVec2(550.0f, 500.0f));
+	ImGui::Begin("Global Shader Settings");
 
-	//ImGui::SetNextWindowPos(ImVec2(1300.0f, 600.0f));
-	//ImGui::SetNextWindowSize(ImVec2(550.0f, 500.0f));
-	//ImGui::Begin("Time");
+	ImGui::Text("");
+	ImGui::Text("Directional Light");
+	ImGui::SliderFloat("Intensity", (float*)&lightBufferTemp.skyLight.brightness, 0.0f, 100.0f);
+	ImGui::SliderFloat("Sun direction X", (float*)&tempSunDirectionX, -1.0f, 1.0f);
+	ImGui::SliderFloat("Sun direction Y", (float*)&tempSunDirectionY, -1.0f, 1.0f);
+	ImGui::SliderFloat("Sun direction Z", (float*)&tempSunDirectionZ, -1.0f, 1.0f);
+	ImGui::ColorEdit3("Color:", (float*)&lightBufferTemp.skyLight.color);
 
-	//ImGui::Text("");
-	//ImGui::Text("%.0f Time 1 ", tempGlobalConstBuffer.time);
-	//ImGui::Text("%.0f Dt ", dt);;
+	ImGui::Text("");
+	ImGui::Text("Atmospheric Fog Settings");
+	ImGui::ColorEdit3("Color", (float*)&fogConstBufferTemp.FogColor);
+	ImGui::SliderFloat("Start depth", (float*)&fogConstBufferTemp.FogStartDepth, 0.0f, 100.0f);
+	ImGui::SliderFloat("Start depth (Skybox)", (float*)&fogConstBufferTemp.FogStartDepthSkybox, 0.0f, 100.0f);
+	ImGui::ColorEdit3("Highlight color", (float*)&fogConstBufferTemp.FogHighlightColor);
+	ImGui::SliderFloat("Global Density", (float*)&fogConstBufferTemp.FogGlobalDensity, 0.0f, 2.0f);
+	ImGui::SliderFloat("Height falloff", (float*)&fogConstBufferTemp.FogHeightFalloff, 0.0f, 100.0f);
 
-	//ImGui::End();
+	ImGui::End();
+
+	// Misc updates
+	lightBufferTemp.skyLight.direction = { tempSunDirectionX, tempSunDirectionY, tempSunDirectionZ };
+	fogConstBufferTemp.FogSunDir = lightBufferTemp.skyLight.direction;
+	globalConstBufferTemp.time += dt;
+
+	m_globalConstBuffer.updateBuffer(m_dContextPtr.Get(), &globalConstBufferTemp);
+	m_atmosphericFogConstBuffer.updateBuffer(m_dContextPtr.Get(), &fogConstBufferTemp);
+	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &lightBufferTemp);
 }
 
 void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
@@ -888,6 +919,7 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
+	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 	renderScene(&frust, &wvp, &V, &P);
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };

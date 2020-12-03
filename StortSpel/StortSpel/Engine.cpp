@@ -196,6 +196,7 @@ void Engine::initialize(Input* input)
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
+	//AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth", true), Material(L"Skin", true), Material(L"Hair", true), Material(L"LucyEyes") });
 	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth"), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
 	playerEntity->addComponent("mesh", animMeshComp);
 	playerEntity->setScaleUniform(0.5f);

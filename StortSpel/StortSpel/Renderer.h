@@ -62,6 +62,7 @@ private:
 	Buffer<skeletonAnimationCBuffer> m_skelAnimationConstantBuffer;
 	Buffer<MATERIAL_CONST_BUFFER> m_currentMaterialConstantBuffer;
 	Buffer<globalConstBuffer> m_globalConstBuffer;
+	Buffer<atmosphericFogConstBuffer> m_atmosphericFogConstBuffer;
 
 	// Blur stuff
 	Buffer<CS_BLUR_CBUFFER> m_blurBuffer;
