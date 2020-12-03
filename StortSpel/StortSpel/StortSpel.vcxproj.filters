@@ -90,7 +90,7 @@
     </Filter>
     <Filter Include="Source Files\Graphics\Particles\Lines\LineArray">
       <UniqueIdentifier>{76330652-4474-42fc-9b9d-736c26b0023a}</UniqueIdentifier>
-	</Filter>
+    </Filter>
     <Filter Include="Source Files\Graphics\Particles\PlatformWarning">
       <UniqueIdentifier>{ea91ae63-a675-4fa1-a31d-4759086d677a}</UniqueIdentifier>
     </Filter>
@@ -475,7 +475,7 @@
     </ClInclude>
     <ClInclude Include="Component.h">
       <Filter>Source Files\Components</Filter>
-	</ClInclude>
+    </ClInclude>
     <ClInclude Include="ReferenceCounted.h">
       <Filter>Source Files\Application</Filter>
     </ClInclude>
@@ -608,8 +608,11 @@
     </FxCompile>
     <FxCompile Include="Particles\ArrayOfLinesStreamOut.hlsl">
       <Filter>Source Files\Graphics\Particles\Lines\LineArray</Filter>
-	</FxCompile>
+    </FxCompile>
     <FxCompile Include="RainbowShader.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="SeeThroughPixel.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
   </ItemGroup>
