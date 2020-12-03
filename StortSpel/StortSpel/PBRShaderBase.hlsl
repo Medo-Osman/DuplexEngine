@@ -57,6 +57,47 @@ cbuffer MaterialBuffer : register(b3)
     float materialEmissiveStrength;
 }
 
+// Shadow mapping stuff
+//struct lightComputeResult
+//{
+//	float3 lightColor;
+//	float diffuseLightFactor;
+//	float intensity;
+//};
+
+//float2 texOffset(int u, int v)
+//{
+//	return float2(u * SHADOW_MAP_DELTA, v * SHADOW_MAP_DELTA);
+//}
+
+//float computeShadowFactor(float4 shadowPosH)
+//{
+//	float2 shadowUV = shadowPosH.xy / shadowPosH.w * 0.5f + 0.5f;
+//	shadowUV.y = 1.0f - shadowUV.y;
+    
+//	float depth = shadowPosH.z / shadowPosH.w; //In NDC, depthFromLightPosToPoint
+    
+//	const float delta = SHADOW_MAP_DELTA;
+//	float percentLit = 0.0f;
+    
+//    //PCF sampling for shadow map
+//	const int sampleRange = 2;
+//    [unroll]
+//	for (int x = -sampleRange; x <= sampleRange; x++)
+//	{
+//        [unroll]
+//		for (int y = -sampleRange; y <= sampleRange; y++)
+//		{
+//			percentLit += shadowMap.SampleCmpLevelZero(shadowSampState, shadowUV, depth, int2(x, y));
+//		}
+//	}
+//    //Avg of all samples
+//	percentLit /= ((sampleRange * 2 + 1) * (sampleRange * 2 + 1));
+    
+//	return;
+//}
+
+
 struct ps_in
 {
 	float4 pos : SV_POSITION;
@@ -79,10 +120,9 @@ Texture2D brdfLUT : register(t2);
 
 Texture2D albedoTexture		: TEXTURE : register(t3);
 Texture2D normalTexture		: TEXTURE : register(t4);
-Texture2D roughnessTexture	: TEXTURE : register(t5);
-Texture2D metallicTexture	: TEXTURE : register(t6);
-Texture2D aoTexture			: TEXTURE : register(t7);
-Texture2D emissiveTexture	: TEXTURE : register(t8);
+Texture2D ORMtexture		: TEXTURE : register(t5);
+Texture2D emissiveTexture	: TEXTURE : register(t6);
+Texture2D shadowTexture		: TEXTURE : register(t7);
 SamplerState sampState		: SAMPLER : register(s0);
 
 static const float PI = 3.14159265359;
@@ -148,10 +188,10 @@ ps_out main(ps_in input) : SV_TARGET
 	if (materialTextured)
 	{
 		albedo = pow(albedoTexture.Sample(sampState, input.uv).rgb, 2.2f);
-		metallic = metallicTexture.Sample(sampState, input.uv).r;
-		roughness = roughnessTexture.Sample(sampState, input.uv).r;
-		ao = aoTexture.Sample(sampState, input.uv).r;
-		float3 normalFromMap = normalTexture.Sample(sampState, input.uv).xyz * 2 - 1;
+		metallic = ORMtexture.Sample(sampState, input.uv).b;
+		roughness = ORMtexture.Sample(sampState, input.uv).g;
+		ao = ORMtexture.Sample(sampState, input.uv).r;
+		float3 normalFromMap = normalTexture.Sample(sampState, input.uv).rgb * 2 - 1;
 	
 		input.tangent = normalize(input.tangent);
 
@@ -179,6 +219,35 @@ ps_out main(ps_in input) : SV_TARGET
 		float distance = length(lightPos - input.worldPos.xyz);
 		float attenuation = 1.0 / (distance * distance) * lightIntensity;
 		float3 radiance = lightCol * attenuation;
+        
+		// Cook-Torrance BRDF
+		float NDF = DistributionGGX(N, H, roughness);
+		float G = GeometrySmith(N, V, L, roughness);
+		float3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+        
+		float3 kS = F;
+		float3 kD = float3(1.0, 1.0, 1.0) - kS;
+		kD *= 1.0 - metallic;
+        
+		float3 numerator = NDF * G * F;
+		float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+		float3 specular = numerator / max(denominator, 0.001);
+		
+		// Scale light based on incident light angle relative to normal
+		float NdotL = max(dot(N, L), 0.0);
+		
+		// Accumulate radiance
+		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+	}
+	
+	{
+		float3 lightCol = skyLight.color;
+		float lightIntensity = 120.0f;
+		
+		// Calculate per-light radiance
+		float3 L = normalize(-skyLight.direction);
+		float3 H = normalize(V + L);
+		float3 radiance = lightCol;
         
 		// Cook-Torrance BRDF
 		float NDF = DistributionGGX(N, H, roughness);
