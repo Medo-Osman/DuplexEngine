@@ -22,6 +22,7 @@ protected:
 	static bool PICKUP_VECTOR_INIT;
 	static std::vector<Pickup*> PICKUP_VECTOR;
 	static int ICON_ID;
+	static int F_KEY_ID;
 public:
 	static const bool hasInitPickupArray()
 	{
@@ -63,11 +64,18 @@ public:
 		style.position = { windowSize.x - (sizeX/2 * scaleX + 62) , windowSize.y * 0.150f + (sizeY/2 * scaleY) };
 		style.scale = { scaleX, scaleY };
 		ICON_ID = GUIHandler::get().addGUIImage(L"placeholderPickup.png", style);
-		GUIImageLabel* icon = dynamic_cast<GUIImageLabel*>(GUIHandler::get().getElementMap()->at(ICON_ID));
-
-
 
 		GUIHandler::get().setVisible(ICON_ID, false);
+
+
+		sizeX = 50, sizeY = 50; //Full Image Size
+		scaleX = 0.8 * scaleToUse.x, scaleY = 0.8 * scaleToUse.y; //Final Scale
+		style.origin = { (sizeX / 2), (sizeY / 2) };
+		style.position = { windowSize.x - (sizeX / 2 * scaleX + 130) , windowSize.y * 0.225f + (sizeY / 2 * scaleY) };
+		style.scale = { scaleX, scaleY };
+		F_KEY_ID = GUIHandler::get().addGUIImage(L"FKey.png", style);
+		GUIHandler::get().setVisible(F_KEY_ID, false);
+
 	}
 
 	static Pickup* getPickupByID(int ID)
@@ -188,6 +196,7 @@ public:
 				if (m_strobeTimer > STROBE_TIME)
 				{
 					GUIHandler::get().setVisible(ICON_ID, !GUIHandler::get().getVisible(ICON_ID));
+					GUIHandler::get().setVisible(F_KEY_ID, !GUIHandler::get().getVisible(F_KEY_ID));
 					m_strobeTimer = 0;
 				}
 			}
@@ -234,6 +243,7 @@ public:
 		{
 			GUIHandler::get().changeGUIImage(ICON_ID, m_pickupIcon);
 			GUIHandler::get().setVisible(ICON_ID, true);
+			GUIHandler::get().setVisible(F_KEY_ID, true);
 		}
 		
 	}
@@ -269,8 +279,11 @@ public:
 		}
 		m_audioComponents.clear();
 		m_doneDepleted = false;
-		if(!m_isEnvironmental)
+		if (!m_isEnvironmental)
+		{
 			GUIHandler::get().setVisible(ICON_ID, false);
+			GUIHandler::get().setVisible(F_KEY_ID, false);
+		}
 	}
 
 	std::wstring getPickupIcon()

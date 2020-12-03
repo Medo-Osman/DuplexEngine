@@ -131,7 +131,8 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 	);
 	assert(_d3d11Window);
 
-	RedirectIOToConsole(); // Disabled For PlayTest
+	if(DEBUGMODE)
+		RedirectIOToConsole(); // Disabled For PlayTest
 }
 
 void ApplicationLayer::RedirectIOToConsole()
