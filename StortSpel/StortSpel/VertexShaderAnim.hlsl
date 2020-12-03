@@ -78,5 +78,5 @@ vs_out main(vs_in input, in uint vID : SV_VertexID)
     //output.hsShadowPos = mul(localPosition, shadowTransform);
 
     
-		return output;
+	return output;
 	}
