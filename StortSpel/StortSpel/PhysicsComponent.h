@@ -19,7 +19,8 @@ private:
 	bool m_kinematic;
 	bool m_slide;
 	bool m_hasMirrored;
-	
+	bool m_hasEntRot;
+
 	Vector3 m_scale = {1.f, 1.f, 1.f}; 
 	Vector3 m_centerOffset = {0.f, 0.f, 0.f};
 	Vector3 m_meshOffset = {0.f, 0.f, 0.f};
@@ -146,7 +147,14 @@ public:
 			meshComponent->getMeshResourcePtr()->getBoundsCenter(boundsCenter);
 			boundsCenter = boundsCenter * scale;
 		}
-		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshComponent->getTranslation() + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this, sceneID, forceMakeKinematic);
+		Vector3 meshTranslation = meshComponent->getTranslation();
+
+		m_hasEntRot = !XMQuaternionIsIdentity(entity->getRotation());
+
+		if(m_hasEntRot)
+			meshTranslation = XMVector3Rotate(meshTranslation, entity->getRotation());
+
+		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshTranslation + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this, sceneID, forceMakeKinematic);
 		bool addGeom = true;
 		m_centerOffset = boundsCenter;
 		if (this->canAddGeometry())
@@ -350,14 +358,19 @@ public:
 		//IF we check if it is static, We don't mirror the transform in the first place.
 		if (m_dynamic || !m_hasMirrored)
 		{
-			m_transform->setPosition(this->getActorPosition() - m_centerOffset - m_meshOffset);
+			Vector3 theMeshOffset;
+			if (m_hasEntRot)
+				theMeshOffset = XMVector3Rotate(m_meshOffset, m_transform->getRotation());
+			else
+				theMeshOffset = m_meshOffset;
+
+			m_transform->setPosition(this->getActorPosition() - m_centerOffset - theMeshOffset);
 			if (m_controllRotation)
 				m_transform->setRotationQuat(this->getActorQuaternion());
 
 			m_hasMirrored = true;
 		}
 
-		
 	}
 
 	XMFLOAT3 getActorPosition()
