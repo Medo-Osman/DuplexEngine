@@ -67,7 +67,7 @@ class Player : public InputObserver, public PhysicsObserver, public GUIObserver,
 {
 private:
     //WALK CONFIG
-    const float PLAYER_MAX_SPEED = 5.f;
+    const float PLAYER_MAX_SPEED = 8.f;
     const float PLAYER_ACCELERATION = 30.f; // times dt
     const float PLAYER_DECELERATION = 15.f; // times dt
     const float PLAYER_ROTATION_SPEED = 0.08f;

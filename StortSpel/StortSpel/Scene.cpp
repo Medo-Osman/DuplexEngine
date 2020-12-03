@@ -119,7 +119,7 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 			new FlippingComponent(test, 1, 1));
 	}
 
-	Entity* sign = sceneObject->addEntity("sign");
+	/*Entity* sign = sceneObject->addEntity("sign");
 	if (sign)
 	{
 		sceneObject->addComponent(sign, "mesh",
@@ -131,7 +131,7 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 
 		sceneObject->addComponent(sign, "sweep",
 			new SweepingComponent(sign, Vector3(0.f, 5.f, 10.f), Vector3(0.f, 5.5f, 10.f), 5.f));
-	}
+	}*/
 
 
 
