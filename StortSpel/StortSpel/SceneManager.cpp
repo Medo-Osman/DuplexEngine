@@ -17,7 +17,7 @@ SceneManager::~SceneManager()
 	delete m_nextSceneReady;
 }
 
-void SceneManager::initalize()
+void SceneManager::initalize(Input* input)
 {
 	//ImGui::NewFrame();
 	//ImGui::Begin("My First Tool", &my_test_active, ImGuiWindowFlags_MenuBar);
@@ -32,7 +32,7 @@ void SceneManager::initalize()
 	//	}
 	//	ImGui::EndMenuBar();
 	//}
-
+	m_inputPtr = input;
 	m_camera = Engine::get().getCameraPtr(); // Neeeds to be before uiMenuInitialize()
 	uiMenuInitialize();
 
@@ -325,17 +325,21 @@ void SceneManager::inputUpdate(InputData& inputData)
 
 						m_inPauseSettings = false;
 					}
+					else
+					{
+						m_inputPtr->setCursor(true);
+					}
 
 					m_inPause = true;
 				}
 				else
 				{
 					enableMovement();
+					m_inputPtr->setCursor(false);
 					GUIHandler::get().setVisible(m_pauseText, false);
 					GUIHandler::get().setVisible(m_settingsIndex, false);
 					GUIHandler::get().setVisible(m_resumeBtnIndex, false);
 					GUIHandler::get().setVisible(m_backToLobbyIndex, false);
-
 					GUIHandler::get().setInMenu(false);
 					m_inPause = false;
 				}
@@ -774,6 +778,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_resumeBtnIndex)
 		{
 			enableMovement();
+			m_inputPtr->setCursor(false);
 			GUIHandler::get().setVisible(m_pauseText, false);
 			GUIHandler::get().setVisible(m_settingsText, false);
 			GUIHandler::get().setVisible(m_exitIndex, false);

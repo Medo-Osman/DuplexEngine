@@ -85,7 +85,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	
 	// Scene Manager
 	m_scenemanager.setContextPtr(m_input.getIContextPtr());
-	m_scenemanager.initalize();
+	m_scenemanager.initalize(&m_input);
 	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 
 	srand(static_cast<unsigned>(std::time(0)));
