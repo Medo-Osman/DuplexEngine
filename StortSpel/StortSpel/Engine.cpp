@@ -9,6 +9,9 @@
 
 Engine::Engine()
 {
+	//m_settings.width = m_startWidth;
+	//m_settings.height = m_startHeight;
+			// OR!
 	//static const int m_startWidth = ApplicationLayer::getInstance().m_width;
 	//static const int m_startHeight = ApplicationLayer::m_height;
 
@@ -193,7 +196,7 @@ void Engine::initialize(Input* input)
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
-	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE , ShaderProgramsEnum::SKEL_PBR }, { Material(L"Cloth"), Material(L"Skin", true), Material(L"Hair"), Material(L"LucyEyes") });
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth"), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
 	playerEntity->addComponent("mesh", animMeshComp);
 	playerEntity->setScaleUniform(0.5f);
 

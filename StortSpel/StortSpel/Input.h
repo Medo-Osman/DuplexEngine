@@ -100,6 +100,8 @@ public:
 	Mouse* getMouse();
 	std::vector<iContext*>* getIContextPtr();
 
+	void setCursor(bool ifCursorEnabled);
+
 	void Attach(InputObserver* observer);
 	void Detach(InputObserver* observer);
 };

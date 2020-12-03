@@ -16,7 +16,7 @@ class SceneManager : public InputObserver, public PhysicsObserver, public GUIObs
 private:
 	Scene* m_currentScene;
 	Scene* m_nextScene;
-	Input* inputPtr;
+	Input* m_inputPtr;
 	ScenesEnum m_currectSceneEnum;
 	ScenesEnum m_nextSceneEnum;
 	Camera* m_camera;
@@ -86,7 +86,7 @@ public:
 
 	bool m_gameStarted = false;
 	bool endGame = false;
-	void initalize();
+	void initalize(Input* input);
 	void updateScene(const float &dt);
 
 	void inputUpdate(InputData& inputData);

@@ -85,7 +85,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	
 	// Scene Manager
 	m_scenemanager.setContextPtr(m_input.getIContextPtr());
-	m_scenemanager.initalize();
+	m_scenemanager.initalize(&m_input);
 	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 
 	srand(static_cast<unsigned>(std::time(0)));
@@ -108,6 +108,8 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 	windowRect.top = 20;
 	windowRect.bottom = windowRect.top + m_height;
 	AdjustWindowRect(&windowRect, NULL, false);
+
+
 
 	// Create the window.
 	_d3d11Window = CreateWindowEx(

@@ -93,6 +93,8 @@ public:
 
 		if (m_timer.timeElapsed() >= m_warningTime)
 		{
+			m_subjectPtr->Notify(BossMovementType::I_AM_TIRED_THIS_LOWERS_THE_EMISSIVE_ON_THE_CRYSTAL, m_data);
+
 			for (int i = 0; i < m_nrOfTargets; i++)
 			{
 				bool spawnStar = false;
