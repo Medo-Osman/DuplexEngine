@@ -9,8 +9,17 @@
 
 Engine::Engine()
 {
-	m_settings.width = m_startWidth;
-	m_settings.height = m_startHeight;
+	//m_settings.width = m_startWidth;
+	//m_settings.height = m_startHeight;
+			// OR!
+	//static const int m_startWidth = ApplicationLayer::getInstance().m_width;
+	//static const int m_startHeight = ApplicationLayer::m_height;
+
+	int x = ApplicationLayer::getInstance().m_width;
+	int y = ApplicationLayer::getInstance().m_height;
+
+	m_settings.width = x;
+	m_settings.height = y;
 }
 
 Engine& Engine::get()
@@ -24,9 +33,11 @@ Engine::~Engine()
 	if (m_player)
 		delete m_player;
 
+	//static const int m_startWidth = ApplicationLayer::getInstance().m_width;
+	//static const int m_startHeight = ApplicationLayer::m_height;
 	//for (std::pair<std::string, Entity*> entity : m_entities)
 	//	delete entity.second;
-
+	
 	//m_entities->clear();
 	//m_entities->clear();
 }
@@ -47,8 +58,14 @@ void Engine::update(const float& dt)
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
 
+	if (AudioHandler::get().getAudioChanged())
+	{
+		AudioHandler::get().update(dt);
+	}
+
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
+	m_camera.setProjectionMatrix(m_camera.fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 	updateLightData();
 
 }
@@ -161,11 +178,11 @@ void Engine::initialize(Input* input)
 		// before this function call be called.
 		assert(false);
 	}
-
-	m_camera.initialize(80.f, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
-
+	Material::readMaterials();
+	m_camera.initialize(m_camera.fovAmount,(float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 	// Audio Handler Listener setup
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
+	
 
 	// Player
 	m_player = new Player();
@@ -179,7 +196,7 @@ void Engine::initialize(Input* input)
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
-	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth"), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
 	playerEntity->addComponent("mesh", animMeshComp);
 	playerEntity->setScaleUniform(0.5f);
 
@@ -204,7 +221,9 @@ void Engine::initialize(Input* input)
 
 	// Audio Handler needs Camera Transform ptr for 3D positional audio
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
-	Material::readMaterials();
+	
+
+	Renderer::get().setFullScreen(false);
 }
 
 void Engine::updateLightData()

@@ -129,6 +129,11 @@ void GUIHandler::setImageStyle(int index, GUIImageStyle style)
 	static_cast<GUIImageLabel*>(m_elements[index])->setStyle(style);
 }
 
+void GUIHandler::setButtonStyle(int index, GUIButtonStyle style)
+{
+	static_cast<GUIButton*>(m_elements[index])->setStyle(style);
+}
+
 void GUIHandler::setGUITextStyle(int index, GUITextStyle style)
 {
 	static_cast<GUIText*>(m_elements[index])->setStyle(style);

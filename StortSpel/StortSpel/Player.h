@@ -164,6 +164,7 @@ private:
     //Trampoline
     bool m_shouldPickupJump;
     const float TRAMPOLINE_JUMP_MULTIPLIER = 2.0f;
+    std::string m_trampolineEntityIdentifier; //Used to make sure player does not use same trampoline object twice, so we don't recive double sounds for example.
 
     // Trap
     TrapType m_activeTrap;

@@ -56,26 +56,25 @@ Player::Player()
 	style.color = Colors::White;
 	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
 
+	//GUIImageStyle imageStyle;
+	//imageStyle.position = Vector2(400.f, 50.f);
+	//imageStyle.scale = Vector2(0.9f, 0.9f);
+	//m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
 
-	GUIImageStyle imageStyle;
-	imageStyle.position = Vector2(400.f, 50.f);
-	imageStyle.scale = Vector2(0.9f, 0.9f);
-	m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
-
-	//Test Button stuff
-	GUIButtonStyle btnStyle;
-	btnStyle.position = Vector2(240, 200);
-	btnStyle.scale = Vector2(0.5, 0.5);
-	closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
+	////Test Button stuff
+	//GUIButtonStyle btnStyle;
+	//btnStyle.position = Vector2(240, 200);
+	//btnStyle.scale = Vector2(0.5, 0.5);
+	//closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
 
 	//Attach to the click listener for the button
-	dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
+	/*dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
 
 	GUIImageStyle guiInfo;
 	guiInfo.origin = Vector2(256, 256);
 	guiInfo.position = Vector2(Engine::get().getSettings().width / 2, Engine::get().getSettings().height / 2);
 	m_cannonCrosshairID = GUIHandler::get().addGUIImage(L"crosshair.png", guiInfo);
-	GUIHandler::get().setVisible(m_cannonCrosshairID, false);
+	GUIHandler::get().setVisible(m_cannonCrosshairID, false);*/
 
 
 }
@@ -708,7 +707,7 @@ void Player::setPlayerEntity(Entity* entity)
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
-	m_pickupPointer = new CannonPickup();
+	m_pickupPointer = new HeightPickup();
 	m_pickupPointer->onPickup(m_playerEntity, false);
 }
 
@@ -905,8 +904,8 @@ void Player::inputUpdate(InputData& inputData)
 			break;
 
 		case CLOSEINTROGUI:
-			GUIHandler::get().setVisible(m_instructionGuiIndex, false);
-			GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
+			//GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+			//GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
 			break;
 
 		case RESPAWN:
@@ -1003,7 +1002,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 						data.playerActionType = PlayerActions::ON_ENVIRONMENTAL_USE;
 						data.intEnum = physicsData.associatedTriggerEnum;
 						data.entityIdentifier = physicsData.entityIdentifier;
-
+						
 						for (int i = 0; i < (int)m_playerObservers.size(); i++)
 						{
 							m_playerObservers.at(i)->reactOnPlayer(data);
@@ -1029,16 +1028,27 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 
 					if (environmenPickup)
 					{
-
+						bool usePickup = true;
 						if (m_environmentPickup) //If we already have an environmentpickup (SInce they can be force added, we need to, if it exist, remove the "old" enironmentPickup before creating/getting a new.
 						{
-							m_environmentPickup->onRemove();
-							delete m_environmentPickup;
-							m_environmentPickup = nullptr;
+							usePickup = false;
+							if (m_trampolineEntityIdentifier != physicsData.entityIdentifier)
+							{
+									m_environmentPickup->onRemove();
+									delete m_environmentPickup;
+									m_environmentPickup = nullptr;
+									usePickup = true;
+							}
+
 						}
-						pickupPtr->onPickup(m_playerEntity, true);
-						pickupPtr->onUse();
-						m_environmentPickup = pickupPtr;
+						if (usePickup)
+						{
+							pickupPtr->onPickup(m_playerEntity, true);
+							pickupPtr->onUse();
+							m_environmentPickup = pickupPtr;
+							m_trampolineEntityIdentifier = physicsData.entityIdentifier;
+						}
+
 					}
 					else
 					{

@@ -68,6 +68,7 @@ public:
 		AudioHandler::get().setPitch(m_audioIndex, pitch, m_isLooping);
 	}
 
+
 	void playSound()
 	{
 		if(!m_isLooping)

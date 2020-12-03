@@ -96,6 +96,11 @@ public:
 		//
 	}
 
+	void setStyle(GUIButtonStyle newStyle)
+	{
+		m_style = newStyle;
+	}
+
 	void render(SpriteBatch* spriteBatch) override
 	{
 		if (texture)

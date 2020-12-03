@@ -65,6 +65,7 @@ struct ps_in
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
 	float4 worldPos : POSITION;
+	float4 shadowPos : SPOS;
 };
 
 struct ps_out
@@ -78,11 +79,13 @@ TextureCube skyPrefilter : register(t1);
 Texture2D brdfLUT : register(t2);
 
 Texture2D albedoTexture		: TEXTURE : register(t3);
-Texture2D normalTexture		: TEXTURE : register(t4);
-Texture2D roughnessTexture	: TEXTURE : register(t5);
-Texture2D metallicTexture	: TEXTURE : register(t6);
-Texture2D aoTexture			: TEXTURE : register(t7);
-Texture2D emissiveTexture	: TEXTURE : register(t8);
+Texture2D emissiveTexture	: TEXTURE : register(t4);
+Texture2D normalTexture		: TEXTURE : register(t5);
+Texture2D roughnessTexture	: TEXTURE : register(t6);
+Texture2D metallicTexture	: TEXTURE : register(t7);
+Texture2D aoTexture			: TEXTURE : register(t8);
+Texture2D shadowMap			: TEXTURE : register(t9);
+
 SamplerState sampState		: SAMPLER : register(s0);
 
 static const float PI = 3.14159265359;
@@ -140,7 +143,7 @@ ps_out main(ps_in input) : SV_TARGET
 	float3 N = normalize(input.normal);
 	float3 V = normalize(cameraPosition - input.worldPos);
 	
-	float3 albedo = float3(1.0, 0.0, 0.0);
+	float3 albedo = float3(0.0, 0.0, 1.0);
 	float3 metallic = materialMetallic;
 	float roughness = materialRoughness;
 	float ao = 1.0f;

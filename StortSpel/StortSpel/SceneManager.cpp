@@ -7,7 +7,7 @@ SceneManager::SceneManager()
 	m_nextScene = nullptr;
 	m_swapScene = false;
 	Physics::get().Attach(this, true, false);
-	
+
 }
 
 SceneManager::~SceneManager()
@@ -17,7 +17,7 @@ SceneManager::~SceneManager()
 	delete m_nextSceneReady;
 }
 
-void SceneManager::initalize()
+void SceneManager::initalize(Input* input)
 {
 	//ImGui::NewFrame();
 	//ImGui::Begin("My First Tool", &my_test_active, ImGuiWindowFlags_MenuBar);
@@ -32,71 +32,16 @@ void SceneManager::initalize()
 	//	}
 	//	ImGui::EndMenuBar();
 	//}
-
-
-	//define gui button
-	GUIButtonStyle btnStyle;
-	//start button
-	btnStyle.position = Vector2(140, 300);
-	btnStyle.scale = Vector2(1, 1);
-	m_singleplayerIndex = GUIHandler::get().addGUIButton(L"singleplayerBtn.png", btnStyle);
-
-	GUIButton* startButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_singleplayerIndex));
-	startButton->Attach(this);
-
-	//join button
-	btnStyle.position = Vector2(140, 550);
-	btnStyle.scale = Vector2(1, 1);
-	m_joinGameIndex = GUIHandler::get().addGUIButton(L"joinBtn.png", btnStyle);
-
-	GUIButton* joinButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_joinGameIndex));
-	joinButton->Attach(this);
-	joinButton->setPrevMenuButton(startButton);
-	startButton->setNextMenuButton(joinButton);
-
-	//Host Button
-	btnStyle.position = Vector2(140, 700);
-	btnStyle.scale = Vector2(1, 1);
-	m_hostGameIndex = GUIHandler::get().addGUIButton(L"hostBtn.png", btnStyle);
-
-	GUIButton* hostButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_hostGameIndex));
-	hostButton->Attach(this);
-	hostButton->setPrevMenuButton(joinButton);
-	joinButton->setNextMenuButton(hostButton);
-
-	//Exit button
-	btnStyle.position = Vector2(140, 850);
-	btnStyle.scale = Vector2(1, 1);
-	m_exitIndex = GUIHandler::get().addGUIButton(L"exitBtn.png", btnStyle);
-
-	GUIButton* exitButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_exitIndex));
-
-	btnStyle.position = Vector2(700, 800);
-	btnStyle.scale = Vector2(1.5, 1.5);
-	m_backToLobbyIndex = GUIHandler::get().addGUIButton(L"backToLobby.png", btnStyle);
-
-	GUIButton* backToLobbyButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_backToLobbyIndex));
-	backToLobbyButton->Attach(this);
-	//ImGui::NewFrame();
-	//char buf[15] = { 0 };
-	//ImGui::InputText("Input Text", buf, IM_ARRAYSIZE(buf));
-
-	exitButton->Attach(this);
-	exitButton->setPrevMenuButton(hostButton);
-	exitButton->setNextMenuButton(startButton);
-	startButton->setPrevMenuButton(exitButton);
-	hostButton->setNextMenuButton(exitButton);
-
-	// Used for Menu Selection
-	GUIHandler::get().setInMenu(true, m_singleplayerIndex);
+	m_inputPtr = input;
+	m_camera = Engine::get().getCameraPtr(); // Neeeds to be before uiMenuInitialize()
+	uiMenuInitialize();
 
 	// Start Scene
 	m_currentScene = new Scene();
 	Scene::loadMainMenu(m_currentScene, m_nextSceneReady);
-
+	m_currectSceneEnum = ScenesEnum::MAINMENU;
 	disableMovement();
 	*m_nextSceneReady = false;
-	//m_currentScene->loadArena();
 
 	m_currentScene->onSceneLoaded();
 
@@ -112,42 +57,62 @@ void SceneManager::initalize()
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
-	m_camera = Engine::get().getCameraPtr();
 	setScorePtr(m_currentScene->getScores());
+
+	GUITextStyle textStyle;
+
+	textStyle.position.x = 140.f;
+	textStyle.position.y = 100.f;
+	m_highScoreLabelIndex = GUIHandler::get().addGUIText("High Score", L"concert_one_60.spritefont", textStyle);
+
+	textStyle.color = Colors::Yellow;
+	textStyle.position.y = 300.f;
+	m_playerOneScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(0).first), L"concert_one_32.spritefont", textStyle);
 	
-	GUITextStyle style;
+	textStyle.position.y -= 50.0f;
+	m_playerTwoScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(1).first), L"concert_one_32.spritefont", textStyle);
+	
+	textStyle.position.y -= 50.0f;
+	m_playerThreeScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(2).first), L"concert_one_32.spritefont", textStyle);
 
-	style.position.y = 120.f;
-	style.scale = { 0.5f };
-	m_highScoreLabelIndex = GUIHandler::get().addGUIText("High Score", L"squirk.spritefont", style);
-	style.position.x = 160.f;
-	style.position.y = 300.f;
-
-	style.color = Colors::Yellow;
-	m_playerOneScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(0).first), L"squirk.spritefont", style);
-	style.position.y -= 50.0f;
-	m_playerTwoScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(1).first), L"squirk.spritefont", style);
-	style.position.y -= 50.0f;
-	m_playerThreeScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(2).first), L"squirk.spritefont", style);
-
-
-	style.position.x = 50.0f;
-	style.position.y = 300.f;
+	textStyle.position.x = 50.0f;
+	textStyle.position.y = 300.f;
 	int rankings = 3;
-	m_rankingScoreIndecOne = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"squirk.spritefont", style);
-	style.position.y -= 50.0f;
-	m_rankingScoreIndecTwo = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"squirk.spritefont", style);
-	style.position.y -= 50.0f;
-	m_rankingScoreIndecThree = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"squirk.spritefont", style);
+	m_rankingScoreIndecOne = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"concert_one_32.spritefont", textStyle);
+	textStyle.position.y -= 50.0f;
+	m_rankingScoreIndecTwo = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"concert_one_32.spritefont", textStyle);
+	textStyle.position.y -= 50.0f;
+	m_rankingScoreIndecThree = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"concert_one_32.spritefont", textStyle);
+
 	hideScore();
-
+	GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
+	GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
+	GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
+	GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
+	GUIHandler::get().setVisible(m_sensitivityIndex, false);
+	GUIHandler::get().setVisible(m_volumeAmountIndex, false);
 	GUIHandler::get().setVisible(m_backToLobbyIndex, false);
-
+	GUIHandler::get().setVisible(m_fovIndex, false);
+	GUIHandler::get().setVisible(m_fovText, false);
+	GUIHandler::get().setVisible(m_senseTextIndex, false);
+	GUIHandler::get().setVisible(m_volumeTextIndex, false);
+	GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
+	GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
+	GUIHandler::get().setVisible(m_settingsText, false);
+	GUIHandler::get().setVisible(m_resumeBtnIndex, false);
+	GUIHandler::get().setVisible(m_fullscreenIndex, false);
+	GUIHandler::get().setVisible(m_fullscreenText, false);
+	GUIHandler::get().setVisible(m_pauseText, false);
 }
 
 void SceneManager::updateScene(const float &dt)
 {
-	inputIP();
+	m_volumeAmount = AudioHandler::get().getVolumeAmount();
+	m_cameraSense = m_camera->getSensitivity();
+	GUIHandler::get().changeGUIText(m_sensitivityIndex, std::to_string(m_cameraSense));
+	GUIHandler::get().changeGUIText(m_volumeAmountIndex, std::to_string(m_volumeAmount));
+	GUIHandler::get().changeGUIText(m_fovIndex, std::to_string(m_camera->fovAmount));
+
 	if (m_swapScene && !m_loadNextSceneWhenReady)
 	{
 		
@@ -162,9 +127,18 @@ void SceneManager::updateScene(const float &dt)
 			disableMovement();
 			//Reset game variables that are needed here
 			GUIHandler::get().setVisible(m_singleplayerIndex, true);
-			GUIHandler::get().setVisible(m_hostGameIndex, true);
-			GUIHandler::get().setVisible(m_joinGameIndex, true);
+			GUIHandler::get().setVisible(m_tutorialIndex, true);
+			//GUIHandler::get().setVisible(m_hostGameIndex, true);
+			//GUIHandler::get().setVisible(m_joinGameIndex, true);
 			GUIHandler::get().setVisible(m_exitIndex, true);
+			GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_settingsIndex, true);
+			GUIHandler::get().setVisible(m_sensitivityIndex, false);
+			GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
 			Engine::get().getPlayerPtr()->setScore(0);
 			hideScore();
 			m_gameStarted = false;
@@ -175,7 +149,8 @@ void SceneManager::updateScene(const float &dt)
 			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::START:
-			sceneLoaderThread = std::thread(Scene::loadTestLevel, m_nextScene,m_nextSceneReady);
+			//sceneLoaderThread = std::thread(Scene::loadTestLevel, m_nextScene,m_nextSceneReady);
+			sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Skyway_1", m_nextSceneReady);
 			sceneLoaderThread.detach();
 			m_nextScene->hidescore = true;
 			m_gameStarted = true;
@@ -186,14 +161,14 @@ void SceneManager::updateScene(const float &dt)
 			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::ARENA:
-			sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread = std::thread(Scene::loadBossTest, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			m_camera->endSceneCamera = false;
 			hideScore();
 			GUIHandler::get().setInMenu(false);
-			
+
 			break;
 		case ScenesEnum::MAINMENU:
 			disableMovement();
@@ -202,12 +177,13 @@ void SceneManager::updateScene(const float &dt)
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			m_gameStarted = false;
 			m_camera->endSceneCamera = false; // if this is false the camera follows the player as usual
+			m_camera->setRotation(Vector3(0.f)); // Reset camera rotation
+			Engine::get().getPlayerPtr()->getPlayerEntity()->setRotationQuat(Quaternion());
 			hideScore();
 			GUIHandler::get().setVisible(m_backToLobbyIndex, false);
 			
 		
 			GUIHandler::get().setInMenu(true, m_singleplayerIndex);
-			
 			break;
 		case ScenesEnum::ENDSCENE:
 			sceneLoaderThread = std::thread(Scene::loadEndScene, m_nextScene, m_nextSceneReady);
@@ -215,10 +191,21 @@ void SceneManager::updateScene(const float &dt)
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			disableMovement();
 			GUIHandler::get().setVisible(m_singleplayerIndex, false);
-			GUIHandler::get().setVisible(m_hostGameIndex, false);
-			GUIHandler::get().setVisible(m_joinGameIndex, false);
-			GUIHandler::get().setVisible(m_exitIndex, true);
+			GUIHandler::get().setVisible(m_tutorialIndex, false);
+			//GUIHandler::get().setVisible(m_hostGameIndex, false);
+			//GUIHandler::get().setVisible(m_joinGameIndex, false);
+			GUIHandler::get().setVisible(m_settingsIndex, false);
+			GUIHandler::get().setVisible(m_exitIndex, false);
 			GUIHandler::get().setVisible(m_backToLobbyIndex, true);
+			GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_sensitivityIndex, false);
+			GUIHandler::get().setVisible(m_volumeAmountIndex, false);
+			GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_fovIndex, false);
 			GUIHandler::get().setInMenu(true, m_singleplayerIndex);
 			showScore();
 			m_camera->endSceneCamera = true; // If this is true the camera no longer updates and have a fixed position in this scene
@@ -252,6 +239,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 		{
 			m_nextScene = new Scene();
 			std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Skyway_1", m_nextSceneReady);
+			//std::thread sceneLoaderThread = std::thread(Scene::loadMaterialTest, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 			//Scene::loadScene(m_nextScene, "levelMeshTest1", m_nextSceneReady);
 
@@ -301,6 +289,63 @@ void SceneManager::inputUpdate(InputData& inputData)
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 		}
 
+		else if (inputData.actionData[i] == MENU)
+		{
+			if (m_currectSceneEnum != ScenesEnum::MAINMENU && m_currectSceneEnum != ScenesEnum::ENDSCENE)
+			{
+				if (!m_inPause || m_inPauseSettings)
+				{
+					disableMovement();
+					GUIHandler::get().setVisible(m_pauseText, true);
+					GUIHandler::get().setVisible(m_resumeBtnIndex, true);
+					GUIHandler::get().setVisible(m_backToLobbyIndex, true);
+					GUIHandler::get().setVisible(m_settingsIndex, true);
+					
+					// close Pause Settings
+					if (m_inPauseSettings) // if back from pause settings, hide settings
+					{
+						GUIHandler::get().setVisible(m_settingsText, false);
+
+						GUIHandler::get().setVisible(m_senseTextIndex, false);
+						GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
+						GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
+						GUIHandler::get().setVisible(m_sensitivityIndex, false);
+
+						GUIHandler::get().setVisible(m_volumeTextIndex, false);
+						GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
+						GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
+						GUIHandler::get().setVisible(m_volumeAmountIndex, false);
+
+						GUIHandler::get().setVisible(m_fovText, false);
+						GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
+						GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
+						GUIHandler::get().setVisible(m_fovIndex, false);
+
+						GUIHandler::get().setVisible(m_fullscreenText, false);
+						GUIHandler::get().setVisible(m_fullscreenIndex, false);
+
+						m_inPauseSettings = false;
+					}
+					else
+					{
+						m_inputPtr->setCursor(true);
+					}
+
+					m_inPause = true;
+				}
+				else
+				{
+					enableMovement();
+					m_inputPtr->setCursor(false);
+					GUIHandler::get().setVisible(m_pauseText, false);
+					GUIHandler::get().setVisible(m_settingsIndex, false);
+					GUIHandler::get().setVisible(m_resumeBtnIndex, false);
+					GUIHandler::get().setVisible(m_backToLobbyIndex, false);
+					GUIHandler::get().setInMenu(false);
+					m_inPause = false;
+				}
+			}
+		}
 	}
 }
 //Can't swap scenes when using onTrigger function due to it being triggered in physx simulations, ie it could result in a crash and is not best practice.
@@ -400,6 +445,7 @@ void SceneManager::swapScenes()
 		delete m_currentScene;
 		m_currentScene = m_nextScene;
 		m_nextScene = nullptr;
+		m_currectSceneEnum = m_nextSceneEnum;
 
 		// Update currentScene in engine
 		Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
@@ -433,6 +479,10 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			button->setTexture(L"singleplayerBtnHover.png");
 		}
+		if (guiElement->m_index == m_tutorialIndex)
+		{
+			button->setTexture(L"tutorialBtnHover.png");
+		}
 		if (guiElement->m_index == m_joinGameIndex)
 		{
 			button->setTexture(L"joinBtnHover.png");
@@ -443,10 +493,54 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		}
 		if (guiElement->m_index == m_backToLobbyIndex)
 		{
-			button->setTexture(L"backToLobbyHover.png");
+			button->setTexture(L"mainmenuBtnHover.png");
 		}
+		if (guiElement->m_index == m_settingsIndex)
+		{
+			button->setTexture(L"optionsBtnHover.png");
+		}
+		if (guiElement->m_index == m_senseDecreaseIndex)
+		{
+			button->setTexture(L"leftBtnHover.png");
+		}
+		if (guiElement->m_index == m_senseIncreaseIndex)
+		{
+			button->setTexture(L"rightBtnHover.png");
+		}
+		if (guiElement->m_index == m_volumeIncreaseIndex)
+		{
+			button->setTexture(L"rightBtnHover.png");
+		}
+		if (guiElement->m_index == m_volumeDecreaseIndex)
+		{
+			button->setTexture(L"leftBtnHover.png");
+		}
+		if (guiElement->m_index == m_setFovDecreaseIndex)
+		{
+			button->setTexture(L"leftBtnHover.png");
+		}
+		if (guiElement->m_index == m_setFovIncreaseIndex)
+		{
+			button->setTexture(L"rightBtnHover.png");
+		}
+		if (guiElement->m_index == m_resumeBtnIndex)
+		{
+			button->setTexture(L"resumeBtnHover.png");
+		}
+		if (guiElement->m_index == m_fullscreenIndex)
+		{
+			if (checked)
+			{
+				button->setTexture(L"checkedBoxHover.png");
+			}
+			else
+			{
+				button->setTexture(L"uncheckedBoxHover.png");
+			}
+		}
+		
 	}
-	
+
 	if (type == GUIUpdateType::HOVER_EXIT)
 	{
 		if (guiElement->m_index == m_exitIndex)
@@ -456,6 +550,10 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_singleplayerIndex)
 		{
 			button->setTexture(L"singleplayerBtn.png");
+		}
+		if (guiElement->m_index == m_tutorialIndex)
+		{
+			button->setTexture(L"tutorialBtn.png");
 		}
 		if (guiElement->m_index == m_joinGameIndex)
 		{
@@ -467,7 +565,50 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		}
 		if (guiElement->m_index == m_backToLobbyIndex)
 		{
-			button->setTexture(L"backToLobby.png");
+			button->setTexture(L"mainmenuBtn.png");
+		}
+		if (guiElement->m_index == m_settingsIndex)
+		{
+			button->setTexture(L"optionsBtn.png");
+		}
+		if (guiElement->m_index == m_senseDecreaseIndex)
+		{
+			button->setTexture(L"leftBtn.png");
+		}
+		if (guiElement->m_index == m_senseIncreaseIndex)
+		{
+			button->setTexture(L"rightBtn.png");
+		}
+		if (guiElement->m_index == m_volumeIncreaseIndex)
+		{
+			button->setTexture(L"rightBtn.png");
+		}
+		if (guiElement->m_index == m_volumeDecreaseIndex)
+		{
+			button->setTexture(L"leftBtn.png");
+		}
+		if (guiElement->m_index == m_setFovIncreaseIndex)
+		{
+			button->setTexture(L"rightBtn.png");
+		}
+		if (guiElement->m_index == m_setFovDecreaseIndex)
+		{
+			button->setTexture(L"leftBtn.png");
+		}
+		if (guiElement->m_index == m_resumeBtnIndex)
+		{
+			button->setTexture(L"resumeBtn.png");
+		}
+		if (guiElement->m_index == m_fullscreenIndex)
+		{
+			if (checked)
+			{
+				button->setTexture(L"checkedBox.png");
+			}
+			else
+			{
+				button->setTexture(L"uncheckedBox.png");
+			}
 		}
 	}
 
@@ -479,11 +620,44 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			m_gameStarted = true;
 			GUIHandler::get().setVisible(m_singleplayerIndex, false);
+			GUIHandler::get().setVisible(m_tutorialIndex, false);
+			//GUIHandler::get().setVisible(m_hostGameIndex, false);
+			//GUIHandler::get().setVisible(m_joinGameIndex, false);
+			GUIHandler::get().setVisible(m_exitIndex, false);
+			GUIHandler::get().setVisible(m_settingsIndex, false);
+			GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_fovIndex, false);
+			GUIHandler::get().setVisible(m_fullscreenText, false);
+
+			m_nextSceneEnum = ScenesEnum::START;
+			m_swapScene = true;
+		}
+		if (guiElement->m_index == m_tutorialIndex)
+		{
+			// LADDA IN TUTORIAL NIVÅ HÄR!!!!!!
+			//-----------------------------------------------------
+			/*GUIHandler::get().setVisible(m_singleplayerIndex, false);
+			GUIHandler::get().setVisible(m_tutorialIndex, false);
 			GUIHandler::get().setVisible(m_hostGameIndex, false);
 			GUIHandler::get().setVisible(m_joinGameIndex, false);
 			GUIHandler::get().setVisible(m_exitIndex, false);
-			m_nextSceneEnum = ScenesEnum::START;
-			m_swapScene = true;
+			GUIHandler::get().setVisible(m_settingsIndex, false);
+			GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_fovIndex, false);
+			GUIHandler::get().setVisible(m_fullscreenText, false);*/
+
+			//m_nextSceneEnum = ScenesEnum::START; // GLÖM INTE ATT SKAPA OCH SÄTTA TUTORIAL ENUM!!!!!!
+			//m_swapScene = true;
 		}
 		if (guiElement->m_index == m_joinGameIndex)
 		{
@@ -510,14 +684,143 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_backToLobbyIndex)
 		{
 			GUIHandler::get().setVisible(m_singleplayerIndex, true);
-			GUIHandler::get().setVisible(m_hostGameIndex, true);
-			GUIHandler::get().setVisible(m_joinGameIndex, true);
+			GUIHandler::get().setVisible(m_tutorialIndex, true);
+			//GUIHandler::get().setVisible(m_hostGameIndex, true);
+			//GUIHandler::get().setVisible(m_joinGameIndex, true);
+			GUIHandler::get().setVisible(m_settingsIndex, true);
 			GUIHandler::get().setVisible(m_exitIndex, true);
+			GUIHandler::get().setVisible(m_backToLobbyIndex, false);
+			GUIHandler::get().setVisible(m_sensitivityIndex, false);
+			GUIHandler::get().setVisible(m_volumeAmountIndex, false);
+			GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_fovIndex, false);
+			GUIHandler::get().setVisible(m_fovText, false);
+			GUIHandler::get().setVisible(m_senseTextIndex, false);
+			GUIHandler::get().setVisible(m_volumeTextIndex, false);
+			GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_settingsText, false);
+			GUIHandler::get().setVisible(m_resumeBtnIndex, false);
+			GUIHandler::get().setVisible(m_fullscreenText, false);
+			GUIHandler::get().setVisible(m_fullscreenIndex, false);
+			GUIHandler::get().setVisible(m_pauseText, false);
+
+			m_inPause = false;
+			m_inPauseSettings = false;
+
 			m_nextSceneEnum = ScenesEnum::MAINMENU;
 			m_swapScene = true;
 		}
+		if (guiElement->m_index == m_settingsIndex)
+		{
+			if (m_inPause) // came from pause menu
+			{
+				GUIHandler::get().setVisible(m_resumeBtnIndex, true);
+				GUIHandler::get().setVisible(m_backToLobbyIndex, true);
+			}
+			else
+			{
+				GUIHandler::get().setVisible(m_backToLobbyIndex, true);
+			}
 
+			GUIHandler::get().setVisible(m_singleplayerIndex, false);
+			GUIHandler::get().setVisible(m_tutorialIndex, false);
+			//GUIHandler::get().setVisible(m_hostGameIndex, false);
+			//GUIHandler::get().setVisible(m_joinGameIndex, false);
+			GUIHandler::get().setVisible(m_settingsIndex, false);
+			GUIHandler::get().setVisible(m_exitIndex, false);
+			GUIHandler::get().setVisible(m_pauseText, false);
+			GUIHandler::get().setVisible(m_backToLobbyIndex, true);
+			GUIHandler::get().setVisible(m_senseDecreaseIndex, true);
+			GUIHandler::get().setVisible(m_volumeDecreaseIndex, true);
+			GUIHandler::get().setVisible(m_volumeIncreaseIndex, true);
+			GUIHandler::get().setVisible(m_senseIncreaseIndex, true);
+			GUIHandler::get().setVisible(m_sensitivityIndex, true);
+			GUIHandler::get().setVisible(m_volumeAmountIndex, true);
+			GUIHandler::get().setVisible(m_setFovDecreaseIndex, true);
+			GUIHandler::get().setVisible(m_setFovIncreaseIndex, true);
+			GUIHandler::get().setVisible(m_fovIndex, true);
+			GUIHandler::get().setVisible(m_fovText, true);
+			GUIHandler::get().setVisible(m_senseTextIndex, true);
+			GUIHandler::get().setVisible(m_volumeTextIndex, true);
+			GUIHandler::get().setVisible(m_settingsText, true);
+			GUIHandler::get().setVisible(m_fullscreenIndex, true);
+			GUIHandler::get().setVisible(m_fullscreenText, true);
+			m_inPause = false;
+			m_inPauseSettings = true;
+		}
+		if (guiElement->m_index == m_senseIncreaseIndex)
+		{
+			m_camera->increaseSensitivity();
+		}
+		if (guiElement->m_index == m_senseDecreaseIndex)
+		{
+			m_camera->decreaseSensitivity();
+		}
+		if (guiElement->m_index == m_volumeDecreaseIndex)
+		{
+			AudioHandler::get().decreaseVolume();
+		}
+		if (guiElement->m_index == m_volumeIncreaseIndex)
+		{
+			AudioHandler::get().increaseVolume();
+		}
+		if (guiElement->m_index == m_setFovIncreaseIndex)
+		{
+			m_camera->increaseFov();
+		}
+		if (guiElement->m_index == m_setFovDecreaseIndex)
+		{
+			m_camera->decreaseFov();
+		}
+		if (guiElement->m_index == m_resumeBtnIndex)
+		{
+			enableMovement();
+			m_inputPtr->setCursor(false);
+			GUIHandler::get().setVisible(m_pauseText, false);
+			GUIHandler::get().setVisible(m_settingsText, false);
+			GUIHandler::get().setVisible(m_exitIndex, false);
+			GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_sensitivityIndex, false);
+			GUIHandler::get().setVisible(m_volumeAmountIndex, false);
+			GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
+			GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
+			GUIHandler::get().setVisible(m_fovIndex, false);
+			GUIHandler::get().setVisible(m_fovText, false);
+			GUIHandler::get().setVisible(m_senseTextIndex, false);
+			GUIHandler::get().setVisible(m_volumeTextIndex, false);
+			GUIHandler::get().setVisible(m_resumeBtnIndex, false);
+			GUIHandler::get().setVisible(m_settingsIndex, false);
+			GUIHandler::get().setVisible(m_backToLobbyIndex, false);
+			GUIHandler::get().setVisible(m_fullscreenIndex, false);
+			GUIHandler::get().setVisible(m_fullscreenText, false);
+			GUIHandler::get().setInMenu(false);
+			m_inPause = false;
+		}
+		if (guiElement->m_index == m_fullscreenIndex)
+		{
+			// do stuff
 
+			
+			if (checked == false)
+			{
+				button->setTexture(L"checkedbox.png");
+				Renderer::get().setFullScreen(true);
+			}
+			else
+			{
+				button->setTexture(L"uncheckedBox.png");
+				Renderer::get().setFullScreen(false);
+			}
+			checked = !checked;
+
+		}
 	}
 }
 void SceneManager::hideScore()
@@ -544,3 +847,194 @@ void SceneManager::showScore()
 	GUIHandler::get().setVisible(m_rankingScoreIndecThree, true);
 }
 
+void SceneManager::uiMenuInitialize()
+{
+	//define gui button
+	GUIButtonStyle btnStyle;
+	GUITextStyle textStyle;
+
+	//------- Main Menu ----------
+	//start button
+	//btnStyle.position = Vector2(140, 150);
+	btnStyle.position = Vector2(140, 450);
+	btnStyle.scale = Vector2(1, 1);
+	m_singleplayerIndex = GUIHandler::get().addGUIButton(L"singleplayerBtn.png", btnStyle);
+
+	GUIButton* startButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_singleplayerIndex));
+	startButton->Attach(this);
+
+	//Tutorial button
+	//btnStyle.position = Vector2(140, 300);
+	btnStyle.position = Vector2(140, 600);
+	btnStyle.scale = Vector2(1, 1);
+	m_tutorialIndex = GUIHandler::get().addGUIButton(L"tutorialBtn.png", btnStyle);
+
+	GUIButton* tutorialButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_tutorialIndex));
+	tutorialButton->Attach(this);
+	tutorialButton->setPrevMenuButton(startButton);
+	startButton->setNextMenuButton(tutorialButton);
+
+	//join button
+	//btnStyle.position = Vector2(140, 450);
+	//btnStyle.scale = Vector2(1, 1);
+	//m_joinGameIndex = GUIHandler::get().addGUIButton(L"joinBtn.png", btnStyle);
+
+	//GUIButton* joinButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_joinGameIndex));
+	//joinButton->Attach(this);
+	//joinButton->setPrevMenuButton(tutorialButton);
+	//tutorialButton->setNextMenuButton(joinButton);
+
+	////Host Button
+	//btnStyle.position = Vector2(140, 600);
+	//btnStyle.scale = Vector2(1, 1);
+	//m_hostGameIndex = GUIHandler::get().addGUIButton(L"hostBtn.png", btnStyle);
+
+	//GUIButton* hostButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_hostGameIndex));
+	//hostButton->Attach(this);
+	//hostButton->setPrevMenuButton(joinButton);
+	//joinButton->setNextMenuButton(hostButton);
+
+	//Settings button
+	btnStyle.position = Vector2(140, 750);
+	btnStyle.scale = Vector2(1, 1);
+	m_settingsIndex = GUIHandler::get().addGUIButton(L"optionsBtn.png", btnStyle);
+
+	GUIButton* settingsButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_settingsIndex));
+	settingsButton->Attach(this);
+	settingsButton->setPrevMenuButton(tutorialButton);
+	tutorialButton->setNextMenuButton(settingsButton);
+
+	//Exit button
+	btnStyle.position = Vector2(140, 900);
+	btnStyle.scale = Vector2(1, 1);
+	m_exitIndex = GUIHandler::get().addGUIButton(L"exitBtn.png", btnStyle);
+
+	GUIButton* exitButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_exitIndex));
+	exitButton->Attach(this);
+	exitButton->setPrevMenuButton(settingsButton);
+	exitButton->setNextMenuButton(startButton);
+	startButton->setPrevMenuButton(exitButton);
+	settingsButton->setNextMenuButton(exitButton);
+
+	//------- Options/Settings ---------
+	
+	//Options/Settings Label
+	textStyle.position.x = 140.0f;
+	textStyle.position.y = 100.0f;
+	m_settingsText = GUIHandler::get().addGUIText("Options", L"concert_one_60.spritefont", textStyle);
+
+	// --Sensetivity--
+	// Sensetivity Label
+	textStyle.position.x = 140.0f;
+	textStyle.position.y = 200.0f;
+	m_senseTextIndex = GUIHandler::get().addGUIText("Sensitivity", L"concert_one_32.spritefont", textStyle);
+
+	//sense Increase button
+	btnStyle.position = Vector2(500, 200);
+	btnStyle.scale = Vector2(0.9f);
+	m_senseIncreaseIndex = GUIHandler::get().addGUIButton(L"rightBtn.png", btnStyle);
+
+	GUIButton* senseIncrease = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_senseIncreaseIndex));
+	senseIncrease->Attach(this);
+
+	//sense decrease button
+	btnStyle.position = Vector2(370, 200);
+	m_senseDecreaseIndex = GUIHandler::get().addGUIButton(L"leftBtn.png", btnStyle);
+
+	GUIButton* senseDecrease = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_senseDecreaseIndex));
+	senseDecrease->Attach(this);
+
+	//sense amount label
+	textStyle.position.x = 660.0f;
+	textStyle.position.y = 200.0f;
+	m_sensitivityIndex = GUIHandler::get().addGUIText(std::to_string(m_cameraSense), L"concert_one_32.spritefont", textStyle);
+
+	//--Volume--
+	//Volume Label
+	textStyle.position.x = 140.0f;
+	textStyle.position.y = 300.0f;
+	m_volumeTextIndex = GUIHandler::get().addGUIText("Volume", L"concert_one_32.spritefont", textStyle);
+
+	//Volume Increase button
+	btnStyle.position = Vector2(500, 300);
+	m_volumeIncreaseIndex = GUIHandler::get().addGUIButton(L"rightBtn.png", btnStyle);
+
+	GUIButton* volumeIncrease = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_volumeIncreaseIndex));
+	volumeIncrease->Attach(this);
+
+	//Voume Decrease button
+	btnStyle.position = Vector2(370, 300);
+	m_volumeDecreaseIndex = GUIHandler::get().addGUIButton(L"leftBtn.png", btnStyle);
+
+	GUIButton* volumeDecrease = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_volumeDecreaseIndex));
+	volumeDecrease->Attach(this);
+
+	//volume amount label
+	textStyle.position.x = 660.0f;
+	textStyle.position.y = 300.0f;
+	m_volumeAmountIndex = GUIHandler::get().addGUIText(std::to_string(m_volumeAmount), L"concert_one_32.spritefont", textStyle);
+
+	//--FOV--
+	//fov Label
+	textStyle.position.x = 140.0f;
+	textStyle.position.y = 400.0f;
+	m_fovText = GUIHandler::get().addGUIText("FOV", L"concert_one_32.spritefont", textStyle);
+
+	//fov button
+	btnStyle.position = Vector2(500, 400);
+	m_setFovIncreaseIndex = GUIHandler::get().addGUIButton(L"rightBtn.png", btnStyle);
+
+	GUIButton* fovIncreaseBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_setFovIncreaseIndex));
+	fovIncreaseBtn->Attach(this);
+
+	//fov button
+	btnStyle.position = Vector2(370, 400);
+	m_setFovDecreaseIndex = GUIHandler::get().addGUIButton(L"leftBtn.png", btnStyle);
+
+	GUIButton* fovDecreaseBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_setFovDecreaseIndex));
+	fovDecreaseBtn->Attach(this);
+
+	//fov amount label
+	textStyle.position.x = 660.0f;
+	textStyle.position.y = 400.0f;
+	m_fovIndex = GUIHandler::get().addGUIText(std::to_string(m_camera->fovAmount), L"concert_one_32.spritefont", textStyle);
+
+	//--Fullscreen--
+	//Fullscreen Label
+	textStyle.position.x = 140.0f;
+	textStyle.position.y = 500.0f;
+	m_fullscreenText = GUIHandler::get().addGUIText("FullScreen", L"concert_one_32.spritefont", textStyle);
+
+	//Fullscreen checkbox
+	btnStyle.position = Vector2(370, 500);
+	btnStyle.scale = Vector2(0.5f);
+	m_fullscreenIndex = GUIHandler::get().addGUIButton(L"checkedBox.png", btnStyle);
+
+	GUIButton* fullscreenBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_fullscreenIndex));
+	fullscreenBtn->Attach(this);
+
+	//Main Menu Buttons
+	btnStyle.position = Vector2(140, 900);
+	btnStyle.scale = Vector2(1, 1);
+	m_backToLobbyIndex = GUIHandler::get().addGUIButton(L"mainmenuBtn.png", btnStyle);
+
+	GUIButton* backToLobbyButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_backToLobbyIndex));
+	backToLobbyButton->Attach(this);
+
+	//------- Pause ---------
+	//Pause Label
+	textStyle.position.x = 140.0f;
+	textStyle.position.y = 100.0f;
+	m_pauseText = GUIHandler::get().addGUIText("Pause", L"concert_one_60.spritefont", textStyle);
+
+	//resume button
+	btnStyle.position = Vector2(140, 600);
+	btnStyle.scale = Vector2(1, 1);
+	m_resumeBtnIndex = GUIHandler::get().addGUIButton(L"resumeBtn.png", btnStyle);
+
+	GUIButton* resumeBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_resumeBtnIndex));
+	resumeBtn->Attach(this);
+
+	// Used for Menu Selection
+	GUIHandler::get().setInMenu(true, m_singleplayerIndex);
+}

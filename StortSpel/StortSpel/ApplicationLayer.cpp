@@ -9,10 +9,16 @@ ApplicationLayer::ApplicationLayer()
 {
 	m_rendererPtr = nullptr;
 	m_window = 0;
-	m_width = 1920;
-	m_height = 1080;
+	//m_width = 1920;
+	//m_height = 1080;
 	m_dt = 0.f;
 	m_consoleFile = nullptr;
+
+	RECT deskRect;
+	HWND deskTop = GetDesktopWindow();
+	GetWindowRect(deskTop, &deskRect);
+	m_width = deskRect.right - deskRect.left;
+	m_height = deskRect.bottom - deskRect.top;
 }
 
 ApplicationLayer::~ApplicationLayer()
@@ -28,6 +34,8 @@ ApplicationLayer::~ApplicationLayer()
 
 bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd)
 {
+	
+
 	if (hWnd != NULL) return true;
 	const wchar_t WINDOWTILE[] = L"Lucid Runners";
 	HRESULT hr = 0;
@@ -80,7 +88,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	
 	// Scene Manager
 	m_scenemanager.setContextPtr(m_input.getIContextPtr());
-	m_scenemanager.initalize();
+	m_scenemanager.initalize(&m_input);
 	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 
 	srand(static_cast<unsigned>(std::time(0)));
@@ -103,6 +111,8 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 	windowRect.top = 20;
 	windowRect.bottom = windowRect.top + m_height;
 	AdjustWindowRect(&windowRect, NULL, false);
+
+
 
 	// Create the window.
 	_d3d11Window = CreateWindowEx(
@@ -184,6 +194,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
 		return true;
 
+	RECT windowRect;
+	int x, y = 0;
+
 	ApplicationLayer* g_ApplicationLayer = &ApplicationLayer::getInstance();
 	g_ApplicationLayer->m_input.handleMessages(hwnd, uMsg, wParam, lParam);
 	switch (uMsg)
@@ -206,7 +219,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 		}
 		return 0;
+	case WM_SIZE:
+		GetWindowRect(hwnd, &windowRect);
+		GetClientRect(hwnd, &windowRect);
+		x = windowRect.right - windowRect.left;
+		y = windowRect.bottom - windowRect.top;
+		Renderer::get().resizeBackbuff(x, y);
 
+		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;

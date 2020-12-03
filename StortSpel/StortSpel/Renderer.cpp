@@ -16,6 +16,17 @@ void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
 	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &buffer);
 }
 
+void Renderer::setFullScreen(BOOL val)
+{
+	m_swapChainPtr->SetFullscreenState(val, NULL);
+	m_isFullscreen = val;
+}
+
+bool Renderer::isFullscreen()
+{
+	return m_isFullscreen;
+}
+
 void Renderer::release()
 {
 	delete m_shadowMap;
@@ -664,7 +675,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
-				m_dContextPtr->PSSetShaderResources(2, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
+				m_dContextPtr->PSSetShaderResources(9, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 
 				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
 				
@@ -672,6 +683,8 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 			}
 		}
 	}
+	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+	m_dContextPtr->PSSetShaderResources(9, 1, nullSRV);
 }
 
 void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
@@ -732,6 +745,20 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 		}
 	}
+}
+
+void Renderer::resizeBackbuff(int x, int y)
+{
+	//m_swapChainPtr.
+	
+	/*ID3D11Texture2D* swapChainBufferPtr;
+	HRESULT hr = m_swapChainPtr->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&swapChainBufferPtr);
+	int succInt = swapChainBufferPtr->Release();
+
+	m_dContextPtr->ClearState();
+	HRESULT succ = m_swapChainPtr->ResizeBuffers(0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, 0);
+	assert(SUCCEEDED(succ));*/
+	//m_swapChainPtr->SetFullscreenState(TRUE, nullptr);
 }
 
 void Renderer::rasterizerSetup()

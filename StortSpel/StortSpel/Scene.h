@@ -14,6 +14,14 @@ enum class ScenesEnum
 	MAINMENU,
 	ENDSCENE,
 };
+// LOBBY:START:ARENA:MAINMENU:ENDSCENE:
+
+struct starStruct
+{
+	Timer timer;
+	Entity* starEntity = nullptr;
+	float lifeTime = 5;
+};
 
 enum PrefabType
 {
@@ -28,7 +36,8 @@ enum PrefabType
 	BARRELDROP,
 	GOAL_TRIGGER,
 	SWINGING_HAMMER,
-	pfSKYBOX
+	pfSKYBOX,
+	TRAMPOLINE
 };
 
 class Scene : public PhysicsObserver, public BossObserver, public PlayerObserver
@@ -87,6 +96,8 @@ private:
 	//For lasers
 	std::unordered_map<UINT, BossStructures::BossLaser*> m_lasers;
 
+	std::unordered_map<std::string, starStruct*> m_activeStars;
+
 	//Displaced platforms from the grid
 	std::unordered_map<UINT, BossStructures::PlatformDisplace*> m_displacedPlatforms;
 	std::vector<Vector3> deferredPointInstantiationList;
@@ -121,8 +132,8 @@ private:
 	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
 	void loadPickups();
 	void loadScore();
-	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
-	void addCheckpoint(const Vector3& position);
+	Entity* addScore(const Vector3& position, const int tier = 1, std::string name = "");
+	void addCheckpoint(const Vector3& position, float rotation = 90);
 	void createScoreParticleEntity(Vector3 position);
 
 	void addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox);
@@ -130,12 +141,14 @@ private:
 	void createParticleEntity(void* particleComponent, Vector3 position);
 	void createSkybox(std::wstring textureName = std::wstring(L"Skybox_Texture.dds"));
 	void createGoalTrigger(const Vector3& position, Vector3 rotation, Vector3 scale, ScenesEnum scene);
-
+	int m_nrOfGoalTriggers = 0;
 	//void addSlowTrap(const Vector3& position, Vector3 scale);
 	//void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 
 	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData, bool& needsDynamicPhys, bool& needsKinematicPhys);
 	void addPrefabFromFile(char* params);
+
+	void checkStars();
 
 	const std::string m_LEVELS_PATH = "../res/levels/";
 

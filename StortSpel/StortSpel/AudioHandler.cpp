@@ -38,6 +38,11 @@ void AudioHandler::release()
 	m_isReleased = true;
 }
 
+bool AudioHandler::getAudioChanged()
+{
+	return m_hasAudioChanged;
+}
+
 void AudioHandler::initialize(HWND& handle)
 {
 	// Audio Engine Setup
@@ -184,8 +189,37 @@ void AudioHandler::setEmitterPosition(int index, Vector3 position, bool isLoopin
 		m_loopingSoundInstances[index]->Apply3D(m_listener, m_emitter, false);
 }
 
+int AudioHandler::increaseVolume()
+{	
+	if (m_volumeAmount < 10)
+	{
+		m_hasAudioChanged = true;
+		m_volumeAmount += 1;
+		return m_volumeAmount;
+	}
+
+	
+}
+
+int AudioHandler::decreaseVolume()
+{
+	if (m_volumeAmount > 0)
+	{
+		m_hasAudioChanged = true;
+		m_volumeAmount -= 1;
+		return m_volumeAmount;
+	}
+
+}
+
+int AudioHandler::getVolumeAmount()
+{
+	return m_volumeAmount;
+}
+
 void AudioHandler::update(float dt)
 {
+	
 	if (m_listenerTransformPtr)
 	{
 		m_listener.SetPosition(m_listenerTransformPtr->getTranslation());
@@ -206,6 +240,7 @@ void AudioHandler::update(float dt)
 		}
 		m_retryAudio = false;
 	}
+	
 	else if (!m_audioEngine->Update())
 	{
 		if (m_audioEngine->IsCriticalError())
@@ -213,6 +248,14 @@ void AudioHandler::update(float dt)
 			ErrorLogger::get().logError("AudioError: Audio device was lost.");
 			m_retryAudio = true;
 		}
+	}
+	for (auto& soundsInstance : m_soundInstances)
+	{
+		soundsInstance.second->SetVolume(m_volumeAmount);
+	}
+	for (auto& loopingSounds : m_loopingSoundInstances)
+	{
+		loopingSounds.second->SetVolume(m_volumeAmount);
 	}
 }
 

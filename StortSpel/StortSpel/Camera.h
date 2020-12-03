@@ -24,20 +24,26 @@ private:
 	bool m_shouldRayCast = true;
 
 	float m_sensitivity = 0.05f;
-
+	
 	void updateViewMatrix();
 	void updateViewMatrixEndScene();
 public:
 	Camera();
 	~Camera();
-	void initialize(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ);
-	void setProjectionMatrix(const float &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
+	void initialize(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ);
+	void setProjectionMatrix(const int &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
 	void setPosition(const XMVECTOR&pos);
 	void setRotation(const XMVECTOR&rot);
 	bool endSceneCamera = false;
 	bool frustumCullingOn = true;
-
+	int fovAmount = 80;
 	Transform* getTransform();
+
+	void increaseSensitivity();
+	void decreaseSensitivity();
+	void increaseFov();
+	void decreaseFov();
+	float getSensitivity();
 
 	const XMVECTOR& getPosition() const;
 	const XMFLOAT3 getFloat3Position() const;

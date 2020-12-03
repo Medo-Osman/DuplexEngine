@@ -21,7 +21,7 @@ class Boss : public PhysicsObserver, public BossSegment
 private:
 	int m_maxStarCount = 0;
 	int m_currentStarCount = 0;
-	const int NR_OF_PLATFORMS = 5;
+	const int NR_OF_PLATFORMS = 6;
 public:
 
 

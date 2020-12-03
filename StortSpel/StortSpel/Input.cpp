@@ -65,29 +65,13 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 		{
 			m_Keyboard.onKeyPressed(key);
 		}
-		if (key == VK_ESCAPE)
-			uMsg = WM_DESTROY;
+		/*if (key == VK_ESCAPE)
+			uMsg = WM_DESTROY;*/
 
 		if (key == VK_TAB)
 		{
-			m_cursorEnabled = !m_cursorEnabled;
-			if (m_cursorEnabled)
-			{
-				while (::ShowCursor(TRUE) < 0);
-				m_contexts[0]->setMute(true);
-			}
-			else
-			{
-				while (::ShowCursor(FALSE) >= 0);
-				m_contexts[0]->setMute(false);
-			}
+			setCursor(!m_cursorEnabled);
 		}
-
-
-		//if (key == VK_LEFTALT)
-		//{
-
-		//}
 
 		return 0;
 	}
@@ -365,10 +349,10 @@ void Input::readBuffers(const float& dt)
 		}
 
 		// Menu / Start
-		if (m_tracker.menu == BState::PRESSED)
-			inputDataChanged = this->fillInputDataUsingKey('P', true) || inputDataChanged; 
-		else if (m_tracker.menu == BState::RELEASED)
-			inputDataChanged = this->fillInputDataUsingKey('P', false) || inputDataChanged; 
+		if (m_tracker.menu == GamePad::ButtonStateTracker::PRESSED)
+			inputDataChanged = this->fillInputDataUsingKey('\x1B', true) || inputDataChanged;
+		else if (m_tracker.menu == GamePad::ButtonStateTracker::RELEASED)
+			inputDataChanged = this->fillInputDataUsingKey('\x1B', false) || inputDataChanged;
 
 		// View / Back
 		if (m_tracker.view == BState::PRESSED)
@@ -530,6 +514,24 @@ Mouse* Input::getMouse()
 std::vector<iContext*>* Input::getIContextPtr()
 {
 	return &m_contexts;
+}
+
+void Input::setCursor(bool ifCursorEnabled)
+{
+	if (ifCursorEnabled != m_cursorEnabled)
+	{
+		m_cursorEnabled = !m_cursorEnabled;
+		if (m_cursorEnabled)
+		{
+			while (::ShowCursor(TRUE) < 0);
+			m_contexts[0]->setMute(true);
+		}
+		else
+		{
+			while (::ShowCursor(FALSE) >= 0);
+			m_contexts[0]->setMute(false);
+		}
+	}
 }
 
 void Input::Attach(InputObserver* observer)
