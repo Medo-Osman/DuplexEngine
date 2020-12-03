@@ -2655,7 +2655,7 @@ void Scene::createEndScenePortal()
 		TriggerComponent* tc = static_cast<TriggerComponent*>(endSceneTrigger->getComponent("endSceneTrigger"));
 		tc->initTrigger(m_sceneID, endSceneTrigger, XMFLOAT3(0.15f, 1.5f, 1.5f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
-		tc->setIntData((int)ScenesEnum::ENDSCENE);
+		tc->setIntData((int)ScenesEnum::LOBBY);
 	}
 }
 
