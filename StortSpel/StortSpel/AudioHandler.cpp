@@ -33,7 +33,8 @@ void AudioHandler::release()
 	m_soundInstances.clear();
 
 	//m_referencedSources.clear();
-	std::cout << "Clean Audio Handler!" << std::endl;
+	if (DEBUGMODE)
+		std::cout << "Clean Audio Handler!" << std::endl;
 	m_isReleased = true;
 }
 

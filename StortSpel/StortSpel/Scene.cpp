@@ -527,7 +527,9 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 
 void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 {
-	std::cout << "Started scene loading ================================" << std::endl;
+	if (DEBUGMODE)
+		std::cout << "Started scene loading ================================" << std::endl;
+
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
 	size_t dot = path.rfind('.', path.length());

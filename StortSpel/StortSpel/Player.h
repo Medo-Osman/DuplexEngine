@@ -74,7 +74,6 @@ private:
     float m_verticalMultiplier = 0.f;
     float m_horizontalMultiplier = 0.f;
     Vector3 m_movementVector;
-    float m_timeCounter = 0.f;
 
     //JUMP CONFIG
     const float JUMP_SPEED = 70.f;
