@@ -19,6 +19,7 @@ void ResourceHandler::isResourceHandlerReady()
 
 void ResourceHandler::checkResources()
 {
+	/*
 	//=========================================== Meshes
 	std::vector<std::string> idsForMeshesToRemove;
 	for (auto meshStruct : m_meshCache)
@@ -88,6 +89,7 @@ void ResourceHandler::checkResources()
 	//for (auto& m : m_textureCache)
 		//if (m.second->m_doReferenceCount)
 			//std::cout << m.second->debugName << ", " << m.second->getRefCount() << ", " << m.second->view << std::endl;
+	*/
 }
 
 TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isCubeMap, bool referenceBasedDelete)

@@ -845,8 +845,8 @@ void Scene::addPrefabFromFile(char* params)
 		Vector3 wallpos1, wallpos2, rot;
 		wallpos1 = readDataFromChar<Vector3>(params, offset);
 		wallpos2 = readDataFromChar<Vector3>(params, offset);
-		wallpos1.x = -wallpos1.x;
-		wallpos2.x = -wallpos2.x;
+		flipX(wallpos1);
+		flipX(wallpos2);
 		std::string mesh = readStringFromChar(params, offset);
 		mesh.append(".lrm");
 		//std::wstring wMesh = std::wstring(mesh.begin(), mesh.end());
@@ -860,9 +860,16 @@ void Scene::addPrefabFromFile(char* params)
 		addBarrelDrop(pos);
 		break;
 	case GOAL_TRIGGER:
-
+	{
+		Vector3 rot, scale;
+		ScenesEnum se = ScenesEnum::ARENA;
+		rot = readDataFromChar<Vector3>(params, offset);
+		scale = readDataFromChar<Vector3>(params, offset);
+		int aegghed = readDataFromChar<int>(params, offset);
+		//se = (ScenesEnum)readDataFromChar<int>(params, offset);
+		createGoalTrigger(pos, rot, scale, se);
 		break;
-
+	}
 	case SWINGING_HAMMER:
 	{
 		Vector3 rot = readDataFromChar<Vector3>(params, offset);
@@ -877,6 +884,9 @@ void Scene::addPrefabFromFile(char* params)
 		createSkybox(texName);
 		break;
 	}
+	case TRAMPOLINE:
+		addTrampoline(pos);
+
 	}
 	
 }
@@ -941,21 +951,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		floor->setPosition({ 0, 6, 0 });
 		floor->scale({ 20, 2, 20 });
 		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
-	}
-
-	Entity* itemBox = sceneObject->addEntity("itemBox");
-	if (itemBox)
-	{
-		sceneObject->addComponent(itemBox, "itemBox", new MeshComponent("SpeedPickup_Cube.001.lrm", RAINBOW, Material()));
-		sceneObject->addComponent(itemBox, "speedItem", new MeshComponent("SpeedPickup_Plane.lrm", ShaderProgramsEnum::DEFAULT, Material({ L"SpeedIcon.png" })));
-
-		itemBox->translate({ 2, 12, 2 });
-		itemBox->translate({ 2, 12, 2 });
-		itemBox->scale({ 3, 3, 3 });
-		Vector3 start = itemBox->getTranslation();
-		Vector3 end = Vector3(itemBox->getTranslation().x, itemBox->getTranslation().y, itemBox->getTranslation().z + 10);
-		sceneObject->addComponent(itemBox, "rotate", new RotateComponent(itemBox, { 0.f, 1.0f, 0.f }, 1.f));
-
 	}
 
 	Entity* test = sceneObject->addEntity("test");
@@ -1395,6 +1390,15 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 {
 	Entity* entity;
 
+	Entity* floor = sceneObject->addEntity("Floor");
+	if (floor)
+	{
+		sceneObject->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+		floor->scale({ 30, 1, 30 });
+		floor->translate({ 0,-2,0 });
+		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
 	std::wstring materialNames[7] = {
 	L"Bronze_Quilt/bronze_quilt",
 	L"Coastline_Flat_Stone_Wall_Mixed/coastline_flat_stone_wall_mixed",
@@ -1413,8 +1417,8 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 		{
 			entity = sceneObject->m_entities[currentSphereName];
 			Material PBRMatTextured;
-			PBRMatTextured.addTexture(L"skybox1IR.dds", true);
-			PBRMatTextured.addTexture(L"skybox1.dds", true);
+			PBRMatTextured.addTexture(L"Skybox_Texture2.dds", true);
+			PBRMatTextured.addTexture(L"Skybox_Texture2.dds", true);
 			PBRMatTextured.addTexture(L"ibl_brdf_lut.png");
 
 			PBRMatTextured.addTexture((materialNames[i] + L"_Base_Color.dds").c_str());
@@ -1444,8 +1448,8 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 		{
 			entity = sceneObject->m_entities[currentSphereName];
 			Material PBRMatUntextured;
-			PBRMatUntextured.addTexture(L"skybox1IR.dds", true);
-			PBRMatUntextured.addTexture(L"skybox1.dds", true);
+			PBRMatUntextured.addTexture(L"Skybox_Texture3.dds", true);
+			PBRMatUntextured.addTexture(L"Skybox_Texture4.dds", true);
 			PBRMatUntextured.addTexture(L"ibl_brdf_lut.png");
 
 			xCounter++;
@@ -1472,7 +1476,7 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 	if (skybox)
 	{
 		Material skyboxMat;
-		skyboxMat.addTexture(L"skybox1.dds", true);
+		skyboxMat.addTexture(L"Skybox_Texture3.dds", true);
 		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 	}
 

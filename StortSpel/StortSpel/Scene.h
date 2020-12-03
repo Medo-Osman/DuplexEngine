@@ -14,6 +14,7 @@ enum class ScenesEnum
 	MAINMENU,
 	ENDSCENE,
 };
+// LOBBY:START:ARENA:MAINMENU:ENDSCENE:
 
 enum PrefabType
 {
@@ -28,7 +29,8 @@ enum PrefabType
 	BARRELDROP,
 	GOAL_TRIGGER,
 	SWINGING_HAMMER,
-	pfSKYBOX
+	pfSKYBOX,
+	TRAMPOLINE
 };
 
 class Scene : public PhysicsObserver, public BossObserver, public PlayerObserver
