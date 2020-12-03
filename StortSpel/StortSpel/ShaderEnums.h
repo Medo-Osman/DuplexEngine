@@ -17,6 +17,7 @@ enum ShaderProgramsEnum
 	EMISSIVE,
 	LUCY_FACE,
 	RAINBOW,
+	CLOUD,
 	NONE
 };
 
@@ -38,6 +39,8 @@ inline ShaderProgramsEnum charToShaderEnum(char e)
 		return OBJECTSPACEGRID;
 	case 'L':
 		return LUCY_FACE;
+	case 'C':
+		return CLOUD;
 	default:
 		return TEMP_TEST;
 	}
@@ -154,4 +157,15 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 		VertexLayoutType::LRSMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
 	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD] = new ShaderProgram
+	(
+		{ L"CloudShaderVS.hlsl", L"CloudShaderHS.hlsl", L"CloudShaderDS.hlsl", L"null", L"CloudShaderPS.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST,
+		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	// Allow binding of a displacement map to the domain shader
+	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Domain, true);
 }

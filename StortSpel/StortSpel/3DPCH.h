@@ -111,4 +111,4 @@ enum class EventType
 	BOSS_PROJECTILE_HIT,
 };
 
-const bool DEBUGMODE = true;
+const bool DEBUGMODE = false;

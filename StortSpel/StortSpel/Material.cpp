@@ -25,8 +25,8 @@ Material::Material(std::wstring materialName, bool isPBR)
 {
 	if (isPBR)
 	{
-		addTexture(L"Skybox_Texture2.dds", true);
-		addTexture(L"Skybox_Texture2.dds", true);
+		addTexture(L"skybox_bluesky_2.dds", true);
+		addTexture(L"skybox_bluesky_2.dds", true);
 		addTexture(L"ibl_brdf_lut.png");
 	}
 	

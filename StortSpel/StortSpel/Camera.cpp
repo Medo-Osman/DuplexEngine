@@ -152,7 +152,7 @@ void Camera::update(const float& dt)
 	//	m_newIncrements = false;
 	//}
 	Player* ply = Engine::get().getPlayerPtr();
-	m_position = ply->getPlayerEntity()->getTranslation() + ply->getCameraOffset() + Vector3(0, 2, -5);
+	m_position = ply->getPlayerEntity()->getTranslation() + ply->getCameraOffset() + Vector3(0, 0.5f, -1.f);
 	m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
 
 	//endscene fixed camera position
@@ -188,14 +188,14 @@ void Camera::updateViewMatrix()
 
 	XMVECTOR playerPos = Vector3(dynamic_cast<CharacterControllerComponent*>(ply->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + ply->getCameraOffset() + Vector3(0, 0.5, 0);//->getTranslation();
 
-	playerPos += Vector3(0, 1.75f, 0);
+	playerPos += Vector3(0, 0.5f, 0);
 	m_position = playerPos;
-	XMVECTOR offsetVector = Vector3(0, 0, 1) * 5;
+	XMVECTOR offsetVector = Vector3(0, 0, 1) * 2;
 	offsetVector = XMVector3Rotate(offsetVector, currentRotation);
 	m_position -= offsetVector;
 
 	Vector3 fromPlayerToCamera = m_position - playerPos;
-	if (Physics::get().castRay(playerPos, DirectX::XMVector3Normalize(fromPlayerToCamera), 5, hitPos))
+	if (Physics::get().castRay(playerPos, DirectX::XMVector3Normalize(fromPlayerToCamera), 2, hitPos))
 	{
 		m_position = hitPos;
 	}
