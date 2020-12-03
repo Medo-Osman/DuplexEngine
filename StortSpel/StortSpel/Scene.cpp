@@ -866,6 +866,7 @@ void Scene::addPrefabFromFile(char* params)
 		rot = readDataFromChar<Vector3>(params, offset);
 		scale = readDataFromChar<Vector3>(params, offset);
 		int aegghed = readDataFromChar<int>(params, offset);
+		se = readDataFromChar<ScenesEnum>(params, offset);
 		//se = (ScenesEnum)readDataFromChar<int>(params, offset);
 		createGoalTrigger(pos, rot, scale, se);
 		break;
@@ -2241,7 +2242,9 @@ void Scene::createSkybox(std::wstring textureName)
 
 void Scene::createGoalTrigger(const Vector3& position, Vector3 rotation, Vector3 scale, ScenesEnum scene)
 {
-	Entity* goalTrigger = addEntity("trigger");
+	m_nrOfGoalTriggers++;
+	
+	Entity* goalTrigger = addEntity("trigger" + std::to_string(m_nrOfGoalTriggers));
 	if (goalTrigger)
 	{
 		addComponent(goalTrigger, "mesh",

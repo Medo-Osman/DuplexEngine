@@ -160,7 +160,7 @@ void SceneManager::updateScene(const float &dt)
 			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::ARENA:
-			sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread = std::thread(Scene::loadBossTest, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 			m_gameStarted = true;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.

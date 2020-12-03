@@ -132,7 +132,7 @@ private:
 	void createParticleEntity(void* particleComponent, Vector3 position);
 	void createSkybox(std::wstring textureName = std::wstring(L"Skybox_Texture.dds"));
 	void createGoalTrigger(const Vector3& position, Vector3 rotation, Vector3 scale, ScenesEnum scene);
-
+	int m_nrOfGoalTriggers = 0;
 	//void addSlowTrap(const Vector3& position, Vector3 scale);
 	//void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 
