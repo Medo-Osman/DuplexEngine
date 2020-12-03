@@ -691,7 +691,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		}
 	}
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-	m_dContextPtr->PSSetShaderResources(9, 1, nullSRV);
+	m_dContextPtr->PSSetShaderResources(7, 1, nullSRV);
 }
 
 void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
