@@ -24,16 +24,7 @@ Player::Player()
 
 
 	Physics::get().Attach(this, true, false);
-	m_currentSpeedModifier = 1.f;
-	m_speedModifierTime = 0;
-	if (!Pickup::hasInitPickupArray())
-	{
-		std::vector<Pickup*> vec;
-		vec.emplace_back(new SpeedPickup());
-		vec.emplace_back(new HeightPickup());
-		vec.emplace_back(new CannonPickup());
-		Pickup::initPickupArray(vec);
-	}
+
 
 	for (int i = 0; i < 10; i++)
 	{
@@ -76,7 +67,16 @@ Player::Player()
 	m_cannonCrosshairID = GUIHandler::get().addGUIImage(L"crosshair.png", guiInfo);
 	GUIHandler::get().setVisible(m_cannonCrosshairID, false);*/
 
-
+	m_currentSpeedModifier = 1.f;
+	m_speedModifierTime = 0;
+	if (!Pickup::hasInitPickupArray())
+	{
+		std::vector<Pickup*> vec;
+		vec.emplace_back(new SpeedPickup());
+		vec.emplace_back(new HeightPickup());
+		vec.emplace_back(new CannonPickup());
+		Pickup::initPickupArray(vec);
+	}
 }
 
 Player::~Player()
@@ -707,8 +707,8 @@ void Player::setPlayerEntity(Entity* entity)
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
-	m_pickupPointer = new HeightPickup();
-	m_pickupPointer->onPickup(m_playerEntity, false);
+	//m_pickupPointer = new HeightPickup();
+	//m_pickupPointer->onPickup(m_playerEntity, false); REEEEEEEEEEE
 }
 
 Vector3 Player::getCheckpointPos()
