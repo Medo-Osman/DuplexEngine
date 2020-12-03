@@ -721,8 +721,8 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 
 	std::string compName = readStringFromChar(compData, offset);
 
-	if (compName == "Skyway_1_Cube.555")
-		int aegzaed = 0;
+	if (compName == "Skyway_1_cloudPlane") // Hardcoding ftw
+		entity->m_canCull = false;
 
 	char* paramData = new char[sizeOfData - offset];
 	memcpy(paramData, compData + offset, sizeOfData - offset);
