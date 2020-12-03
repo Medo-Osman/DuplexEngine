@@ -1,5 +1,7 @@
 #include"3DPCH.h"
 #include"ApplicationLayer.h"
+#include <cstdlib>
+#include<ctime>
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -7,8 +9,8 @@ ApplicationLayer::ApplicationLayer()
 {
 	m_rendererPtr = nullptr;
 	m_window = 0;
-	m_width = 1920;
-	m_height = 1080;
+	//m_width = 1920;
+	//m_height = 1080;
 	m_dt = 0.f;
 	m_consoleFile = nullptr;
 
@@ -29,6 +31,8 @@ ApplicationLayer::~ApplicationLayer()
 
 bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd)
 {
+	
+
 	if (hWnd != NULL) return true;
 	const wchar_t WINDOWTILE[] = L"Lucid Runners";
 	HRESULT hr = 0;
@@ -72,7 +76,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	// PhysX
 	m_physics = &Physics::get();
 	m_physics->init(XMFLOAT3(0.0f, -9.81f, 0.0f), 1);
-	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input, &m_window);
+	GUIHandler::get().initialize(Renderer::get().getDevice(), Renderer::get().getDContext(), &m_input, &m_window, this->getWindowSize());
 
 	// Engine
 	Engine::get().initialize(&m_input);
@@ -81,11 +85,10 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	
 	// Scene Manager
 	m_scenemanager.setContextPtr(m_input.getIContextPtr());
-	m_scenemanager.initalize();
+	m_scenemanager.initalize(&m_input);
 	ApplicationLayer::getInstance().m_input.Attach(&m_scenemanager);
 
-	srand(static_cast <unsigned> (time(0)));
-
+	srand(static_cast<unsigned>(std::time(0)));
 	return initOK;
 }
 
@@ -187,6 +190,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
 		return true;
 
+	RECT windowRect;
+	int x, y = 0;
+
 	ApplicationLayer* g_ApplicationLayer = &ApplicationLayer::getInstance();
 	g_ApplicationLayer->m_input.handleMessages(hwnd, uMsg, wParam, lParam);
 	switch (uMsg)
@@ -209,7 +215,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 		}
 		return 0;
+	case WM_SIZE:
+		GetWindowRect(hwnd, &windowRect);
+		GetClientRect(hwnd, &windowRect);
+		x = windowRect.right - windowRect.left;
+		y = windowRect.bottom - windowRect.top;
+		Renderer::get().resizeBackbuff(x, y);
 
+		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;

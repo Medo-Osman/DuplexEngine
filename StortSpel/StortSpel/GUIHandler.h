@@ -36,11 +36,13 @@ private:
 	int m_inMenu;
 	int m_selectedMenuButton;
 
+	Vector2 m_windowSize;
+
 public:
 	static GUIHandler& get();
 	~GUIHandler();
 
-	void initialize(ID3D11Device* device, ID3D11DeviceContext* dContext, Input* input, HWND* window);
+	void initialize(ID3D11Device* device, ID3D11DeviceContext* dContext, Input* input, HWND* window, Vector2 windowSize);
 
 	int addGUIButton(std::wstring buttonTextureString, GUIButtonStyle style = GUIButtonStyle());
 	void changeGUIButton(int index, std::wstring path);
@@ -56,6 +58,7 @@ public:
 	bool getVisible(int index);
 
 	void setImageStyle(int index, GUIImageStyle style);
+	void setButtonStyle(int index, GUIButtonStyle style);
 	void setGUITextStyle(int index, GUITextStyle style);
 
 	std::vector< GUIElement* >* getElementMap();
@@ -64,6 +67,8 @@ public:
 	void setInMenu(bool inMenu, int startIndex = 0);
 
 	void render();
+
+	const Vector2& getWindowSize();
 
 	virtual void inputUpdate(InputData& inputData) override;
 };

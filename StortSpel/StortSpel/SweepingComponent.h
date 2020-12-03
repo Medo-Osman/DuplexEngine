@@ -57,13 +57,14 @@ public:
 
 		Vector3 startPos = readDataFromChar<Vector3>(paramData, offset);
 		Vector3 endPos = readDataFromChar<Vector3>(paramData, offset);
+		flipX(endPos);
 		float travelTime = readDataFromChar<float>(paramData, offset);
 		bool singleSweeps = readDataFromChar<bool>(paramData, offset);
 		bool timeInterval = readDataFromChar<bool>(paramData, offset);
 		float waitTime = readDataFromChar<float>(paramData, offset);
 		bool startAtEndPos = readDataFromChar<bool>(paramData, offset);
 
-		init(transform, startPos, endPos, travelTime, singleSweeps, timeInterval, waitTime, m_startsAtEnd);
+		init(transform, startPos, endPos, travelTime, singleSweeps, timeInterval, waitTime, startAtEndPos);
 	}
 
 	void activate()

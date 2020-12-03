@@ -20,7 +20,8 @@ enum Action
 	CLOSEINTROGUI,
 	USE,
 	SELECT,
-	RESPAWN
+	RESPAWN,
+	MENU
 };
 
 enum State

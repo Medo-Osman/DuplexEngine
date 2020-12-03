@@ -6,6 +6,7 @@
 #include"ParticleComponent.h"
 #include"Particles\ScorePickupParticle.h"
 #include"Renderer.h"
+#include"TrampolineComponent.h"
 
 Scene::Scene()
 {
@@ -21,7 +22,6 @@ Scene::Scene()
 	addMeshComponent(meshComponent);
 	setScoreVec();
 	sortScore();
-
 }
 
 Scene::~Scene()
@@ -186,6 +186,7 @@ void Scene::loadPickups()
 {
 	addPickup(Vector3(-30.f, 30.f, 105.f));
 	addPickup(Vector3(8.5f, 40.f, 172.f));
+	addPickup(Vector3(2, 12, 2));
 }
 
 void Scene::loadScore()
@@ -241,7 +242,7 @@ void Scene::addCheckpoint(const Vector3& position, float rotation)
 
 void Scene::addBarrelDrop(Vector3 Position)
 {
-	Entity* rollingBarrel = addEntity("barrel");
+	Entity* rollingBarrel = addEntity("barrel"+std::to_string(m_player->m_nrOfBarrelDrops++));
 
 	if (rollingBarrel)
 	{
@@ -252,9 +253,23 @@ void Scene::addBarrelDrop(Vector3 Position)
 		createNewPhysicsComponent(rollingBarrel, true, "", PxGeometryType::eSPHERE, "wood", true);
 		static_cast<PhysicsComponent*>(rollingBarrel->getComponent("physics"))->setMass(100.0f);
 		addComponent(rollingBarrel, "barrel", new BarrelComponent());
-		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 1,1,1 });
-		m_despawnBarrelTimer.restart();
-		addedBarrel = true;
+		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 4,2,2 });
+	}
+}
+
+void Scene::addBarrelDropTrigger(Vector3 position)
+{
+	Entity* barrelDropTrigger = addEntity("dropTrigger" + std::to_string(m_nrOfBarrelTrigger++));
+	if (barrelDropTrigger)
+	{
+		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
+		addComponent(barrelDropTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material()));
+
+		barrelDropTrigger->setPosition(position);
+
+		addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
+		barrelComponentTrigger->initTrigger(m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
 	}
 }
 
@@ -278,15 +293,16 @@ void Scene::addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox)
 
 }
 
-void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition)
+void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition, const char* meshFile, Vector3 meshRotation)
 {
 	Entity* pushWall = addEntity("wall");
 	if (pushWall)
 	{
 		addComponent(pushWall, "mesh",
-			new MeshComponent("testCube_pCube1.lrm"));
-		pushWall->setScale(Vector3(10, 5, 1));
-		pushWall->rotate(0.f, 1.57f, 0.f);
+			new MeshComponent(meshFile));
+		//pushWall->setScale(Vector3(10, 5, 1));
+		//pushWall->setScale(Vector3(1, 1, 1));
+		pushWall->rotate(meshRotation);
 
 		createNewPhysicsComponent(pushWall, true, "", PxGeometryType::eBOX, "default", true);
 		static_cast<PhysicsComponent*>(pushWall->getComponent("physics"))->makeKinematic();
@@ -302,7 +318,7 @@ void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 tr
 		addComponent(pushWallTrigger, "mesh",
 			new MeshComponent("testCube_pCube1.lrm", Material()));
 
-		pushWallTrigger->setPosition(0, 18, 50);
+		pushWallTrigger->setPosition(triggerPosition);
 
 		addComponent(pushWallTrigger, "trigger", pushComponentTrigger);
 		pushComponentTrigger->initTrigger( m_sceneID, pushWallTrigger, { 1,1,1 });
@@ -312,16 +328,35 @@ void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 tr
 void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 {
 	int nrOfPickups = (int)PickupType::COUNT - 1; //-1 due to Score being in pickupTypes
-	int pickupEnum = rand() % nrOfPickups;
+	int pickupEnum = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / nrOfPickups));
+
+	const char* pickupName = "";
+	const WCHAR* textureName = L"";
+	switch(pickupEnum)
+	{
+	case 0:
+		pickupName = "PickupStuffs_SpeedPickup.lrm";
+		textureName = L"SpeedIcon.png";
+		break;
+	case 1:
+		pickupName = "PickupStuffs_TrampolinPickup.lrm";
+		textureName = L"TrampolinIcon.png";
+		break;
+	case 2:
+		pickupName = "PickupStuffs_CanonPickup.lrm";
+		textureName = L"CanonIcon.png";
+		break;
+	}
 
 	Entity* pickupPtr;
 	if (name == "")
 		name = "pickup_" + std::to_string(m_nrOfPickups++);
 
 	pickupPtr = addEntity(name);
-	pickupPtr->setPosition(position);
-	addComponent(pickupPtr, "mesh", new MeshComponent("testCube_pCube1.lrm", ShaderProgramsEnum::TEMP_TEST));
-
+	Vector3 offset = Vector3(0.f, -0.9f, 0.f);
+	pickupPtr->setPosition(position + offset);
+	addComponent(pickupPtr, "itemBox", new MeshComponent("PickupStuffs_ItemBox.lrm", ShaderProgramsEnum::RAINBOW));
+	addComponent(pickupPtr, "speedItem", new MeshComponent(pickupName, ShaderProgramsEnum::DEFAULT, Material({ textureName })));
 	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, tier, 1));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
@@ -685,6 +720,9 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 
 	std::string compName = readStringFromChar(compData, offset);
 
+	if (compName == "Skyway_1_Cube.555")
+		int aegzaed = 0;
+
 	char* paramData = new char[sizeOfData - offset];
 	memcpy(paramData, compData + offset, sizeOfData - offset);
 
@@ -818,19 +856,37 @@ void Scene::addPrefabFromFile(char* params)
 	}
 	case PUSHTRAP:
 	{
-		Vector3 wallpos1, wallpos2;
+		// Add file param, don't forget .lrm
+		
+		Vector3 wallpos1, wallpos2, rot;
 		wallpos1 = readDataFromChar<Vector3>(params, offset);
 		wallpos2 = readDataFromChar<Vector3>(params, offset);
-		addPushTrap(wallpos1, wallpos2, pos);
+		flipX(wallpos1);
+		flipX(wallpos2);
+		std::string mesh = readStringFromChar(params, offset);
+		mesh.append(".lrm");
+		//std::wstring wMesh = std::wstring(mesh.begin(), mesh.end());
+		rot = readDataFromChar<Vector3>(params, offset);
+		rot.x = XMConvertToRadians(rot.x); rot.y = XMConvertToRadians(rot.y); rot.z = XMConvertToRadians(rot.z);
+		addPushTrap(wallpos1, wallpos2, pos, mesh.c_str(), rot);
+
 		break;
 	}
 	case BARRELDROP:
 		addBarrelDrop(pos);
 		break;
 	case GOAL_TRIGGER:
-
+	{
+		Vector3 rot, scale;
+		ScenesEnum se = ScenesEnum::ARENA;
+		rot = readDataFromChar<Vector3>(params, offset);
+		scale = readDataFromChar<Vector3>(params, offset);
+		int aegghed = readDataFromChar<int>(params, offset);
+		se = readDataFromChar<ScenesEnum>(params, offset);
+		//se = (ScenesEnum)readDataFromChar<int>(params, offset);
+		createGoalTrigger(pos, rot, scale, se);
 		break;
-
+	}
 	case SWINGING_HAMMER:
 	{
 		Vector3 rot = readDataFromChar<Vector3>(params, offset);
@@ -845,6 +901,9 @@ void Scene::addPrefabFromFile(char* params)
 		createSkybox(texName);
 		break;
 	}
+	case TRAMPOLINE:
+		addTrampoline(pos);
+
 	}
 	
 }
@@ -882,7 +941,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->addSlowTrap(Vector3(0.f, 13.f, 30.f), Vector3(3.f,3.f,3.f), Vector3(1.5f, 1.5f, 1.5f));
 	sceneObject->addPushTrap(Vector3(-5.f, 20.f, 58.f), Vector3(5.f, 20.f, 58.f), Vector3(0.f, 18.f, 50.f));
-
+	sceneObject->addBarrelDropTrigger(Vector3(-30.f, 30.f, 105.f));
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 8.1f, -1.f);
 	
 	Entity* endSceneTrigger = sceneObject->addEntity("endSceneTrigger");
@@ -904,22 +963,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 	sceneObject->createTimedSweepPlatform({ 0, 7.5f, 5.f }, { 0, 7.5f, 10.f }, true, 2.5f);
 
-
-
-
-	Entity* barrelDropTrigger = sceneObject->addEntity("dropTrigger");
-	if (barrelDropTrigger)
-	{
-		BarrelTriggerComponent* barrelComponentTrigger = new BarrelTriggerComponent();
-		sceneObject->addComponent(barrelDropTrigger, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material()));
-
-		barrelDropTrigger->setPosition(-30.f, 30.f, 105.f);
-
-		sceneObject->addComponent(barrelDropTrigger, "trigger", barrelComponentTrigger);
-		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
-	}
-
 	/*for (int i = 0; i < 3; i++)
 	{
 		Entity* stressObject = sceneObject->addEntity("stressObject" + std::to_string(i));
@@ -932,7 +975,6 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 
 		}
 	}*/
-
 
 
 	Entity* floor = sceneObject->addEntity("floor"); // Floor:
@@ -964,8 +1006,8 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		sceneObject->addComponent(test, "3Dsound", new AudioComponent(L"fireplace.wav", true, 3.f, 0.f, true, test));
 	}
 
-	sceneObject->createSwingingHammer(Vector3(0, 9.3, 20), Vector3(0, 0, 0), 1);
-	sceneObject->createStaticPlatform(Vector3(0, 13, 20), Vector3(0, 0, 0), Vector3(4, 1, 4), "testCube_pCube1.lrm");
+	sceneObject->createSwingingHammer(Vector3(0, 9.3 - 2.72f, 20), Vector3(0, 0, 0), 1);
+	sceneObject->createStaticPlatform(Vector3(0, 13 - 2.72f, 20), Vector3(0, 0, 0), Vector3(4, 1, 4), "testCube_pCube1.lrm");
 	// Start:
 	sceneObject->createStaticPlatform(Vector3(0, 6.5, 20), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
 	sceneObject->createStaticPlatform(Vector3(0, 8.5, 29.5), Vector3(0, 0, 0), Vector3(10, 3, 1), "testCube_pCube1.lrm");
@@ -1055,7 +1097,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	if (skybox)
 	{
 		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		skyboxMat.addTexture(L"skybox_bluesky.dds", true);
 		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
@@ -1384,6 +1426,15 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 {
 	Entity* entity;
 
+	Entity* floor = sceneObject->addEntity("Floor");
+	if (floor)
+	{
+		sceneObject->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+		floor->scale({ 30, 1, 30 });
+		floor->translate({ 0,-2,0 });
+		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
 	std::wstring materialNames[7] = {
 	L"Bronze_Quilt/bronze_quilt",
 	L"Coastline_Flat_Stone_Wall_Mixed/coastline_flat_stone_wall_mixed",
@@ -1402,8 +1453,8 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 		{
 			entity = sceneObject->m_entities[currentSphereName];
 			Material PBRMatTextured;
-			PBRMatTextured.addTexture(L"skybox1IR.dds", true);
-			PBRMatTextured.addTexture(L"skybox1.dds", true);
+			PBRMatTextured.addTexture(L"Skybox_Texture2.dds", true);
+			PBRMatTextured.addTexture(L"Skybox_Texture2.dds", true);
 			PBRMatTextured.addTexture(L"ibl_brdf_lut.png");
 
 			PBRMatTextured.addTexture((materialNames[i] + L"_Base_Color.dds").c_str());
@@ -1433,8 +1484,8 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 		{
 			entity = sceneObject->m_entities[currentSphereName];
 			Material PBRMatUntextured;
-			PBRMatUntextured.addTexture(L"skybox1IR.dds", true);
-			PBRMatUntextured.addTexture(L"skybox1.dds", true);
+			PBRMatUntextured.addTexture(L"Skybox_Texture3.dds", true);
+			PBRMatUntextured.addTexture(L"Skybox_Texture4.dds", true);
 			PBRMatUntextured.addTexture(L"ibl_brdf_lut.png");
 
 			xCounter++;
@@ -1461,7 +1512,7 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 	if (skybox)
 	{
 		Material skyboxMat;
-		skyboxMat.addTexture(L"skybox1.dds", true);
+		skyboxMat.addTexture(L"Skybox_Texture3.dds", true);
 		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 	}
 
@@ -1744,15 +1795,6 @@ void Scene::updateScene(const float& dt)
 		deferredPointInstantiationList.clear();
 	}
 	
-
-	if (addedBarrel)
-	{
-		static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->clearForce();
-		static_cast<PhysicsComponent*>(m_entities["barrel"]->getComponent("physics"))->setPosition({ -30, 50, 130 });
-		m_despawnBarrelTimer.restart();
-
-		addedBarrel = false;
-	}
 
 	for (int i = 0; i < m_tempParticleComponent.size(); i++)
 	{
@@ -2092,7 +2134,32 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 }
 
-void Scene::reactOnPlayer(PlayerMessageData& msg)
+Entity* Scene::addTrampoline(Vector3 position)
+{
+	Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
+	trampoline->setPosition(position);
+	trampoline->setScale(0.5f, 0.5f, 0.5f);
+	addComponent(trampoline, "mesh1", //Dun edit diz them nems plz.
+		new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+	addComponent(trampoline, "mesh2",
+		new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
+	addComponent(trampoline, "mesh3",
+		new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
+
+
+	createNewPhysicsComponent(trampoline, false);
+	TriggerComponent* triggerComponent = new TriggerComponent();
+	triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
+	triggerComponent->setIntData(0);
+	trampoline->addComponent("heightTrigger", triggerComponent);
+	triggerComponent->initTrigger(m_sceneID, trampoline, { 0.475f, 0.05, 0.475f }, { 0.f, 0.7f, 0.f });
+
+	trampoline->addComponent("trampoline", new TrampolineComponent(trampoline)); //Dun edit diz nem ethar plz, cuz chardcohoded somwere.
+
+	return trampoline;
+}
+
+void Scene::reactOnPlayer(const PlayerMessageData& msg)
 {
 
 	if (msg.playerActionType == PlayerActions::ON_POWERUP_USE) //Player have just used a powerup.
@@ -2100,37 +2167,37 @@ void Scene::reactOnPlayer(PlayerMessageData& msg)
 		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
 		{
 			//Create a trampoline entity
-			Vector3 trampolineSpawnPos = m_player->getPlayerEntity()->getTranslation();
-			Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
-			trampoline->setPosition(trampolineSpawnPos);
-			addComponent(trampoline, "mesh1",
-				new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
-			addComponent(trampoline, "mesh2",
-				new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
-			addComponent(trampoline, "mesh3",
-				new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
-
-			createNewPhysicsComponent(trampoline, false);
-			TriggerComponent* triggerComponent = new TriggerComponent();
-			triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
-			triggerComponent->setIntData(0);
-			trampoline->addComponent("heightTrigger", triggerComponent);
-			triggerComponent->initTrigger(m_sceneID, trampoline, { 0.4f, 0.1, 0.4f }, { 0.f, 1.f, 0.f });
+			Vector3 trampolineSpawnPos = m_player->getFeetPosition() - Vector3(0.f, 0.75f, 0.f);
+			Entity* trampoline = addTrampoline(trampolineSpawnPos);
 		}
 
 		if ((PickupType)msg.intEnum == PickupType::CANNON)
 		{
-			Vector3 playerPos = m_player->getPlayerEntity()->getTranslation();
-			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
-			cannon->setPosition(playerPos);
-			addComponent(cannon, "mesh1", new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", Material({ L"DarkGrayTexture.png" }));
+			pipe->setPosition(Vector3(0, 1, 0));
 
-			static_cast<Player*>(msg.playerPtr)->setCannonEntity(cannon);
+			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
+			cannon->setScale(0.5f, 0.5f, 0.5f);
+			addComponent(cannon, "mesh1", new MeshComponent("Canon_Base.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(cannon, "mesh2", pipe);
+			cannon->setPosition(m_player->getPlayerEntity()->getTranslation());
+			//cannon->setRotationQuat(m_input);
+
+			static_cast<Player*>(msg.playerPtr)->setCannonEntity(cannon, pipe);
 		}
 	}
 	else if (msg.playerActionType == PlayerActions::ON_FIRE_CANNON)
 	{
 		removeEntity(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getIdentifier());
+	}
+	else if (msg.playerActionType == PlayerActions::ON_ENVIRONMENTAL_USE)
+	{
+		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
+		{
+			Entity* trampolineEnt = m_entities[msg.entityIdentifier];
+			TrampolineComponent* tc = (TrampolineComponent*)trampolineEnt->getComponent("trampoline");
+			tc->activate();
+		}
 	}
 
 }
@@ -2213,8 +2280,8 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 	{
 		addComponent(hammerFrame, "mesh",
 			new MeshComponent("Hammer_Frame_pCube7.lrm", Material({ L"DarkGrayTexture.png" })));
-
-		hammerFrame->setPosition(position);
+		
+		hammerFrame->setPosition(position.x, position.y + 2.72f, position.z);
 		hammerFrame->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 
 		createNewPhysicsComponent(hammerFrame, false, "", PxGeometryType::eTRIANGLEMESH);
@@ -2229,7 +2296,7 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 			new MeshComponent("Hammer_pCylinder3.lrm", Material({ L"DarkGrayTexture.png" })));
 
 
-		hammer->setPosition({ position.x, position.y + 3.5f, position.z });
+		hammer->setPosition({ position.x, position.y + 3.5f + 2.72f, position.z });
 		hammer->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 
 		createNewPhysicsComponent(hammer, true, "", PxGeometryType::eTRIANGLEMESH);
@@ -2252,6 +2319,29 @@ void Scene::createSkybox(std::wstring textureName)
 		addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	}
+}
+
+void Scene::createGoalTrigger(const Vector3& position, Vector3 rotation, Vector3 scale, ScenesEnum scene)
+{
+	m_nrOfGoalTriggers++;
+	
+	Entity* goalTrigger = addEntity("trigger" + std::to_string(m_nrOfGoalTriggers));
+	if (goalTrigger)
+	{
+		addComponent(goalTrigger, "mesh",
+			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
+		goalTrigger->setPosition(position);
+		goalTrigger->setScale(scale);
+		goalTrigger->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+
+		addComponent(goalTrigger, "trigger",
+			new TriggerComponent());
+
+		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
+		tc->initTrigger(m_sceneID, goalTrigger, scale/2);
+		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
+		tc->setIntData((int)scene);
 	}
 }
 

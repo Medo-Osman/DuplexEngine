@@ -16,6 +16,17 @@ void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
 	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &buffer);
 }
 
+void Renderer::setFullScreen(BOOL val)
+{
+	m_swapChainPtr->SetFullscreenState(val, NULL);
+	m_isFullscreen = val;
+}
+
+bool Renderer::isFullscreen()
+{
+	return m_isFullscreen;
+}
+
 void Renderer::release()
 {
 	delete m_shadowMap;
@@ -196,6 +207,10 @@ HRESULT Renderer::initialize(const HWND& window)
 	skeletonAnimationCBuffer skeletonAnimationCBuffer;
 	m_skelAnimationConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skeletonAnimationCBuffer, 1);
 	m_dContextPtr->VSSetConstantBuffers(2, 1, m_skelAnimationConstantBuffer.GetAddressOf());
+
+	globalConstBuffer globalConstBuffer;
+	m_globalConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &globalConstBuffer, 1);
+	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
 
 	lightBufferStruct initalLightData; //Not sure why, but it refuses to take &lightBufferStruct() as argument on line below
 	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);
@@ -660,7 +675,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
-				m_dContextPtr->PSSetShaderResources(2, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
+				m_dContextPtr->PSSetShaderResources(9, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 
 				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
 				
@@ -730,6 +745,20 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	}
 }
 
+void Renderer::resizeBackbuff(int x, int y)
+{
+	//m_swapChainPtr.
+	
+	/*ID3D11Texture2D* swapChainBufferPtr;
+	HRESULT hr = m_swapChainPtr->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&swapChainBufferPtr);
+	int succInt = swapChainBufferPtr->Release();
+
+	m_dContextPtr->ClearState();
+	HRESULT succ = m_swapChainPtr->ResizeBuffers(0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, 0);
+	assert(SUCCEEDED(succ));*/
+	//m_swapChainPtr->SetFullscreenState(TRUE, nullptr);
+}
+
 void Renderer::rasterizerSetup()
 {
 	HRESULT hr = 0;
@@ -756,6 +785,23 @@ void Renderer::update(const float& dt)
 	{
 		m_camera->frustumCullingOn = !m_camera->frustumCullingOn;
 	}
+
+	// Constant buffer updates and settings
+	static globalConstBuffer tempGlobalConstBuffer;
+
+	tempGlobalConstBuffer.time += dt;
+
+	m_globalConstBuffer.updateBuffer(m_dContextPtr.Get(), &tempGlobalConstBuffer);
+
+	//ImGui::SetNextWindowPos(ImVec2(1300.0f, 600.0f));
+	//ImGui::SetNextWindowSize(ImVec2(550.0f, 500.0f));
+	//ImGui::Begin("Time");
+
+	//ImGui::Text("");
+	//ImGui::Text("%.0f Time 1 ", tempGlobalConstBuffer.time);
+	//ImGui::Text("%.0f Dt ", dt);;
+
+	//ImGui::End();
 }
 
 void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)

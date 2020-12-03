@@ -3,3 +3,4 @@
 
 bool Pickup::PICKUP_VECTOR_INIT = false;
 std::vector<Pickup*>  Pickup::PICKUP_VECTOR;
+int Pickup::ICON_ID = -1;

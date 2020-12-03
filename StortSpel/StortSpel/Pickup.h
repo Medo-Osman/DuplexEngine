@@ -2,6 +2,7 @@
 #include"Entity.h"
 #include"AudioComponent.h"
 #include"Timer.h"
+#include"GUIHandler.h"
 
 enum class PickupType //Add new pickuptypes -before- score and count. Also add the coresponding pickup class in Player.cpp. Look for function call initPickupArray(vec).
 {
@@ -20,6 +21,7 @@ class Pickup
 protected:
 	static bool PICKUP_VECTOR_INIT;
 	static std::vector<Pickup*> PICKUP_VECTOR;
+	static int ICON_ID;
 public:
 	static const bool hasInitPickupArray()
 	{
@@ -47,6 +49,25 @@ public:
 			}
 			PICKUP_VECTOR_INIT = true;
 		}
+		Vector2 windowSize = GUIHandler::get().getWindowSize();
+		GUIImageStyle style;
+
+		//Screen info
+		Vector2 targetScale = { 1920, 1080 };
+		Vector2 scaleToUse = windowSize / targetScale;
+
+		//Picture info
+		float sizeX = 256, sizeY = 256; //Full Image Size
+		float scaleX = 0.4 * scaleToUse.x, scaleY = 0.4f * scaleToUse.y; //Final Scale
+		style.origin = { (sizeX/2), (sizeY/2) };
+		style.position = { windowSize.x - (sizeX/2 * scaleX + 58) , windowSize.y * 0.15f + (sizeY/2 * scaleY) };
+		style.scale = { scaleX, scaleY };
+		ICON_ID = GUIHandler::get().addGUIImage(L"placeholderPickup.png", style);
+		GUIImageLabel* icon = dynamic_cast<GUIImageLabel*>(GUIHandler::get().getElementMap()->at(ICON_ID));
+
+
+
+		GUIHandler::get().setVisible(ICON_ID, false);
 	}
 
 	static Pickup* getPickupByID(int ID)
@@ -62,6 +83,7 @@ protected:
 	std::wstring m_onUseSound = L"";
 	std::wstring m_whileActiveSound = L"";
 	std::wstring m_depletedSound = L"OnDepleted.wav";
+	std::wstring m_pickupIcon = L"placeholderPickup.png";
 
 	PickupType m_pickupType = PickupType::SPEED;
 	std::vector<AudioComponent*> m_audioComponents;
@@ -72,12 +94,15 @@ protected:
 	bool m_activateOnPickup;
 	bool m_active;
 	bool m_isTimeBased;
+	bool m_isEnvironmental;
 
 	float m_timer;
 	float m_duration;
 	float m_removeTime;
 
 	AudioComponent* m_whileAudio;
+	float m_strobeTimer;
+	const float STROBE_TIME = 0.2f;
 
 
 	AudioComponent* addAudioComponent(const std::wstring& sound, const bool& loop = false, float volume = 1.0f)
@@ -99,6 +124,7 @@ public:
 		m_active = false;
 		m_modifierValue = 0;
 		m_isTimeBased = true;
+		m_isEnvironmental = false;
 	}
 
 	~Pickup()
@@ -156,6 +182,15 @@ public:
 	{
 		if (m_active)
 		{
+			if (!m_isEnvironmental)
+			{
+				m_strobeTimer += dt;
+				if (m_strobeTimer > STROBE_TIME)
+				{
+					GUIHandler::get().setVisible(ICON_ID, !GUIHandler::get().getVisible(ICON_ID));
+					m_strobeTimer = 0;
+				}
+			}
 			if (m_isTimeBased)
 			{
 				m_timer += dt;
@@ -185,8 +220,9 @@ public:
 		}
 	}
 
-	virtual void onPickup(Entity* entityToDoEffectsOn)
+	virtual void onPickup(Entity* entityToDoEffectsOn, bool isEnvironmentalPickup)
 	{
+		m_isEnvironmental = isEnvironmentalPickup;
 		m_timer = 0.f;
 		m_entityToDoEffectsOn = entityToDoEffectsOn;
 		if (m_onPickupSound != L"")
@@ -194,6 +230,12 @@ public:
 			entityToDoEffectsOn->addComponent("OnPickup", addAudioComponent(m_onPickupSound, false, 0.3f));
 			m_audioComponents.back()->playSound();
 		}
+		if (!m_isEnvironmental)
+		{
+			GUIHandler::get().changeGUIImage(ICON_ID, m_pickupIcon);
+			GUIHandler::get().setVisible(ICON_ID, true);
+		}
+		
 	}
 	virtual void onDepleted()
 	{
@@ -227,5 +269,13 @@ public:
 		}
 		m_audioComponents.clear();
 		m_doneDepleted = false;
+		if(!m_isEnvironmental)
+			GUIHandler::get().setVisible(ICON_ID, false);
 	}
+
+	std::wstring getPickupIcon()
+	{
+		return m_pickupIcon;
+	}
+
 };

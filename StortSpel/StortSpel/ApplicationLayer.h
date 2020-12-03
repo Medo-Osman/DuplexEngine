@@ -55,4 +55,9 @@ public:
 		return m_gameTime;
 	}
 
+	Vector2 getWindowSize()
+	{
+		return Vector2(m_width, m_height);
+	}
+
 };

@@ -22,6 +22,7 @@ public:
 		m_actionMapping[(char)'\x0D'] = Action::CLOSEINTROGUI; //Enter 
 		m_actionMapping['F'] = Action::USEPICKUP;
 		m_actionMapping[(char)'\x24'] = Action::RESPAWN; //Home 
+		m_actionMapping['\x1B'] = Action::MENU; // Escape
 
 		//States
 		m_stateMapping['W'] = State::WALK_FORWARD;

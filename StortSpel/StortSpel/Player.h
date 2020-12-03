@@ -16,6 +16,7 @@
 #include "GUIHandler.h"
 #include "BarrelComponent.h"
 
+
 using namespace DirectX;
 
 enum class PlayerState
@@ -32,6 +33,7 @@ enum class PlayerState
 enum class PlayerActions
 {
     ON_POWERUP_USE,
+    ON_ENVIRONMENTAL_USE,
     ON_FIRE_CANNON,
 };
 
@@ -41,6 +43,7 @@ struct PlayerMessageData
     void* playerPtr;
     PlayerActions playerActionType;
     int intEnum;
+    std::string entityIdentifier;
 
 };
 
@@ -48,7 +51,7 @@ class PlayerObserver {
 public:
     PlayerObserver() {};
     virtual ~PlayerObserver() {};
-    virtual void reactOnPlayer(PlayerMessageData& msg) = 0;
+    virtual void reactOnPlayer(const PlayerMessageData& msg) = 0;
 };
 
 class PlayerSubject {
@@ -93,7 +96,7 @@ private:
     const float MAX_FALL_SPEED = 20.f;
     float m_gravityScale = 4.f;
 
-    //DASH CONFIG 
+    //DASH CONFIG
     const float DASH_TRAVEL_DISTANCE = 3.f;
     const float DASH_SPEED = 30.0f;
     const float DASH_OUT_SPEED = 10.0f;
@@ -108,6 +111,10 @@ private:
     const float ROLL_TRANSITION_SPEED = 8.0f;
     const float MAX_TRANSITION_TIME = 0.2f; // Sec
     float m_transitionTime;
+
+    //Cannon Config
+    const float CANNON_POWER = 100;
+
 
     // Speed Powerup
     float m_currentSpeedModifier;
@@ -140,10 +147,10 @@ private:
     Entity* m_playerEntity;
     AnimatedMeshComponent* m_animMesh;
     CharacterControllerComponent* m_controller;
-   
+
     // Camera
     Transform* m_cameraTransform;
-    const Vector3 ORIGINAL_CAMERA_OFFSET = Vector3(0.f, 0.0f, 2.5f);
+    const Vector3 ORIGINAL_CAMERA_OFFSET = Vector3(0.f, 0.0f, 0.0f);
     Vector3 m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
 
     //Cannon
@@ -151,6 +158,13 @@ private:
     bool m_shouldFire = false;
     Vector3 m_direction;
     Entity* m_3dMarker;
+    LineData m_lineData[10];
+    MeshComponent* m_pipe;
+    float y;
+
+    //Trampoline
+    bool m_shouldPickupJump;
+    const float TRAMPOLINE_JUMP_MULTIPLIER = 2.0f;
 
     // Trap
     TrapType m_activeTrap;
@@ -181,7 +195,9 @@ private:
     //Private functions
     void setStates(InputData& inputData);
     void handleRotation(const float& dt);
-    Vector3 calculatePath(Vector3 position, Vector3 velocity, float gravityY);
+    Vector3 trajectoryEquation(Vector3 position, Vector3 direction, float t, float horizonalMultiplier, float vertMulti);
+	void trajectoryEquationOutFill(Vector3 position, Vector3 direction, float t, float horizonalMultiplier, float vertMulti, XMFLOAT3& outPos, XMFLOAT3& outDir);
+    Vector3 calculatePath(Vector3 position, Vector3 direction, float horizonalMultiplier, float vertMulti);
     void playerStateLogic(const float& dt);
 
     bool pickupUpdate(Pickup* pickupPtr, const float& dt);
@@ -200,12 +216,14 @@ private:
     void endJump_First();
     void startJump_Second();
     void endJump_Second();
-  
+
     bool m_respawnNextFrame = false; //PhysX won't allow you to read and write at the same time.
-  
+
 public:
     Player();
     ~Player();
+    bool m_shouldDrawLine = false;
+
 
     virtual void Attach(PlayerObserver* observer)
     {
@@ -223,7 +241,7 @@ public:
             m_playerObservers.erase(m_playerObservers.begin() + index);
     }
 
-    void setCannonEntity(Entity* entity);
+    void setCannonEntity(Entity* entity, MeshComponent* pipe);
     Entity* get3DMarkerEntity();
     Entity* getCannonEntity() { return m_cannonEntity; }
     int m_cannonCrosshairID;
@@ -231,11 +249,12 @@ public:
     bool isRunning();
 
     void updatePlayer(const float& dt);
-    
+
     void setPlayerEntity(Entity* entity);
 
     Vector3 getCheckpointPos();
     Vector3 getVelocity();
+    LineData* getLineDataArray();
     PlayerState getState();
     PlayerState getLastState();
     Vector3 getFeetPosition();
@@ -243,18 +262,21 @@ public:
 
     void setCameraTranformPtr(Transform* transform);
     void setAnimMeshPtr(AnimatedMeshComponent* animatedMesh);
-    
+
     void incrementScore();
 
     void increaseScoreBy(int value);
     void respawnPlayer();
 
+
+    int m_nrOfBarrelDrops = 0;
     int getScore();
     void setScore(int newScore);
     Entity* getPlayerEntity() const;
     Vector3 getCameraOffset();
     const bool canUsePickup();
     void handlePickupOnUse();
+    void sendPlayerMSG(const PlayerMessageData& data);
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
 

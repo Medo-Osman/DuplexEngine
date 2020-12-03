@@ -569,6 +569,25 @@ public:
 		return m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
 	}
 
+	bool castRay(const SimpleMath::Vector3& origin, const SimpleMath::Vector3& unitDirection, const float& distance, Vector3& OUT_position)
+	{
+		bool didHit;
+		OUT_position = { -666, -1337, -420 };
+		PxVec3 pOrigin(origin.x, origin.y, origin.z);
+		PxVec3 pUnitDir(unitDirection.x, unitDirection.y, unitDirection.z);
+		PxRaycastBuffer hit;                 // [out] Raycast results
+
+		// Raycast against all static & dynamic objects (no filtering)
+		// The main result from this call is the closest hit, stored in the 'hit.block' structure
+		didHit = m_scenePtr->raycast(pOrigin, pUnitDir, distance, hit);
+		if (hit.hasBlock)
+		{
+			PxVec3 hitPos = hit.block.position;
+			OUT_position = Vector3(hitPos.x, hitPos.y, hitPos.z);
+		}
+		return didHit;
+	}
+
 	bool sphereIntersectionTest(const PxExtendedVec3& origin, const float& radius)
 	{
 		PxQueryFilterData fd;
@@ -624,7 +643,7 @@ public:
 		ccd.scaleCoeff = 0.8f;
 
 		capsuleController = m_controllManager->createController(ccd);
-		dynamic_cast<PxRigidBody*>(capsuleController->getActor())->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, true);
+		dynamic_cast<PxRigidBody*>(capsuleController->getActor())->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_SPECULATIVE_CCD, true);
 		PxShape* shapes[1];
 		PxRigidDynamic* actor = capsuleController->getActor();
 		int nrOfShapes = actor->getNbShapes();
@@ -661,6 +680,7 @@ public:
 	void makeActorKinematic(PxRigidBody* actor)
 	{
 		actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
+		actor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_SPECULATIVE_CCD, true);
 	}
 
 	void makeKinematicActorDynamic(PxRigidBody* actor, float newMass)

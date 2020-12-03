@@ -21,6 +21,26 @@ __declspec(align(16)) struct cbVSWVPMatrix
     }
 };
 
+
+__declspec(align(16)) struct LineData
+{
+    XMFLOAT3 position;
+    float pad;
+    XMFLOAT3 direction;
+    float paddy;
+
+    void* operator new(size_t i)
+    {
+        return _mm_malloc(i, 16);
+    }
+
+    void operator delete(void* p)
+    {
+        _mm_free(p);
+    }
+};
+
+
 struct perObjectMVP
 {
     XMMATRIX world; //model
@@ -73,6 +93,14 @@ struct CS_BLUR_CBUFFER
     int radius;
     int direction;
     XMFLOAT2 pad;
+};
+
+struct globalConstBuffer
+{
+    Vector3 playerPosition = { 0.0f, 0.0f, 0.0f };
+    float environmentMapBrightness = 1.0f;
+    float time = 1.0f;
+    Vector3 padding;
 };
 
 __declspec(align(16)) struct projectionMatrix

@@ -15,17 +15,18 @@ public:
 	{
 		//m_onPickupSound = L"";
 		m_whileActiveSound = L"SpeedSound.wav";
-		m_activateOnPickup = true;
+		m_activateOnPickup = false;
 		m_duration = SPEEDDURATION;
 		m_isTimeBased = true;
+		m_pickupIcon = L"adrenaline.png";
 	}
 	virtual void update(const float& dt)
 	{
 		Pickup::update(dt);
 	}
-	virtual void onPickup(Entity* entityToDoEffectsOn)
+	virtual void onPickup(Entity* entityToDoEffectsOn, bool isEnvironmental)
 	{
-		Pickup::onPickup(entityToDoEffectsOn);
+		Pickup::onPickup(entityToDoEffectsOn, isEnvironmental);
 	}
 
 	virtual void onUse()

@@ -61,6 +61,7 @@ private:
 	
 	Buffer<skeletonAnimationCBuffer> m_skelAnimationConstantBuffer;
 	Buffer<MATERIAL_CONST_BUFFER> m_currentMaterialConstantBuffer;
+	Buffer<globalConstBuffer> m_globalConstBuffer;
 
 	// Blur stuff
 	Buffer<CS_BLUR_CBUFFER> m_blurBuffer;
@@ -122,12 +123,16 @@ private:
 
 
 	int m_drawn = 0;
-
+	bool m_isFullscreen = false;
 public:
 	Renderer(const Renderer&) = delete;
 	void operator=(Renderer const&) = delete;
 	void setPointLightRenderStruct(lightBufferStruct& buffer);
 
+	void setFullScreen(BOOL val);
+	bool isFullscreen();
+
+	void resizeBackbuff(int x, int y);
 	static Renderer& get()
 	{
 		static Renderer instance;
