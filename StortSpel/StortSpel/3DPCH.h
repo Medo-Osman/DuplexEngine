@@ -110,3 +110,5 @@ enum class EventType
 	SWAPSCENE,
 	BOSS_PROJECTILE_HIT,
 };
+
+const bool DEBUGMODE = true;

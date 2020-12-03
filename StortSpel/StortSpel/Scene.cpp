@@ -541,7 +541,9 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 
 void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 {
-	std::cout << "Started scene loading ================================" << std::endl;
+	if (DEBUGMODE)
+		std::cout << "Started scene loading ================================" << std::endl;
+
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
 	size_t dot = path.rfind('.', path.length());
@@ -721,8 +723,8 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 
 	std::string compName = readStringFromChar(compData, offset);
 
-	if (compName == "Skyway_1_Cube.555")
-		int aegzaed = 0;
+	if (compName == "Skyway_1_cloudPlane") // Hardcoding ftw
+		entity->m_canCull = false;
 
 	char* paramData = new char[sizeOfData - offset];
 	memcpy(paramData, compData + offset, sizeOfData - offset);
@@ -2332,20 +2334,34 @@ void Scene::createGoalTrigger(const Vector3& position, Vector3 rotation, Vector3
 {
 	m_nrOfGoalTriggers++;
 	
-	Entity* goalTrigger = addEntity("trigger" + std::to_string(m_nrOfGoalTriggers));
-	if (goalTrigger)
+	Entity* endSceneTriggerFrame = addEntity("endTrriggerFrame" + std::to_string(m_nrOfGoalTriggers));
+	if (endSceneTriggerFrame)
 	{
-		addComponent(goalTrigger, "mesh",
-			new MeshComponent("testCube_pCube1.lrm", Material({ L"BlackTexture.png" })));
-		goalTrigger->setPosition(position);
-		goalTrigger->setScale(scale);
-		goalTrigger->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+		endSceneTriggerFrame->setPosition(position);
+		endSceneTriggerFrame->setRotation(Vector3(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z)));
+		addComponent(endSceneTriggerFrame, "mesh",
+			new MeshComponent("Portal_pCube41.lrm", Material({ L"DarkGrayTexture.png" })));
+	}
 
-		addComponent(goalTrigger, "trigger",
+	Entity* endSceneTrigger = addEntity("endTrigger" + std::to_string(m_nrOfGoalTriggers));
+	if (endSceneTrigger)
+	{
+		endSceneTrigger->setPosition(position + Vector3(0, 1.5f, 0));
+		endSceneTrigger->setRotation(Vector3(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z)));
+
+		Material emissiveMat({ L"DarkGrayTexture.png", L"PortalEmissive.jpg" });
+		emissiveMat.setEmissiveStrength(30);
+		addComponent(endSceneTrigger, "mesh",
+			new MeshComponent("portalMagic_pCylinder8.lrm",
+				EMISSIVE, emissiveMat));
+
+
+		addComponent(endSceneTrigger, "endSceneTrigger",
 			new TriggerComponent());
+		addComponent(endSceneTrigger, "3Dsound", new AudioComponent(L"PortalSound.wav", true, 2.f, 0.f, true, endSceneTrigger));
 
-		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
-		tc->initTrigger(m_sceneID, goalTrigger, scale/2);
+		TriggerComponent* tc = static_cast<TriggerComponent*>(endSceneTrigger->getComponent("endSceneTrigger"));
+		tc->initTrigger(m_sceneID, endSceneTrigger, XMFLOAT3(0.15f, 1.5f, 1.5f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
 		tc->setIntData((int)scene);
 	}

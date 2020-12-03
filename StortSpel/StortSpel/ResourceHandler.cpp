@@ -81,10 +81,14 @@ void ResourceHandler::checkResources()
 	}
 	//=========================================== 
 
-	std::cout << std::endl;
-	std::cout << "mesh: " << m_meshCache.size() << std::endl;
-	std::cout << "texture: " << m_textureCache.size() << std::endl;
-	std::cout << "audio: " << m_soundCache.size() << std::endl;
+	if (DEBUGMODE)
+	{
+		std::cout << std::endl;
+		std::cout << "mesh: " << m_meshCache.size() << std::endl;
+		std::cout << "texture: " << m_textureCache.size() << std::endl;
+		std::cout << "audio: " << m_soundCache.size() << std::endl;
+	}
+
 
 	//for (auto& m : m_textureCache)
 		//if (m.second->m_doReferenceCount)

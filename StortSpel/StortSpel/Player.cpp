@@ -24,16 +24,7 @@ Player::Player()
 
 
 	Physics::get().Attach(this, true, false);
-	m_currentSpeedModifier = 1.f;
-	m_speedModifierTime = 0;
-	if (!Pickup::hasInitPickupArray())
-	{
-		std::vector<Pickup*> vec;
-		vec.emplace_back(new SpeedPickup());
-		vec.emplace_back(new HeightPickup());
-		vec.emplace_back(new CannonPickup());
-		Pickup::initPickupArray(vec);
-	}
+
 
 	for (int i = 0; i < 10; i++)
 	{
@@ -76,7 +67,16 @@ Player::Player()
 	m_cannonCrosshairID = GUIHandler::get().addGUIImage(L"crosshair.png", guiInfo);
 	GUIHandler::get().setVisible(m_cannonCrosshairID, false);*/
 
-
+	m_currentSpeedModifier = 1.f;
+	m_speedModifierTime = 0;
+	if (!Pickup::hasInitPickupArray())
+	{
+		std::vector<Pickup*> vec;
+		vec.emplace_back(new SpeedPickup());
+		vec.emplace_back(new HeightPickup());
+		vec.emplace_back(new CannonPickup());
+		Pickup::initPickupArray(vec);
+	}
 }
 
 Player::~Player()
@@ -474,6 +474,15 @@ void Player::playerStateLogic(const float& dt)
 			m_shouldDrawLine = false;
 			m_verticalMultiplier = 5;
 			m_horizontalMultiplier = CANNON_POWER;
+
+			static_cast<CannonPickup*>(m_pickupPointer)->geFyr();
+			PlayerMessageData d;
+			d.playerActionType = PlayerActions::ON_FIRE_CANNON;
+			d.playerPtr = this;
+
+			this->sendPlayerMSG(d);
+			
+
 		}
 		else //Draw marker
 		{
@@ -534,30 +543,6 @@ void Player::playerStateLogic(const float& dt)
 	// Max Gravity Tests
 	if (m_verticalMultiplier <= -MAX_FALL_SPEED)
 		m_verticalMultiplier = -MAX_FALL_SPEED;
-
-	// Multiplier Print
-	m_timeCounter += dt;
-	if (m_timeCounter > 0.1f)
-	{
-		//std::cout << m_velocity.x << m_velocity.y << m_velocity.z << "\n";
-		//std::cout << m_horizontalMultiplier << "\n";
-		//std::cout << m_verticalMultiplier << "\n";
-		//std::cout << m_currentSpeedModifier << "\n";
-
-
-		/*switch (m_state)
-		{
-		case PlayerState::DASH:		std::cout << "DASH\n"; break;
-		case PlayerState::ROLL:		std::cout << "ROLL\n"; break;
-		case PlayerState::JUMPING:	std::cout << "JUMPING\n"; break;
-		case PlayerState::FALLING:	std::cout << "FALLING\n"; break;
-		case PlayerState::IDLE:		std::cout << "IDLE\n"; break;
-		default: break;
-		}
-		std::cout << "\n";*/
-
-		m_timeCounter -= 0.1f;
-	}
 
 
 	if (m_state != PlayerState::CANNON)
@@ -714,10 +699,14 @@ void Player::updatePlayer(const float& dt)
 
 	playerStateLogic(dt);
 
-	ImGui::Begin("Player Information", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
-	ImGui::Text("Player Position: (%d %d, %d)", (int)this->getPlayerEntity()->getTranslation().x, (int)this->getPlayerEntity()->getTranslation().y, (int)this->getPlayerEntity()->getTranslation().z);
-	ImGui::Text("PlayerState: %d", this->m_state);
-	ImGui::End();
+	if (DEBUGMODE)
+	{
+		ImGui::Begin("Player Information", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+		ImGui::Text("Player Position: (%d %d, %d)", (int)this->getPlayerEntity()->getTranslation().x, (int)this->getPlayerEntity()->getTranslation().y, (int)this->getPlayerEntity()->getTranslation().z);
+		ImGui::Text("PlayerState: %d", this->m_state);
+		ImGui::End();
+	}
+
 	
 
 }
@@ -727,8 +716,12 @@ void Player::setPlayerEntity(Entity* entity)
 	m_playerEntity = entity;
 	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
-	m_pickupPointer = new HeightPickup();
-	m_pickupPointer->onPickup(m_playerEntity, false);
+	if (DEBUGMODE)
+	{
+		m_pickupPointer = new CannonPickup();
+		m_pickupPointer->onPickup(m_playerEntity, false);
+	}
+		
 }
 
 Vector3 Player::getCheckpointPos()
