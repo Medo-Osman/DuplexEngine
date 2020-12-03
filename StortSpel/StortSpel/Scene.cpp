@@ -216,7 +216,7 @@ Entity* Scene::addScore(const Vector3& position, const int tier, std::string nam
 
 	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST, mat));
 	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
-	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
+	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 0.5f, 0.5f, 0.5f });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 
 	return pickupPtr;
@@ -2655,7 +2655,7 @@ void Scene::createEndScenePortal()
 		TriggerComponent* tc = static_cast<TriggerComponent*>(endSceneTrigger->getComponent("endSceneTrigger"));
 		tc->initTrigger(m_sceneID, endSceneTrigger, XMFLOAT3(0.15f, 1.5f, 1.5f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
-		tc->setIntData((int)ScenesEnum::ENDSCENE);
+		tc->setIntData((int)ScenesEnum::LOBBY);
 	}
 }
 
