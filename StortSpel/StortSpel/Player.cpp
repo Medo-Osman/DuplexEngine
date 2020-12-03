@@ -24,16 +24,7 @@ Player::Player()
 
 
 	Physics::get().Attach(this, true, false);
-	m_currentSpeedModifier = 1.f;
-	m_speedModifierTime = 0;
-	if (!Pickup::hasInitPickupArray())
-	{
-		std::vector<Pickup*> vec;
-		vec.emplace_back(new SpeedPickup());
-		vec.emplace_back(new HeightPickup());
-		vec.emplace_back(new CannonPickup());
-		Pickup::initPickupArray(vec);
-	}
+
 
 	for (int i = 0; i < 10; i++)
 	{
@@ -76,7 +67,16 @@ Player::Player()
 	m_cannonCrosshairID = GUIHandler::get().addGUIImage(L"crosshair.png", guiInfo);
 	GUIHandler::get().setVisible(m_cannonCrosshairID, false);*/
 
-
+	m_currentSpeedModifier = 1.f;
+	m_speedModifierTime = 0;
+	if (!Pickup::hasInitPickupArray())
+	{
+		std::vector<Pickup*> vec;
+		vec.emplace_back(new SpeedPickup());
+		vec.emplace_back(new HeightPickup());
+		vec.emplace_back(new CannonPickup());
+		Pickup::initPickupArray(vec);
+	}
 }
 
 Player::~Player()
