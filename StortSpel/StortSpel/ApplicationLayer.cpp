@@ -23,10 +23,13 @@ ApplicationLayer::ApplicationLayer()
 
 ApplicationLayer::~ApplicationLayer()
 {
-	//_fclose_nolock(m_consoleFile);
-	/*if (m_consoleFile && m_consoleFile->_Placeholder)
-		fclose(m_consoleFile);*/
-	std::cout << "Memory upon shutdown: " << std::endl;
+	if (DEBUGMODE)
+	{
+		//_fclose_nolock(m_consoleFile);
+		/*if (m_consoleFile && m_consoleFile->_Placeholder)
+			fclose(m_consoleFile);*/
+		std::cout << "Memory upon shutdown: " << std::endl;
+	}
 }
 
 bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const LPWSTR& lpCmdLine, HWND hWnd, const int& showCmd)
@@ -169,7 +172,8 @@ void ApplicationLayer::applicationLoop()
 			m_physics->update(m_dt);
 
 			m_enginePtr->update(m_dt);
-			PerformanceTester::get().runPerformanceTestsGui(m_dt);
+			if(DEBUGMODE)
+				PerformanceTester::get().runPerformanceTestsGui(m_dt);
 			m_scenemanager.updateScene(m_dt);
 			AudioHandler::get().update(m_dt);
 			m_rendererPtr->update(m_dt);

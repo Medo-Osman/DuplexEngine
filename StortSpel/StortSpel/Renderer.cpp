@@ -783,10 +783,14 @@ void Renderer::rasterizerSetup()
 
 void Renderer::update(const float& dt)
 {
-	if (ImGui::Button("Toggle FrustumCulling"))
+	if (DEBUGMODE)
 	{
-		m_camera->frustumCullingOn = !m_camera->frustumCullingOn;
+		if (ImGui::Button("Toggle FrustumCulling"))
+		{
+			m_camera->frustumCullingOn = !m_camera->frustumCullingOn;
+		}
 	}
+
 
 	// Constant buffer updates and settings
 	static globalConstBuffer tempGlobalConstBuffer;
@@ -911,9 +915,13 @@ void Renderer::render()
 	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
 	this->m_dContextPtr->PSSetSamplers(1, 1, this->m_psSamplerState.GetAddressOf());
 
-	ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
-	ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
-	ImGui::End();
+	if (DEBUGMODE)
+	{
+		ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+		ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
+		ImGui::End();
+
+	}
 
 	// Bloom Filter
 	downSamplePass();
