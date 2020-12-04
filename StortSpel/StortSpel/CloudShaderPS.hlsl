@@ -68,6 +68,45 @@ struct ps_in
 	float4 shadowPos : SPOS;
 };
 
+cbuffer atmosphericFogConstantBuffer : register(b5)
+{
+	float3 FogColor;
+	float FogStartDepth;
+	float3 FogHighlightColor;
+	float FogGlobalDensity;
+	float3 FogSunDir;
+	float FogHeightFalloff;
+	float FogStartDepthSkybox;
+	float cloudFogHeightStart;
+	float cloudFogHeightEnd;
+	float cloudFogStrength;
+	float3 cloudFogColor;
+}
+
+float3 ApplyFog(float3 originalColor, float eyePosY, float3 eyeToPixel)
+{
+	float pixelDist = length(eyeToPixel);
+	float3 eyeToPixelNorm = eyeToPixel / pixelDist;
+	// Find the fog staring distance to pixel distance
+	float fogDist = max(pixelDist - FogStartDepth, 0.0);
+	// Distance based fog intensity
+	float fogHeightDensityAtViewer = exp(-FogHeightFalloff * eyePosY);
+	float fogDistInt = fogDist * fogHeightDensityAtViewer;
+	// Height based fog intensity
+	float eyeToPixelY = eyeToPixel.y * (fogDist / pixelDist);
+	float t = FogHeightFalloff * eyeToPixelY;
+	const float thresholdT = 0.01;
+	float fogHeightInt = abs(t) > thresholdT ? (1.0 - exp(-t)) / t : 1.0;
+	// Combine both factors to get the final factor
+	float fogFinalFactor = exp(-FogGlobalDensity * fogDistInt * fogHeightInt);
+	// Find the sun highlight and use it to blend the fog color
+	float sunHighlightFactor = saturate(dot(eyeToPixelNorm, normalize(FogSunDir)));
+	sunHighlightFactor = pow(sunHighlightFactor, 8.0);
+
+	float3 fogFinalColor = lerp(FogColor, FogHighlightColor, sunHighlightFactor);
+	return lerp(fogFinalColor, originalColor, fogFinalFactor);
+}
+
 TextureCube skyIR : register(t0);
 TextureCube skyPrefilter : register(t1);
 Texture2D brdfLUT : register(t2);
@@ -142,6 +181,15 @@ float4 main(ps_in input) : SV_TARGET
 	float3 simpleDotColorColor = AdjustContrast(float3(simpleDotColor, simpleDotColor, simpleDotColor), 2);
 	
 	//return float4(finalDisplacement.r, 0.0, 0.0, 1.0);
+	
+	float3 eyeToPixel = input.worldPos.xyz - cameraPosition.xyz;
+	simpleDotColorColor = ApplyFog(simpleDotColorColor, cameraPosition.y, eyeToPixel);
+	
+	float yPos = input.worldPos.y;
+	float yRatio = 1 - remapToRange(yPos, cloudFogHeightStart, cloudFogHeightEnd, 0, 1);
+    
+	simpleDotColorColor = lerp(simpleDotColorColor, cloudFogColor, clamp(yRatio, 0, 1) * cloudFogStrength);
+	
 	return float4(simpleDotColorColor, 1.0);
 	//return float4(N, 1.0);
 	//return float4(skyLightDot, skyLightDot, skyLightDot, 1.0);

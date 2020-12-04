@@ -1,5 +1,7 @@
 #define MAX_LIGHTS 8
 
+#include "UtilityLibrary.hlsli"
+
 static const float SHADOW_MAP_SIZE = 4096.f;
 static const float SHADOW_MAP_DELTA = 1.f / SHADOW_MAP_SIZE;
 static const float RANGE = 90.f;
@@ -77,7 +79,10 @@ cbuffer atmosphericFogConstantBuffer : register(b5)
 	float3 FogSunDir;
 	float FogHeightFalloff;
 	float FogStartDepthSkybox;
-	float3 padding;
+	float cloudFogHeightStart;
+	float cloudFogHeightEnd;
+	float cloudFogStrength;
+	float3 cloudFogColor;
 }
 
 struct ps_in
@@ -361,11 +366,7 @@ ps_out main(ps_in input) : SV_TARGET
 	
 	// Combine ambience and specular
 	float3 color = ambient + Lo;
-	
-	// Atmospheric fog
-	float3 eyeToPixel = input.worldPos.xyz - cameraPosition.xyz;
-	color = ApplyFog(color, cameraPosition.y, eyeToPixel);
-	
+
 	// HDR tonemapping
 	color = color / (color + float3(1.0, 1.0, 1.0));
 	// Gamma correction
@@ -378,6 +379,15 @@ ps_out main(ps_in input) : SV_TARGET
 	
     // Diffuse color
     output.diffuse = float4(color, 1.f) + float4(emissive.rgb + (emStrengthColor * length(emissive.rgb)), 1.f);
+		
+	// Atmospheric fog
+	float3 eyeToPixel = input.worldPos.xyz - cameraPosition.xyz;
+	output.diffuse = float4(ApplyFog(output.diffuse.xyz, cameraPosition.y, eyeToPixel), 1);
+	
+	float yPos = input.worldPos.y;
+	float yRatio = 1 - remapToRange(yPos, cloudFogHeightStart, cloudFogHeightEnd, 0, 1);
     
+	output.diffuse = lerp(output.diffuse, float4(cloudFogColor, 1.0), clamp(yRatio, 0, 1) * cloudFogStrength);
+	
     return output;
 }

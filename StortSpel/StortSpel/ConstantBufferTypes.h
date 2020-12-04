@@ -105,14 +105,19 @@ struct globalConstBuffer
 
 struct atmosphericFogConstBuffer
 {
-    Vector3 FogColor = { 0.37f, 0.7f, 1.0f };
+    Vector3 FogColor = { 1.0f, 1.0f, 1.0f };
     float FogStartDepth = 70.0;
-    float FogStartDepthSkybox = 14.0;
     Vector3 FogHighlightColor = { 1.0f, 1.0f, 1.0f };
     float FogGlobalDensity = 0.2f;
     Vector3 FogSunDir = { 1.0f, 0.0f, 0.0f };
     float FogHeightFalloff = 2.0f;
-    Vector3 padding = { 0.0f, 0.0f, 0.0f };
+    float FogStartDepthSkybox = 14.0;
+
+    float cloudFogHeightStart = -5.0f;
+    float cloudFogHeightEnd = 10.0f;
+    float cloudFogStrength = 0.7f;
+    Vector3 cloudFogColor = { 1.0f, 1.0f, 1.0f };
+    float padding;
 };
 
 __declspec(align(16)) struct projectionMatrix

@@ -828,8 +828,13 @@ void Renderer::update(const float& dt)
 		ImGui::SliderFloat("Start depth", (float*)&fogConstBufferTemp.FogStartDepth, 0.0f, 100.0f);
 		ImGui::SliderFloat("Start depth (Skybox)", (float*)&fogConstBufferTemp.FogStartDepthSkybox, 0.0f, 100.0f);
 		ImGui::ColorEdit3("Highlight color", (float*)&fogConstBufferTemp.FogHighlightColor);
-		ImGui::SliderFloat("Global Density", (float*)&fogConstBufferTemp.FogGlobalDensity, 0.0f, 2.0f);
+		ImGui::SliderFloat("Global Density", (float*)&fogConstBufferTemp.FogGlobalDensity, 0.0f, 0.5f);
 		ImGui::SliderFloat("Height falloff", (float*)&fogConstBufferTemp.FogHeightFalloff, 0.0f, 100.0f);
+		ImGui::Text("Cloud Fog");
+		ImGui::SliderFloat("Start", (float*)&fogConstBufferTemp.cloudFogHeightStart, -100.0f, 100.0f);
+		ImGui::SliderFloat("End", (float*)&fogConstBufferTemp.cloudFogHeightEnd, -100.0f, 100.0f);
+		ImGui::SliderFloat("Strength", (float*)&fogConstBufferTemp.cloudFogStrength, 0.0f, 1.0f);
+		ImGui::ColorEdit3("Cloud Fog Color", (float*)&fogConstBufferTemp.cloudFogColor);
 
 		ImGui::End();
 	}
