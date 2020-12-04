@@ -48,8 +48,8 @@ vs_out main(vs_in input)
     output.pos = mul(float4(input.pos, 1), wvpMatrix);
     output.uv = input.uv;
     output.normal = normalize(mul(float4(input.normal, 0), worldMatrix));
-    output.tangent = input.tangent;
-    output.bitangent = input.bitangent;
+	output.tangent = normalize(mul(float4(input.tangent, 0), worldMatrix));
+	output.bitangent = normalize(mul(float4(input.bitangent, 0), worldMatrix));
     output.worldPos = mul(float4(input.pos, 1), worldMatrix);
     //output.shadowPos = mul(float4(input.pos, 1), shadowMatrix);
     
