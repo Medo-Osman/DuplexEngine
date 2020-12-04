@@ -19,7 +19,7 @@ private:
 	bool m_kinematic;
 	bool m_slide;
 	bool m_hasMirrored;
-	bool m_hasEntRot;
+	//bool m_hasEntRot;
 
 	Vector3 m_scale = {1.f, 1.f, 1.f}; 
 	Vector3 m_centerOffset = {0.f, 0.f, 0.f};
@@ -136,7 +136,7 @@ public:
 		m_scale = scale;
 		std::string name = meshComponent->getFilePath() + std::to_string(geometryType);
 		PxGeometry* geometry; 
-		XMFLOAT3 boundsCenter;
+		Vector3 boundsCenter;
 		m_meshOffset = meshComponent->getTranslation();
 		if (geometryType == PxGeometryType::eTRIANGLEMESH)
 		{
@@ -147,14 +147,21 @@ public:
 			meshComponent->getMeshResourcePtr()->getBoundsCenter(boundsCenter);
 			boundsCenter = boundsCenter * scale;
 		}
-		Vector3 meshTranslation = meshComponent->getTranslation();
 
-		m_hasEntRot = !XMQuaternionIsIdentity(entity->getRotation());
+		if (!XMQuaternionIsIdentity(entity->getRotation()))
+		{
+			m_meshOffset = XMVector3Rotate(m_meshOffset, entity->getRotation());
+			boundsCenter = XMVector3Rotate(boundsCenter, entity->getRotation());
+		}
+			
+		if (!XMQuaternionIsIdentity(meshComponent->getRotation()))
+		{
+			m_meshOffset = XMVector3Rotate(m_meshOffset, meshComponent->getRotation());
+			boundsCenter = XMVector3Rotate(boundsCenter, meshComponent->getRotation());
+		}
 
-		if(m_hasEntRot)
-			meshTranslation = XMVector3Rotate(meshTranslation, entity->getRotation());
 
-		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + meshTranslation + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this, sceneID, forceMakeKinematic);
+		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + m_meshOffset + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this, sceneID, forceMakeKinematic);
 		bool addGeom = true;
 		m_centerOffset = boundsCenter;
 		if (this->canAddGeometry())
@@ -358,13 +365,13 @@ public:
 		//IF we check if it is static, We don't mirror the transform in the first place.
 		if (m_dynamic || !m_hasMirrored)
 		{
-			Vector3 theMeshOffset;
+			/*Vector3 theMeshOffset;
 			if (m_hasEntRot)
 				theMeshOffset = XMVector3Rotate(m_meshOffset, m_transform->getRotation());
 			else
-				theMeshOffset = m_meshOffset;
+				theMeshOffset = m_meshOffset;*/
 
-			m_transform->setPosition(this->getActorPosition() - m_centerOffset - theMeshOffset);
+			m_transform->setPosition(this->getActorPosition() - m_centerOffset - m_meshOffset);
 			if (m_controllRotation)
 				m_transform->setRotationQuat(this->getActorQuaternion());
 

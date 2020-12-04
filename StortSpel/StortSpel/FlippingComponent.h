@@ -79,13 +79,14 @@ public:
 			}
 
 			m_alpha += m_flipSpeed * dt; //                    0          180
-			slerpedRotation = Quaternion::Slerp(m_startRot, m_endRot, ParametricBlend(m_alpha));
-			m_physicsComponent ? m_physicsComponent->kinematicMove(m_transform->getTranslation(), slerpedRotation) : 
-																   m_transform->setRotationQuat(slerpedRotation);
-			//m_transform->setRotationQuat(Quaternion::Slerp(m_startRot, m_endRot, ParametricBlend(m_alpha)));
+			
+			
 
 			if (m_alpha >= 1)
 			{
+				m_physicsComponent ? m_physicsComponent->kinematicMove(m_transform->getTranslation(), m_endRot) :
+					m_transform->setRotationQuat(m_endRot);
+				
 				m_time = 0;
 				m_alpha = 0;
 
@@ -95,6 +96,13 @@ public:
 					m_startTime = m_upTime;
 
 				m_doOnce = true;
+			}
+			else
+			{
+				slerpedRotation = Quaternion::Slerp(m_startRot, m_endRot, ParametricBlend(m_alpha));
+				m_physicsComponent ? m_physicsComponent->kinematicMove(m_transform->getTranslation(), slerpedRotation) :
+					m_transform->setRotationQuat(slerpedRotation);
+				//m_transform->setRotationQuat(Quaternion::Slerp(m_startRot, m_endRot, ParametricBlend(m_alpha)));
 			}
 		}
 	}

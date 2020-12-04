@@ -274,8 +274,30 @@ void SceneManager::inputUpdate(InputData& inputData)
 			{
 				m_nextScene = new Scene();
 				//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
-				std::thread sceneLoaderThread = std::thread(Scene::loadEmpty, m_nextScene, m_nextSceneReady);
+				std::thread sceneLoaderThread = std::thread(Scene::loadEndScene, m_nextScene, m_nextSceneReady);
 				sceneLoaderThread.detach();
+
+				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+				disableMovement();
+				GUIHandler::get().setVisible(m_singleplayerIndex, false);
+				GUIHandler::get().setVisible(m_tutorialIndex, false);
+				//GUIHandler::get().setVisible(m_hostGameIndex, false);
+				//GUIHandler::get().setVisible(m_joinGameIndex, false);
+				GUIHandler::get().setVisible(m_settingsIndex, false);
+				GUIHandler::get().setVisible(m_exitIndex, false);
+				GUIHandler::get().setVisible(m_backToLobbyIndex, true);
+				GUIHandler::get().setVisible(m_senseDecreaseIndex, false);
+				GUIHandler::get().setVisible(m_senseIncreaseIndex, false);
+				GUIHandler::get().setVisible(m_sensitivityIndex, false);
+				GUIHandler::get().setVisible(m_volumeAmountIndex, false);
+				GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
+				GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
+				GUIHandler::get().setVisible(m_setFovDecreaseIndex, false);
+				GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
+				GUIHandler::get().setVisible(m_fovIndex, false);
+				GUIHandler::get().setInMenu(true, m_singleplayerIndex);
+				showScore();
+				m_camera->endSceneCamera = true; // If this is true the camera no longer updates and have a fixed position in this scene
 
 				m_gameStarted = true;
 				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
