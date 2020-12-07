@@ -45,6 +45,7 @@ private:
 
 public:
 	Mouse();
+	~Mouse();
 	MouseEvent readEvent();
 	bool empty() const;
 

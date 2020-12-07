@@ -18,6 +18,11 @@ public:
 		particle->initParticle(Engine::get().getDevicePtr(), Engine::get().getCameraPtr(), transform);
 	}
 
+	~ParticleComponent()
+	{
+		SAFE_DELETE(m_particle);
+	}
+
 	void activate()
 	{
 		if(m_particle)
@@ -64,10 +69,7 @@ public:
 			}
 		}
 	}
-	~ParticleComponent()
-	{
-		SAFE_DELETE(m_particle);
-	}
+
 
 };
 

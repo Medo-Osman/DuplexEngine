@@ -12,6 +12,7 @@ private:
 	std::wstring m_shootSound = L"Explo1.wav";
 	std::wstring m_loadSound = L"CannonLoad.wav";
 	AudioComponent* m_shootAudioComponent;
+	AudioComponent* m_loadAudio;
 public:
 	CannonPickup()
 		:Pickup(PickupType::CANNON)
@@ -23,6 +24,12 @@ public:
 		m_shootAudioComponent = nullptr;
 		m_particleEffect = nullptr;
 		m_pickupIcon = L"CanonIcon.png";
+	}
+	~CannonPickup()
+	{
+		SAFE_DELETE(m_particleEffect);
+		SAFE_DELETE(m_loadAudio);
+		SAFE_DELETE(m_shootAudioComponent);
 	}
 	virtual void update(const float& dt)
 	{
@@ -46,7 +53,7 @@ public:
 	virtual void onPickup(Entity* entityToDoEffectsOn, bool isEnvironmental)
 	{
 		Pickup::onPickup(entityToDoEffectsOn, isEnvironmental);
-		addAudioComponent(m_loadSound, false);
+		m_loadAudio = addAudioComponent(m_loadSound, false);
 	}
 
 	virtual void onUse()
@@ -71,9 +78,13 @@ public:
 	virtual void onRemove()
 	{
 		Pickup::onRemove();
-		m_entityToDoEffectsOn->removeComponent(m_particleEffect);
-		delete m_particleEffect;
-		m_particleEffect = nullptr;
+		if (m_particleEffect)
+		{
+			m_entityToDoEffectsOn->removeComponent(m_particleEffect);
+			delete m_particleEffect;
+			m_particleEffect = nullptr;
+		}
+
 	}
 
 	void geFyr()

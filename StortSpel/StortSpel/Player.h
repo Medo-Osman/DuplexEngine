@@ -223,7 +223,7 @@ public:
     Player();
     ~Player();
     bool m_shouldDrawLine = false;
-
+    void release(); //Release things needed to be released before deconstruction
 
     virtual void Attach(PlayerObserver* observer)
     {

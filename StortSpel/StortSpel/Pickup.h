@@ -134,14 +134,12 @@ public:
 		m_isTimeBased = true;
 		m_isEnvironmental = false;
 	}
-
 	~Pickup()
 	{
-		/*for (size_t i = 0; i < PICKUP_VECTOR.size(); i++)
+		for (int i = 0; i < m_audioComponents.size(); i++)
 		{
-			SAFE_DELETE(PICKUP_VECTOR[i]);
+			SAFE_DELETE(m_audioComponents.at(i));
 		}
-		PICKUP_VECTOR.clear();*/
 	}
 
 	const bool& isActive() const
@@ -218,13 +216,13 @@ public:
 		this->m_active = true;
 		if (m_onUseSound != L"")
 		{
-			m_entityToDoEffectsOn->addComponent("OnUse", addAudioComponent(m_onUseSound, false, 0.3f));
+			addAudioComponent(m_onUseSound, false, 0.3f);
 			m_audioComponents.back()->playSound();
 		}
 
 		if (m_whileActiveSound != L"")
 		{
-			m_entityToDoEffectsOn->addComponent("WhileUsingPickup", m_whileAudio = addAudioComponent(m_whileActiveSound, true, 0.3f));
+			m_whileAudio = addAudioComponent(m_whileActiveSound, true, 0.3f);
 			m_audioComponents.back()->playSound();
 		}
 	}
@@ -236,7 +234,7 @@ public:
 		m_entityToDoEffectsOn = entityToDoEffectsOn;
 		if (m_onPickupSound != L"")
 		{
-			entityToDoEffectsOn->addComponent("OnPickup", addAudioComponent(m_onPickupSound, false, 0.3f));
+			addAudioComponent(m_onPickupSound, false, 0.3f);
 			m_audioComponents.back()->playSound();
 		}
 		if (!m_isEnvironmental)
@@ -252,7 +250,6 @@ public:
 		if (m_whileActiveSound != L"")
 		{
 			bool removed = false;
-			m_entityToDoEffectsOn->removeComponent(m_whileAudio);
 			for (size_t i = 0; i < m_audioComponents.size() && !removed; i++)
 			{
 				if (m_audioComponents[i] == m_whileAudio)
@@ -265,7 +262,7 @@ public:
 		}
 		if (m_depletedSound != L"")
 		{
-			m_entityToDoEffectsOn->addComponent("OnDepeleted", addAudioComponent(m_depletedSound, false, 0.3f));
+			addAudioComponent(m_depletedSound, false, 0.3f);
 			m_audioComponents.back()->playSound();
 		}
 	}
@@ -274,7 +271,6 @@ public:
 	{
 		for (size_t i = 0; i < m_audioComponents.size(); i++)
 		{
-			m_entityToDoEffectsOn->removeComponent(m_audioComponents.at(i));
 			delete m_audioComponents.at(i);
 		}
 		m_audioComponents.clear();

@@ -25,6 +25,13 @@ private:
 	static std::map<std::wstring,ID3D11VertexShader*> m_vsMap;
 	static std::map<std::wstring,ID3D11GeometryShader*> m_gsMap;
 	static std::map<std::wstring,ID3D11PixelShader*> m_psMap;
+	static Microsoft::WRL::ComPtr<ID3DBlob> m_vertexShaderBlob;
+	static Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_resourceViewRandomTextureArray;
+	static Microsoft::WRL::ComPtr<ID3D11SamplerState> m_linearSamplerStatePtr;
+
+	static Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_noDepthNoWriteStencilState; //NO depth test no depth write
+	static Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthNoWriteStencilState; //Depth Test no depth write
+
 
 	Buffer<ParticleDataVS> m_particleDataCB;
 	ParticleDataVS m_particleData;
@@ -33,10 +40,6 @@ private:
 	Buffer<projectionMatrix> m_projectionMatrixCB;
 	projectionMatrix m_viewProjData;
 
-	Buffer<ParticleVertex> m_initVBuffer;
-	Buffer<ParticleVertex> m_vertexBuffer;
-	Buffer<ParticleVertex> m_streamOut;
-
 	ID3D11Buffer* m_vertexBufferRaw;
 	ID3D11Buffer* m_streamOutBufferRaw;
 	ID3D11Buffer* m_initBufferRaw;
@@ -44,18 +47,12 @@ private:
 	Transform* m_transform;
 
 	ID3DBlob* m_shaderBlob;
-	static Microsoft::WRL::ComPtr<ID3DBlob> m_vertexShaderBlob;
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_resourceViewTexture;
-	static Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_resourceViewRandomTextureArray;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_linearSamplerStatePtr;
 
 	//Shaders SteamOut
 	ID3D11VertexShader* m_streamOutVertexShaderPtr;
 	ID3D11GeometryShader* m_streamOutGeometryShaderPtr;
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_noDepthNoWriteStencilState; //NO depth test no depth write
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthNoWriteStencilState; //Depth Test no depth write
-
 
 	//Shaders draw
 	ID3D11VertexShader* m_drawVertexShaderPtr;
@@ -81,8 +78,6 @@ private:
 		m_resourceViewTexture = nullptr;
 		m_streamOutVertexShaderPtr = nullptr;
 		m_streamOutGeometryShaderPtr = nullptr;
-		m_noDepthNoWriteStencilState = nullptr;
-		m_DepthNoWriteStencilState = nullptr;
 		m_drawVertexShaderPtr = nullptr;
 		m_drawGeometryShaderPtr = nullptr;
 		m_drawPixelShaderPtr = nullptr;
@@ -225,6 +220,11 @@ public:
 		m_vertexBufferRaw->Release();
 		m_streamOutBufferRaw->Release();
 		m_initBufferRaw->Release();
+
+		m_particleDataCB.release();
+		m_accelerationDataCB.release();
+		m_projectionMatrixCB.release();
+
 	}
 
 	Particle(ParticleEffect particleType, bool neverDie = true)
@@ -250,6 +250,35 @@ public:
 		);
 
 		setupRandomVectorArray(device);
+
+		D3D11_SAMPLER_DESC samplerStateDesc;
+		ZeroMemory(&samplerStateDesc, sizeof(D3D11_SAMPLER_DESC));
+		samplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerStateDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerStateDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerStateDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerStateDesc.MipLODBias = 0.0f;
+		samplerStateDesc.MaxAnisotropy = 1;
+		samplerStateDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+		samplerStateDesc.MinLOD = 0;
+		samplerStateDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+		hr = device->CreateSamplerState(&samplerStateDesc, m_linearSamplerStatePtr.GetAddressOf());
+
+
+		D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+		ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+		depthStencilDesc.DepthEnable = false;
+		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+
+		hr = device->CreateDepthStencilState(&depthStencilDesc, m_noDepthNoWriteStencilState.GetAddressOf());
+
+		depthStencilDesc.DepthEnable = true;
+		depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		hr = device->CreateDepthStencilState(&depthStencilDesc, m_DepthNoWriteStencilState.GetAddressOf());
+
+		assert(SUCCEEDED(hr));
 	}
 
 	static void cleanStaticDataForParticles()
@@ -257,6 +286,11 @@ public:
 		delete *m_vertexShaderBlob.ReleaseAndGetAddressOf();
 		delete *m_particleLayoutPtr.ReleaseAndGetAddressOf();
 		delete *m_resourceViewRandomTextureArray.ReleaseAndGetAddressOf();
+
+		delete *m_linearSamplerStatePtr.ReleaseAndGetAddressOf();
+		delete *m_noDepthNoWriteStencilState.ReleaseAndGetAddressOf();
+		delete *m_DepthNoWriteStencilState.ReleaseAndGetAddressOf();
+
 
 		std::for_each(m_vsMap.begin(), m_vsMap.end(),
 			[](std::pair<std::wstring, ID3D11VertexShader*> element) {
@@ -310,39 +344,7 @@ public:
 		m_particleDataCB.initializeBuffer(device, true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_particleData, 1);
 		m_accelerationDataCB.initializeBuffer(device, true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_accelerationData, 1);
 		m_projectionMatrixCB.initializeBuffer(device, true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_viewProjData, 1);
-		m_initVBuffer.initializeBuffer(device, false, D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER, &m_init, 1, true);
-		m_vertexBuffer.initializeBuffer(device, false, (D3D11_BIND_FLAG)(D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER | D3D11_BIND_FLAG::D3D11_BIND_STREAM_OUTPUT), nullptr, m_maxNrOfParticles, true);
-		m_streamOut.initializeBuffer(device, false, (D3D11_BIND_FLAG)(D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER | D3D11_BIND_FLAG::D3D11_BIND_STREAM_OUTPUT), nullptr, m_maxNrOfParticles, true);
 
-
-		D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
-		ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
-		depthStencilDesc.DepthEnable = false;
-		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-
-		hr = device->CreateDepthStencilState(&depthStencilDesc, this->m_noDepthNoWriteStencilState.GetAddressOf());
-
-		depthStencilDesc.DepthEnable = true;
-		depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
-		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		hr = device->CreateDepthStencilState(&depthStencilDesc, this->m_DepthNoWriteStencilState.GetAddressOf());
-
-		
-		D3D11_SAMPLER_DESC samplerStateDesc;
-		ZeroMemory(&samplerStateDesc, sizeof(D3D11_SAMPLER_DESC));
-		samplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		samplerStateDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerStateDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerStateDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerStateDesc.MipLODBias = 0.0f;
-		samplerStateDesc.MaxAnisotropy = 1;
-		samplerStateDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-		samplerStateDesc.MinLOD = 0;
-		samplerStateDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-		hr = device->CreateSamplerState(&samplerStateDesc, &this->m_linearSamplerStatePtr);
-
-		assert(SUCCEEDED(hr));
 
 		//GS steamout
 		m_streamOutGeometryShaderPtr = this->getGSShader(true, this->m_streamOutGS.c_str());

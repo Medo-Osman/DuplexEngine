@@ -1958,11 +1958,18 @@ void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string 
 		}
 	}
 	if (!found)
+	{
 		ErrorLogger::get().logError("Trying to add physic component without any meshcomponent!. Can't use this helper function.");
+		delete physComp;
+	}
+	else
+	{
+		entity->addComponent("physics", physComp);
+		physComp->initActorAndShape(m_sceneID, entity, meshComponent, geometryType, dynamic, materialName, isUnique);
+	}
 
 
-	entity->addComponent("physics", physComp);
-	physComp->initActorAndShape(m_sceneID, entity, meshComponent, geometryType, dynamic, materialName, isUnique);
+
 }
 
 void Scene::addLightComponent(LightComponent* component)

@@ -79,6 +79,8 @@ Player::Player()
 	}
 }
 
+
+
 Player::~Player()
 {
 	if (m_playerEntity)
@@ -89,7 +91,16 @@ Player::~Player()
 	//	delete m_3dMarker;
 
 	Pickup::clearStaticPickupArrayPlz();
+
 }
+
+void Player::release()
+{
+	SAFE_DELETE(m_pickupPointer);
+	SAFE_DELETE(m_environmentPickup);
+}
+
+
 
 void Player::setCannonEntity(Entity* entity, MeshComponent* pipe)
 {

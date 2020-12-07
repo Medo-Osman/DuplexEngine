@@ -42,6 +42,11 @@ Mouse::Mouse()
 	m_mousePos.y = 0;
 }
 
+Mouse::~Mouse()
+{
+	m_events.empty();
+}
+
 MouseEvent Mouse::readEvent()
 {
 	MouseEvent evnt;

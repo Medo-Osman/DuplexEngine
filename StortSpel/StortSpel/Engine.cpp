@@ -44,6 +44,7 @@ Engine::~Engine()
 
 void Engine::release()
 {
+	m_player->release();
 }
 
 void Engine::update(const float& dt)

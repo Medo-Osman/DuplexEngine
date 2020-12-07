@@ -157,7 +157,6 @@ private:
 	{
 		physx::PxSceneDesc sceneDesc(m_physicsPtr->getTolerancesScale());
 		sceneDesc.gravity = PxVec3(m_gravity.x, m_gravity.y, m_gravity.z);
-		m_dispatcherPtr = PxDefaultCpuDispatcherCreate(m_nrOfThreads);
 		sceneDesc.cpuDispatcher = m_dispatcherPtr;
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
 		sceneDesc.simulationEventCallback = this;
@@ -181,9 +180,18 @@ public:
 	void release()
 	{
 		m_controllManager->release();
-		m_scenePtr->release();
-		m_scenePtr = nullptr;
+		for (int i = 0; i < m_scenes.size(); i++)
+		{
+			if (m_scenes[i])
+			{
+				m_scenes[i]->release();
+				m_scenes[i] = nullptr;
+			}
+		}
+		m_scenes.clear();
+
 		m_cookingPtr->release();
+
 		m_physicsPtr->release();
 		m_PvdPtr->release();
 		m_transport->release();
