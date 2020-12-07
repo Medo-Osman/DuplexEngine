@@ -191,14 +191,12 @@ void AudioHandler::setEmitterPosition(int index, Vector3 position, bool isLoopin
 
 int AudioHandler::increaseVolume()
 {	
-	if (m_volumeAmount < 10)
+	if (m_volumeAmount < MAX_VOLUME)
 	{
 		m_hasAudioChanged = true;
 		m_volumeAmount += 1;
 		return m_volumeAmount;
 	}
-
-	
 }
 
 int AudioHandler::decreaseVolume()
@@ -209,7 +207,6 @@ int AudioHandler::decreaseVolume()
 		m_volumeAmount -= 1;
 		return m_volumeAmount;
 	}
-
 }
 
 int AudioHandler::getVolumeAmount()
@@ -251,11 +248,11 @@ void AudioHandler::update(float dt)
 	}
 	for (auto& soundsInstance : m_soundInstances)
 	{
-		soundsInstance.second->SetVolume(m_volumeAmount);
+		soundsInstance.second->SetVolume(m_volumeAmount / 10.f);
 	}
 	for (auto& loopingSounds : m_loopingSoundInstances)
 	{
-		loopingSounds.second->SetVolume(m_volumeAmount);
+		loopingSounds.second->SetVolume(m_volumeAmount / 10.f);
 	}
 }
 

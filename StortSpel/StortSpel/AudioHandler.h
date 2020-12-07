@@ -23,7 +23,9 @@ private:
 	AudioEmitter m_emitter;
 	AudioListener m_listener;
 	Transform* m_listenerTransformPtr;
-	int m_volumeAmount = 1;
+	int m_volumeAmount = 5;
+
+	const int MAX_VOLUME = 15;
 
 	bool m_isReleased = false;
 

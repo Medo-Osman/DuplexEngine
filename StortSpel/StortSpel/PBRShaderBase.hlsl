@@ -249,7 +249,8 @@ ps_out main(ps_in input) : SV_TARGET
 		input.tangent = normalize(input.tangent);
 
 		float3 T = normalize(input.tangent - N * dot(input.tangent, N));
-		float3 B = cross(T, N);
+		//float3 B = cross(T, N);
+		float3 B = normalize(input.bitangent - N * dot(input.bitangent, N));
 
 		float3x3 TBN = float3x3(T, B, N);
 		N = normalize(mul(normalFromMap, TBN));
