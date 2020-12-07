@@ -26,6 +26,7 @@ Scene::Scene()
 
 Scene::~Scene()
 {
+
 	for (std::pair<std::string, Entity*> entityElement : m_entities)
 	{
 		if (entityElement.first != PLAYER_ENTITY_NAME)
@@ -62,12 +63,20 @@ Scene::~Scene()
 	}
 	deferredPhysicsInitVec.clear();
 
-	for (auto physicsComp : m_tempParticleComponent)
+
+	/*for (auto physicsComp : m_tempParticleComponent)
 	{
 		delete physicsComp;
 		physicsComp = nullptr;
 	}
-	m_tempParticleComponent.clear();
+	m_tempParticleComponent.clear();*/
+	//std::cout << std::endl << "SIZE: " << m_meshComponentMap.size() << std::endl;
+	//for (auto p : m_meshComponentMap)
+	//{
+	//	std::cout << p.second->getIdentifier() << " : " << m_meshComponentMap.size() << std::endl;
+	//	//p.second = nullptr;
+	//	delete p.second;
+	//}
 }
 
 void Scene::activateScene()
@@ -1756,7 +1765,25 @@ void Scene::loadAlmostEmpty(Scene* sceneObject, bool* finished)
 	//sceneObject->createStaticPlatform(Vector3(0, -2, 0), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
 
 	//sceneObject->addCheckpoint({ 0, 8, 0 });
-	//sceneObject->addScore({ 0,4,0 });
+
+	Entity* ent = sceneObject->addEntity("test");
+	for (int i = 0; i < 3000; i++)
+	{
+		//sceneObject->createNewPhysicsComponent(ent);
+		//sceneObject->addComponent(ent, "mesh"+i,
+			//new MeshComponent("testCube_pCube1.lrm"));
+			//new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+
+
+		//MeshComponent* meshComp = new MeshComponent("testCube_pCube1.lrm");
+		//ent->addComponent("f", meshComp);
+
+		sceneObject->addComponent(ent ,"f"+i, new TestComponent());
+
+		//delete meshComp;
+	}
+		//sceneObject->createStaticPlatform(Vector3(0, -2, i*2), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
+		//sceneObject->addScore({ 1,4,(float)i });
 
 	*finished = true;
 }
@@ -1910,6 +1937,8 @@ void Scene::addMeshComponent(MeshComponent* component)
 {
 	component->setRenderId(++m_meshCount);
 	m_meshComponentMap[m_meshCount] = component;
+
+	std::cout << "MeshCompMap size: " << m_meshCount << std::endl;
 }
 
 void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)

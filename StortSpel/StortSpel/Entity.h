@@ -26,8 +26,9 @@ public:
 			//std::cout << "\t" << component.second->getIdentifier() << std::endl;
 
 			//stringsToRemove.push_back(component.first);
+			std::cout << component.second->getIdentifier() << " < " << m_identifier << std::endl;
 			delete component.second;
-			component.second = nullptr;
+			//component.second = nullptr;
 		}
 
 		/*for (int i = 0; i < stringsToRemove.size(); i++)
@@ -68,7 +69,8 @@ public:
 	
 	void removeComponent(Component* component)
 	{
-		int deleted = (int)m_components.erase(component->getIdentifier());
+		std::string id = component->getIdentifier();
+		int deleted = (int)m_components.erase(id);
 	}
 
 	Component* getComponent(std::string componentName)
