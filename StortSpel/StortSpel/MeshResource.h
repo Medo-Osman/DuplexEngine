@@ -26,9 +26,30 @@ public:
 	virtual ~MeshResource()
 	{
 		//SAFE_DELETE(m_vertexArray);
+		std::cout << "DELETE MESH RES " << debugName << std::endl;
+
 		m_vertexBuffer.release();
 		m_indexBuffer.release();
-		delete[] m_vertexArray;
+
+		if (m_indexArray)
+		{
+			std::cout << "Del index" << std::endl;
+			PerformanceTester::get().runPerformanceTestPrint();
+			delete[] m_indexArray;
+			PerformanceTester::get().runPerformanceTestPrint();
+			std::cout << std::endl;
+
+		}
+
+		if (m_vertexArray)
+		{
+			std::cout << "Del vert" << std::endl;
+			PerformanceTester::get().runPerformanceTestPrint();
+			delete[] m_vertexArray;
+			PerformanceTester::get().runPerformanceTestPrint();
+			std::cout << std::endl;
+
+		}
 	}
 	
 	Buffer<float>& getVertexBuffer() { return m_vertexBuffer; }

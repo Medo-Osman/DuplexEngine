@@ -54,6 +54,20 @@ Scene::~Scene()
 		m_boss->Detach(this);
 		delete m_boss;
 	}
+
+	for (auto physicsComp : deferredPhysicsInitVec)
+	{
+		delete physicsComp;
+		physicsComp = nullptr;
+	}
+	deferredPhysicsInitVec.clear();
+
+	for (auto physicsComp : m_tempParticleComponent)
+	{
+		delete physicsComp;
+		physicsComp = nullptr;
+	}
+	m_tempParticleComponent.clear();
 }
 
 void Scene::activateScene()
@@ -1739,9 +1753,10 @@ void Scene::loadEmpty(Scene* sceneObject, bool* finished)
 void Scene::loadAlmostEmpty(Scene* sceneObject, bool* finished)
 {
 	sceneObject->m_sceneEntryPosition = Vector3(0, 10, 0);
-	sceneObject->createStaticPlatform(Vector3(0, -2, 0), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
+	//sceneObject->createStaticPlatform(Vector3(0, -2, 0), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
 
-	sceneObject->addCheckpoint({ 0, 8, 0 });
+	//sceneObject->addCheckpoint({ 0, 8, 0 });
+	//sceneObject->addScore({ 0,4,0 });
 
 	*finished = true;
 }

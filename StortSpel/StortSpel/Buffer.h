@@ -22,14 +22,14 @@ public:
 
 	~Buffer()
 	{
-		if (m_bufferPtr != nullptr)
-		{
+		//if (m_bufferPtr != nullptr)
+		//{
 			//m_bufferPtr.ReleaseAndGetAddressOf();
 
-			int nr = m_bufferPtr->Release();
-			m_bufferPtr = nullptr;
-			int te = 1;
-		}
+			//int nr = m_bufferPtr->Release();
+			//m_bufferPtr = nullptr;
+			//std::cout << "rel: " << nr << std::endl;
+		//}
 	}
 
 	HRESULT initializeBuffer(ID3D11Device* device, bool dynamic, D3D11_BIND_FLAG bindFlag, T* data, int nrOf, bool defaultUse = false, UINT stride = 0)
@@ -105,14 +105,13 @@ public:
 
 	void release()
 	{
-		if (m_bufferPtr != nullptr)
-		{
+		//if (m_bufferPtr != nullptr)
+		//{
 			//m_bufferPtr.ReleaseAndGetAddressOf();
 			int nr = m_bufferPtr->Release();
 			//std::cout << "refcount: " << nr << std::endl;
 			m_bufferPtr = nullptr;
-			int te = 1;
-		}
+		//}
 
 	}
 

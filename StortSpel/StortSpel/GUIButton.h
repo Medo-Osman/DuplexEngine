@@ -139,7 +139,7 @@ public:
 			{
 				//Send message to observers that something has happened
 				Notify(GUIUpdateType::HOVER_ENTER);
-				m_hovered = true;
+				m_hovered = true; 
 			}
 		}
 		else //When it is not hovering over the button
