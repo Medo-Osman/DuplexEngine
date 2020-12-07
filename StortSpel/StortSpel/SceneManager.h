@@ -8,6 +8,7 @@
 #include "Camera.h"
 #include <Windows.h>
 #include "Renderer.h"
+#include "WinState.h"
 
 
 
@@ -20,6 +21,7 @@ private:
 	ScenesEnum m_currectSceneEnum;
 	ScenesEnum m_nextSceneEnum;
 	Camera* m_camera;
+	WinState* winState;
 	std::string str;
 	bool m_swapScene;
 

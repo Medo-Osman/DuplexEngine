@@ -168,7 +168,7 @@ void SceneManager::updateScene(const float &dt)
 			m_camera->endSceneCamera = false;
 			hideScore();
 			GUIHandler::get().setInMenu(false);
-
+			winState->firstWinState = true;
 			break;
 		case ScenesEnum::MAINMENU:
 			disableMovement();

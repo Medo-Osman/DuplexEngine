@@ -1097,6 +1097,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		tc->initTrigger( sceneObject->m_sceneID, goalTrigger, XMFLOAT3(9.0f, 8.0f, 0.5f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
 		tc->setIntData((int)ScenesEnum::ARENA);
+
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
 
