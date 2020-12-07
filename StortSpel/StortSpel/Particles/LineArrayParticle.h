@@ -47,4 +47,9 @@ public:
 		m_lineDataBuffer.initializeBuffer(Engine::get().getDevicePtr(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, m_player->getLineDataArray(), 10);
 
 	}
+
+	~LineArrayParticle()
+	{
+		m_lineDataBuffer.release();
+	}
 };

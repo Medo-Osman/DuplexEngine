@@ -1792,6 +1792,8 @@ void Scene::onSceneLoaded()
 {
 	for (auto& entity : m_entities)
 		entity.second->onSceneLoad();
+
+	m_player->reset3DMarker();
 }
 
 void Scene::updateScene(const float& dt)
@@ -1903,7 +1905,6 @@ void Scene::removeEntity(std::string identifier)
 	{
 		int index = static_cast<MeshComponent*>(meshComponent)->getRenderId();
 		m_meshComponentMap.erase(index);
-		//m_entities[identifier]->removeComponent(meshComponent);
 	}
 	delete m_entities[identifier];
 	m_entities.erase(identifier);

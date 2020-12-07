@@ -225,6 +225,8 @@ public:
     bool m_shouldDrawLine = false;
     void release(); //Release things needed to be released before deconstruction
 
+    void reset3DMarker();
+
     virtual void Attach(PlayerObserver* observer)
     {
         m_playerObservers.emplace_back(observer);
