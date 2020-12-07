@@ -189,6 +189,9 @@
     <ClCompile Include="Boss.cpp">
       <Filter>Source Files\Game\Boss</Filter>
     </ClCompile>
+    <ClCompile Include="WinState.cpp">
+      <Filter>Source Files\Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">
@@ -499,6 +502,9 @@
     </ClInclude>
     <ClInclude Include="ThunderAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="WinState.h">
+      <Filter>Source Files\Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
