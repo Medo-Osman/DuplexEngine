@@ -62,4 +62,4 @@ inline std::wstring readWStringFromChar(char* data, int& offset)
 }
 */
 
-#define readStringFromChar1(data, offset)  std::string(); int strSize; memcpy(&strSize, data + offset, sizeof(int)); offset += sizeof(int); char* rawData = new char[strSize]; memcpy(rawData, data + offset, strSize); offset += strSize; strData = std::string(rawData); delete[] rawData;  
+//#define readStringFromChar1(data, offset)  std::string(); int strSize; memcpy(&strSize, data + offset, sizeof(int)); offset += sizeof(int); char* rawData = new char[strSize]; memcpy(rawData, data + offset, strSize); offset += strSize; strData = std::string(rawData); delete[] rawData;  

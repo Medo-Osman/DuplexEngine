@@ -8,7 +8,7 @@ class TestComponent : public Component
 {
 private:
 	std::string m_message;
-
+	double arr[3000];
 public:
 	TestComponent()
 	{
