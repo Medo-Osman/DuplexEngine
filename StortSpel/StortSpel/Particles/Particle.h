@@ -215,7 +215,7 @@ public:
 	{
 		defaultConstructor();
 	}
-	~Particle()
+	virtual ~Particle()
 	{
 		m_vertexBufferRaw->Release();
 		m_streamOutBufferRaw->Release();

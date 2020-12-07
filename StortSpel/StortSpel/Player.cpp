@@ -101,7 +101,10 @@ void Player::release()
 	SAFE_DELETE(m_environmentPickup);
 }
 
-
+void Player::reset3DMarker()
+{
+	m_3dMarker = nullptr;
+}
 
 void Player::setCannonEntity(Entity* entity, MeshComponent* pipe)
 {
@@ -493,6 +496,9 @@ void Player::playerStateLogic(const float& dt)
 			d.playerPtr = this;
 
 			this->sendPlayerMSG(d);
+
+			m_cannonEntity = nullptr;
+			m_pipe = nullptr;
 			
 
 		}
