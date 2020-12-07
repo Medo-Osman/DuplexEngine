@@ -217,6 +217,12 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
 	m_dContextPtr->DSSetConstantBuffers(1, 1, m_globalConstBuffer.GetAddressOf());
 
+	cloudConstBuffer cloudConstBuffer;
+	m_cloudConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cloudConstBuffer, 1);
+	m_dContextPtr->HSSetConstantBuffers(2, 1, m_cloudConstBuffer.GetAddressOf());
+	m_dContextPtr->DSSetConstantBuffers(2, 1, m_cloudConstBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(6, 1, m_cloudConstBuffer.GetAddressOf());
+
 	lightBufferStruct initalLightData; //Not sure why, but it refuses to take &lightBufferStruct() as argument on line below
 	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);
 	m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
@@ -803,16 +809,37 @@ void Renderer::update(const float& dt)
 	static globalConstBuffer globalConstBufferTemp;
 	static atmosphericFogConstBuffer fogConstBufferTemp;
 	static lightBufferStruct lightBufferTemp;
+	static cloudConstBuffer cloudConstBufferTemp;
 
 	static float tempSunDirectionX = 0.0f;
 	static float tempSunDirectionY = -1.0f;
 	static float tempSunDirectionZ = 1.0f;
+
+	//float cloudHeightLevel = 0.0f;
+	//float cloudDisplacementFactor = 5.0f;
+	//float cloudTessellationFactor = 5.0f;
+	//float cloudScale1 = 5.0f;
+	//float cloudScale2 = 5.0f;
+	//float cloudSpeed1 = 0.002f;
+	//float cloudSpeed2 = 0.005f;
+	//float cloudBlendFactor = 0.5f;
 
 	if (DEBUGMODE)
 	{
 		ImGui::SetNextWindowPos(ImVec2(1300.0f, 200.0f));
 		ImGui::SetNextWindowSize(ImVec2(550.0f, 500.0f));
 		ImGui::Begin("Global Shader Settings");
+
+		ImGui::Text("");
+		ImGui::Text("Clouds");
+		ImGui::InputFloat("Height Position", (float*)&cloudConstBufferTemp.cloudHeightPosition);
+		ImGui::SliderFloat("Displacement Factor", (float*)&cloudConstBufferTemp.cloudDisplacementFactor, 0.01f, 20.0f);
+		ImGui::SliderFloat("Tessellation Factor", (float*)&cloudConstBufferTemp.cloudTessellationFactor, 0.01f, 14.99f);
+		ImGui::SliderFloat("Noise 1 Scale", (float*)&cloudConstBufferTemp.noiseScale1, 0.01f, 20.0f);
+		ImGui::SliderFloat("Noise 2 Scale", (float*)&cloudConstBufferTemp.noiseScale2, 0.01f, 20.0f);
+		ImGui::SliderFloat("Noise 1 Speed", (float*)&cloudConstBufferTemp.noiseSpeed1, 0.0f, 0.01f);
+		ImGui::SliderFloat("Noise 2 Speed", (float*)&cloudConstBufferTemp.noiseSpeed2, 0.0f, 0.01f);
+		ImGui::SliderFloat("Noise Blend Factor", (float*)&cloudConstBufferTemp.noiseBlendFactor, 0.0f, 1.0f);
 
 		ImGui::Text("");
 		ImGui::Text("Directional Light");
@@ -848,6 +875,7 @@ void Renderer::update(const float& dt)
 	m_globalConstBuffer.updateBuffer(m_dContextPtr.Get(), &globalConstBufferTemp);
 	m_atmosphericFogConstBuffer.updateBuffer(m_dContextPtr.Get(), &fogConstBufferTemp);
 	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &lightBufferTemp);
+	m_cloudConstBuffer.updateBuffer(m_dContextPtr.Get(), &cloudConstBufferTemp);
 }
 
 void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)

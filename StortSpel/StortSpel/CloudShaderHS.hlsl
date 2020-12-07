@@ -17,6 +17,18 @@ cbuffer perModel : register(b0)
 	float4x4 wvpMatrix;
 };
 
+cbuffer cloudConstBuffer : register(b2)
+{
+	float cloudHeightPosition;
+	float cloudDisplacementFactor;
+	float cloudTessellationFactor;
+	float cloudNoiseScale1;
+	float cloudNoiseScale2;
+	float cloudNoiseSpeed1;
+	float cloudNoiseSpeed2;
+	float cloudNoiseBlendFactor;
+}
+
 // Output patch constant data.
 struct HS_CONSTANT_DATA_OUTPUT
 {
@@ -97,7 +109,7 @@ HS_CONSTANT_DATA_OUTPUT ConstantHS(
 	
 	//Output.InsideTessFactor = gTessFactor;
 	
-	float gTessFactor = 5.0f;
+	float gTessFactor = cloudTessellationFactor;
 	
 	[unroll]
 	for (int vert = 0; vert < 3; vert++)

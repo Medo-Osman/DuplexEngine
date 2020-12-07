@@ -63,6 +63,7 @@ private:
 	Buffer<MATERIAL_CONST_BUFFER> m_currentMaterialConstantBuffer;
 	Buffer<globalConstBuffer> m_globalConstBuffer;
 	Buffer<atmosphericFogConstBuffer> m_atmosphericFogConstBuffer;
+	Buffer<cloudConstBuffer> m_cloudConstBuffer;
 
 	// Blur stuff
 	Buffer<CS_BLUR_CBUFFER> m_blurBuffer;

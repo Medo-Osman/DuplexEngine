@@ -56,9 +56,9 @@ SamplerState textureCubeSampler : register(s0);
 float4 main(ps_in input) : SV_TARGET
 {
 	float res = mul(dot(float3(0, 1, 0), normalize(input.pos)) + 1, 0.5);
-	float3 skyboxColor = skyboxTexture.Sample(textureCubeSampler, float3(0, -res, 0.75)).xyz;
+	//float3 skyboxColor = skyboxTexture.Sample(textureCubeSampler, float3(0, -res, 0.75)).xyz;
 	//return float4(res,0,0,1);
-	//return float4(skyboxTexture.Sample(textureCubeSampler, normalize(input.pos)).xyz, 1);
+	return float4(skyboxTexture.Sample(textureCubeSampler, normalize(input.pos)).xyz, 1);
     
 	//float yPos = input.pos.y;
 	//float yRatio = 1 - remapToRange(yPos, -.2, 0.15, 0, 1);
@@ -75,6 +75,6 @@ float4 main(ps_in input) : SV_TARGET
     
 	//skyboxColor = lerp(skyboxColor, float3(1.0, 1.0, 1.0), clamp(yRatio, 0, 1) * cloudFogStrength);
     
-	return float4(skyboxColor, 1);
+	//return float4(skyboxColor, 1);
 
 }

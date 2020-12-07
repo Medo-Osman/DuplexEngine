@@ -24,6 +24,18 @@ cbuffer GlobalConstBuffer : register(b1)
 	float time;
 }
 
+cbuffer cloudConstBuffer : register(b2)
+{
+	float cloudHeightPosition;
+	float cloudDisplacementFactor;
+	float cloudTessellationFactor;
+	float cloudNoiseScale1;
+	float cloudNoiseScale2;
+	float cloudNoiseSpeed1;
+	float cloudNoiseSpeed2;
+	float cloudNoiseBlendFactor;
+}
+
 struct ds_out
 {
 	float4 pos : SV_POSITION;
@@ -40,7 +52,6 @@ struct HS_CONSTANT_DATA_OUTPUT
 {
 	float EdgeTessFactor[3] : SV_TessFactor; // e.g. would be [4] for a quad domain
 	float InsideTessFactor : SV_InsideTessFactor; // e.g. would be Inside[2] for a quad domain
-	// TODO: change/add other stuff
 };
 
 #define NUM_CONTROL_POINTS 3
@@ -67,30 +78,24 @@ ds_out main(
 	Output.tangent = finalTangent;
 	
 	float3 finalBiTangent = normalize(BarycentricCoordinates.x * tri[0].bitangent + BarycentricCoordinates.y * tri[1].bitangent + BarycentricCoordinates.z * tri[2].bitangent);
-	Output.tangent = finalBiTangent;
+	Output.bitangent = finalBiTangent;
 	
 	float2 vUV = BarycentricCoordinates.x * tri[0].uv + BarycentricCoordinates.y * tri[1].uv + BarycentricCoordinates.z * tri[2].uv;
-	Output.uv = (vUV + (time * 0.0005));
+	Output.uv = vUV;
 	
 	// Displacement
 	float3 vDirection = vNormal;
-	//float fDisplacement = displacement.Sample(sampState, Output.worldPos.xyz, 0).r;
-	//float fDisplacement = displacement1.SampleLevel(sampState, Output.uv * vUV + (time * 0.005), 0).r;
-	//float fDisplacement2 = displacement2.SampleLevel(sampState, Output.uv * vUV + float2(0.133564, 0.785994) + (time * 0.006), 0).r;
 	
-	Output.uv *= 5;
+	float fDisplacement1 = displacementORM.SampleLevel(sampState, Output.uv * cloudNoiseScale1 + (time * cloudNoiseSpeed1), 0).r;
+	float fDisplacement2 = displacementORM.SampleLevel(sampState, Output.uv * cloudNoiseScale2 + (time * cloudNoiseSpeed2), 0).g;
 	
-	float fDisplacement1 = displacementORM.SampleLevel(sampState, Output.uv, 0).r;
-	float fDisplacement2 = displacementORM.SampleLevel(sampState, Output.uv, 0).g;
+	float finalDisplacement = lerp(fDisplacement1, fDisplacement2, cloudNoiseBlendFactor);
 	
-	float finalDisplacement = fDisplacement1 * fDisplacement2;
-	//float finalDisplacement = fDisplacement1;
-	
-	vWorldPos += vDirection * finalDisplacement * 4;
+	vWorldPos += float4(0.0, cloudHeightPosition, 0.0, 1.0);
+	vWorldPos += vDirection * finalDisplacement * cloudDisplacementFactor;
 
 	float4x4 viewProjMatrix = mul(viewMatrix, projectionMatrix);
 	
-	//Output.pos = mul(float4(Output.worldPos.xyz, 1.0), wvpMatrix);
 	Output.pos = mul(float4(vWorldPos.xyz, 1.0f), viewProjMatrix);
 
 	return Output;

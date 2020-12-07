@@ -103,6 +103,18 @@ struct globalConstBuffer
     Vector3 padding;
 };
 
+struct cloudConstBuffer
+{
+    float cloudHeightPosition = 0.0f;
+    float cloudDisplacementFactor = 5.0f;
+    float cloudTessellationFactor = 5.0f;
+    float noiseScale1 = 5.0f;
+    float noiseScale2 = 5.0f;
+    float noiseSpeed1 = 0.002f;
+    float noiseSpeed2 = 0.005f;
+    float noiseBlendFactor = 0.5f;
+};
+
 struct atmosphericFogConstBuffer
 {
     Vector3 FogColor = { 1.0f, 1.0f, 1.0f };
