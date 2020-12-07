@@ -33,21 +33,13 @@ public:
 
 		if (m_indexArray)
 		{
-			std::cout << "Del index" << std::endl;
-			PerformanceTester::get().runPerformanceTestPrint();
 			delete[] m_indexArray;
-			PerformanceTester::get().runPerformanceTestPrint();
-			std::cout << std::endl;
 
 		}
 
 		if (m_vertexArray)
 		{
-			std::cout << "Del vert" << std::endl;
-			PerformanceTester::get().runPerformanceTestPrint();
 			delete[] m_vertexArray;
-			PerformanceTester::get().runPerformanceTestPrint();
-			std::cout << std::endl;
 
 		}
 	}
