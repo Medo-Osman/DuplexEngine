@@ -28,8 +28,6 @@ public:
 	~CannonPickup()
 	{
 		SAFE_DELETE(m_particleEffect);
-		SAFE_DELETE(m_loadAudio);
-		SAFE_DELETE(m_shootAudioComponent);
 	}
 	virtual void update(const float& dt)
 	{

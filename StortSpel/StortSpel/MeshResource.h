@@ -80,24 +80,24 @@ public:
 
 	void storeVertexArray(LRM_VERTEX vertexArray[], int nrOfVertecies)
 	{
-		m_vertexArray = new PositionVertex[nrOfVertecies];
-		for (int i = 0; i < nrOfVertecies; i++)
-		{
-			m_vertexArray[i].position = vertexArray[i].pos;
-		}
+		//m_vertexArray = new PositionVertex[nrOfVertecies];
+		//for (int i = 0; i < nrOfVertecies; i++)
+		//{
+		//	m_vertexArray[i].position = vertexArray[i].pos;
+		//}
 
-		m_vertCount = nrOfVertecies;
+		//m_vertCount = nrOfVertecies;
 	}
 
 	void storeIndexArray(std::uint32_t indexBuffer[], int nrOfIndicies)
 	{
-		m_indexArray = new std::uint32_t[nrOfIndicies];
-		for (int i = 0; i < nrOfIndicies; i++)
-		{
-			m_indexArray[i] = indexBuffer[i];
-		}
+		//m_indexArray = new std::uint32_t[nrOfIndicies];
+		//for (int i = 0; i < nrOfIndicies; i++)
+		//{
+		//	m_indexArray[i] = indexBuffer[i];
+		//}
 
-		m_indexCount = nrOfIndicies;
+		//m_indexCount = nrOfIndicies;
 	}
 
 	void storeFilePath(std::string name)

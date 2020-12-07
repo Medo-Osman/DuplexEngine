@@ -21,6 +21,11 @@ public:
 		m_isTimeBased = false;
 		m_pickupIcon = L"TrampolinIcon.png";
 	}
+	~HeightPickup()
+	{
+		SAFE_DELETE(m_particleEffect);
+	}
+
 	virtual void update(const float& dt)
 	{
 		Pickup::update(dt);

@@ -54,6 +54,8 @@ private:
 	PxControllerManager* m_controllManager;
 	PxCooking* m_cookingPtr;
 
+	PxShape* m_defaultShape;
+
 	std::map<std::string, PxMaterial*> m_defaultMaterials;
 	std::map<std::string, PxGeometry*> m_sharedGeometry;
 	std::map<std::string, PxShape*> m_sharedShapes;
@@ -175,6 +177,7 @@ public:
 	{
 		for (auto& sharedGeometry : m_sharedGeometry)
 			delete sharedGeometry.second;
+
 	}
 
 	void release()
@@ -323,9 +326,11 @@ public:
 
 		assert(m_cookingPtr);
 
-
-
 		this->loadDefaultMaterials();
+
+		PxGeometry* defaultBox = new PxBoxGeometry(1, 1, 1);
+		m_defaultShape = m_physicsPtr->createShape(*defaultBox, *m_defaultMaterials["default"]);
+		delete defaultBox;
 	}
 
 
@@ -413,6 +418,8 @@ public:
 
 	PxShape* createAndSetShapeForActor(PxRigidActor* actor, PxGeometry* geometry, const std::string &materialName, const bool &unique, const XMFLOAT3 &scale = { 1, 1, 1 }, const bool trigger = false)
 	{
+		if (!geometry)
+			return m_defaultShape;
 		physx::PxMaterial* physicsMaterial = getMaterialByName(materialName);
 		PxGeometryHolder scaledGeometry = *geometry;
 		if (physicsMaterial == nullptr)

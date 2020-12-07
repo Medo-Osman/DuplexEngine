@@ -134,12 +134,13 @@ public:
 		m_isTimeBased = true;
 		m_isEnvironmental = false;
 	}
-	~Pickup()
+	virtual ~Pickup()
 	{
 		for (int i = 0; i < m_audioComponents.size(); i++)
 		{
 			SAFE_DELETE(m_audioComponents.at(i));
 		}
+		m_audioComponents.clear();
 	}
 
 	const bool& isActive() const

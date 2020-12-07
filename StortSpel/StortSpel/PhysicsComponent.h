@@ -39,7 +39,7 @@ private:
 			createdGeometry = new PxCapsuleGeometry(vec.x, vec.y);
 			break;
 		case physx::PxGeometryType::eSPHERE:
-			XMFLOAT3 center = { (max.x + min.x) * 0.5f, (max.y + min.y) * 0.5f, (max.z + min.z) * 0.5f };
+		/*	XMFLOAT3 center = { (max.x + min.x) * 0.5f, (max.y + min.y) * 0.5f, (max.z + min.z) * 0.5f };
 			float radius;
 			radius = 0;
 			vertexArray = meshResource->getVertexArray();
@@ -54,7 +54,7 @@ private:
 					radius = tempDist;
 			}
 
-			createdGeometry = new physx::PxSphereGeometry(radius);
+			createdGeometry = new physx::PxSphereGeometry(radius);*/
 			break;
 		case physx::PxGeometryType::eBOX:
 			if (max.y == min.y)
@@ -67,8 +67,8 @@ private:
 			createdGeometry = new physx::PxBoxGeometry((max.x - min.x) / 2, (max.y - min.y) / 2, (max.z - min.z) / 2);
 			break;
 		case physx::PxGeometryType::eTRIANGLEMESH:
-			tringMesh = m_physicsPtr->getTriangleMeshe(meshResource->getFilePath(), meshResource->getVertexArraySize(), meshResource->getVertexArray(), meshResource->getIndexArraySize(), meshResource->getIndexArray(), m_centerOffset);
-			createdGeometry = new physx::PxTriangleMeshGeometry(tringMesh, PxMeshScale(PxVec3(m_scale.x, m_scale.y, m_scale.z)), PxMeshGeometryFlag::eDOUBLE_SIDED);
+		//	tringMesh = m_physicsPtr->getTriangleMeshe(meshResource->getFilePath(), meshResource->getVertexArraySize(), meshResource->getVertexArray(), meshResource->getIndexArraySize(), meshResource->getIndexArray(), m_centerOffset);
+			//createdGeometry = new physx::PxTriangleMeshGeometry(tringMesh, PxMeshScale(PxVec3(m_scale.x, m_scale.y, m_scale.z)), PxMeshGeometryFlag::eDOUBLE_SIDED);
 			break;
 		default:
 			break;

@@ -20,6 +20,10 @@ public:
 		m_isTimeBased = true;
 		m_pickupIcon = L"SpeedIcon.png";
 	}
+	~SpeedPickup()
+	{
+		SAFE_DELETE(m_lineParticleComponentPtr);
+	}
 	virtual void update(const float& dt)
 	{
 		Pickup::update(dt);

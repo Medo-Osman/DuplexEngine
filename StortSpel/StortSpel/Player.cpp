@@ -76,6 +76,7 @@ Player::Player()
 		vec.emplace_back(new HeightPickup());
 		vec.emplace_back(new CannonPickup());
 		Pickup::initPickupArray(vec);
+		vec.clear();
 	}
 }
 
