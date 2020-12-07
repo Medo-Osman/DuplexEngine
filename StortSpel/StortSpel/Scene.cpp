@@ -1778,7 +1778,7 @@ void Scene::loadAlmostEmpty(Scene* sceneObject, bool* finished)
 		//MeshComponent* meshComp = new MeshComponent("testCube_pCube1.lrm");
 		//ent->addComponent("f", meshComp);
 
-		sceneObject->addComponent(ent ,"f"+i, new TestComponent());
+		sceneObject->addComponent(ent ,"f"+std::to_string(i), new TestComponent());
 
 		//delete meshComp;
 	}

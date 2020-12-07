@@ -20,7 +20,7 @@ public:
 	{
 
 		//std::vector<std::string> stringsToRemove;
-		//std::cout << m_identifier << std::endl;
+		std::cout << std::endl << "DELETION START: " << m_identifier << " " << m_components.size() << std::endl;
 		for (auto& component : m_components)
 		{
 			//std::cout << "\t" << component.second->getIdentifier() << std::endl;

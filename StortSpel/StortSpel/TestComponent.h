@@ -8,14 +8,17 @@ class TestComponent : public Component
 {
 private:
 	std::string m_message;
-	double arr[3000];
+	double arr[90000];
 public:
 	TestComponent()
 	{
 		m_type = ComponentType::TEST;
 		m_message = "Not chosen!";
 	}
-	~TestComponent() {}
+	~TestComponent() 
+	{
+		std::cout << "\tDeleting testComp: " << m_identifier << std::endl;
+	}
 
 	// Initialization
 	void init(std::string newMessage)
