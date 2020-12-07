@@ -44,6 +44,14 @@ private:
 	Vector4* m_offsetVectors;
 	Vector4 m_frustumFarCorners[4];
 
+	// SSAO Buffer
+	SSAO_BUFFER m_ssaoData;
+	Buffer<SSAO_BUFFER> m_ssaoBuffer;
+
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_SSAOSamplerStateNRM = NULL;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_SSAOSamplerStateRAND = NULL;
+
+
 	// Bloom stuff
 	ID3D11RenderTargetView* m_geometryPassRTVs[3];
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_glowMapRenderTargetViewPtr = NULL;
@@ -83,9 +91,7 @@ private:
 	CS_BLUR_CBUFFER m_blurData;
 	float m_weightSigma = 5.f;
 
-	// SSAO Buffer
-	SSAO_BUFFER m_ssaoData;
-	Buffer<SSAO_BUFFER> m_ssaoBuffer;
+	
 
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;

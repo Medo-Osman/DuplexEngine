@@ -12,7 +12,7 @@ struct vs_out
     float2 uv : TEXCOORD1;
 };
 
-cbuffer cbPerFrame
+cbuffer cbPerFrame : register(b4)
 {
     float4x4 viewToTexSpace;
     float4 offsetVectors[14];

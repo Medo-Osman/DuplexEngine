@@ -5,7 +5,7 @@ struct vs_out
     float2 uv : TEXCOORD1;
 };
 
-cbuffer cbPerFrame
+cbuffer cbPerFrame : register(b4)
 {
     float4x4 viewToTexSpace;
     float4 offsetVectors[14];
@@ -31,18 +31,19 @@ float occlusionFunction(float distZ)
 Texture2D normalsNDepthTexture : register(t0);
 Texture2D randomTexture : register(t1);
 
-SamplerState sampState : SAMPLER : register(s0);
+SamplerState normalsNDepthSamplerState : register(s1);
+SamplerState randomVectorSamplerState : register(s2);
 
 float4 main(vs_out input) : SV_TARGET
 {
-    float4 normalDepth = normalsNDepthTexture.SampleLevel(sampState, input.uv, 0.0f);
+    float4 normalDepth = normalsNDepthTexture.SampleLevel(normalsNDepthSamplerState, input.uv, 0.0f);
     
     float3 n = normalDepth.xyz;
     float pz = normalDepth.w;
     
     float3 p = (pz / input.toFarPlane.z) * input.toFarPlane;
     
-    float3 randVec = 2.0f * randomTexture.SampleLevel(sampState, 4.0f * input.uv, 0.0f).rgb - 1.0f;
+    float3 randVec = 2.0f * randomTexture.SampleLevel(randomVectorSamplerState, 4.0f * input.uv, 0.0f).rgb - 1.0f;
     
     float occlusionSum = 0.0f;
     
@@ -59,7 +60,7 @@ float4 main(vs_out input) : SV_TARGET
         float4 projQ = mul(float4(q, 1.0f), viewToTexSpace);
         projQ /= projQ.w;
 
-        float rz = normalsNDepthTexture.SampleLevel(sampState, projQ.xy, 0.0f).a;
+        float rz = normalsNDepthTexture.SampleLevel(normalsNDepthSamplerState, projQ.xy, 0.0f).a;
 
         float3 r = (rz / q.z) * q;
         float distZ = p.z - r.z;

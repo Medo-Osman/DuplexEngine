@@ -215,6 +215,22 @@ HRESULT Renderer::initialize(const HWND& window)
 	assert(SUCCEEDED(hr) && "Failed to create SampleState");
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 
+	samplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_SSAOSamplerStateRAND);
+	assert(SUCCEEDED(hr) && "Failed to create SamplerState");
+	m_dContextPtr->PSSetSamplers(1, 1, m_SSAOSamplerStateRAND.GetAddressOf());
+
+	samplerStateDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerStateDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerStateDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+
+	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_SSAOSamplerStateNRM);
+	assert(SUCCEEDED(hr) && "Failed to create SamplerState");
+	m_dContextPtr->PSSetSamplers(2, 1, m_SSAOSamplerStateNRM.GetAddressOf());
+
+	
+
+
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 	m_skyboxConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skyboxMVP(), 1);
@@ -496,13 +512,14 @@ void Renderer::computeSSAO()
 
 	m_ssaoBuffer.updateBuffer(m_dContextPtr.Get(), &m_ssaoData);
 
+	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
+
 	m_dContextPtr->IASetVertexBuffers(0, 1, m_renderQuadBuffer.GetAddressOf(), m_renderQuadBuffer.getStridePointer(), &offset);
 	m_compiledShaders[ShaderProgramsEnum::SSAO_MAP]->setShaders();
 	m_currentSetShaderProg = ShaderProgramsEnum::SSAO_MAP;
-	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
 
-	m_dContextPtr->VSSetConstantBuffers(0, 1, m_ssaoBuffer.GetAddressOf());
-	m_dContextPtr->PSSetConstantBuffers(0, 1, m_ssaoBuffer.GetAddressOf());
+	m_dContextPtr->VSSetConstantBuffers(4, 1, m_ssaoBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(4, 1, m_ssaoBuffer.GetAddressOf());
 	m_dContextPtr->PSSetShaderResources(0, 1, &m_normalsNDepthSRV);
 	m_dContextPtr->PSSetShaderResources(1, 1, &m_randomVectorsSRV);
 
@@ -1038,12 +1055,14 @@ void Renderer::render()
 	ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
 	ImGui::End();
 
+	// SSAO
+	computeSSAO();
+
 	// Bloom Filter
 	downSamplePass();
 	blurPass();
 
-	// SSAO
-	computeSSAO();
+	
 
 	// GUI
 	GUIHandler::get().render();
