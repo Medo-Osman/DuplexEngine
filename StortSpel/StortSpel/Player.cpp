@@ -467,19 +467,20 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::FLYINGBALL;
 			m_lastState = PlayerState::CANNON;
 			m_velocity = { 0, 0, 0 };
-			m_direction = m_cameraTransform->getForwardVector();
+			m_direction = m_lastDirectionalMovement = m_moveDirection = m_cameraTransform->getForwardVector();
 			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
 			m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
 			m_shouldDrawLine = false;
 			m_verticalMultiplier = 5;
 			m_horizontalMultiplier = CANNON_POWER;
+			m_playerEntity->setRotation(m_cameraTransform->getRotationMatrix());
 
 			static_cast<CannonPickup*>(m_pickupPointer)->geFyr();
 			PlayerMessageData d;
 			d.playerActionType = PlayerActions::ON_FIRE_CANNON;
 			d.playerPtr = this;
-
+			
 			this->sendPlayerMSG(d);
 			
 
@@ -511,7 +512,7 @@ void Player::playerStateLogic(const float& dt)
 		m_direction.y -= 1.f * dt;
 
 		m_controller->move(m_direction  * 75 * dt, dt);
-		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || m_controller->checkGround() || m_horizontalMultiplier < 0.1f)
+		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || m_horizontalMultiplier < 0.1f)
 		{
 			m_horizontalMultiplier = 0;
 			m_verticalMultiplier = 0;
@@ -532,21 +533,23 @@ void Player::playerStateLogic(const float& dt)
 		break;
 	}
 
-	// Gravity
-	if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING || m_state == PlayerState::ROLL || m_state == PlayerState::FLYINGBALL)
+	if (m_state != PlayerState::CANNON && m_state != PlayerState::FLYINGBALL)
 	{
-		m_verticalMultiplier -= GRAVITY * m_gravityScale * dt;
-	}
-	/*if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f) && m_state != PlayerState::JUMPING)
-		m_verticalMultiplier = 0.f;*/
 
-	// Max Gravity Tests
-	if (m_verticalMultiplier <= -MAX_FALL_SPEED)
-		m_verticalMultiplier = -MAX_FALL_SPEED;
+		// Gravity
+		if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING || m_state == PlayerState::ROLL)
+		{
+			m_verticalMultiplier -= GRAVITY * m_gravityScale * dt;
+		}
+		/*if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f) && m_state != PlayerState::JUMPING)
+			m_verticalMultiplier = 0.f;*/
+
+		// Max Gravity Tests
+		if (m_verticalMultiplier <= -MAX_FALL_SPEED)
+			m_verticalMultiplier = -MAX_FALL_SPEED;
 
 
-	if (m_state != PlayerState::CANNON)
-	{
+
 		// Final frame velocity
 		if (directionalMovement.LengthSquared() > 0.f)
 		{
@@ -554,18 +557,20 @@ void Player::playerStateLogic(const float& dt)
 			m_horizontalMultiplier = m_horizontalMultiplier * max(directionalMovement.Dot(m_lastDirectionalMovement), 0.2f);
 			m_lastDirectionalMovement = directionalMovement;
 		}
+	
+
+
+		m_velocity = ((m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier)) * dt;
+
+		m_controller->move(m_velocity, 1.f);
 	}
 
-
-	m_velocity = ((m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier)) * dt;
-
-	m_controller->move(m_velocity, 1.f);
 	m_lastPosition = m_playerEntity->getTranslation();
 
 	// Animation
 	//float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).LengthSquared();
 	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).Length();
-	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
+	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH && m_state != PlayerState::CANNON && m_state != PlayerState::CANNON)
 	{
 		float blend = vectorLen / (PLAYER_MAX_SPEED * dt);
 
