@@ -718,7 +718,7 @@ void Player::setPlayerEntity(Entity* entity)
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
 	if (DEBUGMODE)
 	{
-		m_pickupPointer = new CannonPickup();
+		m_pickupPointer = new HeightPickup();
 		m_pickupPointer->onPickup(m_playerEntity, false);
 	}
 		
@@ -807,6 +807,12 @@ void Player::respawnPlayer()
 	m_verticalMultiplier = 0.f;
 	if (m_pickupPointer && m_pickupPointer->isActive())
 	{
+		if (m_pickupPointer->getPickupType() == PickupType::SPEED)
+		{
+			m_currentSpeedModifier = 1.f;
+			m_goalSpeedModifier = 1.f;
+			m_speedModifierTime = 0.f;
+		}
 		m_pickupPointer->onDepleted();
 		m_pickupPointer->onRemove();
 		SAFE_DELETE(m_pickupPointer);
@@ -850,9 +856,9 @@ void Player::handlePickupOnUse()
 	case PickupType::SPEED:
 		//Not used since it is activated on use.
 
-		//m_currentSpeedModifier = 1.f;
-		//m_goalSpeedModifier = m_pickupPointer->getModifierValue();
-		//m_speedModifierTime = 0;
+		m_currentSpeedModifier = 1.f;
+		m_goalSpeedModifier = m_pickupPointer->getModifierValue();
+		m_speedModifierTime = 0;
 		break;
 	case PickupType::HEIGHTBOOST:
 		//jump(false, TRAMPOLINE_JUMP_MULTIPLIER); //Activates by enviormental instead.
@@ -867,10 +873,7 @@ void Player::handlePickupOnUse()
 		break;
 	}
 	m_pickupPointer->onUse();
-	for (int i = 0; i < m_playerObservers.size(); i++)
-	{
-		m_playerObservers[i]->reactOnPlayer(data);
-	}
+	sendPlayerMSG(data);
 }
 
 void Player::sendPlayerMSG(const PlayerMessageData &data)
@@ -997,9 +1000,6 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				{
 				case PickupType::SPEED:
 					shouldTriggerEntityBeRemoved = true; //We want to remove speedpickup entity after we've used it.
-					m_currentSpeedModifier = 1.f;
-					m_goalSpeedModifier = physicsData.floatData;
-					m_speedModifierTime = 0;
 					break;
 				case PickupType::HEIGHTBOOST:
 					if ((bool)physicsData.intData) //fromPickup -true/false
@@ -1015,11 +1015,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 						data.playerActionType = PlayerActions::ON_ENVIRONMENTAL_USE;
 						data.intEnum = physicsData.associatedTriggerEnum;
 						data.entityIdentifier = physicsData.entityIdentifier;
-						
-						for (int i = 0; i < (int)m_playerObservers.size(); i++)
-						{
-							m_playerObservers.at(i)->reactOnPlayer(data);
-						}
+						sendPlayerMSG(data);
 					}
 
 
