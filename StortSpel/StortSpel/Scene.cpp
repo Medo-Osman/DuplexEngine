@@ -2211,7 +2211,7 @@ Entity* Scene::addTrampoline(Vector3 position)
 	triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
 	triggerComponent->setIntData(0);
 	trampoline->addComponent("heightTrigger", triggerComponent);
-	triggerComponent->initTrigger(m_sceneID, trampoline, { 0.475f, 0.05, 0.475f }, { 0.f, 0.9f, 0.f });
+	triggerComponent->initTrigger(m_sceneID, trampoline, { 0.475f, 0.05, 0.475f }, { 0.f, 1.15f, 0.f });
 
 	trampoline->addComponent("trampoline", new TrampolineComponent(trampoline)); //Dun edit diz nem ethar plz, cuz chardcohoded somwere.
 
@@ -2223,11 +2223,17 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 
 	if (msg.playerActionType == PlayerActions::ON_POWERUP_USE) //Player have just used a powerup.
 	{
-		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
+		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST) //Create Trampoline entity
 		{
-			//Create a trampoline entity
-			Vector3 trampolineSpawnPos = m_player->getFeetPosition() - Vector3(0.f, 0.75f, 0.f);
-			Entity* trampoline = addTrampoline(trampolineSpawnPos);
+			const float trampolineOffsetY = 0.5f; //Offset to position trampoline top at feet of player. Also used for raycast.
+			
+			Vector3 trampolineSpawnPos;
+			//Cast ray so if possible, be able to spawn the trampolineTop at player feet, otherwise we spawn it on rayIntersect.
+			if (!Physics::get().castRay(m_player->getFeetPosition(), Vector3(0.f, -1.f, 0.f), trampolineOffsetY,  /*OUT*/trampolineSpawnPos)) //If we did not intersect anything, OUT parameter is nonsence so set position so trampoline just toutches player feet.
+			{
+				trampolineSpawnPos = m_player->getFeetPosition() - Vector3(0.f, trampolineOffsetY, 0.f);
+			}
+			addTrampoline(trampolineSpawnPos);
 		}
 
 		if ((PickupType)msg.intEnum == PickupType::CANNON)

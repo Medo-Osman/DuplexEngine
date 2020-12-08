@@ -154,6 +154,7 @@ private:
 	std::vector<PxScene*> m_scenes;
 	int m_nrOfThreads;
 	Vector3 m_gravity;
+	PxActor* m_latestTriggerInteractionActor;
 
 	PxScene* createNewScene()
 	{
@@ -366,7 +367,6 @@ public:
 		}
 	}
 
-
 	void onTrigger(PxTriggerPair* pairs, PxU32 count) //Will currently check for collisions with player and said trigger shape.
 	{
 		for (PxU32 i = 0; i < count; i++)
@@ -393,6 +393,10 @@ public:
 						{
 							m_reactOnRemoveObservers[k]->sendPhysicsMessage(*data, stopLoop);
 						}
+					}
+					else
+					{
+						m_latestTriggerInteractionActor = pairs[i].triggerActor;
 					}
 				}
 			}
@@ -546,8 +550,14 @@ public:
 
 	void update(const float &dt)
 	{
+		
 		m_scenePtr->simulate(dt);
 		m_scenePtr->fetchResults(true);
+		if (m_latestTriggerInteractionActor)
+		{
+			m_scenePtr->resetFiltering(*m_latestTriggerInteractionActor);
+			m_latestTriggerInteractionActor = nullptr;
+		}
 
 		for (size_t i = 0; i < m_actorsToRemoveAfterSimulation.size(); i++)
 		{
