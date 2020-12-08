@@ -142,6 +142,11 @@ Vector4& Engine::getSkyLightDir()
 	return m_skyLightDir;
 }
 
+void Engine::setSkyLightDir(Vector4 dir)
+{
+	m_skyLightDir = dir;
+}
+
 Settings Engine::getSettings() const
 {
 	return m_settings;

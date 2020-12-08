@@ -1,6 +1,7 @@
 #pragma once
 #include "3DPCH.h"
 #include "Camera.h"
+#include "Engine.h"
 
 struct BoundingSphere
 {

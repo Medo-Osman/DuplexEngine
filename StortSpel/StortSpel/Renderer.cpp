@@ -718,7 +718,7 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
 
-		if (component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
+		if (component.second->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
 		{
 			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
 			m_compiledShaders[meshShaderEnum]->setShaders();
@@ -738,7 +738,7 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 		parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
 		//MeshComponent* comp = dynamic_cast<MeshComponent*>(component.second);
-		if (component.second->castsShadow())
+		if (component.second->isVisible() && component.second->castsShadow())
 		{
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
@@ -748,12 +748,18 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
-			if (component.second->getType() == ComponentType::ANIM_MESH)  
+
+			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
+			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
 			{
-				AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
-				assert(animMeshComponent);
-				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());// ? does this need to be optimised or is it fine to do this for every mesh?
+				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 			}
+			//if (component.second->getType() == ComponentType::ANIM_MESH)  
+			//{
+			//	AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
+			//	assert(animMeshComponent);
+			//	m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());// ? does this need to be optimised or is it fine to do this for every mesh?
+			//}
 
 			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 		}
@@ -876,6 +882,8 @@ void Renderer::update(const float& dt)
 	m_atmosphericFogConstBuffer.updateBuffer(m_dContextPtr.Get(), &fogConstBufferTemp);
 	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &lightBufferTemp);
 	m_cloudConstBuffer.updateBuffer(m_dContextPtr.Get(), &cloudConstBufferTemp);
+
+	Engine::get().setSkyLightDir({ tempSunDirectionX, tempSunDirectionY, tempSunDirectionZ, 0 });
 }
 
 void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
