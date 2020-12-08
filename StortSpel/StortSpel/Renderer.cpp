@@ -184,14 +184,14 @@ HRESULT Renderer::initialize(const HWND& window)
 	//Setup samplerstate
 	D3D11_SAMPLER_DESC samplerStateDesc;
 	ZeroMemory(&samplerStateDesc, sizeof(D3D11_SAMPLER_DESC));
-	samplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerStateDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	samplerStateDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerStateDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerStateDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerStateDesc.MipLODBias = 0.0f;
-	samplerStateDesc.MaxAnisotropy = 1;
+	samplerStateDesc.MaxAnisotropy = 16;
 	samplerStateDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerStateDesc.MinLOD = 0;
+	samplerStateDesc.MinLOD = -FLT_MAX;
 	samplerStateDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_psSamplerState);

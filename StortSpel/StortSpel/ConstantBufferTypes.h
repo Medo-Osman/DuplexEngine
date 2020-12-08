@@ -106,14 +106,23 @@ struct globalConstBuffer
 struct cloudConstBuffer
 {
     float cloudHeightPosition = 0.0f;
-    float cloudDisplacementFactor = 5.0f;
-    float cloudTessellationFactor = 5.0f;
-    float noiseScale1 = 5.0f;
+    float cloudDisplacementFactor = 7.0f;
+    float cloudTessellationFactor = 14.99f;
+    float noiseScale1 = 11.0f;
     float noiseScale2 = 5.0f;
     float noiseSpeed1 = 0.002f;
     float noiseSpeed2 = 0.005f;
-    float noiseBlendFactor = 0.5f;
+    float noiseBlendFactor = 0.0f;
 };
+
+//float cloudHeightPosition = 0.0f;
+//float cloudDisplacementFactor = 5.0f;
+//float cloudTessellationFactor = 5.0f;
+//float noiseScale1 = 5.0f;
+//float noiseScale2 = 5.0f;
+//float noiseSpeed1 = 0.002f;
+//float noiseSpeed2 = 0.005f;
+//float noiseBlendFactor = 0.5f;
 
 struct atmosphericFogConstBuffer
 {

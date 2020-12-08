@@ -218,9 +218,13 @@ float4 main(ps_in input) : SV_TARGET
 	float3 N = normalize(input.normal);
 	
 	//float3 normalFromMap = normal1.Sample(sampState, input.uv).xyz * 2 - 1;
-	float3 normalFromMap1 = perlin32N.Sample(sampState, input.uv * cloudNoiseScale1 + (time * cloudNoiseSpeed1)).xyz;
-	float3 normalFromMap2 = perlin64N.Sample(sampState, input.uv * cloudNoiseScale2 + (time * cloudNoiseSpeed2)).xyz;
-	N = normalize(lerp(normalFromMap1, normalFromMap2, cloudNoiseBlendFactor));
+	float3 normalFromMap1 = perlin32N.Sample(sampState, input.uv * cloudNoiseScale1 + (time * cloudNoiseSpeed1)).rgb * 2 - 1;
+	float3 normalFromMap2 = perlin64N.Sample(sampState, input.uv * cloudNoiseScale2 + (time * cloudNoiseSpeed2)).rgb * 2 - 1;
+		
+	//float3 blendedNormal = BlendAngleCorrectedNormals(normalFromMap1, normalFromMap2);
+	//float3 N2 = normalize(normalFromMap1);
+	//N = normalize(lerp(normalFromMap1, normalFromMap2, cloudNoiseBlendFactor));
+	//N = normalize(blendedNormal);
 	
 	float3 colorFromDispMap1 = displacementORM.Sample(sampState, input.uv * cloudNoiseScale1 + (time * cloudNoiseSpeed1)).r;
 	float3 colorFromDispMap2 = displacementORM.Sample(sampState, input.uv * cloudNoiseScale2 + (time * cloudNoiseSpeed2)).g;
@@ -228,14 +232,13 @@ float4 main(ps_in input) : SV_TARGET
 	
 	float roughness = 0.9;
 	float3 albedo = float3(0.9f, 0.9f, 0.9f);
-	
-	//input.tangent = normalize(input.tangent);
 
-	//float3 T = normalize(input.tangent - N * dot(input.tangent, N));
+	float3 T = normalize(input.tangent - N * dot(input.tangent, N));
 	//float3 B = cross(T, N);
+	float3 B = normalize(input.bitangent - N * dot(input.bitangent, N));
 
-	//float3x3 TBN = float3x3(T, B, N);
-	//N = normalize(mul(normalFromMap, TBN));
+	float3x3 TBN = float3x3(T, B, N);
+	N = normalize(mul(normalFromMap1, TBN));
 	
 	//float3 V = normalize(cameraPosition - input.worldPos);
 	
@@ -361,7 +364,8 @@ float4 main(ps_in input) : SV_TARGET
 	
 	
 	//return float4(simpleDotColorColor, 1.0);
-	return float4(N, 1.0);
+	//return float4(N, 1.0);
+	return float4(color, 1.0);
 	//return float4(skyLightDot, skyLightDot, skyLightDot, 1.0);
 	//return float4(finalDisplacement, finalDisplacement, finalDisplacement, 1.0);
 	

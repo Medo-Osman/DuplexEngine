@@ -74,3 +74,25 @@ float3 AdjustContrastCurve(float3 color, float contrast)
 {
 	return pow(abs(color * 2 - 1), 1 / max(contrast, 0.0001)) * sign(color - 0.5) + 0.5;
 }
+
+float3 BlendAngleCorrectedNormals(float3 baseNormal, float3 AdditionalNormal)
+{
+	float2 rgMask1 = baseNormal.rg;
+	float bMask1 = baseNormal.b;
+	
+	bMask1 += 1;
+	float3 finalBaseNormal = float3(rgMask1, bMask1);
+	
+	float2 rgMask2 = AdditionalNormal.rg;
+	float bMask2 = AdditionalNormal.b;
+	
+	rgMask2 *= -1;
+	float3 finalAdditionalNormal = float3(rgMask2, bMask2);
+
+	float dotResult1 = dot(finalBaseNormal, finalAdditionalNormal);
+	float3 normalResult1 = finalBaseNormal * dotResult1;
+	
+	float3 normalResult2 = bMask1 * finalAdditionalNormal;
+	
+	return normalResult1 - normalResult2;
+}

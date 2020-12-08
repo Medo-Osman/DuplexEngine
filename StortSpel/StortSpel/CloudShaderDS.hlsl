@@ -57,6 +57,7 @@ struct HS_CONSTANT_DATA_OUTPUT
 #define NUM_CONTROL_POINTS 3
 
 Texture2D displacementORM : register(t6);
+Texture3D asdwet : register(t7);
 
 SamplerState sampState : SAMPLER : register(s0);
 
