@@ -53,6 +53,8 @@ private:
 	const std::wstring m_SOUNDS_PATH = L"../res/audio/";
 	const std::wstring m_ERROR_SOUND_NAME = L"ErrorSound.wav";
 
+	float releasedMem = 0;
+
 public:
 	ID3D11CommandList* m_commandList = nullptr;
 

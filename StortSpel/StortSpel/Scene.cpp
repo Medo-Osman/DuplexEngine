@@ -1937,8 +1937,6 @@ void Scene::addMeshComponent(MeshComponent* component)
 {
 	component->setRenderId(++m_meshCount);
 	m_meshComponentMap[m_meshCount] = component;
-
-	std::cout << "MeshCompMap size: " << m_meshCount << std::endl;
 }
 
 void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)

@@ -20,13 +20,12 @@ public:
 	{
 
 		//std::vector<std::string> stringsToRemove;
-		std::cout << std::endl << "DELETION START: " << m_identifier << " " << m_components.size() << std::endl;
+		//std::cout << std::endl << "DELETION START: " << m_identifier << " " << m_components.size() << std::endl;
 		for (auto& component : m_components)
 		{
 			//std::cout << "\t" << component.second->getIdentifier() << std::endl;
 
-			//stringsToRemove.push_back(component.first);
-			std::cout << component.second->getIdentifier() << " < " << m_identifier << std::endl;
+			//std::cout << component.second->getIdentifier() << " < " << m_identifier << std::endl;
 			delete component.second;
 			//component.second = nullptr;
 		}

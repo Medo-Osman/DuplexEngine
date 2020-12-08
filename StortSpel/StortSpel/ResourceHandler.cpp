@@ -141,7 +141,26 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isC
 
 		}
 		else
-			hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
+		{
+			std::cout << "Loading: " << std::string(path.begin(), path.end()) << std::endl;
+			PerformanceTester::get().runPerformanceTestPrint();
+
+			ID3D11Resource* tex = nullptr;
+			hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), &tex, &srv);
+			/*hr = CreateWICTextureFromFileEx(m_devicePtr, m_deferredDContextPtr,
+				path.c_str(),
+				0,
+				D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, NULL, 0,
+				0,
+				nullptr, &srv
+			);*/
+			PerformanceTester::get().runPerformanceTestPrint();
+			std::cout << "================" << std::endl << std::endl;
+
+			int n = tex->Release();
+			int t = 2;
+
+		}
 
 		if (FAILED(hr)) // failed to load new texture, return error texture
 		{
@@ -303,10 +322,16 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 
 	}
 
+	//releasedMem += ((vertexCount * sizeof(LRM_VERTEX)) / (float)1024);
+	//std::cout << "VERT SIZE: " << ((vertexCount * sizeof(LRM_VERTEX))/(float)1024) << " kb \t" << path << " " << releasedMem << " kb" << std::endl;
+	//std::cout << "\tvCount " << vertexCount << ", vert size: " << sizeof(LRM_VERTEX) <<  std::endl;
+
 	m_meshCache[path]->setMinMax(min, max);
 	m_meshCache[path]->storeVertexArray(vertexArray2, vertexCount);
 	m_meshCache[path]->storeIndexArray(indexArray, indexCount);
 	m_meshCache[path]->storeFilePath(path);
+
+	
 
 	delete[] vertexArray;
 	delete[] indexArray;
