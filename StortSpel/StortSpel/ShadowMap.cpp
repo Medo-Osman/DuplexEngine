@@ -89,7 +89,9 @@ void ShadowMap::bindResourcesAndSetNullRTV(ID3D11DeviceContext* context)
 
 void ShadowMap::computeShadowMatrix(Vector3 focusPos)
 {
-	float radius = 90.f; //Remember to change in the shader as well
+	m_direction = Engine::get().getSkyLightDir();
+
+	float radius = 50.f; //Remember to change in the shader as well
 	Vector4 lightPos = (-2 * radius * m_direction) + focusPos;
 	Vector3 targetPos = focusPos;
 
