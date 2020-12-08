@@ -63,7 +63,6 @@ Scene::~Scene()
 	}
 	deferredPhysicsInitVec.clear();
 
-
 	/*for (auto physicsComp : m_tempParticleComponent)
 	{
 		delete physicsComp;
@@ -829,6 +828,8 @@ void Scene::addComponentFromFile(Entity* entity, char* compData, int sizeOfData,
 		newComponent = new InvalidComponent();
 		break;
 	}
+
+	delete[] paramData;
 
 	addComponent(entity, compName, newComponent);
 }
