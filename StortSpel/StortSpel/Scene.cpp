@@ -1891,10 +1891,15 @@ Entity* Scene::getEntity(std::string key)
 
 Entity* Scene::addEntity(std::string identifier)
 {
+	std::cout << std::endl << "Entity add" << std::endl;
+	PerformanceTester::get().runPerformanceTestPrint();
 	if (m_entities.find(identifier) != m_entities.end())// If one with that name is already found
 		return nullptr;
 
 	m_entities[identifier] = new Entity(identifier);
+
+	PerformanceTester::get().runPerformanceTestPrint();
+	std::cout  << "Entity add after" << std::endl << std::endl;
 	return m_entities[identifier];
 }
 

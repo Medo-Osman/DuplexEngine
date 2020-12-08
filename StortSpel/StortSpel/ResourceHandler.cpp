@@ -142,6 +142,7 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isC
 		}
 		else
 		{
+
 			std::cout << "Loading: " << std::string(path.begin(), path.end()) << std::endl;
 			PerformanceTester::get().runPerformanceTestPrint();
 
@@ -168,7 +169,6 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isC
 
 			PerformanceTester::get().runPerformanceTestPrint();
 			std::cout << "================" << std::endl << std::endl;
-			assert(SUCCEEDED(hr));
 
 			texRes->Release();
 			//int t = 2;
