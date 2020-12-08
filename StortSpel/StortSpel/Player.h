@@ -118,7 +118,6 @@ private:
     // Speed Powerup
     float m_currentSpeedModifier;
     float m_goalSpeedModifier;
-    int m_speedModifierDuration;
     float m_speedModifierTime;
     const float FOR_FULL_EFFECT_TIME = 2.f;
 
@@ -163,7 +162,7 @@ private:
 
     //Trampoline
     bool m_shouldPickupJump;
-    const float TRAMPOLINE_JUMP_MULTIPLIER = 2.0f;
+    const float TRAMPOLINE_JUMP_MULTIPLIER = 3.0f;
     std::string m_trampolineEntityIdentifier; //Used to make sure player does not use same trampoline object twice, so we don't recive double sounds for example.
 
     // Trap
@@ -195,7 +194,7 @@ private:
     //Private functions
     void setStates(InputData& inputData);
     void handleRotation(const float& dt);
-    Vector3 trajectoryEquation(Vector3 position, Vector3 direction, float t, float horizonalMultiplier, float vertMulti);
+    Vector3 trajectoryEquation(Vector3 position, Vector3 direction, float t, XMFLOAT3& outDir);
 	void trajectoryEquationOutFill(Vector3 position, Vector3 direction, float t, float horizonalMultiplier, float vertMulti, XMFLOAT3& outPos, XMFLOAT3& outDir);
     Vector3 calculatePath(Vector3 position, Vector3 direction, float horizonalMultiplier, float vertMulti);
     void playerStateLogic(const float& dt);
