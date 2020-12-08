@@ -17,7 +17,7 @@ public:
 	}
 	~TestComponent() 
 	{
-		std::cout << "\tDeleting testComp: " << m_identifier << std::endl;
+		//std::cout << "\tDeleting testComp: " << m_identifier << std::endl;
 	}
 
 	// Initialization

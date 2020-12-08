@@ -145,20 +145,33 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isC
 			std::cout << "Loading: " << std::string(path.begin(), path.end()) << std::endl;
 			PerformanceTester::get().runPerformanceTestPrint();
 
-			ID3D11Resource* tex = nullptr;
-			hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), &tex, &srv);
-			/*hr = CreateWICTextureFromFileEx(m_devicePtr, m_deferredDContextPtr,
+			ID3D11Resource* texRes = nullptr;
+			//hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), &tex, &srv);
+			hr = CreateWICTextureFromFileEx(m_devicePtr, m_dContextPtr,
 				path.c_str(),
 				0,
 				D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, NULL, 0,
 				0,
-				nullptr, &srv
-			);*/
+				&texRes, nullptr
+			);
+			ID3D11Texture2D* texture2d = static_cast<ID3D11Texture2D*>(texRes);
+			D3D11_TEXTURE2D_DESC texDesc;
+			texture2d->GetDesc(&texDesc);
+
+
+			D3D11_SHADER_RESOURCE_VIEW_DESC desc = { };
+			desc.Texture2D.MipLevels = texDesc.MipLevels;
+			desc.Texture2D.MostDetailedMip = 0;
+			desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			
+			m_devicePtr->CreateShaderResourceView(texRes, &desc, &srv);
+
 			PerformanceTester::get().runPerformanceTestPrint();
 			std::cout << "================" << std::endl << std::endl;
+			assert(SUCCEEDED(hr));
 
-			int n = tex->Release();
-			int t = 2;
+			texRes->Release();
+			//int t = 2;
 
 		}
 
