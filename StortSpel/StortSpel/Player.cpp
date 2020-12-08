@@ -210,7 +210,7 @@ float lerp(const float& a, const float &b, const float &t)
 	return a + (t * (b - a));
 }
 
-Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 dir, float t, float horizonalMultiplier, float vertMulti)
+Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 dir, float t, XMFLOAT3& outDir)
 {
 
 
@@ -219,7 +219,7 @@ Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 dir, float t, float hori
 
 	dir.y -= 1.f * t;
 	dir = dir * 75 * t;
-	
+	outDir = dir;
 
 	return pos + dir;
 }
@@ -244,13 +244,14 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 	float t = 0.01f;
 	Vector3 pos = position;
 	Vector3 dir = direction;
+	Vector3 outDir;
 
 	while (!foundEnd && t < 10)
 	{
-		pos = trajectoryEquation(position, dir, t, horizonalMultiplier, vertMulti);
+		pos = trajectoryEquation(position, dir, t, outDir);
 
 		t += 0.01f;
-		bool hit = Physics::get().hitSomething(pos, m_controller->getOriginalRadius(), m_controller->getOriginalHeight());
+		bool hit = Physics::get().castRay(pos, DirectX::XMVector3Normalize(outDir), 1.f);
 
 		if (hit)
 		{
@@ -264,7 +265,7 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 				Vector3 lineDataPos;
 				Vector3 lineDataDir;
 				float tempT = tDist * i;
-				trajectoryEquationOutFill(position, dir, tempT, horizonalMultiplier, vertMulti, m_lineData[i].position, this->m_lineData[i].direction);
+				trajectoryEquationOutFill(position, direction, tempT, horizonalMultiplier, vertMulti, m_lineData[i].position, this->m_lineData[i].direction);
 			}
 
 		}
@@ -512,7 +513,7 @@ void Player::playerStateLogic(const float& dt)
 		m_direction.y -= 1.f * dt;
 
 		m_controller->move(m_direction  * 75 * dt, dt);
-		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || m_horizontalMultiplier < 0.1f)
+		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || (m_direction.y <= 0 && m_controller->checkGround()))
 		{
 			m_horizontalMultiplier = 0;
 			m_verticalMultiplier = 0;
