@@ -476,6 +476,7 @@ void SceneManager::swapScenes()
 		Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
 		Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 		Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
+		Engine::get().getPlayerPtr()->reset3DMarker();
 
 		m_currentScene->activateScene();
 
