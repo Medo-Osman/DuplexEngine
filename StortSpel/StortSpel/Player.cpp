@@ -357,7 +357,10 @@ void Player::playerStateLogic(const float& dt)
 			m_hasDashed = true;
 			m_horizontalMultiplier = PLAYER_AIR_ACCELERATION * dt * m_currentSpeedModifier;
 			m_beginDashSpeed = -1.f;
-			m_animMesh->playSingleAnimation("JumpLoop_First", 0.2f, true, true);
+			if (m_jumps == 1)
+				m_animMesh->playSingleAnimation("JumpLoop_First", 0.2f, true, true);
+			else	
+				m_animMesh->playSingleAnimation("JumpLoop_Second", 0.2f, true, true);
 		}
 		else
 		{
