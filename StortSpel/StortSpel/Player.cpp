@@ -1232,19 +1232,20 @@ void Player::rollAnimation()
 
 void Player::dashAnimation()
 {
-	m_animMesh->playSingleAnimation("Dash", 0.1f, true, true);
+	m_animMesh->playSingleAnimation("Dash", 0.1f, true, false);
 	m_animMesh->setAnimationSpeed(1.f);
 }
 
 void Player::idleAnimation()
 {
 	m_animMesh->playBlendState("runOrIdle", 0.3f);
-	m_animMesh->setAnimationSpeed(1.5f);
+	m_animMesh->setAnimationSpeed(1, 1.5f);
 }
 
 void Player::startJump_First()
 {
-	m_animMesh->playSingleAnimation("JumpStart_First", 0.01f, true, true);
+	m_animMesh->playSingleAnimation("JumpStart_First", 0.1f, true, false);
+	m_animMesh->setAnimationSpeed(3.5f);
 	m_animMesh->queueSingleAnimation("JumpLoop_First", 0.f, true, true);
 }
 
@@ -1253,17 +1254,21 @@ void Player::endJump_First()
 	m_animMesh->playSingleAnimation("JumpEnd_First", 0.1f, true, false);
 	m_animMesh->setAnimationSpeed(1.7f);
 	m_animMesh->queueBlendState("runOrIdle", 0.3f); // Something is still bugged with the queue, when I set the tt to 0.05f it is too high I guess.
+	m_animMesh->setAnimationSpeed(1, 1.5f);
 }
 
 void Player::startJump_Second()
 {
-	m_animMesh->playSingleAnimation("JumpStart_Second", 0.1f, true, true);
-	m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.1f, true, true);
+	//m_animMesh->playSingleAnimation("JumpStart_Second", 0.0f, false, false);
+	//m_animMesh->setAnimationSpeed(3.5f);
+	//m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.f, true, true);
+	m_animMesh->playSingleAnimation("JumpLoop_Second", 0.3f, true, false);
 }
 
 void Player::endJump_Second()
 {
 	m_animMesh->playSingleAnimation("JumpEnd_Second", 0.05f, true, false);
-	m_animMesh->setAnimationSpeed(2.0f);
+	m_animMesh->setAnimationSpeed(1.7f);
 	m_animMesh->queueBlendState("runOrIdle", 0.3f);
+	m_animMesh->setAnimationSpeed(1, 1.5f);
 }

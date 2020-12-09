@@ -608,6 +608,8 @@ void AnimatedMeshComponent::advanceQueue()
 	m_currentState = m_animationQueue.front();
 	m_animationQueue.pop();
 
+	std::cout << m_currentState->stateName << std::endl;
+
 	if (m_currentState->justOne && m_currentState->structs.at(0).animationResource->getFrameCount() == 1)
 		m_justOnePose = true;
 	else
@@ -641,7 +643,8 @@ void AnimatedMeshComponent::update(float dt)
 				{
  					if (m_animationQueue.front()->startTransitionDuration <= 0.f)
 					{ 
-						m_transitionTime = 0.f;
+						//m_transitionTime = 0.f;
+						advanceQueue();
 					}
 					else
 					{
@@ -662,8 +665,8 @@ void AnimatedMeshComponent::update(float dt)
 					m_currentState->structs.at(i).animationTime -= m_currentState->structs.at(i).animationResource->getTimeSpan();
 			}
 			
-			if ((inTransition && !m_currentState->playDuringEndTransistion) || (m_animationQueue.size() > 1))
-				m_currentState->structs.at(i).animationTime = m_currentState->structs.at(i).animationResource->getTimeSpan() - 0.001f;
+			//if ((inTransition && !m_currentState->playDuringEndTransistion) || (m_animationQueue.size() > 1))
+			//	m_currentState->structs.at(i).animationTime = m_currentState->structs.at(i).animationResource->getTimeSpan() - 0.001f;
 		}
 
 		inTransition = (m_transitionTime > 0.f);
@@ -740,7 +743,7 @@ void AnimatedMeshComponent::setAnimationSpeed(const unsigned int structIndex, co
 	
 	if (m_transitionTime > 0.f)
 	{
-		m_animationQueue.front()->structs.at(structIndex).animationSpeed = newAnimationSpeed;
+		m_animationQueue.back()->structs.at(structIndex).animationSpeed = newAnimationSpeed;
 	}
 	else
 	{
