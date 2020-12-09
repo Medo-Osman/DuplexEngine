@@ -416,14 +416,10 @@ void Input::readBuffers(const float& dt)
 		}
 
 		// Right Trigger
-		if (m_tracker.dpadRight == BState::PRESSED)
-		{
-			inputDataChanged = this->fillInputDataUsingKey('D', true) || inputDataChanged;
-		}
-		else if (m_tracker.dpadRight == BState::RELEASED)
-		{
-			inputDataChanged = this->fillInputDataUsingKey('D', false) || inputDataChanged;
-		}
+		if (m_tracker.rightTrigger == BState::PRESSED)
+			inputDataChanged = this->fillInputDataUsingKey('\x0D', true) || inputDataChanged;
+		else if (m_tracker.rightTrigger == BState::RELEASED)
+			inputDataChanged = this->fillInputDataUsingKey('\x0D', false) || inputDataChanged;
 
 		// Analog Left Stick input
 		if (!m_contexts[0]->getMute()) // only for Movement Context for now
