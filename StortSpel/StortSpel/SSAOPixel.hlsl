@@ -28,7 +28,7 @@ float occlusionFunction(float distZ)
     return occlusion;
 }
 
-Texture2D normalsNDepthTexture : register(t0);
+Texture2DMS<float4> normalsNDepthTexture : register(t0);
 Texture2D randomTexture : register(t1);
 
 SamplerState normalsNDepthSamplerState : register(s1);
@@ -36,8 +36,8 @@ SamplerState randomVectorSamplerState : register(s2);
 
 float4 main(vs_out input) : SV_TARGET
 {
-    float4 normalDepth = normalsNDepthTexture.SampleLevel(normalsNDepthSamplerState, input.uv, 0.0f);
-    
+    float4 normalDepth = normalsNDepthTexture.Load(input.pos.xy, 0);
+
     float3 n = normalDepth.xyz;
     float pz = normalDepth.w;
     
@@ -60,7 +60,7 @@ float4 main(vs_out input) : SV_TARGET
         float4 projQ = mul(float4(q, 1.0f), viewToTexSpace);
         projQ /= projQ.w;
 
-        float rz = normalsNDepthTexture.SampleLevel(normalsNDepthSamplerState, projQ.xy, 0.0f).a;
+        float rz = normalsNDepthTexture.Load(projQ.xy, 0).a;
 
         float3 r = (rz / q.z) * q;
         float distZ = p.z - r.z;

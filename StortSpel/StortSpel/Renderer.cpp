@@ -174,6 +174,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	ID3D11Texture2D* normalsNDepthTexture;
 
 	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	//textureDesc.SampleDesc.Count = 1;
+	//srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Format = textureDesc.Format;
 
 	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &normalsNDepthTexture);
@@ -185,6 +187,21 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	hr = m_devicePtr->CreateShaderResourceView(normalsNDepthTexture, &srvDesc, &m_normalsNDepthSRV);
 	if (!SUCCEEDED(hr)) return hr;
+
+	normalsNDepthTexture->Release();
+
+	ID3D11Texture2D* SSAOTexture;
+
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &SSAOTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateRenderTargetView(SSAOTexture, 0, m_SSAORenderTargetViewPtr.GetAddressOf());
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateShaderResourceView(SSAOTexture, &srvDesc, &m_SSAOShaderResourceViewPtr);
+	if (!SUCCEEDED(hr)) return hr;
+
+	SSAOTexture->Release();
 
 	m_geometryPassRTVs[0] = m_geometryRenderTargetViewPtr.Get();
 	m_geometryPassRTVs[1] = m_glowMapRenderTargetViewPtr.Get();
@@ -227,8 +244,6 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_SSAOSamplerStateNRM);
 	assert(SUCCEEDED(hr) && "Failed to create SamplerState");
 	m_dContextPtr->PSSetSamplers(2, 1, m_SSAOSamplerStateNRM.GetAddressOf());
-
-	
 
 
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
@@ -426,7 +441,6 @@ HRESULT Renderer::buildRandomVectorTexture()
 
 	hr = m_devicePtr->CreateShaderResourceView(m_randomTexture.Get(), &srvDesc, &m_randomVectorsSRV);
 	if (!SUCCEEDED(hr)) return hr;
-
 	
 }
 
@@ -483,8 +497,11 @@ void Renderer::computeSSAO()
 	UINT offset = 0;
 	int vertexCount = 6;
 
-	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
-	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
+	m_dContextPtr->OMSetRenderTargets(1, &nullRtv, NULL);
+
+
+	/*m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);*/
 
 	Matrix T = Matrix::Identity;
 	T._11 = 0.5f;
@@ -512,7 +529,7 @@ void Renderer::computeSSAO()
 
 	m_ssaoBuffer.updateBuffer(m_dContextPtr.Get(), &m_ssaoData);
 
-	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
+	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), NULL);
 
 	m_dContextPtr->IASetVertexBuffers(0, 1, m_renderQuadBuffer.GetAddressOf(), m_renderQuadBuffer.getStridePointer(), &offset);
 	m_compiledShaders[ShaderProgramsEnum::SSAO_MAP]->setShaders();
@@ -520,12 +537,12 @@ void Renderer::computeSSAO()
 
 	m_dContextPtr->VSSetConstantBuffers(4, 1, m_ssaoBuffer.GetAddressOf());
 	m_dContextPtr->PSSetConstantBuffers(4, 1, m_ssaoBuffer.GetAddressOf());
-	m_dContextPtr->PSSetShaderResources(0, 1, &m_normalsNDepthSRV);
-	m_dContextPtr->PSSetShaderResources(1, 1, &m_randomVectorsSRV);
+	m_dContextPtr->PSSetShaderResources(0, 1, m_normalsNDepthSRV.GetAddressOf());
+	m_dContextPtr->PSSetShaderResources(1, 1, m_randomVectorsSRV.GetAddressOf());
 
 	m_dContextPtr->Draw(vertexCount, 0);
-	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
-	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
+	/*m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);*/
 
 }
 
