@@ -442,7 +442,7 @@ void Player::playerStateLogic(const float& dt)
 			m_currentDistance = 0.f;
 			m_lastState = PlayerState::JUMPING;
 			m_state = PlayerState::FALLING;
-			std::cout << "FALLING\n";
+			//std::cout << "FALLING\n";
 		}
 		else if (m_jumpPressed && !m_lastJumpPressed && m_jumps < ALLOWED_NR_OF_JUMPS)
 			jump();
@@ -593,7 +593,7 @@ void Player::playerStateLogic(const float& dt)
 	default:
 		break;
 	}*/
-	std::cout << m_verticalMultiplier << "\n";
+	//std::cout << m_verticalMultiplier << "\n";
 
 
 		// Final frame velocity
@@ -1232,7 +1232,7 @@ void Player::jump(const bool& incrementCounter, const float& multiplier)
 		startJump_First();
 	else
 		startJump_Second();
-	std::cout << m_jumps << "\n";
+	//std::cout << m_jumps << "\n";
 	m_currentDistance = 0;
 	m_verticalMultiplier = JUMP_START_SPEED * multiplier; // Apply Jump Force
 }
@@ -1248,7 +1248,7 @@ void Player::roll()
 	m_controller->setControllerSize(ROLL_HEIGHT);
 	m_state = PlayerState::ROLL;
 	m_verticalMultiplier = 0.f;
-	std::cout << "They se me rolling\n";
+	//std::cout << "They se me rolling\n";
 	rollAnimation();
 }
 
@@ -1282,8 +1282,8 @@ void Player::rollAnimation()
 
 void Player::dashAnimation()
 {
-	m_animMesh->playSingleAnimation("Dash", 0.1f, true, false);
-	m_animMesh->setAnimationSpeed(1.f);
+	m_animMesh->playSingleAnimation("Dash", 0.04f, false, false);
+	m_animMesh->setAnimationSpeed(1.5f);
 }
 
 void Player::idleAnimation()
@@ -1298,7 +1298,7 @@ void Player::startJump_First()
 	m_animMesh->playSingleAnimation("JumpStart_First", 0.1f, true, false);
 	m_animMesh->setAnimationSpeed(3.5f);
 	//m_animMesh->playSingleAnimation("JumpStart_First", 0.01f, true, false);
-	m_animMesh->queueSingleAnimation("JumpLoop_First", 0.f, true, true);
+	m_animMesh->queueSingleAnimation("JumpLoop_First", 0.1f, true, true);
 }
 
 void Player::endJump_First()
@@ -1311,10 +1311,21 @@ void Player::endJump_First()
 
 void Player::startJump_Second()
 {
+	// Classic version 1 
 	//m_animMesh->playSingleAnimation("JumpStart_Second", 0.0f, false, false);
-	//m_animMesh->setAnimationSpeed(3.5f);
 	//m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.f, true, true);
+	
+	// Silly roll version
+	/*
+	m_animMesh->playSingleAnimation("lucy_roll", 0.3f, true, false);
+	m_animMesh->setAnimationSpeed(1.9f);
+	m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.5f, true, true);
+	*/
+
+	// Simple no jump version
 	m_animMesh->playSingleAnimation("JumpLoop_Second", 0.3f, true, false);
+	
+	// Classic version 2
 	//m_animMesh->playSingleAnimation("JumpStart_Second", 0.1f, true, false);
 	//m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.1f, true, true);
 }

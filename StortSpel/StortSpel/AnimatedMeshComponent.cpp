@@ -608,7 +608,7 @@ void AnimatedMeshComponent::advanceQueue()
 	m_currentState = m_animationQueue.front();
 	m_animationQueue.pop();
 
-	std::cout << m_currentState->stateName << std::endl;
+	//std::cout << m_currentState->stateName << std::endl;
 
 	if (m_currentState->justOne && m_currentState->structs.at(0).animationResource->getFrameCount() == 1)
 		m_justOnePose = true;

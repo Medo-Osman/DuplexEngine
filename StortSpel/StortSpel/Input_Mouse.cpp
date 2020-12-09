@@ -65,7 +65,7 @@ bool Mouse::empty() const
 
 void Mouse::onMove(MousePos pos)
 {
-	std::cout << pos.x << ", " << pos.y << std::endl;
+	//std::cout << pos.x << ", " << pos.y << std::endl;
 
 	m_mousePos = pos;
 	m_events.push(MouseEvent(Event::MouseMove, (pos.x), (pos.y)));
