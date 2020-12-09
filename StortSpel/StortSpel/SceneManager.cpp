@@ -35,7 +35,7 @@ void SceneManager::initalize(Input* input)
 	m_inputPtr = input;
 	m_camera = Engine::get().getCameraPtr(); // Neeeds to be before uiMenuInitialize()
 	uiMenuInitialize();
-
+	m_winState = new WinState();
 	// Start Scene
 	m_currentScene = new Scene();
 	Scene::loadMainMenu(m_currentScene, m_nextSceneReady);
@@ -48,7 +48,7 @@ void SceneManager::initalize(Input* input)
 	// Set as PhysicsObserver
 	Physics::get().Attach(m_currentScene, false, true);
 	static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
-
+	
 	// Next Scene
 	m_nextScene = nullptr;
 
@@ -84,6 +84,9 @@ void SceneManager::initalize(Input* input)
 	textStyle.position.y -= 50.0f;
 	m_rankingScoreIndecThree = GUIHandler::get().addGUIText("#" + std::to_string(rankings--), L"concert_one_32.spritefont", textStyle);
 
+	m_winState->loadTimerText();
+	
+
 	hideScore();
 	GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
 	GUIHandler::get().setVisible(m_volumeIncreaseIndex, false);
@@ -103,18 +106,40 @@ void SceneManager::initalize(Input* input)
 	GUIHandler::get().setVisible(m_fullscreenIndex, false);
 	GUIHandler::get().setVisible(m_fullscreenText, false);
 	GUIHandler::get().setVisible(m_pauseText, false);
+	//GUIHandler::get().setVisible(m_winState->m_timerIndex, false);
 }
 
 void SceneManager::updateScene(const float &dt)
 {
+	
 	m_volumeAmount = AudioHandler::get().getVolumeAmount();
 	m_cameraSense = m_camera->getSensitivity();
 	GUIHandler::get().changeGUIText(m_sensitivityIndex, std::to_string(m_cameraSense));
 	GUIHandler::get().changeGUIText(m_volumeAmountIndex, std::to_string(m_volumeAmount));
 	GUIHandler::get().changeGUIText(m_fovIndex, std::to_string(m_camera->fovAmount));
+	std::string minStr = std::to_string(m_winState->m_minute);
+	std::string secStr = std::to_string(m_winState->m_seconds);
+	GUIHandler::get().changeGUIText(m_winState->m_timerIndex, minStr + ":" + secStr);
+	
+	if (m_winState->m_seconds < 10)
+		secStr = "0" + secStr;
+	if (m_winState->m_minute < 10)
+		minStr = "0" + minStr;
+
+	//while(m_winState->m_minute > 0 && m_winState->m_seconds > 0)
+	m_winState->update(dt);
+	
+	if (m_winState->m_minute == 0 && m_winState->m_seconds == 0)
+	{
+		m_winState->secondWinState = true;
+	}
+	if (m_winState->secondWinState)
+	{
+		m_nextSceneEnum = ScenesEnum::PHASE2;
+	}
 
 	if (m_swapScene && !m_loadNextSceneWhenReady)
-	{
+	{ 
 		
 		m_nextScene = new Scene();
 		std::thread sceneLoaderThread;
@@ -144,8 +169,6 @@ void SceneManager::updateScene(const float &dt)
 			m_gameStarted = false;
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			m_camera->endSceneCamera = false;
-			
-			
 			GUIHandler::get().setInMenu(false);
 			break;
 		case ScenesEnum::START:
@@ -168,7 +191,7 @@ void SceneManager::updateScene(const float &dt)
 			m_camera->endSceneCamera = false;
 			hideScore();
 			GUIHandler::get().setInMenu(false);
-			winState->firstWinState = true;
+			m_winState->firstWinState = true; //This bool tells every player to load the boss arena
 			break;
 		case ScenesEnum::MAINMENU:
 			disableMovement();
@@ -181,8 +204,6 @@ void SceneManager::updateScene(const float &dt)
 			Engine::get().getPlayerPtr()->getPlayerEntity()->setRotationQuat(Quaternion());
 			hideScore();
 			GUIHandler::get().setVisible(m_backToLobbyIndex, false);
-			
-		
 			GUIHandler::get().setInMenu(true, m_singleplayerIndex);
 			break;
 		case ScenesEnum::ENDSCENE:
@@ -209,6 +230,12 @@ void SceneManager::updateScene(const float &dt)
 			GUIHandler::get().setInMenu(true, m_singleplayerIndex);
 			showScore();
 			m_camera->endSceneCamera = true; // If this is true the camera no longer updates and have a fixed position in this scene
+			break;
+		case ScenesEnum::PHASE2:
+			//Load the second phase here (collect points under a timelimit phase)
+			sceneLoaderThread = std::thread(Scene::loadPhaseTwo, m_nextScene, m_nextSceneReady);
+			sceneLoaderThread.detach();
+			m_loadNextSceneWhenReady = true;
 			break;
 		default:
 			break;
@@ -488,6 +515,9 @@ void SceneManager::swapScenes()
 
 		m_currentScene->onSceneLoaded();
 		ResourceHandler::get().checkResources();
+
+		//winstate timer
+		m_winState->m_time.start();
 	}
 }
 

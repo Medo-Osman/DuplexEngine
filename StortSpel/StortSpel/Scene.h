@@ -13,6 +13,8 @@ enum class ScenesEnum
 	ARENA,
 	MAINMENU,
 	ENDSCENE,
+	PHASE2,
+
 };
 // LOBBY:START:ARENA:MAINMENU:ENDSCENE:
 
@@ -182,6 +184,7 @@ public:
 	static void loadBossTest(Scene* sceneObject, bool* finished);
 	static void loadEmpty(Scene* sceneObject, bool* finished);
 	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
+	static void loadPhaseTwo(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
 	

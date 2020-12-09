@@ -1747,6 +1747,16 @@ void Scene::loadAlmostEmpty(Scene* sceneObject, bool* finished)
 	*finished = true;
 }
 
+void Scene::loadPhaseTwo(Scene* sceneObject, bool* finished)
+{
+	sceneObject->m_sceneEntryPosition = Vector3(0, 10, 0);
+	sceneObject->createStaticPlatform(Vector3(0, -2, 0), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
+
+	sceneObject->addCheckpoint({ 0, 8, 0 });
+
+	*finished = true;
+}
+
 void Scene::onSceneLoaded()
 {
 	for (auto& entity : m_entities)
@@ -1813,7 +1823,7 @@ void Scene::updateScene(const float& dt)
 			m_tempParticleComponent.erase(m_tempParticleComponent.begin() + i);
 		}
 	}
-
+	
 	// AUDIO TEST
 	/*m_nightVolume += dt * m_nightSlide;
 	if (m_nightVolume < 0.f)
@@ -1867,9 +1877,6 @@ void Scene::removeEntity(std::string identifier)
 	delete m_entities[identifier];
 	m_entities.erase(identifier);
 }
-
-
-
 
 
 bool Scene::addComponent(Entity* entity, std::string componentIdentifier, Component* component)

@@ -21,8 +21,8 @@ private:
 	ScenesEnum m_currectSceneEnum;
 	ScenesEnum m_nextSceneEnum;
 	Camera* m_camera;
-	WinState* winState;
-	std::string str;
+	WinState* m_winState = nullptr;
+
 	bool m_swapScene;
 
 	//GUI score
