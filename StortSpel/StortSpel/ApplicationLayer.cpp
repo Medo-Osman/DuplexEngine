@@ -174,6 +174,7 @@ void ApplicationLayer::applicationLoop()
 			this->m_dt = (float)m_timer.timeElapsed();
 			//this->m_dt = 1.f/60.f;
 			m_gameTime += m_dt;
+			//m_dt *= 0.3f;
 			m_timer.restart();
 
 			ImGui_ImplDX11_NewFrame();

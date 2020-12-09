@@ -209,7 +209,7 @@ void Engine::initialize(Input* input)
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
 	animMeshComp->addAndPlayBlendState({ {"Idle", 0.f}, {"RunLoop", 1.f} }, "runOrIdle", 0.f, true, true);
-	animMeshComp->setAnimationSpeed(1, 1.5f);
+	animMeshComp->setAnimationSpeed(1, 1.7f);
 
 	m_player->setAnimMeshPtr(animMeshComp);
 

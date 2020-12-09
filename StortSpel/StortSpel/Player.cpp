@@ -1284,7 +1284,7 @@ void Player::dashAnimation()
 void Player::idleAnimation()
 {
 	m_animMesh->playBlendState("runOrIdle", 0.3f);
-	m_animMesh->setAnimationSpeed(1, 1.5f);
+	m_animMesh->setAnimationSpeed(1, 1.7f);
 }
 
 void Player::startJump_First()
