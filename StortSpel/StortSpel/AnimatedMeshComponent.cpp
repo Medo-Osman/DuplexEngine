@@ -169,13 +169,13 @@ void AnimatedMeshComponent::playSingleAnimation(std::string animationName, float
 	else
 	{
 		m_storedStates[animationName].startTransitionDuration = transistionTime; // the state is stored alrady so we'll use it and just set the transistionTime
-		if (!m_storedStates[animationName].playDuringStartTransistion)
-		{
+		/*if (!m_storedStates[animationName].playDuringStartTransistion)
+		{*/
 			for (auto& animStruct : m_storedStates[animationName].structs)
 			{
 				animStruct.animationTime = 0.f;
 			}
-		}
+		//}
 	}
 		
 	if (!m_inBindPose && transistionTime > 0.f)
@@ -631,7 +631,7 @@ void AnimatedMeshComponent::update(float dt)
 				m_currentState->structs.at(i).animationTime += dt * m_currentState->structs.at(i).animationSpeed;
 			
 			if ((inTransition && !m_currentState->playDuringEndTransistion))
-				m_currentState->structs.at(i).animationTime = m_currentState->structs.at(i).animationResource->getTimeSpan();
+				m_currentState->structs.at(i).animationTime = m_currentState->structs.at(i).animationResource->getTimeSpan() - 0.001f;
 		}
 		if (inTransition)
 		{
@@ -646,7 +646,7 @@ void AnimatedMeshComponent::update(float dt)
 				}
 			}
 
-			if (m_transitionTime <= 0)
+			if (m_transitionTime <= 0.f)
 			{
 				advanceQueue();
 			}

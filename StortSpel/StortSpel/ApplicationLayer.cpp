@@ -163,12 +163,19 @@ void ApplicationLayer::applicationLoop()
 		{
 
 			this->m_dt = (float)m_timer.timeElapsed();
+			//this->m_dt = 1.f/60.f;
 			m_gameTime += m_dt;
 			m_timer.restart();
 
 			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
+			
+			ImGui::Begin("Sleep");
+			if (ImGui::Button("16fps"))
+				m_shouldSleep = !m_shouldSleep;
+			ImGui::End();
+
 			m_input.readBuffers(m_dt);
 			m_physics->update(m_dt);
 
@@ -179,6 +186,9 @@ void ApplicationLayer::applicationLoop()
 			AudioHandler::get().update(m_dt);
 			m_rendererPtr->update(m_dt);
 			m_rendererPtr->render();
+
+			if (m_shouldSleep)
+				Sleep((1000 / 20));
 		}
 	}
 	m_physics->release();

@@ -154,6 +154,11 @@ void Camera::update(const float& dt)
 	Player* ply = Engine::get().getPlayerPtr();
 	m_position = ply->getPlayerEntity()->getTranslation() + ply->getCameraOffset() + Vector3(0, 0.5f, -1.f);
 	m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
+	if (ply->getRespawnNextFrame()) // Reset camera rotation after respawn
+	{
+		m_rotation = XMQuaternionRotationRollPitchYaw(0.f, 0.f, 0.f);
+		m_transform.setRotationQuat(m_rotation);
+	}
 
 	//endscene fixed camera position
 	if (endSceneCamera)
