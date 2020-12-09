@@ -2,7 +2,7 @@
 
 static const float SHADOW_MAP_SIZE = 4096.f;
 static const float SHADOW_MAP_DELTA = 1.f / SHADOW_MAP_SIZE;
-static const float RANGE = 90.f;
+static const float RANGE = 50.f;
 
 struct pointLight
 {
@@ -106,7 +106,7 @@ float computeShadowFactor(float4 shadowPosH)
     float percentLit = 0.0f;
     
     //PCF sampling for shadow map
-    const int sampleRange = 2;
+    const int sampleRange = 3;
     [unroll]
     for (int x = -sampleRange; x <= sampleRange; x++)
     {

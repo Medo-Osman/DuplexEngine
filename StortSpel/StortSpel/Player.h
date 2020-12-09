@@ -113,13 +113,12 @@ private:
     bool m_rollAnimationAnimChanged = false;
 
     //Cannon Config
-    const float CANNON_POWER = 100.f;
+    const float CANNON_POWER = 30;
 
 
     // Speed Powerup
     float m_currentSpeedModifier;
     float m_goalSpeedModifier;
-    int m_speedModifierDuration;
     float m_speedModifierTime;
     const float FOR_FULL_EFFECT_TIME = 2.f;
 
@@ -164,7 +163,7 @@ private:
 
     //Trampoline
     bool m_shouldPickupJump;
-    const float TRAMPOLINE_JUMP_MULTIPLIER = 2.0f;
+    const float TRAMPOLINE_JUMP_MULTIPLIER = 3.0f;
     std::string m_trampolineEntityIdentifier; //Used to make sure player does not use same trampoline object twice, so we don't recive double sounds for example.
 
     // Trap
@@ -196,8 +195,8 @@ private:
     //Private functions
     void setStates(InputData& inputData);
     void handleRotation(const float& dt);
-    Vector3 trajectoryEquation(Vector3 position, Vector3 direction, float t, float horizonalMultiplier, float vertMulti);
-	void trajectoryEquationOutFill(Vector3 position, Vector3 direction, float t, float horizonalMultiplier, float vertMulti, XMFLOAT3& outPos, XMFLOAT3& outDir);
+    Vector3 trajectoryEquation(Vector3 position, Vector3 &direction, float t, XMFLOAT3& outDir);
+	void trajectoryEquationOutFill(Vector3 &position, Vector3 &direction, float t, XMFLOAT3& outPos, XMFLOAT3& outDir);
     Vector3 calculatePath(Vector3 position, Vector3 direction, float horizonalMultiplier, float vertMulti);
     void playerStateLogic(const float& dt);
 
@@ -281,6 +280,7 @@ public:
     void sendPlayerMSG(const PlayerMessageData& data);
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
+    void reset3DMarker();
 
     // Inherited via GUIObserver
     virtual void update(GUIUpdateType type, GUIElement* guiElement) override;

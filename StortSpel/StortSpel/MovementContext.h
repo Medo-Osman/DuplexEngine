@@ -23,6 +23,7 @@ public:
 		m_actionMapping['F'] = Action::USEPICKUP;
 		m_actionMapping[(char)'\x24'] = Action::RESPAWN; //Home 
 		m_actionMapping['\x1B'] = Action::MENU; // Escape
+		m_actionMapping['\x0D'] = Action::USE;
 
 		//States
 		m_stateMapping['W'] = State::WALK_FORWARD;
