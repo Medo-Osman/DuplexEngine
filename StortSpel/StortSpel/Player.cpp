@@ -210,47 +210,47 @@ float lerp(const float& a, const float &b, const float &t)
 	return a + (t * (b - a));
 }
 
-Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 dir, float t, XMFLOAT3& outDir)
+Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 &dir, float t, XMFLOAT3& outDir)
 {
 
 
 	//m_controller->move(m_direction * 75 * dt, dt);
 	//m_direction.y -= 1.f * dt;
 
-	dir.y -= 1.f * t;
-	dir = dir * 75 * t;
-	outDir = dir;
+	dir.y -= CANNON_POWER * t;
+	Vector3 dtDir = dir * t;
+	outDir = dtDir;
 
-	return pos + dir;
+	return pos + dtDir;
 }
 
-void Player::trajectoryEquationOutFill(Vector3 pos, Vector3 dir, float t, float horizonalMultiplier, float vertMulti, XMFLOAT3& outPos, XMFLOAT3& outDir)
+void Player::trajectoryEquationOutFill(Vector3 &pos, Vector3 &dir, float t, XMFLOAT3& outPos, XMFLOAT3& outDir)
 {
-	dir.y -= 1.f * t;
-	dir = dir * 75 * t;
+	dir.y -= CANNON_POWER * t;
+	Vector3 dtDir = dir * t;
+	outDir = dtDir;
 
-
-	outPos = pos + dir;
-	dir.Normalize();
-	outDir = dir;
+	pos = pos + dtDir;
+	outPos = pos;
+	outDir = Vector3(XMVector3Normalize(dtDir));
 }
-bool hasPrinted = false;
 																	//m_horizontalMultiplier, m_verticalMultiplier
 Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizonalMultiplier, float vertMulti)
 {
 	Vector3 returnPosition;
 
 	bool foundEnd = false;
-	float t = 0.01f;
+	float t = 0.f;
 	Vector3 pos = position;
 	Vector3 dir = direction;
 	Vector3 outDir;
 
 	while (!foundEnd && t < 10)
 	{
-		pos = trajectoryEquation(position, dir, t, outDir);
+		float timeStepIncreece = 0.01f;
+		pos = trajectoryEquation(pos, dir, timeStepIncreece, outDir);
 
-		t += 0.01f;
+		t += timeStepIncreece;
 		bool hit = Physics::get().castRay(pos, DirectX::XMVector3Normalize(outDir), 1.f);
 
 		if (hit)
@@ -259,13 +259,12 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 			foundEnd = true;
 			returnPosition = pos;
 			m_3dMarker->setPosition(returnPosition);
+			Vector3 pos2 = position;
+			Vector3 dir2 = direction;
 			float tDist = t / 10;
 			for (int i = 0; i < 10; i++)
 			{
-				Vector3 lineDataPos;
-				Vector3 lineDataDir;
-				float tempT = tDist * i;
-				trajectoryEquationOutFill(position, direction, tempT, horizonalMultiplier, vertMulti, m_lineData[i].position, this->m_lineData[i].direction);
+				trajectoryEquationOutFill(pos2, dir2, tDist, m_lineData[i].position, this->m_lineData[i].direction);
 			}
 
 		}
@@ -277,18 +276,17 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 
 	if (!foundEnd)
 	{
+
 		m_3dMarker->setPosition(pos);
+		Vector3 pos2 = position;
+		Vector3 dir2 = direction;
 		float tDist = t / 10;
 		for (int i = 0; i < 10; i++)
 		{
-			Vector3 lineDataPos;
-			Vector3 lineDataDir;
-			float tempT = tDist * i;
-			trajectoryEquationOutFill(position, dir, tempT, horizonalMultiplier, vertMulti, m_lineData[i].position, this->m_lineData[i].direction);
+			trajectoryEquationOutFill(pos2, dir2, tDist, m_lineData[i].position, this->m_lineData[i].direction);
 		}
 	}
 
-	hasPrinted = true;
 	return returnPosition;
 }
 
@@ -469,6 +467,7 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::CANNON;
 			m_velocity = { 0, 0, 0 };
 			m_direction = m_lastDirectionalMovement = m_moveDirection = m_cameraTransform->getForwardVector();
+			m_direction *= CANNON_POWER;
 			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
 			m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
@@ -489,7 +488,7 @@ void Player::playerStateLogic(const float& dt)
 		else //Draw marker
 		{
 			Vector3 finalPos;
-			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector(), CANNON_POWER, 1);
+			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector() * CANNON_POWER, CANNON_POWER, 1);
 
 			/*            Set base rot (Y)              */
 			Quaternion q1 = m_cameraTransform->getRotation();
@@ -510,9 +509,9 @@ void Player::playerStateLogic(const float& dt)
 		break;
 	case PlayerState::FLYINGBALL:
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
-		m_direction.y -= 1.f * dt;
+		m_direction.y -= CANNON_POWER * dt;
 
-		m_controller->move(m_direction  * 75 * dt, dt);
+		m_controller->move(m_direction * dt, dt);
 		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || (m_direction.y <= 0 && m_controller->checkGround()))
 		{
 			m_horizontalMultiplier = 0;
@@ -1085,6 +1084,11 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 
 		}
 	}
+}
+
+void Player::reset3DMarker()
+{
+	m_3dMarker = nullptr;
 }
 
 Pickup* getCorrectPickupByID(int id)

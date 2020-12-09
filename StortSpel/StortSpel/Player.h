@@ -112,7 +112,7 @@ private:
     float m_transitionTime;
 
     //Cannon Config
-    const float CANNON_POWER = 100;
+    const float CANNON_POWER = 30;
 
 
     // Speed Powerup
@@ -194,8 +194,8 @@ private:
     //Private functions
     void setStates(InputData& inputData);
     void handleRotation(const float& dt);
-    Vector3 trajectoryEquation(Vector3 position, Vector3 direction, float t, XMFLOAT3& outDir);
-	void trajectoryEquationOutFill(Vector3 position, Vector3 direction, float t, float horizonalMultiplier, float vertMulti, XMFLOAT3& outPos, XMFLOAT3& outDir);
+    Vector3 trajectoryEquation(Vector3 position, Vector3 &direction, float t, XMFLOAT3& outDir);
+	void trajectoryEquationOutFill(Vector3 &position, Vector3 &direction, float t, XMFLOAT3& outPos, XMFLOAT3& outDir);
     Vector3 calculatePath(Vector3 position, Vector3 direction, float horizonalMultiplier, float vertMulti);
     void playerStateLogic(const float& dt);
 
@@ -278,6 +278,7 @@ public:
     void sendPlayerMSG(const PlayerMessageData& data);
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
+    void reset3DMarker();
 
     // Inherited via GUIObserver
     virtual void update(GUIUpdateType type, GUIElement* guiElement) override;
