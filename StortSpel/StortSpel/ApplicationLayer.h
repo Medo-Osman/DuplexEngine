@@ -27,6 +27,7 @@ private:
 	float m_dt;
 	float m_gameTime = 0;
 	FILE* m_consoleFile;
+	bool m_shouldSleep = false;
 
 
 	void createWin32Window(const HINSTANCE hInstance, const wchar_t* windowTitle, HWND& _d3d11Window);

@@ -169,8 +169,8 @@ void AnimatedMeshComponent::playSingleAnimation(std::string animationName, float
 	else
 	{
 		m_storedStates[animationName].startTransitionDuration = transistionTime; // the state is stored alrady so we'll use it and just set the transistionTime
-		//if (!m_storedStates[animationName].playDuringStartTransistion)
-		//{
+		/*if (!m_storedStates[animationName].playDuringStartTransistion)
+		{*/
 			for (auto& animStruct : m_storedStates[animationName].structs)
 			{
 				animStruct.animationTime = 0.f;
@@ -693,7 +693,7 @@ void AnimatedMeshComponent::update(float dt)
 				}
 			}
 
-			if (m_transitionTime <= 0)
+			if (m_transitionTime <= 0.f)
 			{
 				advanceQueue();
 			}
