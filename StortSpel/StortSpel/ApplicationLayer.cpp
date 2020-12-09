@@ -14,23 +14,10 @@ ApplicationLayer::ApplicationLayer()
 	m_dt = 0.f;
 	m_consoleFile = nullptr;
 
-	//RECT deskRect;
-	//HWND deskTop = GetDesktopWindow();
-	//GetWindowRect(deskTop, &deskRect);
-	//m_width = deskRect.right - deskRect.left;
-	//m_height = deskRect.bottom - deskRect.top;
-	//HMONITOR monitor = MonitorFromWindow(GetDesktopWindow(), MONITOR_DEFAULTTOPRIMARY);
-	//MONITORINFO info = {};
-	/*if (!GetMonitorInfoA(monitor, &info))
-		assert(false);*/
-	//m_width = GetSystemMetrics(SM_CXSCREEN);
 	RECT rect;
 	SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
 	m_width = rect.right;
 	m_height = rect.bottom;
-
-	//m_width = 1000;//info.rcWork.left - info.rcWork.right;
-	//m_height = 1000;//info.rcWork.bottom - info.rcWork.top;
 }
 
 ApplicationLayer::~ApplicationLayer()
