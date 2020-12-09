@@ -210,47 +210,48 @@ float lerp(const float& a, const float &b, const float &t)
 	return a + (t * (b - a));
 }
 
-Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 dir, float t, float horizonalMultiplier, float vertMulti)
+Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 &dir, float t, XMFLOAT3& outDir)
 {
 
 
 	//m_controller->move(m_direction * 75 * dt, dt);
 	//m_direction.y -= 1.f * dt;
 
-	dir.y -= 1.f * t;
-	dir = dir * 75 * t;
-	
+	dir.y -= CANNON_POWER * t;
+	Vector3 dtDir = dir * t;
+	outDir = dtDir;
 
-	return pos + dir;
+	return pos + dtDir;
 }
 
-void Player::trajectoryEquationOutFill(Vector3 pos, Vector3 dir, float t, float horizonalMultiplier, float vertMulti, XMFLOAT3& outPos, XMFLOAT3& outDir)
+void Player::trajectoryEquationOutFill(Vector3 &pos, Vector3 &dir, float t, XMFLOAT3& outPos, XMFLOAT3& outDir)
 {
-	dir.y -= 1.f * t;
-	dir = dir * 75 * t;
+	dir.y -= CANNON_POWER * t;
+	Vector3 dtDir = dir * t;
+	outDir = dtDir;
 
-
-	outPos = pos + dir;
-	dir.Normalize();
-	outDir = dir;
+	pos = pos + dtDir;
+	outPos = pos;
+	outDir = Vector3(XMVector3Normalize(dtDir));
 }
-bool hasPrinted = false;
 																	//m_horizontalMultiplier, m_verticalMultiplier
 Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizonalMultiplier, float vertMulti)
 {
 	Vector3 returnPosition;
 
 	bool foundEnd = false;
-	float t = 0.01f;
+	float t = 0.f;
 	Vector3 pos = position;
 	Vector3 dir = direction;
+	Vector3 outDir;
 
 	while (!foundEnd && t < 10)
 	{
-		pos = trajectoryEquation(position, dir, t, horizonalMultiplier, vertMulti);
+		float timeStepIncreece = 0.01f;
+		pos = trajectoryEquation(pos, dir, timeStepIncreece, outDir);
 
-		t += 0.01f;
-		bool hit = Physics::get().hitSomething(pos, m_controller->getOriginalRadius(), m_controller->getOriginalHeight());
+		t += timeStepIncreece;
+		bool hit = Physics::get().castRay(pos, DirectX::XMVector3Normalize(outDir), 1.f);
 
 		if (hit)
 		{
@@ -258,13 +259,12 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 			foundEnd = true;
 			returnPosition = pos;
 			m_3dMarker->setPosition(returnPosition);
+			Vector3 pos2 = position;
+			Vector3 dir2 = direction;
 			float tDist = t / 10;
 			for (int i = 0; i < 10; i++)
 			{
-				Vector3 lineDataPos;
-				Vector3 lineDataDir;
-				float tempT = tDist * i;
-				trajectoryEquationOutFill(position, dir, tempT, horizonalMultiplier, vertMulti, m_lineData[i].position, this->m_lineData[i].direction);
+				trajectoryEquationOutFill(pos2, dir2, tDist, m_lineData[i].position, this->m_lineData[i].direction);
 			}
 
 		}
@@ -276,18 +276,17 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 
 	if (!foundEnd)
 	{
+
 		m_3dMarker->setPosition(pos);
+		Vector3 pos2 = position;
+		Vector3 dir2 = direction;
 		float tDist = t / 10;
 		for (int i = 0; i < 10; i++)
 		{
-			Vector3 lineDataPos;
-			Vector3 lineDataDir;
-			float tempT = tDist * i;
-			trajectoryEquationOutFill(position, dir, tempT, horizonalMultiplier, vertMulti, m_lineData[i].position, this->m_lineData[i].direction);
+			trajectoryEquationOutFill(pos2, dir2, tDist, m_lineData[i].position, this->m_lineData[i].direction);
 		}
 	}
 
-	hasPrinted = true;
 	return returnPosition;
 }
 
@@ -467,19 +466,21 @@ void Player::playerStateLogic(const float& dt)
 			m_state = PlayerState::FLYINGBALL;
 			m_lastState = PlayerState::CANNON;
 			m_velocity = { 0, 0, 0 };
-			m_direction = m_cameraTransform->getForwardVector();
+			m_direction = m_lastDirectionalMovement = m_moveDirection = m_cameraTransform->getForwardVector();
+			m_direction *= CANNON_POWER;
 			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
 			m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
 			m_shouldDrawLine = false;
 			m_verticalMultiplier = 5;
 			m_horizontalMultiplier = CANNON_POWER;
+			m_playerEntity->setRotation(m_cameraTransform->getRotationMatrix());
 
 			static_cast<CannonPickup*>(m_pickupPointer)->geFyr();
 			PlayerMessageData d;
 			d.playerActionType = PlayerActions::ON_FIRE_CANNON;
 			d.playerPtr = this;
-
+			
 			this->sendPlayerMSG(d);
 			
 
@@ -487,7 +488,7 @@ void Player::playerStateLogic(const float& dt)
 		else //Draw marker
 		{
 			Vector3 finalPos;
-			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector(), CANNON_POWER, 1);
+			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector() * CANNON_POWER, CANNON_POWER, 1);
 
 			/*            Set base rot (Y)              */
 			Quaternion q1 = m_cameraTransform->getRotation();
@@ -508,10 +509,10 @@ void Player::playerStateLogic(const float& dt)
 		break;
 	case PlayerState::FLYINGBALL:
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
-		m_direction.y -= 1.f * dt;
+		m_direction.y -= CANNON_POWER * dt;
 
-		m_controller->move(m_direction  * 75 * dt, dt);
-		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || m_controller->checkGround() || m_horizontalMultiplier < 0.1f)
+		m_controller->move(m_direction * dt, dt);
+		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || (m_direction.y <= 0 && m_controller->checkGround()))
 		{
 			m_horizontalMultiplier = 0;
 			m_verticalMultiplier = 0;
@@ -532,21 +533,23 @@ void Player::playerStateLogic(const float& dt)
 		break;
 	}
 
-	// Gravity
-	if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING || m_state == PlayerState::ROLL || m_state == PlayerState::FLYINGBALL)
+	if (m_state != PlayerState::CANNON && m_state != PlayerState::FLYINGBALL)
 	{
-		m_verticalMultiplier -= GRAVITY * m_gravityScale * dt;
-	}
-	/*if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f) && m_state != PlayerState::JUMPING)
-		m_verticalMultiplier = 0.f;*/
 
-	// Max Gravity Tests
-	if (m_verticalMultiplier <= -MAX_FALL_SPEED)
-		m_verticalMultiplier = -MAX_FALL_SPEED;
+		// Gravity
+		if (m_state == PlayerState::FALLING || m_state == PlayerState::JUMPING || m_state == PlayerState::ROLL)
+		{
+			m_verticalMultiplier -= GRAVITY * m_gravityScale * dt;
+		}
+		/*if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f) && m_state != PlayerState::JUMPING)
+			m_verticalMultiplier = 0.f;*/
+
+		// Max Gravity Tests
+		if (m_verticalMultiplier <= -MAX_FALL_SPEED)
+			m_verticalMultiplier = -MAX_FALL_SPEED;
 
 
-	if (m_state != PlayerState::CANNON)
-	{
+
 		// Final frame velocity
 		if (directionalMovement.LengthSquared() > 0.f)
 		{
@@ -554,18 +557,20 @@ void Player::playerStateLogic(const float& dt)
 			m_horizontalMultiplier = m_horizontalMultiplier * max(directionalMovement.Dot(m_lastDirectionalMovement), 0.2f);
 			m_lastDirectionalMovement = directionalMovement;
 		}
+	
+
+
+		m_velocity = ((m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier)) * dt;
+
+		m_controller->move(m_velocity, 1.f);
 	}
 
-
-	m_velocity = ((m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier)) * dt;
-
-	m_controller->move(m_velocity, 1.f);
 	m_lastPosition = m_playerEntity->getTranslation();
 
 	// Animation
 	//float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).LengthSquared();
 	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).Length();
-	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
+	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH && m_state != PlayerState::CANNON && m_state != PlayerState::CANNON)
 	{
 		float blend = vectorLen / (PLAYER_MAX_SPEED * dt);
 
@@ -718,7 +723,7 @@ void Player::setPlayerEntity(Entity* entity)
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
 	if (DEBUGMODE)
 	{
-		m_pickupPointer = new CannonPickup();
+		m_pickupPointer = new HeightPickup();
 		m_pickupPointer->onPickup(m_playerEntity, false);
 	}
 		
@@ -807,6 +812,12 @@ void Player::respawnPlayer()
 	m_verticalMultiplier = 0.f;
 	if (m_pickupPointer && m_pickupPointer->isActive())
 	{
+		if (m_pickupPointer->getPickupType() == PickupType::SPEED)
+		{
+			m_currentSpeedModifier = 1.f;
+			m_goalSpeedModifier = 1.f;
+			m_speedModifierTime = 0.f;
+		}
 		m_pickupPointer->onDepleted();
 		m_pickupPointer->onRemove();
 		SAFE_DELETE(m_pickupPointer);
@@ -850,9 +861,9 @@ void Player::handlePickupOnUse()
 	case PickupType::SPEED:
 		//Not used since it is activated on use.
 
-		//m_currentSpeedModifier = 1.f;
-		//m_goalSpeedModifier = m_pickupPointer->getModifierValue();
-		//m_speedModifierTime = 0;
+		m_currentSpeedModifier = 1.f;
+		m_goalSpeedModifier = m_pickupPointer->getModifierValue();
+		m_speedModifierTime = 0;
 		break;
 	case PickupType::HEIGHTBOOST:
 		//jump(false, TRAMPOLINE_JUMP_MULTIPLIER); //Activates by enviormental instead.
@@ -867,10 +878,7 @@ void Player::handlePickupOnUse()
 		break;
 	}
 	m_pickupPointer->onUse();
-	for (int i = 0; i < m_playerObservers.size(); i++)
-	{
-		m_playerObservers[i]->reactOnPlayer(data);
-	}
+	sendPlayerMSG(data);
 }
 
 void Player::sendPlayerMSG(const PlayerMessageData &data)
@@ -997,9 +1005,6 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				{
 				case PickupType::SPEED:
 					shouldTriggerEntityBeRemoved = true; //We want to remove speedpickup entity after we've used it.
-					m_currentSpeedModifier = 1.f;
-					m_goalSpeedModifier = physicsData.floatData;
-					m_speedModifierTime = 0;
 					break;
 				case PickupType::HEIGHTBOOST:
 					if ((bool)physicsData.intData) //fromPickup -true/false
@@ -1015,11 +1020,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 						data.playerActionType = PlayerActions::ON_ENVIRONMENTAL_USE;
 						data.intEnum = physicsData.associatedTriggerEnum;
 						data.entityIdentifier = physicsData.entityIdentifier;
-						
-						for (int i = 0; i < (int)m_playerObservers.size(); i++)
-						{
-							m_playerObservers.at(i)->reactOnPlayer(data);
-						}
+						sendPlayerMSG(data);
 					}
 
 
@@ -1083,6 +1084,11 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 
 		}
 	}
+}
+
+void Player::reset3DMarker()
+{
+	m_3dMarker = nullptr;
 }
 
 Pickup* getCorrectPickupByID(int id)
