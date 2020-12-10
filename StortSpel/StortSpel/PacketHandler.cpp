@@ -18,6 +18,7 @@ PacketHandler::PacketHandler()
 		serverPlayerData[i].state = 9;
 		serverPlayerData[i].blend = 0;
 		serverPlayerData[i].score = 50;
+		serverPlayerData[i].scene = 0;
 	}
 
 	//ipAddress = "188.148.250.207";
@@ -129,7 +130,8 @@ void PacketHandler::playerData(Packet* _packet)
 	int state = _packet->ReadInt();
 	float blend = _packet->ReadFloat();
 	int score = _packet->ReadInt();
-
+	int scene = _packet->ReadInt();
+	
 	for (int i = 1; i < 4; i++)
 	{
 		if (serverPlayerData[i].ID == ID)
@@ -139,6 +141,8 @@ void PacketHandler::playerData(Packet* _packet)
 			serverPlayerData[i].state = state;
 			serverPlayerData[i].blend = blend;
 			serverPlayerData[i].score = score;
+			serverPlayerData[i].scene = scene;
+			//std::cout << serverPlayerData[i].scene << std::endl;
 			//Add a score component that shows the score of all current players
 			
 			//std::cout << "Player at ID " + std::to_string(ID) + " has moved" << std::endl;
@@ -243,6 +247,8 @@ void PacketHandler::sendPlayerData()
 	//Write Player Score
 	_packet.Write(serverPlayerData[0].score);
 
+	//Write Player Scene
+	_packet.Write(serverPlayerData[0].scene);
 
 	//Send Packet
 	int sendResult = send(sock, _packet.ToArray(), _packet.Lenght() + 1, 0);
@@ -304,6 +310,11 @@ int PacketHandler::getScoreAt(int i)
 	return this->serverPlayerData[i].score;
 }
 
+int PacketHandler::getSceneAt(int i)
+{
+	return this->serverPlayerData[i].scene;
+}
+
 void PacketHandler::setPlayerData(Vector3 pos)
 {
 	this->serverPlayerData[0].pos = pos;
@@ -327,6 +338,11 @@ void PacketHandler::setPlayerData(float blend)
 void PacketHandler::setPlayerScore(int score)
 {
 	this->serverPlayerData[0].score = score;
+}
+
+void PacketHandler::setPlayerScene(int scene)
+{
+	this->serverPlayerData[0].scene = scene;
 }
 
 

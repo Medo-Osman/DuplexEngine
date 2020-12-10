@@ -8,6 +8,7 @@ struct SimpleData
 	int state;
 	float blend;
 	int score;
+	int scene;
 };
 struct TrapData
 {
@@ -47,13 +48,14 @@ public:
 	int getStateAt(int i);
 	float getBlendAt(int i);
 	int getScoreAt(int i);
+	int getSceneAt(int i);
 
 	void setPlayerData(Vector3 pos);
 	void setPlayerData(Vector4 rot);
 	void setPlayerState(int state);
 	void setPlayerData(float blend);
 	void setPlayerScore(int score);
-
+	void setPlayerScene(int scene);
 	void sendTrapData(std::string entityID);
 	void sendScorePickup(std::string entityID);
 	void sendReady();

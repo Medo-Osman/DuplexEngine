@@ -185,6 +185,7 @@ void SceneManager::updateScene(const float &dt)
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			m_camera->endSceneCamera = false;
 			GUIHandler::get().setInMenu(false);
+			PacketHandler::get().setPlayerScene(0);
 			break;
 		case ScenesEnum::START:
 			sceneLoaderThread = std::thread(Scene::loadTestLevel, m_nextScene,m_nextSceneReady);
@@ -196,6 +197,7 @@ void SceneManager::updateScene(const float &dt)
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			m_camera->endSceneCamera = false;
 			GUIHandler::get().setInMenu(false);
+			//PacketHandler::get().setPlayerScene(1);
 			break;
 		case ScenesEnum::ARENA:
 			sceneLoaderThread = std::thread(Scene::loadLobby, m_nextScene, m_nextSceneReady);
@@ -204,6 +206,7 @@ void SceneManager::updateScene(const float &dt)
 			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			m_camera->endSceneCamera = false;
 			hideScore();
+			PacketHandler::get().setPlayerScene(2);
 			GUIHandler::get().setInMenu(false);
 			
 			break;
@@ -243,6 +246,7 @@ void SceneManager::updateScene(const float &dt)
 	{
 		m_nextSceneEnum = ScenesEnum::START;
 		m_swapScene = true;
+		//PacketHandler::get().setPlayerScene(5);
 		PacketHandler::get().gameStarted = true;
 	}
 	
@@ -280,6 +284,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 		}
 		else if (inputData.actionData[i] == LOAD_TEST_SCENE)
 		{
+			//PacketHandler::get().setPlayerScene(1);
 			m_nextScene = new Scene();
 			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
 			std::thread sceneLoaderThread = std::thread(Scene::loadBossTest, m_nextScene, m_nextSceneReady);
@@ -292,12 +297,14 @@ void SceneManager::inputUpdate(InputData& inputData)
 		{
 			
 				std::cout << "sending rdy package" << std::endl;
+				////PacketHandler::get().setPlayerScene(5);
 				PacketHandler::get().sendReady();
 
 
 		}
 		else if (inputData.actionData[i] == LOAD_ARENA)
 		{
+			PacketHandler::get().setPlayerScene(2);
 			m_nextScene = new Scene();
 			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
 			std::thread sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);

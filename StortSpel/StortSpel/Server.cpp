@@ -107,7 +107,7 @@ void Server::playerPacket(Packet* _packet)
 	int id = _packet->getID();
 	int playerID = _packet->ReadInt();
 	float x, y, z, w;
-	int state, blend, score;
+	int state, blend, score, scene;
 
 	Packet _outPacket(id);
 
@@ -135,10 +135,12 @@ void Server::playerPacket(Packet* _packet)
 	state = _packet->ReadInt();
 	blend = _packet->ReadFloat();
 	score = _packet->ReadInt();
+	scene = _packet->ReadInt();
 
 	_outPacket.Write(state);
 	_outPacket.Write(blend);
 	_outPacket.Write(score);
+	_outPacket.Write(scene);
 
 	sendToAllExcept(&_outPacket);
 }

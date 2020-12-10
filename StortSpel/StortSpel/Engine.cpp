@@ -62,15 +62,27 @@ void Engine::update(const float& dt)
 	PacketHandler::get().setPlayerState(m_player->getState());
 	PacketHandler::get().setPlayerData(m_player->getAnimMeshComp()->getCurrentBlend());
 	PacketHandler::get().setPlayerScore(m_player->getScore());
+
 	for (int i = 0; i < 3; i++)
 	{
 		if (serverPlayers->at(i)->getNetworkID() == -1)
 		{
+			serverPlayers->at(i)->getPlayerEntity()->setPosition(Vector3(999, 999, 999));
 			serverPlayers->at(i)->setNetworkID(PacketHandler::get().getIDAt(i + 1));
 		}
 		else
 		{
-			serverPlayers->at(i)->getPlayerEntity()->setPosition(PacketHandler::get().getPosAt(i + 1));
+			//std::cout << PacketHandler::get().getSceneAt(0) <<  " == " << PacketHandler::get().getSceneAt(i+1) << std::endl;
+
+			if (PacketHandler::get().getSceneAt(0) == PacketHandler::get().getSceneAt(i + 1))
+			{
+				serverPlayers->at(i)->getPlayerEntity()->setPosition(PacketHandler::get().getPosAt(i + 1));
+			}
+			else
+			{
+				serverPlayers->at(i)->getPlayerEntity()->setPosition(Vector3(999, 999, 999));
+				//serverPlayers->at(i)->getPlayerEntity()->
+			}
 			serverPlayers->at(i)->getPlayerEntity()->setRotationQuat(PacketHandler::get().getRotAt(i + 1));
 			serverPlayers->at(i)->serverPlayerAnimationChange((PlayerState)PacketHandler::get().getStateAt(i + 1), PacketHandler::get().getBlendAt(i + 1));
 			serverPlayers->at(i)->setScore(PacketHandler::get().getScoreAt(i + 1));
