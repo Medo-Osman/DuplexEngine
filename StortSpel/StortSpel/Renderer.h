@@ -29,6 +29,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_finalRenderTargetViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStateCompLessPtr = NULL;
 
 	// Bloom stuff
 	ID3D11RenderTargetView* m_geometryPassRTVs[2];
