@@ -55,12 +55,6 @@ public:
 	BoundingFrustum getFrustum();
 	void setRayCast(bool shouldRayCast);
 	
-
-
 	virtual void update(const float& dt);
 	void inputUpdate(InputData& inputData);
-
-
-
-
 };
