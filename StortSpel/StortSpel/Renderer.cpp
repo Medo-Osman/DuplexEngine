@@ -592,14 +592,18 @@ void Renderer::initRenderQuad()
 void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
 {
 	bool zPrePass = true;
+	bool zPrePassOff = false;
 	m_drawn = 0;
 
 	for (size_t i = 0; i < 2; i++)
 	{
-		if (!zPrePass)
+		if (zPrePassOff || i == 1)
+			zPrePass = false;
+
+		/*if (!zPrePass)
 			i++;
 		if (i != 0 && zPrePass)
-			zPrePass = false;
+			zPrePass = false;*/
 
 		if(zPrePass)
 		{
@@ -686,8 +690,8 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 				for (int mat = 0; mat < materialCount; mat++)
 				{
 					ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum(mat);
-					if (zPrePass && (meshShaderEnum == ShaderProgramsEnum::BLOOM_COMBINE || meshShaderEnum == ShaderProgramsEnum::CLOUD || meshShaderEnum == ShaderProgramsEnum::SKYBOX || meshShaderEnum == ShaderProgramsEnum::EMISSIVE || meshShaderEnum == ShaderProgramsEnum::LUCY_FACE || meshShaderEnum == ShaderProgramsEnum::OBJECTSPACEGRID || meshShaderEnum == ShaderProgramsEnum::RAINBOW || meshShaderEnum == ShaderProgramsEnum::SHADOW_DEPTH || meshShaderEnum == ShaderProgramsEnum::SHADOW_DEPTH_ANIM || meshShaderEnum == ShaderProgramsEnum::TEMP_TEST))
-						continue;
+					/*if (zPrePass && (meshShaderEnum == ShaderProgramsEnum::BLOOM_COMBINE || meshShaderEnum == ShaderProgramsEnum::CLOUD || meshShaderEnum == ShaderProgramsEnum::SKYBOX || meshShaderEnum == ShaderProgramsEnum::EMISSIVE || meshShaderEnum == ShaderProgramsEnum::LUCY_FACE || meshShaderEnum == ShaderProgramsEnum::OBJECTSPACEGRID || meshShaderEnum == ShaderProgramsEnum::RAINBOW || meshShaderEnum == ShaderProgramsEnum::SHADOW_DEPTH || meshShaderEnum == ShaderProgramsEnum::SHADOW_DEPTH_ANIM || meshShaderEnum == ShaderProgramsEnum::TEMP_TEST))
+						continue;*/
 					if (m_currentSetShaderProg != meshShaderEnum)
 					{
 
@@ -697,23 +701,25 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 							this->m_dContextPtr->PSSetShader(nullptr, nullptr, 0);
 						
 					}
-				
-					Material* meshMatPtr = component.second->getMaterialPtr(mat);
-					if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+					if (!zPrePass)
 					{
-						meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
-						m_currentSetMaterialId = meshMatPtr->getMaterialId();
+						Material* meshMatPtr = component.second->getMaterialPtr(mat);
+						if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+						{
+							meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
+							m_currentSetMaterialId = meshMatPtr->getMaterialId();
 
-					MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
-					currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
-					currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
-					currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
-					currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
-					currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
+							MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+							currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+							currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+							currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+							currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+							currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
 
-						m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+							m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+						}
+						m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 					}
-					m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 
 					std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
 				
