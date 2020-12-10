@@ -6,7 +6,7 @@
 class WinState
 {
 private:
-	int m_timeLimit = 10;
+	int m_timeLimit = 120; // Amount of time to collect start in second section
 	
 	
 public:

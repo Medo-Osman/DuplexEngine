@@ -106,7 +106,7 @@ void SceneManager::initalize(Input* input)
 	GUIHandler::get().setVisible(m_fullscreenIndex, false);
 	GUIHandler::get().setVisible(m_fullscreenText, false);
 	GUIHandler::get().setVisible(m_pauseText, false);
-	//GUIHandler::get().setVisible(m_winState->m_timerIndex, false);
+	GUIHandler::get().setVisible(m_winState->m_timerIndex, false);
 }
 
 void SceneManager::updateScene(const float &dt)
@@ -119,25 +119,21 @@ void SceneManager::updateScene(const float &dt)
 	GUIHandler::get().changeGUIText(m_fovIndex, std::to_string(m_camera->fovAmount));
 	std::string minStr = std::to_string(m_winState->m_minute);
 	std::string secStr = std::to_string(m_winState->m_seconds);
-	GUIHandler::get().changeGUIText(m_winState->m_timerIndex, minStr + ":" + secStr);
 	
 	if (m_winState->m_seconds < 10)
 		secStr = "0" + secStr;
 	if (m_winState->m_minute < 10)
 		minStr = "0" + minStr;
-
-	//while(m_winState->m_minute > 0 && m_winState->m_seconds > 0)
+	GUIHandler::get().changeGUIText(m_winState->m_timerIndex, minStr + ":" + secStr);
 	m_winState->update(dt);
 	
 	if (m_winState->m_minute == 0 && m_winState->m_seconds == 0)
 	{
 		m_winState->secondWinState = true;
-	}
-	if (m_winState->secondWinState)
-	{
+		m_swapScene = true;
 		m_nextSceneEnum = ScenesEnum::PHASE2;
 	}
-
+	
 	if (m_swapScene && !m_loadNextSceneWhenReady)
 	{ 
 		
@@ -233,8 +229,10 @@ void SceneManager::updateScene(const float &dt)
 			break;
 		case ScenesEnum::PHASE2:
 			//Load the second phase here (collect points under a timelimit phase)
+			m_winState->m_time.stop();
 			sceneLoaderThread = std::thread(Scene::loadPhaseTwo, m_nextScene, m_nextSceneReady);
-			sceneLoaderThread.detach();
+			sceneLoaderThread.detach();  
+			GUIHandler::get().setVisible(m_winState->m_timerIndex, false);
 			m_loadNextSceneWhenReady = true;
 			break;
 		default:
@@ -517,7 +515,11 @@ void SceneManager::swapScenes()
 		ResourceHandler::get().checkResources();
 
 		//winstate timer
-		m_winState->m_time.start();
+		if (!m_winState->secondWinState)
+		{
+			m_winState->m_time.start();
+			m_winState->secondWinState = true;
+		}
 	}
 }
 
@@ -688,7 +690,8 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
 			GUIHandler::get().setVisible(m_fovIndex, false);
 			GUIHandler::get().setVisible(m_fullscreenText, false);
-
+			GUIHandler::get().setVisible(m_winState->m_timerIndex, true);
+			m_winState->secondWinState = false;
 			m_nextSceneEnum = ScenesEnum::START;
 			m_swapScene = true;
 		}
