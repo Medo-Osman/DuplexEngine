@@ -3,6 +3,9 @@
 #include"Renderer.h"
 #include"ParticleComponent.h"
 
+
+const bool Renderer::USE_Z_PRE_PASS = true;
+
 Renderer::Renderer()
 {
 	//m_rTargetViewsArray = new ID3D11RenderTargetView * [8];
@@ -589,140 +592,215 @@ void Renderer::initRenderQuad()
 	m_renderQuadBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_VERTEX_BUFFER, fullScreenQuad.data(), (int)fullScreenQuad.size());
 }
 
-void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
+void Renderer::zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
 {
-	bool zPrePass = true;
-	m_drawn = 0;
 
-	for (size_t i = 0; i < 2; i++)
+	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
-		if (!zPrePass)
-			i++;
-		if (i != 0 && zPrePass)
-			zPrePass = false;
+		bool isAnim = false;
+		// Get Entity map from Engine
+		std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+		XMFLOAT3 min, max;
+		bool draw = true;
+		Entity* parentEntity;
 
-		if(zPrePass)
-		{
-			this->m_dContextPtr->PSSetShader(nullptr, nullptr, 0);
-			this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStateCompLessPtr.Get(), NULL);
-			ID3D11RenderTargetView* nullRenderTargets[2] = { 0 };
-			m_dContextPtr->OMSetRenderTargets(2, nullRenderTargets, m_depthStencilViewPtr.Get());
-		}
+		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+		else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
+			parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
 		else
+			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
+
+
+		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
 		{
-			this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
-			m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
+			//Culling
+			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
+			XMVECTOR pos = parentEntity->getTranslation();
+			pos += component.second->getTranslation();
+			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
+			pos = XMVector3Transform(pos, *V);
+			XMFLOAT3 posFloat3;
+			XMStoreFloat3(&posFloat3, pos);
 
-
-		}
-		for (auto& component : *Engine::get().getMeshComponentMap())
-		{
-			// Get Entity map from Engine
-			std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
-			XMFLOAT3 min, max;
-			bool draw = true;
-			Entity* parentEntity;
-		
-			if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
-				parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
-			else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
-				parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
-			else
-				parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
-
-
-			if (m_camera->frustumCullingOn && parentEntity->m_canCull)
+			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
-				//Culling
-				Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
-				XMVECTOR pos = parentEntity->getTranslation();
-				pos += component.second->getTranslation();
-				pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
-				pos = XMVector3Transform(pos, *V);
-				XMFLOAT3 posFloat3;
-				XMStoreFloat3(&posFloat3, pos);
+				component.second->getMeshResourcePtr()->getMinMax(min, max);
 
-				if (frust->Contains(pos) != ContainmentType::CONTAINS)
-				{
-					component.second->getMeshResourcePtr()->getMinMax(min, max);
+				XMFLOAT3 ext = (max - min);
+				ext = ext * scale;
+				XMFLOAT4 rot = parentEntity->getRotation();
+				BoundingOrientedBox box(posFloat3, ext, rot);
+				ContainmentType contType = frust->Contains(box);
 
-					XMFLOAT3 ext = (max - min);
-					ext = ext * scale;
-					XMFLOAT4 rot = parentEntity->getRotation();
-					BoundingOrientedBox box(posFloat3, ext, rot);
-					ContainmentType contType = frust->Contains(box);
+				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+			}
+			else
+			{
+				draw = true;
+			}
+		}
 
-					draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
-				}
-				else
-				{
-					draw = true;
-				}
+		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
+		if (draw && meshComp->isVisible())
+		{
+			m_drawn++;
+
+			perObjectMVP constantBufferPerObjectStruct;
+			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
+			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
+			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
+			constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(component.second->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+
+			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+				
+			AnimatedMeshComponent* animMeshComponent = nullptr;
+			if(component.second->getType() == ComponentType::ANIM_MESH)
+				animMeshComponent = static_cast<AnimatedMeshComponent*>(component.second);
+
+
+			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
+			{
+				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+				isAnim = true;
 			}
 
-			MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
-			if (draw && meshComp->isVisible())
+			int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
+
+			for (int mat = 0; mat < materialCount; mat++)
 			{
-				m_drawn++;
-			
-				perObjectMVP constantBufferPerObjectStruct;
-				component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
-				constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
-				constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
-				constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(component.second->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
-				constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+				ShaderProgramsEnum meshShaderEnum = isAnim ? ShaderProgramsEnum::Z_PRE_PASS_ANIM : ShaderProgramsEnum::Z_PRE_PASS;
+				if (component.second->getShaderProgEnum(mat) == ShaderProgramsEnum::SKYBOX)
+					continue;
 
-				m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
-
-				AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
-
-				if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
+				if (m_currentSetShaderProg != meshShaderEnum)
 				{
-					m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+					m_compiledShaders[meshShaderEnum]->setShaders();
+					m_currentSetShaderProg = meshShaderEnum;
 				}
-			
-				int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
 
-				for (int mat = 0; mat < materialCount; mat++)
+				Material* meshMatPtr = component.second->getMaterialPtr(mat);
+				if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
 				{
-					ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum(mat);
-					if (zPrePass && (meshShaderEnum == ShaderProgramsEnum::BLOOM_COMBINE || meshShaderEnum == ShaderProgramsEnum::CLOUD || meshShaderEnum == ShaderProgramsEnum::SKYBOX || meshShaderEnum == ShaderProgramsEnum::EMISSIVE || meshShaderEnum == ShaderProgramsEnum::LUCY_FACE || meshShaderEnum == ShaderProgramsEnum::OBJECTSPACEGRID || meshShaderEnum == ShaderProgramsEnum::RAINBOW || meshShaderEnum == ShaderProgramsEnum::SHADOW_DEPTH || meshShaderEnum == ShaderProgramsEnum::SHADOW_DEPTH_ANIM || meshShaderEnum == ShaderProgramsEnum::TEMP_TEST))
-						continue;
-					if (m_currentSetShaderProg != meshShaderEnum)
-					{
-
-						m_compiledShaders[meshShaderEnum]->setShaders();
-						m_currentSetShaderProg = meshShaderEnum;
-						if(zPrePass)
-							this->m_dContextPtr->PSSetShader(nullptr, nullptr, 0);
-						
-					}
-				
-					Material* meshMatPtr = component.second->getMaterialPtr(mat);
-					if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
-					{
-						meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
-						m_currentSetMaterialId = meshMatPtr->getMaterialId();
-
-					MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
-					currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
-					currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
-					currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
-					currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
-					currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
-
-						m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
-					}
-					m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
+					meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
+					m_currentSetMaterialId = meshMatPtr->getMaterialId();
 
 					std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
-				
+
 					m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
 				}
 			}
 		}
-
 	}
+}
+
+void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
+{
+	m_drawn = 0;
+
+	for (auto& component : *Engine::get().getMeshComponentMap())
+	{
+		// Get Entity map from Engine
+		std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+		XMFLOAT3 min, max;
+		bool draw = true;
+		Entity* parentEntity;
+		
+		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+		else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
+			parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
+		else
+			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
+
+
+		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
+		{
+			//Culling
+			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
+			XMVECTOR pos = parentEntity->getTranslation();
+			pos += component.second->getTranslation();
+			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
+			pos = XMVector3Transform(pos, *V);
+			XMFLOAT3 posFloat3;
+			XMStoreFloat3(&posFloat3, pos);
+
+			if (frust->Contains(pos) != ContainmentType::CONTAINS)
+			{
+				component.second->getMeshResourcePtr()->getMinMax(min, max);
+
+				XMFLOAT3 ext = (max - min);
+				ext = ext * scale;
+				XMFLOAT4 rot = parentEntity->getRotation();
+				BoundingOrientedBox box(posFloat3, ext, rot);
+				ContainmentType contType = frust->Contains(box);
+
+				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+			}
+			else
+			{
+				draw = true;
+			}
+		}
+
+		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
+		if (draw && meshComp->isVisible())
+		{
+			m_drawn++;
+			
+			perObjectMVP constantBufferPerObjectStruct;
+			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
+			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
+			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
+			constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(component.second->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+
+			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+
+			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
+
+			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
+			{
+				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+			}
+			
+			int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
+
+			for (int mat = 0; mat < materialCount; mat++)
+			{
+				ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum(mat);
+
+				if (m_currentSetShaderProg != meshShaderEnum)
+				{
+					m_compiledShaders[meshShaderEnum]->setShaders();
+					m_currentSetShaderProg = meshShaderEnum;
+				}
+				
+				Material* meshMatPtr = component.second->getMaterialPtr(mat);
+				if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+				{
+					meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
+					m_currentSetMaterialId = meshMatPtr->getMaterialId();
+
+				MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+				currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+				currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+				currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+				currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+				currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
+
+					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+				}
+				m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
+
+				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
+				
+				m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
+			}
+		}
+	}
+
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 	m_dContextPtr->PSSetShaderResources(7, 1, nullSRV);
 }
@@ -964,12 +1042,22 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(1, nullRenderTargets, nullptr);
 
 	
-
-	//Run ordinary pass
-	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
+	//Run ZPreePass
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
+	if(Z_PRE_PASS)
+	{
+		this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStateCompLessPtr.Get(), NULL);
+		ID3D11RenderTargetView* nullRenderTargetsTwo[2] = { 0 };
+		m_dContextPtr->OMSetRenderTargets(2, nullRenderTargetsTwo, m_depthStencilViewPtr.Get());
+		this->zPrePass(&frust, &wvp, &V, &P);
+	}
+
+	//Run ordinary pass
+	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
+	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
+
 	renderScene(&frust, &wvp, &V, &P);
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };

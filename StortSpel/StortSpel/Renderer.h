@@ -17,6 +17,7 @@ class Renderer
 {
 
 private:
+	static const bool USE_Z_PRE_PASS;
 	//Pointers
 	//ID3D11RenderTargetView** m_rTargetViewsArray;
 	Microsoft::WRL::ComPtr<ID3D11Device> m_devicePtr = NULL;
@@ -119,6 +120,7 @@ private:
 	void downSamplePass();
 	void blurPass();
 	void initRenderQuad();
+	void zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	Renderer(); //{};
