@@ -78,6 +78,13 @@ private:
 	void hideScore();
 	void showScore(); 
 
+	void hideMainMenu();
+	void hidePauseMenu();
+	void hideSettingsMenu();
+	void showPauseMenu();
+	void showMainMenu();
+	void showSettingsMenu();
+
 	void uiMenuInitialize();
 
 public:
