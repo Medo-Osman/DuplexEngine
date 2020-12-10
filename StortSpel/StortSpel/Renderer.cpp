@@ -782,7 +782,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 				{
 					meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
 					m_currentSetMaterialId = meshMatPtr->getMaterialId();
-
+					
 				MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
 				currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
 				currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
