@@ -1759,7 +1759,7 @@ void Scene::loadAlmostEmpty(Scene* sceneObject, bool* finished)
 void Scene::loadSortTest(Scene* sceneObject, bool* finished)
 {
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
-	Material test = Material({ L"DarkGrayTexture.png" });
+	//Material test = Material({ L"DarkGrayTexture.png" });
 
 	Entity* floor = sceneObject->addEntity("Floor");
 	if (floor)
@@ -1910,11 +1910,14 @@ Entity* Scene::addEntity(std::string identifier)
 
 void Scene::removeEntity(std::string identifier)
 {
+	
 	std::vector<Component*> meshCompVec;
 	m_entities[identifier]->getComponentsOfType(meshCompVec,ComponentType::MESH);
 	for (auto meshComponent : meshCompVec)
 	{
-		int index = static_cast<MeshComponent*>(meshComponent)->getRenderId();
+		MeshComponent* meshComp = static_cast<MeshComponent*>(meshComponent);
+		Renderer::get().removeMeshFromDrawCallList(meshComp);
+		int index = meshComp->getRenderId();
 		m_meshComponentMap.erase(index);
 		m_entities[identifier]->removeComponent(meshComponent);
 	}
@@ -1949,6 +1952,7 @@ void Scene::addMeshComponent(MeshComponent* component)
 {
 	component->setRenderId(++m_meshCount);
 	m_meshComponentMap[m_meshCount] = component;
+	Renderer::get().addMeshToDrawCallList(component);
 }
 
 void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
@@ -2201,11 +2205,11 @@ Entity* Scene::addTrampoline(Vector3 position)
 {
 	// FIXIDIXA HÄR 2
 	MeshComponent* part1 = new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" }));
-	Renderer::get().addMeshToDrawCallList(part1);
+	//Renderer::get().addMeshToDrawCallList(part1);
 	MeshComponent* part2 = new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" }));
-	Renderer::get().addMeshToDrawCallList(part2);
+	//Renderer::get().addMeshToDrawCallList(part2);
 	MeshComponent* part3 = new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" }));
-	Renderer::get().addMeshToDrawCallList(part3);
+	//Renderer::get().addMeshToDrawCallList(part3);
 
 	Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
 	trampoline->setPosition(position);
@@ -2242,10 +2246,10 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 		if ((PickupType)msg.intEnum == PickupType::CANNON)
 		{
 			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", Material({ L"DarkGrayTexture.png" }));
-			Renderer::get().addMeshToDrawCallList(pipe);
+			//Renderer::get().addMeshToDrawCallList(pipe);
 			pipe->setPosition(Vector3(0, 1, 0));
 			MeshComponent* base = new MeshComponent("Canon_Base.lrm", Material({ L"DarkGrayTexture.png" }));
-			Renderer::get().addMeshToDrawCallList(base);
+			//Renderer::get().addMeshToDrawCallList(base);
 
 			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
 			cannon->setScale(0.5f, 0.5f, 0.5f);
@@ -2259,8 +2263,8 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 	}
 	else if (msg.playerActionType == PlayerActions::ON_FIRE_CANNON)
 	{
-		Renderer::get().removeMeshFromDrawCallList(static_cast<MeshComponent*>(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getComponent("mesh1")));
-		Renderer::get().removeMeshFromDrawCallList(static_cast<MeshComponent*>(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getComponent("mesh2")));
+		//Renderer::get().removeMeshFromDrawCallList(static_cast<MeshComponent*>(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getComponent("mesh1")));
+		//Renderer::get().removeMeshFromDrawCallList(static_cast<MeshComponent*>(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getComponent("mesh2")));
 		removeEntity(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getIdentifier());
 	}
 	else if (msg.playerActionType == PlayerActions::ON_ENVIRONMENTAL_USE)
@@ -2500,7 +2504,7 @@ void Scene::createLaser(BossStructures::BossActionData data)
 		mat.setEmissiveStrength(700.f);
 
 		MeshComponent* mComp = new MeshComponent("Boss_Laser.lrm", EMISSIVE, mat);
-		Renderer::get().addMeshToDrawCallList(mComp);
+		//Renderer::get().addMeshToDrawCallList(mComp);
 		mComp->setCastsShadow(false);
 		addComponent(laserEntity, "mesh", mComp);
 		laserEntity->setScale(0.5, 0.5, 10);
@@ -2548,7 +2552,7 @@ void Scene::checkLasers(float dt)
 	for (int i = 0; i < idsToRemove.size(); i++)
 	{
 		removeEntity(m_lasers[idsToRemove[i]]->entity->getIdentifier());
-		Renderer::get().removeMeshFromDrawCallList(static_cast<MeshComponent*>(m_lasers[idsToRemove[i]]->entity->getComponent("mesh")));
+		//Renderer::get().removeMeshFromDrawCallList(static_cast<MeshComponent*>(m_lasers[idsToRemove[i]]->entity->getComponent("mesh")));
 		delete m_lasers[idsToRemove[i]];
 		m_lasers.erase(idsToRemove[i]);
 	}
@@ -2656,7 +2660,7 @@ void Scene::createPortal()
 	float a = 2.5f * 4;
 	a = a + 10 + 1.25f;
 	MeshComponent* frame = new MeshComponent("Portal_pCube41.lrm", Material({ L"DarkGrayTexture.png" }));
-	Renderer::get().addMeshToDrawCallList(frame);
+	//Renderer::get().addMeshToDrawCallList(frame);
 	Entity* goalTriggerFrame = addEntity("triggerFrame");
 	if (goalTriggerFrame)
 	{
@@ -2668,7 +2672,7 @@ void Scene::createPortal()
 	Material emissiveMat({ L"DarkGrayTexture.png", L"PortalEmissive.jpg" });
 	emissiveMat.setEmissiveStrength(30);
 	MeshComponent* portalGlow = new MeshComponent("portalMagic_pCylinder8.lrm", EMISSIVE, emissiveMat);
-	Renderer::get().addMeshToDrawCallList(portalGlow);
+	//Renderer::get().addMeshToDrawCallList(portalGlow);
 	Entity* goalTrigger = addEntity("trigger");
 	if (goalTrigger)
 	{
@@ -2695,7 +2699,7 @@ void Scene::createEndScenePortal()
 	a = a + 10 + 1.25f;
 
 	MeshComponent* frame = new MeshComponent("Portal_pCube41.lrm", Material({ L"DarkGrayTexture.png" }));
-	Renderer::get().addMeshToDrawCallList(frame);
+	//Renderer::get().addMeshToDrawCallList(frame);
 	Entity* goalTriggerFrame = addEntity("triggerFrame");
 	if (goalTriggerFrame)
 	{
@@ -2707,7 +2711,7 @@ void Scene::createEndScenePortal()
 	Material emissiveMat({ L"DarkGrayTexture.png", L"PortalEmissive.jpg" });
 	emissiveMat.setEmissiveStrength(30);
 	MeshComponent* portalGlow = new MeshComponent("portalMagic_pCylinder8.lrm", EMISSIVE, emissiveMat);
-	Renderer::get().addMeshToDrawCallList(portalGlow);
+	//Renderer::get().addMeshToDrawCallList(portalGlow);
 	Entity* endSceneTrigger = addEntity("endTrigger");
 	if (endSceneTrigger)
 	{

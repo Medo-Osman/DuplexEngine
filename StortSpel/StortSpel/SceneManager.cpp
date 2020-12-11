@@ -58,7 +58,7 @@ void SceneManager::initalize(Input* input)
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 
 	// Sorting
-	Renderer::get().initializeDrawCallList();
+	//Renderer::get().initializeDrawCallList();
 
 	setScorePtr(m_currentScene->getScores());
 

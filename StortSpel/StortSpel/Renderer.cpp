@@ -35,6 +35,7 @@ void Renderer::renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 			// >>>>>>>>>>>>>>>>>>>>> Step 1: Get entity & meshComp to use
 			MeshComponent* meshComponent = drawCalls.at(i).at(j).mesh;
 			Entity* parentEntity;
+			std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
 
 			if (meshComponent->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
 				parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
@@ -43,12 +44,12 @@ void Renderer::renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 			else
 				parentEntity = (*Engine::get().getEntityMap())[meshComponent->getParentEntityIdentifier()];
 
-			// >>>>>>>>>>>>>>>>>>>>> Step 2: Cull all meshes not seen
 			if (j == drawCalls.at(i).size() - 1)
 			{
 				int stop = 0;
 			}
 
+			// >>>>>>>>>>>>>>>>>>>>> Step 2: Cull all meshes not seen
 			bool meshIsInsideFrustrum = true;
 			if (m_camera->frustumCullingOn && parentEntity->m_canCull)
 			{
@@ -107,9 +108,11 @@ void Renderer::renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 
 				// ----------------- Step 3.3: Set material constant buffers
 				int material_ID = drawCalls.at(i).at(j).material_ID;
+				int material_IDX = drawCalls.at(i).at(j).material_IDX;
 				if (material_ID != latestMaterial_ID)
 				{
-					Material* meshMaterial = meshComponent->getMaterialPtr(material_ID);
+					Material* meshMaterial = meshComponent->getMaterialPtr(material_IDX);
+					meshMaterial->setMaterial(m_compiledShaders[m_currentSetShaderProg], m_dContextPtr.Get());
 
 					MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
 					currentMaterialConstantBufferData.UVScale = meshMaterial->getMaterialParameters().UVScale;
@@ -123,7 +126,6 @@ void Renderer::renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 
 				// ----------------- Step 3.4:
 				m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
-				int material_IDX = drawCalls.at(i).at(j).material_IDX;
 				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = meshComponent->getMeshResourcePtr()->getMaterialOffsetAndSize(material_IDX);
 				m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
 			}
@@ -214,6 +216,7 @@ Renderer::~Renderer()
 
 HRESULT Renderer::initialize(const HWND& window)
 {
+	drawCalls.resize(NR_OF_SHADER_PROGRAM_ENUMS);
 
 	HRESULT hr;
 	m_window = window;
@@ -1181,20 +1184,20 @@ void Renderer::removeMeshFromDrawCallList(MeshComponent* meshComp)
 void Renderer::initializeDrawCallList()
 {
 	drawCalls.clear();
-	drawCalls.resize(NR_OF_SHADER_PROGRAM_ENUMS);
-	for (auto& component : *Engine::get().getMeshComponentMap()) // Loop over all meshes in the scene
-	{
-		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
-		for (int i = 0; i < meshComp->getMeshResourcePtr()->getMaterialCount(); i++) // Loop over all materials on the mesh
-		{
-			drawCalls.at(meshComp->getShaderProgEnum(i)).push_back(
-				drawCallStruct(meshComp,													// mesh
-							   meshComp->getShaderProgEnum(i),								// shaderEnu
-							   meshComp->getMaterialPtr(i)->getMaterialId(),				// matID
-							   i,															// matIDX
-							   meshComp->getFilePath()));
-		}
-	}
-	sortDrawCallList();
-	int stop = 0;
+	//drawCalls.resize(NR_OF_SHADER_PROGRAM_ENUMS);
+	//for (auto& component : *Engine::get().getMeshComponentMap()) // Loop over all meshes in the scene
+	//{
+	//	MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
+	//	for (int i = 0; i < meshComp->getMeshResourcePtr()->getMaterialCount(); i++) // Loop over all materials on the mesh
+	//	{
+	//		drawCalls.at(meshComp->getShaderProgEnum(i)).push_back(
+	//			drawCallStruct(meshComp,													// mesh
+	//						   meshComp->getShaderProgEnum(i),								// shaderEnu
+	//						   meshComp->getMaterialPtr(i)->getMaterialId(),				// matID
+	//						   i,															// matIDX
+	//						   meshComp->getFilePath()));
+	//	}
+	//}
+	//sortDrawCallList();
+	//int stop = 0;
 }
