@@ -169,6 +169,15 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 
+		(*compiledShadersMap)[ShaderProgramsEnum::Z_PRE_PASS] = new ShaderProgram
+	(
+		//{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"BasicPixelShader_temp_for_testing_shaderSwitching.hlsl" },BasicPixelShader_Shadow
+		{ L"ZPrePassVertexShaderBasic.hlsl",L"null",L"null",L"null",L"ZPrePassPixelShader.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
 	(*compiledShadersMap)[ShaderProgramsEnum::Z_PRE_PASS_ANIM] = new ShaderProgram
 	(
 		//{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"BasicPixelShader_temp_for_testing_shaderSwitching.hlsl" },BasicPixelShader_Shadow

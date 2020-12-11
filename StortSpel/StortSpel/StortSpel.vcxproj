@@ -224,7 +224,9 @@
     <ClCompile Include="Boss.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClInclude Include="Component.h" />
+    <ClCompile Include="DebugDraw.cpp" />
     <ClCompile Include="Engine.cpp" />
+    <ClInclude Include="DebugDraw.h" />
     <ClInclude Include="Entity.h" />
     <ClCompile Include="GUIHandler.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -277,6 +279,7 @@
     <ClInclude Include="ConstantBufferTypes.h" />
     <ClInclude Include="DataHelper.h" />
     <ClInclude Include="FlippingComponent.h" />
+    <ClInclude Include="BoundingVolumeHolder.h" />
     <ClInclude Include="GrowingComponent.h" />
     <ClInclude Include="GUIButton.h" />
     <ClInclude Include="GUIContext.h" />
@@ -462,6 +465,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Particles\ArrayOfLinesStreamOut.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

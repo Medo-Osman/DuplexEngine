@@ -2,6 +2,7 @@
 //#include "MeshComponent.h"
 #include"Renderer.h"
 #include"ParticleComponent.h"
+#include<memory>
 
 
 const bool Renderer::USE_Z_PRE_PASS = true;
@@ -12,6 +13,60 @@ Renderer::Renderer()
 	
 	//Variables
 	m_shadowMap = nullptr;
+}
+
+void Renderer::drawBoundingVolumes()
+{
+	//m_dContextPtr->OMSetBlendState(m_states->Opaque(), nullptr, 0xFFFFFFFF);
+	//m_dContextPtr->OMSetDepthStencilState(m_states->DepthNone(), 0);
+//	m_dContextPtr->RSSetState(m_states->CullNone());
+
+	//m_dContextPtr->IASetInputLayout(m_inputLayout.Get());
+
+	//m_batch->Begin();
+
+	//this->m_effect->SetView(m_switchCamera ? m_testCamera.getViewMatrix() : m_camera->getViewMatrix());
+	//this->m_effect->SetProjection(m_switchCamera ? m_testCamera.getProjectionMatrix() : m_camera->getProjectionMatrix());
+	//this->m_effect->Apply(m_dContextPtr.Get());
+
+
+	//for (int i = 0; i < (int)m_boundingVolumes.size(); i++)
+	//{
+	//	BoundingVolumeHolder bvh = m_boundingVolumes[i];
+	//	switch (bvh.getBoundingVolumeType())
+	//	{
+	//	case BoundingVolumeTypes::FRUSTUM:
+	//		DX::Draw(m_batch.get(), *(BoundingFrustum*)bvh.getBoundingVolumePtr(), Colors::Red);
+	//		break;
+	//	case BoundingVolumeTypes::BOX:
+	//		DX::Draw(m_batch.get(), *(BoundingBox*)bvh.getBoundingVolumePtr(), Colors::Blue);
+	//		break;
+	//	case BoundingVolumeTypes::ORIENTEDBOX:
+	//	{
+	//		BoundingOrientedBox b = *(BoundingOrientedBox*)bvh.getBoundingVolumePtr();
+	//		DX::Draw(m_batch.get(), b, Colors::Cyan);
+	//		break;
+	//	}
+	//	case BoundingVolumeTypes::SPHERE:
+	//		DX::Draw(m_batch.get(), *(DirectX::BoundingSphere*)bvh.getBoundingVolumePtr(), Colors::Blue);
+	//		break;
+	//	default:
+	//		break;
+	//	}
+
+	//	delete bvh.getBoundingVolumePtr();
+	//}
+
+	//m_batch->End();
+
+	//m_boundingVolumes.clear();
+
+	//this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
+	//m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+
+	//m_compiledShaders[ShaderProgramsEnum::PBRTEST]->setShaders();
+	//m_currentSetShaderProg = ShaderProgramsEnum::PBRTEST;
+
 }
 
 void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
@@ -41,6 +96,11 @@ void Renderer::release()
 	}
 	
 	Particle::cleanStaticDataForParticles();
+
+	m_states.reset();
+	m_effect.reset();
+	m_batch.reset();
+	m_inputLayout.Reset();
 }
 
 Renderer::~Renderer()
@@ -244,6 +304,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get(), m_deferredContext.Get());
 	m_camera = Engine::get().getCameraPtr();
+	m_camera->setIsPlayerCamera(true);
 
 
 	/////////////////////////////////////////////////
@@ -276,6 +337,27 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_shadowMap->initialize((UINT)4096, (UINT)4096, m_devicePtr.Get(), Engine::get().getSkyLightDir());
 	m_shadowMap->createRasterState();
 
+	//RenderBatch/Effect
+	m_states = std::make_unique<CommonStates>(this->m_devicePtr.Get());
+	m_effect = std::make_unique<BasicEffect>(this->m_devicePtr.Get());
+	m_effect->SetVertexColorEnabled(true);
+
+	void const* shaderByteCode;
+	size_t byteCodeLength;
+
+	m_effect->GetVertexShaderBytecode(&shaderByteCode, &byteCodeLength);
+
+	hr = m_devicePtr->CreateInputLayout(VertexType::InputElements,
+			VertexType::InputElementCount,
+			shaderByteCode, byteCodeLength,
+			m_inputLayout.ReleaseAndGetAddressOf());
+
+	m_batch = std::make_unique<PrimitiveBatch<VertexType>>(this->m_dContextPtr.Get());
+
+
+	m_testCamera.initialize(m_testCamera.fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
+	m_testCamera.setPosition(Vector3(0, 5, 0));
+	m_testCamera.setRotation(Vector4(0.7071068f, 0.f, 0.f, 0.7071068f));
 	return hr;
 }
 
@@ -619,20 +701,20 @@ void Renderer::zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMA
 			XMVECTOR pos = parentEntity->getTranslation();
 			pos += component.second->getTranslation();
 			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
-			pos = XMVector3Transform(pos, *V);
 			XMFLOAT3 posFloat3;
 			XMStoreFloat3(&posFloat3, pos);
+
 
 			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
 				component.second->getMeshResourcePtr()->getMinMax(min, max);
 
-				XMFLOAT3 ext = (max - min);
+				XMFLOAT3 ext = (max - min) / 2;
 				ext = ext * scale;
-				XMFLOAT4 rot = parentEntity->getRotation();
+				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
 				BoundingOrientedBox box(posFloat3, ext, rot);
-				ContainmentType contType = frust->Contains(box);
 
+				ContainmentType contType = frust->Contains(box);
 				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
 			}
 			else
@@ -723,20 +805,20 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 			XMVECTOR pos = parentEntity->getTranslation();
 			pos += component.second->getTranslation();
 			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
-			pos = XMVector3Transform(pos, *V);
 			XMFLOAT3 posFloat3;
 			XMStoreFloat3(&posFloat3, pos);
+
 
 			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
 				component.second->getMeshResourcePtr()->getMinMax(min, max);
 
-				XMFLOAT3 ext = (max - min);
+				XMFLOAT3 ext = (max - min) / 2;
 				ext = ext * scale;
-				XMFLOAT4 rot = parentEntity->getRotation();
+				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
 				BoundingOrientedBox box(posFloat3, ext, rot);
-				ContainmentType contType = frust->Contains(box);
 
+				ContainmentType contType = frust->Contains(box);
 				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
 			}
 			else
@@ -752,8 +834,8 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 			
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
-			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
-			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
+			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_switchCamera ? m_testCamera.getProjectionMatrix() : m_camera->getProjectionMatrix());
+			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_switchCamera ? m_testCamera.getViewMatrix() : m_camera->getViewMatrix());
 			constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(component.second->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
@@ -914,6 +996,12 @@ void Renderer::update(const float& dt)
 		{
 			m_camera->frustumCullingOn = !m_camera->frustumCullingOn;
 		}
+
+		if (ImGui::Button("Switch Camera"))
+		{
+			m_switchCamera = !m_switchCamera;
+		}
+
 	}
 
 
@@ -1024,12 +1112,16 @@ void Renderer::render()
 	// Mesh WVP buffer, needs to be set every frame bacause of SpriteBatch(GUIHandler)
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 
+
 	//Calculate the frumstum required
-	BoundingFrustum frust;
+	BoundingFrustum frust = m_camera->getFrustum();
+	frust.Origin = Vector3(m_camera->getPosition());
+	frust.Orientation = m_camera->getFloat4Rotation();
 	XMMATRIX world, wvp;
-	world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition());
-	wvp = world * V * P;
-	BoundingFrustum::CreateFromMatrix(frust, wvp);
+	//world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition());
+	//world = XMMatrixScalingFromVector({1, 1, 1 }) * XMMatrixRotationQuaternion(XMQuaternionRotationRollPitchYawFromVector(m_camera->getRotation())) * XMMatrixTranslationFromVector(m_camera->getPosition());
+	//wvp = world * P;
+
 
 	//Run the shadow pass before everything else
 	m_dContextPtr->VSSetConstantBuffers(3, 1, m_shadowConstantBuffer.GetAddressOf());
@@ -1047,7 +1139,7 @@ void Renderer::render()
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
-	if(Z_PRE_PASS)
+	if(USE_Z_PRE_PASS)
 	{
 		this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStateCompLessPtr.Get(), NULL);
 		ID3D11RenderTargetView* nullRenderTargetsTwo[2] = { 0 };
@@ -1091,12 +1183,13 @@ void Renderer::render()
 		ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 		ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
 		ImGui::End();
-
 	}
 
 	// Bloom Filter
 	downSamplePass();
 	blurPass();
+
+	drawBoundingVolumes();
 
 
 	// GUI
@@ -1105,6 +1198,7 @@ void Renderer::render()
 	// Render ImGui
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
 
 	m_swapChainPtr->Present(0, 0);
 }

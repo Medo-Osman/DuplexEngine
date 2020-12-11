@@ -192,6 +192,9 @@
     <ClCompile Include="Boss.cpp">
       <Filter>Source Files\Game\Boss</Filter>
     </ClCompile>
+    <ClCompile Include="DebugDraw.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">
@@ -502,6 +505,12 @@
     </ClInclude>
     <ClInclude Include="ThunderAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugDraw.h">
+      <Filter>Source Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingVolumeHolder.h">
+      <Filter>Source Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

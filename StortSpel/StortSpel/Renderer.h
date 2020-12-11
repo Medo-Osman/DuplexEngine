@@ -11,7 +11,8 @@
 #include"Particles\Particle.h"
 #include"Particles\RainingDogsParticle.h"
 #include"Particles\ScorePickupParticle.h"
-
+#include"DebugDraw.h"
+#include"BoundingVolumeHolder.h"
 
 class Renderer
 {
@@ -125,9 +126,23 @@ private:
 	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	Renderer(); //{};
 
+	Camera m_testCamera;
+
+	using VertexType = DirectX::VertexPositionColor;
+
+	std::unique_ptr<DirectX::CommonStates> m_states;
+	std::unique_ptr<DirectX::BasicEffect> m_effect;
+	std::unique_ptr<DirectX::PrimitiveBatch<VertexType>> m_batch;
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
+
+	//BoundingVolume DrawStuff
+	std::vector<BoundingVolumeHolder> m_boundingVolumes;
+	void drawBoundingVolumes();
 
 	int m_drawn = 0;
 	bool m_isFullscreen = false;
+
+	bool m_switchCamera = false;
 public:
 	Renderer(const Renderer&) = delete;
 	void operator=(Renderer const&) = delete;
@@ -154,5 +169,8 @@ public:
 	ID3D11DeviceContext* getDeferredDContext();
 	ID3D11DepthStencilView* getDepthStencilView();
 	void printLiveObject();
+
+
+	void addPrimitiveToDraw();
 
 };
