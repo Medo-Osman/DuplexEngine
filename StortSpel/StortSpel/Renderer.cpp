@@ -11,6 +11,128 @@ Renderer::Renderer()
 	m_shadowMap = nullptr;
 }
 
+void Renderer::sortDrawCallList()
+{
+	for (int i = 0; i < NR_OF_SHADER_PROGRAM_ENUMS; i++)
+	{
+		std::sort(drawCalls.at(i).begin(), drawCalls.at(i).end(), compairDrawCalls);
+	}
+}
+
+void Renderer::renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
+{
+	m_drawn = 0;
+
+	for (int i = 0; i < NR_OF_SHADER_PROGRAM_ENUMS; i++) // Loop over all different types of shader enums
+	{
+		m_currentSetShaderProg = ShaderProgramsEnum(i);
+		if (m_compiledShaders[m_currentSetShaderProg] == nullptr)
+			continue;
+		m_compiledShaders[m_currentSetShaderProg]->setShaders();
+
+		for (int j = 0; j < drawCalls.at(i).size(); j++) // Loop over all meshes using that shader enum
+		{
+			// >>>>>>>>>>>>>>>>>>>>> Step 1: Get entity & meshComp to use
+			MeshComponent* meshComponent = drawCalls.at(i).at(j).mesh;
+			Entity* parentEntity;
+
+			if (meshComponent->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+				parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+			else if (meshComponent->getParentEntityIdentifier() == (const std::string) "3DMarker")
+				parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
+			else
+				parentEntity = (*Engine::get().getEntityMap())[meshComponent->getParentEntityIdentifier()];
+
+			// >>>>>>>>>>>>>>>>>>>>> Step 2: Cull all meshes not seen
+			if (j == drawCalls.at(i).size() - 1)
+			{
+				int stop = 0;
+			}
+
+			bool meshIsInsideFrustrum = true;
+			if (m_camera->frustumCullingOn && parentEntity->m_canCull)
+			{
+				// ----------------- Step 2.1: Get position & scaling of mesh
+				Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
+				XMVECTOR pos =  parentEntity->getTranslation();
+						 pos += meshComponent->getTranslation();
+						 pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
+						 pos =  XMVector3Transform(pos, *V);
+				XMFLOAT3 posFloat3;
+				XMStoreFloat3(&posFloat3, pos);
+
+				// ----------------- Step 2.2: Check if the center of the mesh is outside the frustrum
+				if (frust->Contains(pos) != ContainmentType::CONTAINS)
+				{
+					// ------------- Step 2.21: Get the extents of the mesh
+					XMFLOAT3 min, max;
+					meshComponent->getMeshResourcePtr()->getMinMax(min, max);
+					XMFLOAT3 ext = (max - min);
+					ext = ext * scale;
+					XMFLOAT4 rot = parentEntity->getRotation();
+
+					// ------------- Step 2.22: Create a box around the mes using the extents
+					BoundingOrientedBox box(posFloat3, ext, rot);
+					ContainmentType contType = frust->Contains(box);
+
+					// ------------- Step 2.23: Check if the box is inside/outside the frustrum
+					meshIsInsideFrustrum = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+				}
+				// ----------------- Step 2.3: Check if the mesh is inside the frustrum
+				else
+				{
+					meshIsInsideFrustrum = true;
+				}
+			}
+			meshIsInsideFrustrum = true;
+
+			// >>>>>>>>>>>>>>>>>>>>> Step 3: Finalize mesh for drawing
+			if (meshIsInsideFrustrum && meshComponent->isVisible())
+			{
+				// ----------------- Step 3.1: Set constant buffers
+				perObjectMVP constantBufferPerObjectStruct;
+				meshComponent->getMeshResourcePtr()->set(m_dContextPtr.Get());
+				constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
+				constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
+				constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(meshComponent->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
+				constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+				m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+
+				// ----------------- Step 3.2: Check if the mesh has animations
+				AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(meshComponent);
+				if (animMeshComponent != nullptr)
+				{
+					m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+				}
+
+				// ----------------- Step 3.3: Set material constant buffers
+				int material_ID = drawCalls.at(i).at(j).material_ID;
+				if (material_ID != latestMaterial_ID)
+				{
+					Material* meshMaterial = meshComponent->getMaterialPtr(material_ID);
+
+					MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+					currentMaterialConstantBufferData.UVScale = meshMaterial->getMaterialParameters().UVScale;
+					currentMaterialConstantBufferData.roughness = meshMaterial->getMaterialParameters().roughness;
+					currentMaterialConstantBufferData.metallic = meshMaterial->getMaterialParameters().metallic;
+					currentMaterialConstantBufferData.textured = meshMaterial->getMaterialParameters().textured;
+					currentMaterialConstantBufferData.emissiveStrength = meshMaterial->getMaterialParameters().emissiveStrength;
+					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+					latestMaterial_ID = material_ID;
+				}
+
+				// ----------------- Step 3.4:
+				m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
+				int material_IDX = drawCalls.at(i).at(j).material_IDX;
+				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = meshComponent->getMeshResourcePtr()->getMaterialOffsetAndSize(material_IDX);
+				m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
+			}
+		}
+	}
+	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+	m_dContextPtr->PSSetShaderResources(7, 1, nullSRV);
+}
+
 void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
 {
 	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &buffer);
@@ -929,7 +1051,8 @@ void Renderer::render()
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
-	renderScene(&frust, &wvp, &V, &P);
+	//renderScene(&frust, &wvp, &V, &P);
+	renderSortedScene(&frust, &wvp, &V, &P);
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
 	m_dContextPtr->PSSetShaderResources(0, 1, srv);
@@ -1005,4 +1128,73 @@ void Renderer::printLiveObject()
 	HRESULT hr = m_debugPtr->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 	assert(SUCCEEDED(hr));
 #endif
+}
+
+void Renderer::addMeshToDrawCallList(MeshComponent* meshComp)
+{
+	for (int i = 0; i < meshComp->getMeshResourcePtr()->getMaterialCount(); i++) // Loop over all materials on the mesh
+	{
+		int indexToInsertAt = 0;
+		for (int j = 0; j < drawCalls.at(meshComp->getShaderProgEnum(i)).size(); j++) // Loop over all existong materials in this shader enum
+		{
+			if (drawCalls.at(meshComp->getShaderProgEnum(i)).at(j).material_ID <= meshComp->getMaterialPtr(i)->getMaterialId())
+			{
+				indexToInsertAt++;
+			}
+			else
+			{
+				j = drawCalls.at(meshComp->getShaderProgEnum(i)).size();
+			}
+		}
+
+		drawCalls.at(meshComp->getShaderProgEnum(i)).insert(
+			drawCalls.at(meshComp->getShaderProgEnum(i)).begin() + indexToInsertAt,
+			drawCallStruct(meshComp,													// mesh
+							meshComp->getShaderProgEnum(i),								// shaderEnu
+							meshComp->getMaterialPtr(i)->getMaterialId(),				// matID
+							i,															// matIDX
+							meshComp->getFilePath()));
+	}
+}
+
+void Renderer::removeMeshFromDrawCallList(MeshComponent* meshComp)
+{
+	for (int i = 0; i < meshComp->getMeshResourcePtr()->getMaterialCount(); i++) // Loop over all materials on the mesh
+	{
+		int indexToPop = 0;
+		for (int j = 0; j < drawCalls.at(meshComp->getShaderProgEnum(i)).size(); j++) // Loop over all existong materials in this shader enum
+		{
+			if (drawCalls.at(meshComp->getShaderProgEnum(i)).at(j) == drawCallStruct(meshComp, 
+																					 meshComp->getShaderProgEnum(i), 
+																					 meshComp->getMaterialPtr(i)->getMaterialId(),
+																					 i,
+																					 meshComp->getFilePath()))
+			{
+				indexToPop = j;
+				j = drawCalls.at(meshComp->getShaderProgEnum(i)).size();
+			}
+		}
+		drawCalls.at(meshComp->getShaderProgEnum(i)).erase(drawCalls.at(meshComp->getShaderProgEnum(i)).begin() + indexToPop);
+	}	
+}																	  			   
+
+void Renderer::initializeDrawCallList()
+{
+	drawCalls.clear();
+	drawCalls.resize(NR_OF_SHADER_PROGRAM_ENUMS);
+	for (auto& component : *Engine::get().getMeshComponentMap()) // Loop over all meshes in the scene
+	{
+		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
+		for (int i = 0; i < meshComp->getMeshResourcePtr()->getMaterialCount(); i++) // Loop over all materials on the mesh
+		{
+			drawCalls.at(meshComp->getShaderProgEnum(i)).push_back(
+				drawCallStruct(meshComp,													// mesh
+							   meshComp->getShaderProgEnum(i),								// shaderEnu
+							   meshComp->getMaterialPtr(i)->getMaterialId(),				// matID
+							   i,															// matIDX
+							   meshComp->getFilePath()));
+		}
+	}
+	sortDrawCallList();
+	int stop = 0;
 }

@@ -129,7 +129,7 @@ private:
 	int m_nrOfScore = 400;
 
 	int m_nrOfPickups = 0;
-	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
+	void addPickup(const Vector3& position, const int tier = 1, std::string name = "", const int pickupType = 3);
 	void loadPickups();
 	void loadScore();
 	Entity* addScore(const Vector3& position, const int tier = 1, std::string name = "");
@@ -163,6 +163,7 @@ private:
 	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
 
 	int startGameIndex = 0;
+
 public:
 	Boss* m_boss = nullptr;
 	Scene();
@@ -182,6 +183,7 @@ public:
 	static void loadBossTest(Scene* sceneObject, bool* finished);
 	static void loadEmpty(Scene* sceneObject, bool* finished);
 	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
+	static void loadSortTest(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
 	

@@ -40,7 +40,7 @@ void SceneManager::initalize(Input* input)
 	m_currentScene = new Scene();
 	Scene::loadMainMenu(m_currentScene, m_nextSceneReady);
 	m_currectSceneEnum = ScenesEnum::MAINMENU;
-	disableMovement();
+	//disableMovement();
 	*m_nextSceneReady = false;
 
 	m_currentScene->onSceneLoaded();
@@ -56,6 +56,9 @@ void SceneManager::initalize(Input* input)
 	Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
+
+	// Sorting
+	Renderer::get().initializeDrawCallList();
 
 	setScorePtr(m_currentScene->getScores());
 
@@ -312,7 +315,16 @@ void SceneManager::inputUpdate(InputData& inputData)
 				m_gameStarted = false;
 				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			}
+			else if (inputData.actionData[i] == SORT_TEST)
+			{
+				m_nextScene = new Scene();
+				//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+				std::thread sceneLoaderThread = std::thread(Scene::loadSortTest, m_nextScene, m_nextSceneReady);
+				sceneLoaderThread.detach();
 
+				m_gameStarted = false;
+				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			}
 			else if (inputData.actionData[i] == MENU)
 			{
 				if (m_currectSceneEnum != ScenesEnum::MAINMENU && m_currectSceneEnum != ScenesEnum::ENDSCENE)
@@ -488,6 +500,9 @@ void SceneManager::swapScenes()
 
 		m_currentScene->onSceneLoaded();
 		ResourceHandler::get().checkResources();
+
+		// Sorting
+		Renderer::get().initializeDrawCallList();
 	}
 }
 

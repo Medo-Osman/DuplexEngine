@@ -6,6 +6,7 @@
 #include"CannonPickup.h"
 #include"ParticleComponent.h"
 #include "Traps.h"
+#include "Renderer.h"
 
 Pickup* getCorrectPickupByID(int id);
 
@@ -97,12 +98,14 @@ void Player::setCannonEntity(Entity* entity, MeshComponent* pipe)
 	m_pipe = pipe;
 	m_shouldDrawLine = true;
 
+	// FIXIDIXA HÄR 1
 	if (!m_3dMarker)
 	{
 		m_3dMarker = new Entity("3DMarker");
 		m_3dMarker->scale(0.25f, 0.25f, 0.25f);
 		Engine::get().getEntityMap()->emplace("3DMarker", m_3dMarker);
 		MeshComponent* mesh = new MeshComponent("testCube_pCube1.lrm");
+		Renderer::get().addMeshToDrawCallList(mesh);
 		mesh->setCastsShadow(false);
 		m_3dMarker->addComponent("6 nov (mesh)", mesh);
 		Engine::get().getMeshComponentMap()->emplace(1632, mesh);
@@ -718,8 +721,8 @@ void Player::setPlayerEntity(Entity* entity)
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
 	if (DEBUGMODE)
 	{
-		m_pickupPointer = new CannonPickup();
-		m_pickupPointer->onPickup(m_playerEntity, false);
+		//m_pickupPointer = new CannonPickup();
+		//m_pickupPointer->onPickup(m_playerEntity, false);
 	}
 		
 }

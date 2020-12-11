@@ -3,22 +3,23 @@
 
 enum ShaderProgramsEnum
 {
-	DEFAULT,
-	TEMP_TEST,
-	SKYBOX,
-	SKEL_ANIM,
-	PBRTEST,
-	SKEL_PBR,
-	BLOOM_COMBINE,
-	OBJECTSPACEGRID,
-	SHADOW_DEPTH,
-	DEFAULT_SHADOW,
-	SHADOW_DEPTH_ANIM,
-	EMISSIVE,
-	LUCY_FACE,
-	RAINBOW,
-	CLOUD,
-	NONE
+	DEFAULT,			// 1
+	TEMP_TEST,			// 2
+	SKYBOX,				// 3
+	SKEL_ANIM,			// 4
+	PBRTEST,			// 5
+	SKEL_PBR,			// 6
+	BLOOM_COMBINE,		// 7
+	OBJECTSPACEGRID,	// 8
+	SHADOW_DEPTH,		// 9 
+	DEFAULT_SHADOW,		// 10
+	SHADOW_DEPTH_ANIM,	// 11
+	EMISSIVE,			// 12
+	LUCY_FACE,			// 13
+	RAINBOW,			// 14
+	CLOUD,				// 15
+	NONE				// 16
+	// VIKTIGT! Ändra NR_OF_SHADER_PROGRAM_ENUMS i renderer.h så den stämmer med antalet i listan :)
 };
 
 inline ShaderProgramsEnum charToShaderEnum(char e)

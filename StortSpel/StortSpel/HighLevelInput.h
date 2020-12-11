@@ -21,7 +21,8 @@ enum Action
 	USE,
 	SELECT,
 	RESPAWN,
-	MENU
+	MENU,
+	SORT_TEST
 };
 
 enum State
