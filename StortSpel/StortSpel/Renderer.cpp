@@ -671,7 +671,8 @@ void Renderer::zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMA
 			for (int mat = 0; mat < materialCount; mat++)
 			{
 				ShaderProgramsEnum meshShaderEnum = isAnim ? ShaderProgramsEnum::Z_PRE_PASS_ANIM : ShaderProgramsEnum::Z_PRE_PASS;
-				if (component.second->getShaderProgEnum(mat) == ShaderProgramsEnum::SKYBOX)
+				ShaderProgramsEnum shaderProgEnum = component.second->getShaderProgEnum(mat);
+				if (shaderProgEnum == ShaderProgramsEnum::SKYBOX || shaderProgEnum == ShaderProgramsEnum::CLOUD || shaderProgEnum == ShaderProgramsEnum::LUCY_FACE)
 					continue;
 
 				if (m_currentSetShaderProg != meshShaderEnum)
