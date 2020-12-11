@@ -240,8 +240,8 @@ public:
         if (index != -1)
             m_playerObservers.erase(m_playerObservers.begin() + index);
     }
-
-    void setCannonEntity(Entity* entity, MeshComponent* pipe);
+    
+    void setCannonEntity(Entity* entity, MeshComponent* pipe, Entity* Marker3DEnt);
     Entity* get3DMarkerEntity();
     Entity* getCannonEntity() { return m_cannonEntity; }
     int m_cannonCrosshairID;

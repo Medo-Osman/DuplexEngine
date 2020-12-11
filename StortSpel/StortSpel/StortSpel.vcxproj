@@ -225,6 +225,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClInclude Include="Component.h" />
     <ClCompile Include="Engine.cpp" />
+    <ClInclude Include="DrawCallStructFile.h" />
     <ClInclude Include="Entity.h" />
     <ClCompile Include="GUIHandler.cpp" />
     <ClCompile Include="Material.cpp" />

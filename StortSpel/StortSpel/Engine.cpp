@@ -74,9 +74,14 @@ void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entitie
 {
 	m_entities = entities;
 }
-void Engine::setMeshComponentMapPtr(std::unordered_map<unsigned int long, MeshComponent*>* meshComponents)
+//void Engine::setMeshComponentMapPtr(std::unordered_map<unsigned int long, MeshComponent*>* meshComponents)
+//{
+//	m_meshComponentMap = meshComponents;
+//}
+
+void Engine::setDrawCallsPtr(std::vector<std::vector<drawCallStruct>>* drawCallsPtr)
 {
-	m_meshComponentMap = meshComponents;
+	m_drawCallsPtr = drawCallsPtr;
 }
 
 void Engine::setLightComponentMapPtr(std::unordered_map<std::string, LightComponent*>* lightComponents)
@@ -117,9 +122,14 @@ bool Engine::addComponentToPlayer(std::string componentIdentifier, Component* co
 }
 
 
-std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
+//std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
+//{
+//	return m_meshComponentMap;
+//}
+
+std::vector<std::vector<drawCallStruct>>* Engine::getDrawCallsPtr()
 {
-	return m_meshComponentMap;
+	return m_drawCallsPtr;
 }
 
 std::unordered_map<std::string, LightComponent*>* Engine::getLightComponentMap()

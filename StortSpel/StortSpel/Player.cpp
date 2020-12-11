@@ -92,24 +92,31 @@ Player::~Player()
 	Pickup::clearStaticPickupArrayPlz();
 }
 
-void Player::setCannonEntity(Entity* entity, MeshComponent* pipe)
+void Player::setCannonEntity(Entity* entity, MeshComponent* pipe, Entity* Marker3DEnt)
 {
 	m_cannonEntity = entity;
 	m_pipe = pipe;
 	m_shouldDrawLine = true;
 
-	// FIXIDIXA HÄR 1
 	if (!m_3dMarker)
-	{
-		m_3dMarker = new Entity("3DMarker");
-		m_3dMarker->scale(0.25f, 0.25f, 0.25f);
-		Engine::get().getEntityMap()->emplace("3DMarker", m_3dMarker);
-		MeshComponent* mesh = new MeshComponent("testCube_pCube1.lrm");
-		Renderer::get().addMeshToDrawCallList(mesh);
-		mesh->setCastsShadow(false);
-		m_3dMarker->addComponent("6 nov (mesh)", mesh);
-		Engine::get().getMeshComponentMap()->emplace(1632, mesh);
-	}
+		m_3dMarker = Marker3DEnt;
+
+	//// FIXIDIXA HÄR 1
+	//if (!m_3dMarker)
+	//{
+	//	m_3dMarker = new Entity("3DMarker");
+	//	m_3dMarker->scale(0.25f, 0.25f, 0.25f);
+	//	//Engine::get().getEntityMap()->emplace("3DMarker", m_3dMarker);
+	//	MeshComponent* mesh = new MeshComponent("testCube_pCube1.lrm");
+	//	//Renderer::get().addMeshToDrawCallList(mesh);
+	//	
+	//	mesh->setCastsShadow(false);
+
+	//	//currentScene->addComponent(m_3dMarker, "6 nov (mesh)", mesh);
+	//	//m_3dMarker->addComponent("6 nov (mesh)", mesh);
+	//	
+	//	//Engine::get().getMeshComponentMap()->emplace(1632, mesh);
+	//}
 }
 
 Entity* Player::get3DMarkerEntity()

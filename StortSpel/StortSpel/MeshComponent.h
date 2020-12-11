@@ -12,7 +12,7 @@ class MeshComponent : public Component, public Transform
 {
 private:
 
-	unsigned long int m_renderId;
+	//unsigned long int m_renderId;
 	MeshResource* m_resourcePointer = nullptr;
 	std::vector<ShaderProgramsEnum> m_shaderProgEnums;
 	std::vector<Material> m_materials;
@@ -34,8 +34,8 @@ public:
 
 	~MeshComponent();
 
-	void setRenderId(const unsigned long int id) { m_renderId = id; }
-	const unsigned long int& getRenderId() { return m_renderId; }
+	//void setRenderId(const unsigned long int id) { m_renderId = id; }
+	//const unsigned long int& getRenderId() { return m_renderId; }
 
 	void setMeshResourcePtr(MeshResource* newResourcePointer) { m_resourcePointer = newResourcePointer; }
 	MeshResource* getMeshResourcePtr() const { return m_resourcePointer; }

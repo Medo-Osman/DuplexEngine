@@ -12,7 +12,6 @@
 #include"Particles\RainingDogsParticle.h"
 #include"Particles\ScorePickupParticle.h"
 
-
 class Renderer
 {
 
@@ -105,7 +104,7 @@ private:
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
-	unsigned int long m_currentSetMaterialId = 1000;
+	unsigned int long m_currentSetMaterialId = -1;
 
 	//Functions
 	HRESULT createDeviceAndSwapChain();
@@ -127,41 +126,6 @@ private:
 	bool m_isFullscreen = false;
 
 	// Sorting
-	struct drawCallStruct
-	{
-		drawCallStruct(MeshComponent* mesh, ShaderProgramsEnum shaderEnum, int material_ID, int material_IDX, std::string name)
-		{
-			this->mesh = mesh;
-			this->shaderEnum = shaderEnum;
-			this->material_ID = material_ID;
-			this->material_IDX = material_IDX;
-			this->name = name;
-		}
-		MeshComponent* mesh;
-		ShaderProgramsEnum shaderEnum;
-		int material_ID;
-		int material_IDX;
-		std::string name;
-
-		bool operator==(const drawCallStruct &other)
-		{
-			if (this->mesh         == other.mesh &&
-				this->shaderEnum   == other.shaderEnum &&
-				this->material_ID  == other.material_ID &&
-				this->material_IDX == other.material_IDX &&
-				this->name         == other.name)
-			{
-				return true;
-			}
-			else
-				return false;
-		}
-	};
-	std::vector<std::vector<drawCallStruct>> drawCalls;
-	const int NR_OF_SHADER_PROGRAM_ENUMS = 16;
-	int latestMaterial_ID = -1;
-	static bool compairDrawCalls(const drawCallStruct &A, const drawCallStruct &B) { return (A.material_ID < B.material_ID); }
-	void sortDrawCallList();
 	void renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 
 public:
@@ -190,10 +154,5 @@ public:
 	ID3D11DeviceContext* getDeferredDContext();
 	ID3D11DepthStencilView* getDepthStencilView();
 	void printLiveObject();
-
-	//Sorting
-	void addMeshToDrawCallList(MeshComponent* meshComp);
-	void removeMeshFromDrawCallList(MeshComponent* meshComp);
-	void initializeDrawCallList();
 
 };

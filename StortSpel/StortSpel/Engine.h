@@ -20,6 +20,7 @@
 #include "BarrelTriggerComponent.h"
 //#include <algorithm>
 #include "SwingComponent.h"
+#include "DrawCallStructFile.h"
 
 struct Settings
 {
@@ -50,7 +51,7 @@ private:
 
 	// Entities
 	std::unordered_map<std::string, Entity*>* m_entities;
-	std::unordered_map<unsigned int long, MeshComponent*>* m_meshComponentMap;
+	std::vector<std::vector<drawCallStruct>>* m_drawCallsPtr;
 	std::unordered_map<std::string, LightComponent*>* m_lightComponentMap;
 
 	// Player
@@ -80,12 +81,12 @@ public:
 	void update(const float &dt);
 
 	void setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities);
-	void setMeshComponentMapPtr(std::unordered_map<unsigned int long, MeshComponent*>* meshComponents);
+	void setDrawCallsPtr(std::vector<std::vector<drawCallStruct>>* drawCallsPtr);
 	void setLightComponentMapPtr(std::unordered_map<std::string, LightComponent*>* lightComponents);
 
 	bool addComponentToPlayer(std::string componentIdentifier, Component* component);
 
-	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
+	std::vector<std::vector<drawCallStruct>>* getDrawCallsPtr();
 	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	Vector4& getSkyLightDir();
@@ -99,4 +100,5 @@ public:
 
 	ID3D11DeviceContext* getDeviceContextPtr() { return m_dContextPtr; }
 	ID3D11Device* getDevicePtr() { return m_devicePtr; }
+
 };

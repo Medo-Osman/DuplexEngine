@@ -500,6 +500,9 @@
     <ClInclude Include="ThunderAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
     </ClInclude>
+    <ClInclude Include="DrawCallStructFile.h">
+      <Filter>Source Files\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">

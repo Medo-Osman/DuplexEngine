@@ -19,8 +19,9 @@ enum ShaderProgramsEnum
 	RAINBOW,			// 13
 	CLOUD,				// 14
 	NONE				// 15
-	// VIKTIGT! Ändra NR_OF_SHADER_PROGRAM_ENUMS i renderer.h så den stämmer med antalet i listan :)
+	// VIKTIGT! Ändra NR_OF_SHADER_PROGRAM_ENUMS nedan så den stämmer med antalet i listan :)
 };
+const int NR_OF_SHADER_PROGRAM_ENUMS = 16;
 
 inline ShaderProgramsEnum charToShaderEnum(char e)
 {
