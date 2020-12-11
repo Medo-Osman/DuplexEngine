@@ -56,6 +56,7 @@ void SceneManager::initalize(Input* input)
 	Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
+	Engine::get().setQuadTreePtr(m_currentScene->getQuadTreePtr());
 
 	setScorePtr(m_currentScene->getScores());
 
@@ -407,6 +408,7 @@ void SceneManager::swapScenes()
 		Engine::get().getPlayerPtr()->reset3DMarker();
 
 		m_currentScene->activateScene();
+		Engine::get().setQuadTreePtr(m_currentScene->getQuadTreePtr());
 
 		// Set as PhysicsObserver
 		Physics::get().Attach(m_currentScene, false, true);

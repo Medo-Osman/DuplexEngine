@@ -20,6 +20,9 @@
 #include "BarrelTriggerComponent.h"
 //#include <algorithm>
 #include "SwingComponent.h"
+#include <filesystem>
+#include <algorithm>
+#include"QuadTree.h"
 
 struct Settings
 {
@@ -62,6 +65,8 @@ private:
 
 	Input* m_input = nullptr;
 
+	QuadTree* m_quadTreePtr;
+
 	// Materials
 
 
@@ -82,6 +87,8 @@ public:
 	void setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities);
 	void setMeshComponentMapPtr(std::unordered_map<unsigned int long, MeshComponent*>* meshComponents);
 	void setLightComponentMapPtr(std::unordered_map<std::string, LightComponent*>* lightComponents);
+	void setQuadTreePtr(QuadTree* quadTree) { m_quadTreePtr = quadTree; }
+	QuadTree* getQuadTreePtr() { return m_quadTreePtr; }
 
 	bool addComponentToPlayer(std::string componentIdentifier, Component* component);
 

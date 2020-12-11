@@ -182,6 +182,24 @@ void Scene::sendPhysicsMessage(PhysicsData& physicsData, bool& removed)
 	removed = true;
 }
 
+void Scene::removeQuadTreeMeshComponentsFromMeshComponentMap(Scene* sceneObject)
+{
+	std::vector<MeshComponent*> quadTreeMeshComponents;
+	sceneObject->m_quadTree->getAllMeshComponents(quadTreeMeshComponents);
+	for (int i = 0; i < quadTreeMeshComponents.size(); i++)
+	{
+		sceneObject->m_meshComponentMap.erase(quadTreeMeshComponents.at(i)->getRenderId());
+	}
+}
+
+void Scene::createQuadTree(Scene* sceneObject)
+{
+	sceneObject->m_quadTree = new QuadTree();
+	sceneObject->m_quadTree->partition(sceneObject->m_entities);
+
+	Scene::removeQuadTreeMeshComponentsFromMeshComponentMap(sceneObject);
+}
+
 void Scene::loadPickups()
 {
 	addPickup(Vector3(-30.f, 30.f, 105.f));
@@ -536,6 +554,9 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 	}
 
 	sceneObject->createSpotLight(Vector3(0.f, 21.f, -20.f), Vector3(10.f, 0.f, 0.f), Vector3(0.5f, 0.1f, 0.3f), 3.f);
+
+	createQuadTree(sceneObject);
+
 	*finished = true; //Inform the main thread that the loading is complete.
 }
 
@@ -710,6 +731,9 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
 	*/
+
+	createQuadTree(sceneObject);
+
 
 	delete[] levelData;
 	*finished = true; //Inform the main thread that the loading is complete.
@@ -1227,7 +1251,11 @@ void Scene::loadEndScene(Scene* sceneObject, bool* finished)
 	sceneObject->setPlayersPosition(PlayerOne);
 	sceneObject->setPlayersPosition(PlayerTwo);
 	sceneObject->setPlayersPosition(PlayerThree);
-	
+
+
+	createQuadTree(sceneObject);
+
+
 	*finished = true;
 }
 
@@ -1339,6 +1367,11 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 	sceneObject->addComponent(audioTest, "testSound", new AudioComponent(L"NightAmbienceSimple_02.wav", true, 0.2f));
 	sceneObject->m_nightSlide = 0.01f;
 	sceneObject->m_nightVolume = 0.2f;
+
+	sceneObject->m_quadTree = new QuadTree();
+	sceneObject->m_quadTree->partition(sceneObject->m_entities);
+
+	createQuadTree(sceneObject);
 
 	*finished = true; //Inform the main thread that the loading is complete.
 }
@@ -1558,6 +1591,8 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 		}
 	}
 
+	createQuadTree(sceneObject);
+
 	*finished = true;
 }
 
@@ -1717,6 +1752,8 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
+
+	createQuadTree(sceneObject);
 
 	*finished = true;
 }
@@ -2027,6 +2064,11 @@ std::unordered_map<std::string, LightComponent*>* Scene::getLightMap()
 std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMap()
 {
 	return &m_meshComponentMap;
+}
+
+QuadTree* Scene::getQuadTreePtr()
+{
+	return m_quadTree;
 }
 
 

@@ -314,6 +314,7 @@
     <ClInclude Include="ProjectileComponent.h" />
     <ClInclude Include="PushTrapComponent.h" />
     <ClInclude Include="ReferenceCounted.h" />
+    <ClInclude Include="QuadTree.h" />
     <ClInclude Include="RotateComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />

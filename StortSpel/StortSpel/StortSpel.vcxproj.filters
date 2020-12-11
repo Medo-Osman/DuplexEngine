@@ -511,6 +511,8 @@
     </ClInclude>
     <ClInclude Include="BoundingVolumeHolder.h">
       <Filter>Source Files\Utilities</Filter>
+    <ClInclude Include="QuadTree.h">
+      <Filter>Source Files\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
