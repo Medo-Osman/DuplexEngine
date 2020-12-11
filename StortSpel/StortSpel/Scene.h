@@ -79,10 +79,13 @@ private:
 	void physicallyMovePlatform(Entity* entity);
 	bool findPlatformAlready(Entity* entity);
 
+	Timer m_bossPromptTimer;
 	AudioComponent* m_bossMusicComp = nullptr;
 	GUIImageStyle imageStyle;
+	GUITextStyle textStyle;
 	int m_bossHP_barGuiIndex = 0;
 	int m_bossHP_barBackgroundGuiIndex = 0;
+	int m_bossPromptTextIndex = 0;
 	int m_endBossAtPecentNrOfStarts = 0;
 	int m_nrOfRespawnBoxes = 0;
 	void removeBoss();
@@ -180,6 +183,7 @@ public:
 	static void loadArena(Scene* sceneObject, bool* finished);
 	static void loadMaterialTest(Scene* sceneObject, bool* finished);
 	static void loadBossTest(Scene* sceneObject, bool* finished);
+	static void loadBossTestPhaseTwo(Scene* sceneObject, bool* finished);
 	static void loadEmpty(Scene* sceneObject, bool* finished);
 	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
 
