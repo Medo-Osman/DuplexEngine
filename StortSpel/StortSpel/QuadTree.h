@@ -168,7 +168,7 @@ public:
 
 	}
 
-	void getRenderList(const BoundingFrustum* frust, std::vector<MeshComponent*> & meshComponentVec, std::vector<BoundingVolumeHolder>& vecOut)
+	void getRenderList(const BoundingFrustum* frust, std::vector<MeshComponent*> &meshComponentVec, std::vector<BoundingVolumeHolder>& vecOut)
 	{
 
 		Vector3 min = m_minPos, max = m_maxPos, center, ext;
@@ -188,11 +188,43 @@ public:
 			{
 				for (int i = 0; i < (int)m_entities.size(); i++)
 				{
+					bool draw = true;
+					MeshComponent* meshComponent;
+					Entity* parentEntity = m_entities[i];
 					std::vector<Component*> compVect;
 					m_entities.at(i)->getComponentsOfType(compVect, ComponentType::MESH);
 					for (size_t j = 0; j < compVect.size(); j++)
 					{
-						meshComponentVec.emplace_back(static_cast<MeshComponent*>(compVect.at(j)));
+						meshComponent = static_cast<MeshComponent*>(compVect.at(j));
+
+						if (parentEntity->m_canCull && USE_FRUSTUM_CULLING)
+						{
+							//Culling
+							Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
+							XMVECTOR pos = parentEntity->getTranslation();
+							pos += meshComponent->getTranslation();
+							pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
+							XMFLOAT3 posFloat3;
+							XMStoreFloat3(&posFloat3, pos);
+
+							if (frust->Contains(pos) != ContainmentType::CONTAINS)
+							{
+								meshComponent->getMeshResourcePtr()->getMinMax(min, max);
+								XMFLOAT3 ext = (max - min) / 2;
+								ext = ext * scale;
+								XMFLOAT4 rot = parentEntity->getRotation() * meshComponent->getRotation();
+								BoundingOrientedBox box(posFloat3, ext, rot);
+
+								ContainmentType contType = frust->Contains(box);
+								draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+							}
+							else
+							{
+								draw = true;
+							}
+						}
+						if(draw)
+							meshComponentVec.emplace_back(meshComponent);
 					}
 				}
 			}
