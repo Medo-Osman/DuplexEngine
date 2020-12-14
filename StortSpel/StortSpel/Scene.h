@@ -179,6 +179,7 @@ public:
 	static void loadLobby(Scene* sceneObject, bool* finished);
 	static void loadArena(Scene* sceneObject, bool* finished);
 	static void loadMaterialTest(Scene* sceneObject, bool* finished);
+	static void loadSimpleTest(Scene* sceneObject, bool* finished);
 	static void loadBossTest(Scene* sceneObject, bool* finished);
 	static void loadEmpty(Scene* sceneObject, bool* finished);
 	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);

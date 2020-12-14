@@ -2,6 +2,12 @@
 
 #define MAX_LIGHTS 8
 
+static const float SHADOW_MAP_SIZE = 4096.f;
+static const float SHADOW_MAP_DELTA = 1.f / SHADOW_MAP_SIZE;
+static const float RANGE = 50.f;
+
+static const float PI = 3.14159265359;
+
 struct pointLight
 {
 	float4 position;
@@ -50,23 +56,27 @@ cbuffer perModel : register(b2)
 	float4x4 wvpMatrix;
 };
 
+cbuffer cloudConstBuffer : register(b6)
+{
+	float cloudBedHeightPosition;
+	float cloudDisplacementFactor;
+	float cloudTessellationFactor;
+	float worleyScale;
+	float3 panSpeed;
+	float tile;
+	float dispPower;
+	float occlusionFactor;
+	float backlightFactor;
+	float backlightStrength;
+	float3 backlightColor;
+}
+
 cbuffer globalConstantBuffer : register(b4)
 {
 	float3 playerPosition;
 	float environmentMapBrightness;
 	float time;
 }
-
-struct ps_in
-{
-	float4 pos : SV_POSITION;
-	float2 uv : TEXCOORD;
-	float3 normal : NORMAL;
-	float3 tangent : TANGENT;
-	float3 bitangent : BITANGENT;
-	float4 worldPos : POSITION;
-	float4 shadowPos : SPOS;
-};
 
 cbuffer atmosphericFogConstantBuffer : register(b5)
 {
@@ -83,24 +93,12 @@ cbuffer atmosphericFogConstantBuffer : register(b5)
 	float3 cloudFogColor;
 }
 
-cbuffer cloudConstBuffer : register(b6)
-{
-	float cloudHeightPosition;
-	float cloudDisplacementFactor;
-	float cloudTessellationFactor;
-	float cloudNoiseScale1;
-	float cloudNoiseScale2;
-	float cloudNoiseSpeed1;
-	float cloudNoiseSpeed2;
-	float cloudNoiseBlendFactor;
-}
-
 float3 ApplyFog(float3 originalColor, float eyePosY, float3 eyeToPixel)
 {
 	float pixelDist = length(eyeToPixel);
 	float3 eyeToPixelNorm = eyeToPixel / pixelDist;
 	// Find the fog staring distance to pixel distance
-	float fogDist = max(pixelDist - FogStartDepth, 0.0);
+	float fogDist = max(pixelDist - FogStartDepthSkybox, 0.0);
 	// Distance based fog intensity
 	float fogHeightDensityAtViewer = exp(-FogHeightFalloff * eyePosY);
 	float fogDistInt = fogDist * fogHeightDensityAtViewer;
@@ -119,55 +117,30 @@ float3 ApplyFog(float3 originalColor, float eyePosY, float3 eyeToPixel)
 	return lerp(fogFinalColor, originalColor, fogFinalFactor);
 }
 
-#define NUM_CELLS	16.0	// Needs to be a multiple of TILES!
-#define TILES 		2.0		// Normally set to 1.0 for a creating a tileable texture.
-
-#define SHOW_TILING			// Display yellow lines at tiling locations.
-#define ANIMATE			// Basic movement using texture values.
-
-//float2 Hash2(float p)
-//{
-//#ifdef ANIMATE
-	
-//	float t = frac(time * .0003);
-//	return texture(iChannel0, p * float2(.135 + t, .2325 - t), -100.0).xy;
-	
-//#else
-	
-//	float r = 523.0*sin(dot(p, vec2(53.3158, 43.6143)));
-//	return vec2(fract(15.32354 * r), fract(17.25865 * r));
-	
-//#endif
-//}
-
-//float Cells(in float2 p, in float numCells)
-//{
-//	p *= numCells;
-//	float d = 1.0e10;
-//	for (int xo = -1; xo <= 1; xo++)
-//	{
-//		for (int yo = -1; yo <= 1; yo++)
-//		{
-//			float2 tp = floor(p) + float2(xo, yo);
-//			tp = p - tp - Hash2(fmod(tp, numCells / TILES));
-//			d = min(d, dot(tp, tp));
-//		}
-//	}
-//	return sqrt(d);
-//	//return 1.0 - d;// ...Bubbles.
-//}
+struct ps_in
+{
+	float4 pos : SV_POSITION;
+	float2 uv : TEXCOORD;
+	float3 normal : NORMAL;
+	float3 worldNormal : WNORMAL;
+	float3 tangent : TANGENT;
+	float3 bitangent : BITANGENT;
+	float4 worldPos : POSITION;
+	float4 shadowPos : SPOS;
+	float3 uvWorley : UVWORLEY;
+	float occlusion : OCCLUSION;
+};
 
 TextureCube skyIR : register(t0);
 TextureCube skyPrefilter : register(t1);
 Texture2D brdfLUT : register(t2);
 
-Texture2D perlin32N : register(t3);
-Texture2D perlin64N : register(t5);
-Texture2D displacementORM : register(t6);
-
+Texture3D displacement1 : register(t3);
 SamplerState sampState : SAMPLER : register(s0);
 
-static const float PI = 3.14159265359;
+Texture2D shadowMap : TEXTURE : register(t7);
+
+SamplerComparisonState shadowSampState : SAMPLER1 : register(s1);
 
 float DistributionGGX(float3 N, float3 H, float roughness)
 {
@@ -213,58 +186,60 @@ float3 fresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
 	return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
+float2 texOffset(int u, int v)
+{
+	return float2(u * SHADOW_MAP_DELTA, v * SHADOW_MAP_DELTA);
+}
+
+float computeShadowFactor(float4 shadowPosH)
+{
+	float2 shadowUV = shadowPosH.xy / shadowPosH.w * 0.5f + 0.5f;
+	shadowUV.y = 1.0f - shadowUV.y;
+    
+	float depth = shadowPosH.z / shadowPosH.w; //In NDC, depthFromLightPosToPoint
+    
+	const float delta = SHADOW_MAP_DELTA;
+	float percentLit = 0.0f;
+    
+    //PCF sampling for shadow map
+	const int sampleRange = 3;
+    [unroll]
+	for (int x = -sampleRange; x <= sampleRange; x++)
+	{
+        [unroll]
+		for (int y = -sampleRange; y <= sampleRange; y++)
+		{
+			percentLit += shadowMap.SampleCmpLevelZero(shadowSampState, shadowUV, depth, int2(x, y));
+		}
+	}
+    //Avg of all samples
+	percentLit /= ((sampleRange * 2 + 1) * (sampleRange * 2 + 1));
+    
+	return percentLit;
+};
+
 float4 main(ps_in input) : SV_TARGET
 {
 	float3 N = normalize(input.normal);
-	
-	//float3 normalFromMap = normal1.Sample(sampState, input.uv).xyz * 2 - 1;
-	float3 normalFromMap1 = perlin32N.Sample(sampState, input.uv * cloudNoiseScale1 + (time * cloudNoiseSpeed1)).rgb * 2 - 1;
-	float3 normalFromMap2 = perlin64N.Sample(sampState, input.uv * cloudNoiseScale2 + (time * cloudNoiseSpeed2)).rgb * 2 - 1;
-		
-	//float3 blendedNormal = BlendAngleCorrectedNormals(normalFromMap1, normalFromMap2);
-	//float3 N2 = normalize(normalFromMap1);
-	//N = normalize(lerp(normalFromMap1, normalFromMap2, cloudNoiseBlendFactor));
-	//N = normalize(blendedNormal);
-	
-	float3 colorFromDispMap1 = displacementORM.Sample(sampState, input.uv * cloudNoiseScale1 + (time * cloudNoiseSpeed1)).r;
-	float3 colorFromDispMap2 = displacementORM.Sample(sampState, input.uv * cloudNoiseScale2 + (time * cloudNoiseSpeed2)).g;
-	float finalDisplacement = lerp(colorFromDispMap1, colorFromDispMap2, cloudNoiseBlendFactor);
-	
-	float roughness = 0.9;
-	float3 albedo = float3(0.9f, 0.9f, 0.9f);
-
-	float3 T = normalize(input.tangent - N * dot(input.tangent, N));
-	//float3 B = cross(T, N);
-	float3 B = normalize(input.bitangent - N * dot(input.bitangent, N));
-
-	float3x3 TBN = float3x3(T, B, N);
-	N = normalize(mul(normalFromMap1, TBN));
-	
-	//float3 V = normalize(cameraPosition - input.worldPos);
-	
-	//float yMask = -N.g;
-	
-	//float3 albedo = float3(0.9f, 0.9f, 0.9f);
-	//float3 mixColor = float3(0.33f, 0.83f, 0.79f);
-	
-	//float3 skyLightDirection = normalize(float3(1.0f, 0.0f, 0.0f));
-	//float skyLightDot = dot(-skyLightDirection, N);
-  
-	//float3 irradiance = skyIR.Sample(sampState, N).rgb;
-	//float3 diffuse = lerp(irradiance, albedo, 0.7f);
-	
-	//float backSideMask = skyLightDot;
-	
-	//float3 mixedColor = lerp(diffuse, mixColor, saturate(backSideMask));
-	
 	float3 V = normalize(cameraPosition - input.worldPos);
+	float3 albedo = float3(0.9f, 0.9f, 0.9f);
+	float roughness = 0.9;
+	float metallic = 0;
 	
 	float3 F0 = float3(0.04, 0.04, 0.04);
+	F0 = lerp(F0, albedo, metallic);
 	
+	//float3 T = normalize(input.tangent);
+	//float3 B = normalize(input.bitangent);
+
+	//float3x3 TBN = float3x3(T, B, N);
+	//N = normalize(mul(N, TBN));
+	
+	float NdotLInverted = float3(0, 0, 0);
+	           
+    // Reflectance equation
 	float3 Lo = float3(0.0, 0.0, 0.0);
-	
-	// Directional light calculation
-	{		
+	{
 		// Calculate per-light radiance
 		float3 L = normalize(-skyLight.direction);
 		float3 H = normalize(V + L);
@@ -284,15 +259,15 @@ float4 main(ps_in input) : SV_TARGET
 		
 		// Scale light based on incident light angle relative to normal
 		float NdotL = max(dot(N, L), 0.0);
+		NdotLInverted = 1 - NdotL;
 		
 		// Accumulate radiance
-		//float shadowFactor = computeShadowFactor(input.shadowPos);
+		float shadowFactor = computeShadowFactor(input.shadowPos);
 		
-		//if (length(cameraPosition - input.worldPos) > RANGE)
-		//	shadowFactor = 1.f;
+		if (length(cameraPosition - input.worldPos) > RANGE)
+			shadowFactor = 1.f;
 		
-		//Lo += (kD * albedo / PI + specular) * radiance * NdotL * shadowFactor;
-		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+		Lo += (kD * albedo / PI + specular) * radiance * NdotL * shadowFactor;
 	
 		//Lo = Lo + shadowFactor * saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
 	}
@@ -304,54 +279,40 @@ float4 main(ps_in input) : SV_TARGET
 	float3 kS = F;
 	float3 kD = 1.0 - kS;
   
-	float3 irradiance = skyIR.Sample(sampState, N).rgb;
+	float3 irradiance = skyIR.Sample(sampState, N).rgb * environmentMapBrightness;
 	float3 diffuse = irradiance * albedo;
 	
-	float3 R = reflect(-V, N);
+	//float3 R = reflect(-V, N);
   
-	const float MAX_REFLECTION_LOD = 10.0;
-	float3 prefilteredColor = skyPrefilter.SampleLevel(sampState, R, roughness * MAX_REFLECTION_LOD).rgb;
-	float2 brdf = brdfLUT.Sample(sampState, float2(max(dot(N, V), 0.0f), roughness)).rg;
-	float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-  
-	//ambient = (kD * diffuse + specular) * ao;
-	ambient = (kD * diffuse + specular);
+	//const float MAX_REFLECTION_LOD = 10.0;
+	//float3 prefilteredColor = skyPrefilter.SampleLevel(sampState, R, roughness * MAX_REFLECTION_LOD).rgb * environmentMapBrightness;
+	//float2 brdf = brdfLUT.Sample(sampState, float2(max(dot(N, V), 0.0f), roughness)).rg;
+	//float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 	
-	float3 color = ambient + Lo;
+	float occlusionInverted = 1 - input.occlusion;
+	input.occlusion = pow(input.occlusion, occlusionFactor);
 	
+	ambient = (kD * diffuse) * input.occlusion;
+	Lo *= input.occlusion;
+	
+	//NdotLInverted = pow(NdotLInverted, backlightFactor);
+	occlusionInverted = pow(occlusionInverted, backlightFactor);
+	float backSideMask = dot(skyLight.direction.xyz, N);
+	float backLitCrevasseMask = clamp(occlusionInverted * backSideMask * backlightStrength * skyLight.brightness, 0, 100);
+	float3 finalBacklightColor = backlightColor * backLitCrevasseMask;
+	//return float4(finalBacklightColor, 1.0);
+	//return float4(NdotLInverted, NdotLInverted, NdotLInverted, 1.0);
+	//return float4(backLitCrevasseMask, backLitCrevasseMask, backLitCrevasseMask, 1.0);
+	//return float4(backLitCrevasseMask, backLitCrevasseMask, backLitCrevasseMask, 1.0);
+	
+	float3 color = ambient + Lo + finalBacklightColor;
+
 	// HDR tonemapping
 	color = color / (color + float3(1.0, 1.0, 1.0));
 	// Gamma correction
 	color = pow(color, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
-   
-	//backSideMask *= 4.0f;
 	
-	//float simpleDotColor = dot(N, -skyLightDot);
-
-	//return float4(backSideMask, backSideMask, backSideMask, 1.0);
-	//return float4(backSideMask, backSideMask, backSideMask, 1.0);
-	//return float4(albedo, 1.0);
-	//return float4(color, 1.0);
-	//return float4(input.uv, 0.0, 1.0);
-	
-	//float fDisplacement = normal1.SampleLevel(sampState, input.uv + (time * 0.005), 0).r;
-	//float fDisplacement2 = normal2.SampleLevel(sampState, input.uv + float2(0.133564, 0.785994) + (time * 0.006), 0).r;
-
-	//float fDisplacement2 = normal2.SampleLevel(sampState, input.uv + float2(0.133564, 0.785994), 0).r;
-	
-	//float finalDisplacement = normalize(fDisplacement * fDisplacement2);
-	//float3 finalDisplacement = fDisplacement;
-	
-	float height = input.pos.g / 1000;
-	float shaded = remapToRange(height, 0, 0.1, 0, 1);
-	
-	//float3 simpleDotColorColor = AdjustContrast(float3(simpleDotColor, simpleDotColor, simpleDotColor), 4);
-	
-	//return float4(finalDisplacement.r, 0.0, 0.0, 1.0);
-	
-	
-	
-	
+	// Atmospheric fog
 	//float3 eyeToPixel = input.worldPos.xyz - cameraPosition.xyz;
 	//color = ApplyFog(color, cameraPosition.y, eyeToPixel);
 	
@@ -360,20 +321,5 @@ float4 main(ps_in input) : SV_TARGET
     
 	//color = lerp(color, cloudFogColor, clamp(yRatio, 0, 1) * cloudFogStrength);
 	
-	
-	
-	
-	//return float4(simpleDotColorColor, 1.0);
-	//return float4(N, 1.0);
 	return float4(color, 1.0);
-	//return float4(skyLightDot, skyLightDot, skyLightDot, 1.0);
-	//return float4(finalDisplacement, finalDisplacement, finalDisplacement, 1.0);
-	
-	//float3 contrastN = AdjustContrast(N, 2);
-	//return float4(contrastN, 1.0f);
-	//return float4(color, 1.0f);
-	//return float4(skyLight.direction.xyz, 1.0f);
-	//return float4(shaded, shaded, shaded, 1.0);
-	
-	//return float4(normalFromMap, 1.0f);
 }

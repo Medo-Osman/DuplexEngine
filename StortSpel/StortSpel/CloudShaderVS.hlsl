@@ -33,14 +33,19 @@ cbuffer shadowMap : register(b3)
 	float4x4 shadowMatrix;
 };
 
+SamplerState sampState : SAMPLER : register(s0);
+
 vs_out main(vs_in input)
 {
 	vs_out output;
 	output.pos = mul(float4(input.pos, 1), wvpMatrix);
 	output.uv = input.uv;
-	output.normal = normalize(mul(float4(input.normal, 0), worldMatrix));
-	output.tangent = normalize(mul(float4(input.tangent, 0), worldMatrix));
-	output.bitangent = normalize(mul(float4(input.bitangent, 0), worldMatrix));
+	output.normal = input.normal;
+	//output.tangent = normalize(mul(float4(input.tangent, 0), worldMatrix));
+	output.tangent = input.tangent;
+	//output.bitangent = normalize(mul(float4(input.bitangent, 0), worldMatrix));
+	//output.bitangent = normalize(mul(float4(cross(output.tangent, output.normal), 0), worldMatrix));
+	output.bitangent = cross(output.tangent, output.normal);
 	output.worldPos = mul(float4(input.pos, 1), worldMatrix);
 	
 	output.shadowPos = mul(float4(input.pos, 1), worldMatrix);

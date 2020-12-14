@@ -111,7 +111,7 @@ void Material::setMaterial(bool shaderNeedsResource[5], bool shaderNeedsCBuffer[
 	//TODO: check what is already set and if it should be overwritten, maybe might already be in the drivers
 }
 
-void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
+void Material::addTexture(const WCHAR* fileName, bool isTexture3D, bool isCubeMap)
 {
 	std::wstring wideString = fileName;
 	std::string string = std::string(wideString.begin(), wideString.end());
@@ -125,7 +125,7 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 		m_isDefault = false;
 	}
 
-	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, true);
+	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isTexture3D, isCubeMap, true);
 	//std::cout << "\tMaterial loaded in: " << loadedTexResource->debugName << std::endl;
 	//loadedTexResource->addRef();
 

@@ -12,8 +12,24 @@
 #include"Particles\RainingDogsParticle.h"
 #include"Particles\ScorePickupParticle.h"
 
+static const int debugViewModeCount = 2;
 
-class Renderer
+enum DebugViewMode
+{
+	DEFAULTVIEW,
+	WIREFRAME,
+};
+
+static const std::string DebugModeNames[debugViewModeCount]
+{
+	"Default",
+	"Wireframe",
+};
+
+// Graphics Settings
+static const int MSAAcount = 8;
+
+class Renderer : public InputObserver
 {
 
 private:
@@ -62,6 +78,7 @@ private:
 	Buffer<skeletonAnimationCBuffer> m_skelAnimationConstantBuffer;
 	Buffer<MATERIAL_CONST_BUFFER> m_currentMaterialConstantBuffer;
 	Buffer<globalConstBuffer> m_globalConstBuffer;
+	globalConstBuffer m_globalConstBufferTemp;
 	Buffer<atmosphericFogConstBuffer> m_atmosphericFogConstBuffer;
 	Buffer<cloudConstBuffer> m_cloudConstBuffer;
 
@@ -75,6 +92,7 @@ private:
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_particleRasterizerStatePtr = NULL;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtrWireframe = NULL;
 
 	D3D11_VIEWPORT m_defaultViewport;
 
@@ -98,11 +116,11 @@ private:
 	HWND m_window;
 	Settings m_settings;
 	Camera* m_camera = nullptr;
+
+	int m_debugViewMode = 0;
 	
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 	float m_blackClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
-
-	
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
@@ -153,4 +171,9 @@ public:
 	ID3D11DepthStencilView* getDepthStencilView();
 	void printLiveObject();
 
+	globalConstBuffer getGlobalConstBuffer();
+
+
+	// Inherited via InputObserver
+	virtual void inputUpdate(InputData& inputData) override;
 };

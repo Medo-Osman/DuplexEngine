@@ -90,6 +90,8 @@ public:
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	Vector4& getSkyLightDir();
 	void setSkyLightDir(Vector4 dir);
+	void setSkyLightColor(Vector4 color);
+	void setSkyLightIntensity(float intensity);
 
 	Input* getInput();
 

@@ -627,10 +627,16 @@
     <FxCompile Include="CloudShaderVS.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
+    <FxCompile Include="TransparencyTestPS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="UtilityLibrary.hlsli">
+      <Filter>Resource Files\Shader</Filter>
+    </None>
+    <None Include="DebugViewModes.hlsli">
       <Filter>Resource Files\Shader</Filter>
     </None>
   </ItemGroup>

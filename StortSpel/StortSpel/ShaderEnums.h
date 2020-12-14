@@ -18,6 +18,7 @@ enum ShaderProgramsEnum
 	LUCY_FACE,
 	RAINBOW,
 	CLOUD,
+	TRANSPARENTTEST,
 	NONE
 };
 
@@ -160,6 +161,7 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 
 	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD] = new ShaderProgram
 	(
+		//{ L"CloudShaderVS.hlsl", L"CloudShaderHS.hlsl", L"CloudShaderDS.hlsl", L"null", L"CloudShaderPS.hlsl" },
 		{ L"CloudShaderVS.hlsl", L"CloudShaderHS.hlsl", L"CloudShaderDS.hlsl", L"null", L"CloudShaderPS.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST,
 		VertexLayoutType::LRSMVertexLayout,
@@ -167,5 +169,15 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 	);
 
 	// Allow binding of a displacement map to the domain shader
+	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Vertex, true);
 	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Domain, true);
+	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Pixel, true);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::TRANSPARENTTEST] = new ShaderProgram
+	(
+		{ L"VertexShaderBasic.hlsl", L"null", L"null", L"null", L"TransparencyTestPS.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
 }

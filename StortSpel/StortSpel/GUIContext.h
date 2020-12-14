@@ -20,6 +20,10 @@ public:
 
 		//Range
 		m_rangeMapping[(char)'move'] = Range::REL; //Mouse position, can be used for UI and such. Leave it in here for example.
+
+		// Debug mode controls
+		m_actionMapping['\x72'] = Action::PREVIOUSDEBUGVIEWMODE;
+		m_actionMapping['\x73'] = Action::NEXTDEBUGVIEWMODE;
 		
 	}
 };

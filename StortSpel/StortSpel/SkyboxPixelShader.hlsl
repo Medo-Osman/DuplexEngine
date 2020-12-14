@@ -11,6 +11,13 @@ cbuffer cameraBuffer : register(b1)
 	float4 cameraPosition;
 }
 
+cbuffer globalConstantBuffer : register(b4)
+{
+	float3 playerPosition;
+	float environmentMapBrightness;
+	float time;
+}
+
 cbuffer atmosphericFogConstantBuffer : register(b5)
 {
 	float3 FogColor;
@@ -23,7 +30,6 @@ cbuffer atmosphericFogConstantBuffer : register(b5)
 	float cloudFogHeightStart;
 	float cloudFogHeightEnd;
 	float cloudFogStrength;
-
 }
 
 float3 ApplyFog(float3 originalColor, float eyePosY, float3 eyeToPixel)
@@ -55,10 +61,18 @@ SamplerState textureCubeSampler : register(s0);
 
 float4 main(ps_in input) : SV_TARGET
 {
-	float res = mul(dot(float3(0, 1, 0), normalize(input.pos)) + 1, 0.5);
+	//float res = mul(dot(float3(0, 1, 0), normalize(input.pos)) + 1, 0.5);
 	//float3 skyboxColor = skyboxTexture.Sample(textureCubeSampler, float3(0, -res, 0.75)).xyz;
 	//return float4(res,0,0,1);
-	return float4(skyboxTexture.Sample(textureCubeSampler, normalize(input.pos)).xyz, 1);
+	
+	float3 color = skyboxTexture.Sample(textureCubeSampler, normalize(input.pos)).xyz * environmentMapBrightness;
+	
+	// HDR tonemapping
+	color = color / (color + float3(1.0, 1.0, 1.0));
+	// Gamma correction
+	color = pow(color, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
+	
+	return float4(skyboxTexture.Sample(textureCubeSampler, normalize(input.pos)).xyz * environmentMapBrightness, 1);
     
 	//float yPos = input.pos.y;
 	//float yRatio = 1 - remapToRange(yPos, -.2, 0.15, 0, 1);

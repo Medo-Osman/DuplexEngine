@@ -100,19 +100,24 @@ struct globalConstBuffer
     Vector3 playerPosition = { 0.0f, 0.0f, 0.0f };
     float environmentMapBrightness = 1.0f;
     float time = 1.0f;
-    Vector3 padding;
+    float globalTimeDilation = 1.0f;
+    Vector2 padding;
 };
 
 struct cloudConstBuffer
 {
-    float cloudHeightPosition = 0.0f;
-    float cloudDisplacementFactor = 7.0f;
+    float cloudBedHeightPosition = 0.0f;
+    float cloudDisplacementFactor = 100.0f;
     float cloudTessellationFactor = 14.99f;
-    float noiseScale1 = 11.0f;
-    float noiseScale2 = 5.0f;
-    float noiseSpeed1 = 0.002f;
-    float noiseSpeed2 = 0.005f;
-    float noiseBlendFactor = 0.0f;
+    float worleyScale = 0.02f;
+    Vector3 panSpeed = { 0.0f, -0.055f, 0.0f };
+    float tile = 1.0f;
+    float dispPower = 0.1f;
+    float occlusionFactor = 1.0f;
+    float backlightFactor = 5.0f;
+    float backlightStrength = 1.0f;
+    Vector3 backlightColor = { 1.0f, 0.156f, 0.024f };
+    float smallLargeBlend = 0.5f;
 };
 
 //float cloudHeightPosition = 0.0f;

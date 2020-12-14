@@ -96,7 +96,7 @@ void ResourceHandler::checkResources()
 	*/
 }
 
-TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isCubeMap, bool referenceBasedDelete)
+TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isTexture3D, bool isCubeMap, bool referenceBasedDelete)
 {
 	std::wstring wideString = texturePath;
 	std::string string = std::string(wideString.begin(), wideString.end());
@@ -125,6 +125,10 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isC
 				//hr = CreateDDSTextureFromFileEx(m_devicePtr, path.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
 				hr = CreateDDSTextureFromFileEx(m_devicePtr, m_deferredDContextPtr, path.c_str(), 5, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
 				m_deferredDContextPtr->FinishCommandList(TRUE, &m_commandList);
+			}
+			else if (isTexture3D == true)
+			{
+				hr = CreateDDSTextureFromFileEx(m_devicePtr, m_dContextPtr, path.c_str(), 5, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_DIMENSION_TEXTURE3D, false, NULL, &srv, nullptr);
 			}
 			else
 			{

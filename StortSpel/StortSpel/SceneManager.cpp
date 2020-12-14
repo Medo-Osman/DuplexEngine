@@ -241,8 +241,8 @@ void SceneManager::inputUpdate(InputData& inputData)
 			{
 				m_nextScene = new Scene();
 				
-				std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Skyway_1", m_nextSceneReady);
-				//std::thread sceneLoaderThread = std::thread(Scene::loadMaterialTest, m_nextScene, m_nextSceneReady);
+				//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Skyway_1", m_nextSceneReady);
+				std::thread sceneLoaderThread = std::thread(Scene::loadSimpleTest, m_nextScene, m_nextSceneReady);
 				sceneLoaderThread.detach();
 				//Scene::loadScene(m_nextScene, "levelMeshTest1", m_nextSceneReady);
 

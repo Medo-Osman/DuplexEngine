@@ -23,6 +23,8 @@ public:
 		m_actionMapping['F'] = Action::USEPICKUP;
 		m_actionMapping[(char)'\x24'] = Action::RESPAWN; //Home 
 		m_actionMapping['\x1B'] = Action::MENU; // Escape
+		m_actionMapping['\x72'] = Action::PREVIOUSDEBUGVIEWMODE;
+		m_actionMapping['\x73'] = Action::NEXTDEBUGVIEWMODE;
 
 		//States
 		m_stateMapping['W'] = State::WALK_FORWARD;

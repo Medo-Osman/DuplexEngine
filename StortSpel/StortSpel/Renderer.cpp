@@ -135,7 +135,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
-	textureDesc.SampleDesc.Count = 2;
+	textureDesc.SampleDesc.Count = MSAAcount;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
 
 	ID3D11Texture2D* geometryTexture;
@@ -233,6 +233,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	cameraBufferStruct cameraBufferStruct;
 	m_cameraBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cameraBufferStruct, 1);
 	m_dContextPtr->PSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
+	m_dContextPtr->HSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
 
 	m_dContextPtr->PSSetConstantBuffers(2, 1, m_perObjectConstantBuffer.GetAddressOf());
 
@@ -269,6 +270,64 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	ImGui::StyleColorsDark();
 
+	io.Fonts->AddFontFromFileTTF("../res/fonts/Ruda-Bold.ttf", 18.0f);
+
+	ImGuiStyle* style = &ImGui::GetStyle();
+	style->FrameRounding = 4.0f;
+	style->WindowBorderSize = 0.0f;
+	style->PopupBorderSize = 0.0f;
+	style->GrabRounding = 4.0f;
+
+	ImVec4* colors = ImGui::GetStyle().Colors;
+	colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+	colors[ImGuiCol_TextDisabled] = ImVec4(0.73f, 0.75f, 0.74f, 1.00f);
+	colors[ImGuiCol_WindowBg] = ImVec4(0.09f, 0.09f, 0.09f, 0.94f);
+	colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
+	colors[ImGuiCol_Border] = ImVec4(0.20f, 0.20f, 0.20f, 0.50f);
+	colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_FrameBg] = ImVec4(0.71f, 0.39f, 0.39f, 0.54f);
+	colors[ImGuiCol_FrameBgHovered] = ImVec4(0.84f, 0.66f, 0.66f, 0.40f);
+	colors[ImGuiCol_FrameBgActive] = ImVec4(0.84f, 0.66f, 0.66f, 0.67f);
+	colors[ImGuiCol_TitleBg] = ImVec4(0.47f, 0.22f, 0.22f, 0.67f);
+	colors[ImGuiCol_TitleBgActive] = ImVec4(0.47f, 0.22f, 0.22f, 1.00f);
+	colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.47f, 0.22f, 0.22f, 0.67f);
+	colors[ImGuiCol_MenuBarBg] = ImVec4(0.34f, 0.16f, 0.16f, 1.00f);
+	colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
+	colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+	colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+	colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
+	colors[ImGuiCol_CheckMark] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+	colors[ImGuiCol_SliderGrab] = ImVec4(0.71f, 0.39f, 0.39f, 1.00f);
+	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.84f, 0.66f, 0.66f, 1.00f);
+	colors[ImGuiCol_Button] = ImVec4(0.47f, 0.22f, 0.22f, 0.65f);
+	colors[ImGuiCol_ButtonHovered] = ImVec4(0.71f, 0.39f, 0.39f, 0.65f);
+	colors[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.20f, 0.20f, 0.50f);
+	colors[ImGuiCol_Header] = ImVec4(0.71f, 0.39f, 0.39f, 0.54f);
+	colors[ImGuiCol_HeaderHovered] = ImVec4(0.84f, 0.66f, 0.66f, 0.65f);
+	colors[ImGuiCol_HeaderActive] = ImVec4(0.84f, 0.66f, 0.66f, 0.00f);
+	colors[ImGuiCol_Separator] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
+	colors[ImGuiCol_SeparatorHovered] = ImVec4(0.71f, 0.39f, 0.39f, 0.54f);
+	colors[ImGuiCol_SeparatorActive] = ImVec4(0.71f, 0.39f, 0.39f, 0.54f);
+	colors[ImGuiCol_ResizeGrip] = ImVec4(0.71f, 0.39f, 0.39f, 0.54f);
+	colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.84f, 0.66f, 0.66f, 0.66f);
+	colors[ImGuiCol_ResizeGripActive] = ImVec4(0.84f, 0.66f, 0.66f, 0.66f);
+	colors[ImGuiCol_Tab] = ImVec4(0.71f, 0.39f, 0.39f, 0.54f);
+	colors[ImGuiCol_TabHovered] = ImVec4(0.84f, 0.66f, 0.66f, 0.66f);
+	colors[ImGuiCol_TabActive] = ImVec4(0.84f, 0.66f, 0.66f, 0.66f);
+	colors[ImGuiCol_TabUnfocused] = ImVec4(0.07f, 0.10f, 0.15f, 0.97f);
+	colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.14f, 0.26f, 0.42f, 1.00f);
+	colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+	colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+	colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+	colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+	colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+	colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+	colors[ImGuiCol_NavHighlight] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
 
@@ -299,7 +358,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.BufferDesc.RefreshRate.Numerator = 60; //IF vSync is enabled and fullscreen, this specifies the max refreshRate
 	sChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	sChainDesc.SampleDesc.Quality = 0;
-	sChainDesc.SampleDesc.Count = 2;
+	sChainDesc.SampleDesc.Count = MSAAcount;
 	sChainDesc.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_DISCARD; //What to do with buffer when swap occur
 	sChainDesc.OutputWindow = m_window;
 
@@ -344,7 +403,7 @@ HRESULT Renderer::createDepthStencil()
 	depthTextureDesc.MipLevels = 1;
 	depthTextureDesc.MiscFlags = 0;
 	depthTextureDesc.SampleDesc.Quality = 0;
-	depthTextureDesc.SampleDesc.Count = 2;
+	depthTextureDesc.SampleDesc.Count = MSAAcount;
 	depthTextureDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
 
 	ID3D11Texture2D* depthStencilBufferPtr;
@@ -792,7 +851,11 @@ void Renderer::rasterizerSetup()
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
 
+	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
+	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 
+	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtrWireframe.GetAddressOf());
+	assert(SUCCEEDED(hr) && "Error creating rasterizerStateWireframe");
 
 	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 
@@ -812,7 +875,6 @@ void Renderer::update(const float& dt)
 
 
 	// Constant buffer updates and settings
-	static globalConstBuffer globalConstBufferTemp;
 	static atmosphericFogConstBuffer fogConstBufferTemp;
 	static lightBufferStruct lightBufferTemp;
 	static cloudConstBuffer cloudConstBufferTemp;
@@ -821,39 +883,52 @@ void Renderer::update(const float& dt)
 	static float tempSunDirectionY = -1.0f;
 	static float tempSunDirectionZ = 1.0f;
 
-	//float cloudHeightLevel = 0.0f;
-	//float cloudDisplacementFactor = 5.0f;
-	//float cloudTessellationFactor = 5.0f;
-	//float cloudScale1 = 5.0f;
-	//float cloudScale2 = 5.0f;
-	//float cloudSpeed1 = 0.002f;
-	//float cloudSpeed2 = 0.005f;
-	//float cloudBlendFactor = 0.5f;
-
 	if (DEBUGMODE)
 	{
-		ImGui::SetNextWindowPos(ImVec2(1300.0f, 200.0f));
-		ImGui::SetNextWindowSize(ImVec2(550.0f, 500.0f));
+		ImGui::SetNextWindowPos(ImVec2(1370.0f, 0.0f));
+		ImGui::SetNextWindowSize(ImVec2(550.0f, 60.0f));
+		ImGui::Begin("Game Settings");
+
+		ImGui::SliderFloat("Global time dilation", (float*)&m_globalConstBufferTemp.globalTimeDilation, 0.0f, 5.0f);
+
+		ImGui::End();
+
+		ImGui::SetNextWindowPos(ImVec2(1370.0f, 60.0f));
+		ImGui::SetNextWindowSize(ImVec2(550.0f, 1020.0f));
 		ImGui::Begin("Global Shader Settings");
 
 		ImGui::Text("");
-		ImGui::Text("Clouds");
-		ImGui::InputFloat("Height Position", (float*)&cloudConstBufferTemp.cloudHeightPosition);
-		ImGui::SliderFloat("Displacement Factor", (float*)&cloudConstBufferTemp.cloudDisplacementFactor, 0.01f, 20.0f);
-		ImGui::SliderFloat("Tessellation Factor", (float*)&cloudConstBufferTemp.cloudTessellationFactor, 0.01f, 14.99f);
-		ImGui::SliderFloat("Noise 1 Scale", (float*)&cloudConstBufferTemp.noiseScale1, 0.01f, 20.0f);
-		ImGui::SliderFloat("Noise 2 Scale", (float*)&cloudConstBufferTemp.noiseScale2, 0.01f, 20.0f);
-		ImGui::SliderFloat("Noise 1 Speed", (float*)&cloudConstBufferTemp.noiseSpeed1, 0.0f, 0.01f);
-		ImGui::SliderFloat("Noise 2 Speed", (float*)&cloudConstBufferTemp.noiseSpeed2, 0.0f, 0.01f);
-		ImGui::SliderFloat("Noise Blend Factor", (float*)&cloudConstBufferTemp.noiseBlendFactor, 0.0f, 1.0f);
+		ImGui::Text("Debug Mode");
+		ImGui::Text("Index: %d", m_debugViewMode);
+		ImGui::Text(DebugModeNames[m_debugViewMode].c_str());
 
 		ImGui::Text("");
+		ImGui::Text("Clouds");
+		ImGui::InputFloat("Height Position", (float*)&cloudConstBufferTemp.cloudBedHeightPosition);
+		ImGui::SliderFloat("Displacement Factor", (float*)&cloudConstBufferTemp.cloudDisplacementFactor, 0.01f, 200.0f);
+		ImGui::SliderFloat("Tessellation Factor", (float*)&cloudConstBufferTemp.cloudTessellationFactor, 0.01f, 14.99f);
+		ImGui::SliderFloat("Worley Noise Scale", (float*)&cloudConstBufferTemp.worleyScale, 0.0f, 0.1f);
+		ImGui::Text("Pan Speed");
+		ImGui::SliderFloat("X", (float*)&cloudConstBufferTemp.panSpeed.x, -1.0f, 1.0f);
+		ImGui::SliderFloat("Y", (float*)&cloudConstBufferTemp.panSpeed.y, -1.0f, 1.0f);
+		ImGui::SliderFloat("Z", (float*)&cloudConstBufferTemp.panSpeed.z, -1.0f, 1.0f);
+		ImGui::SliderFloat("Tiling", (float*)&cloudConstBufferTemp.tile, 0.0f, 20.0f);
+		ImGui::SliderFloat("Disp. Power", (float*)&cloudConstBufferTemp.dispPower, 0.0f, 2.0f);
+		ImGui::SliderFloat("Occlusion Factor", (float*)&cloudConstBufferTemp.occlusionFactor, 0.0f, 10.0f);
+		ImGui::SliderFloat("Backlight Factor", (float*)&cloudConstBufferTemp.backlightFactor, 0.0f, 10.0f);
+		ImGui::SliderFloat("Backlight Strength", (float*)&cloudConstBufferTemp.backlightStrength, 0.0f, 10.0f);
+		ImGui::ColorEdit3("Backlight Color", (float*)&cloudConstBufferTemp.backlightColor);
+
+		ImGui::Text("");
+		ImGui::Text("Lighting");
 		ImGui::Text("Directional Light");
 		ImGui::SliderFloat("Intensity", (float*)&lightBufferTemp.skyLight.brightness, 0.0f, 100.0f);
 		ImGui::SliderFloat("Sun direction X", (float*)&tempSunDirectionX, -1.0f, 1.0f);
 		ImGui::SliderFloat("Sun direction Y", (float*)&tempSunDirectionY, -1.0f, 1.0f);
 		ImGui::SliderFloat("Sun direction Z", (float*)&tempSunDirectionZ, -1.0f, 1.0f);
 		ImGui::ColorEdit3("Color:", (float*)&lightBufferTemp.skyLight.color);
+		ImGui::Text("Misc.");
+		ImGui::SliderFloat("Environment Map Strength", (float*)&m_globalConstBufferTemp.environmentMapBrightness, 0.0f, 10.0f);
 
 		ImGui::Text("");
 		ImGui::Text("Atmospheric Fog Settings");
@@ -876,14 +951,15 @@ void Renderer::update(const float& dt)
 	// Misc updates
 	lightBufferTemp.skyLight.direction = { tempSunDirectionX, tempSunDirectionY, tempSunDirectionZ };
 	fogConstBufferTemp.FogSunDir = lightBufferTemp.skyLight.direction;
-	globalConstBufferTemp.time += dt;
+	m_globalConstBufferTemp.time += dt;
 
-	m_globalConstBuffer.updateBuffer(m_dContextPtr.Get(), &globalConstBufferTemp);
+	m_globalConstBuffer.updateBuffer(m_dContextPtr.Get(), &m_globalConstBufferTemp);
 	m_atmosphericFogConstBuffer.updateBuffer(m_dContextPtr.Get(), &fogConstBufferTemp);
-	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &lightBufferTemp);
 	m_cloudConstBuffer.updateBuffer(m_dContextPtr.Get(), &cloudConstBufferTemp);
 
 	Engine::get().setSkyLightDir({ tempSunDirectionX, tempSunDirectionY, tempSunDirectionZ, 0 });
+	Engine::get().setSkyLightColor({ lightBufferTemp.skyLight.color });
+	Engine::get().setSkyLightIntensity({ lightBufferTemp.skyLight.brightness });
 }
 
 void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
@@ -904,8 +980,6 @@ void Renderer::render()
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
 
-	
-
 	m_dContextPtr->ClearRenderTargetView(m_geometryRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_finalRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_glowMapRenderTargetViewPtr.Get(), m_blackClearColor);
@@ -922,9 +996,6 @@ void Renderer::render()
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	//m_rTargetViewsArray[0] = m_finalRenderTargetViewPtr.Get();
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
-
-	
-	
 
 	//End of particles
 	// Skybox constant buffer:
@@ -962,10 +1033,17 @@ void Renderer::render()
 
 	//Run ordinary pass
 	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
-	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+
+	if (m_debugViewMode == 1)
+		m_dContextPtr->RSSetState(m_rasterizerStatePtrWireframe.Get());
+	else
+		m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 	renderScene(&frust, &wvp, &V, &P);
+
+	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
 	m_dContextPtr->PSSetShaderResources(0, 1, srv);
@@ -997,7 +1075,6 @@ void Renderer::render()
 		ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 		ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
 		ImGui::End();
-
 	}
 
 	// Bloom Filter
@@ -1041,4 +1118,29 @@ void Renderer::printLiveObject()
 	HRESULT hr = m_debugPtr->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 	assert(SUCCEEDED(hr));
 #endif
+}
+
+globalConstBuffer Renderer::getGlobalConstBuffer()
+{
+	return m_globalConstBufferTemp;
+}
+
+void Renderer::inputUpdate(InputData& inputData)
+{
+	for (size_t i = 0; i < inputData.actionData.size(); i++)
+	{
+		switch (inputData.actionData[i])
+		{
+		case PREVIOUSDEBUGVIEWMODE:
+			if (m_debugViewMode > 0)
+				m_debugViewMode--;
+			break;
+		case NEXTDEBUGVIEWMODE:
+			if (m_debugViewMode < debugViewModeCount - 1)
+			m_debugViewMode++;
+			break;
+		default:
+			break;
+		}
+	}
 }

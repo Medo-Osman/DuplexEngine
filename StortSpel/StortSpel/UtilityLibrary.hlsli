@@ -96,3 +96,67 @@ float3 BlendAngleCorrectedNormals(float3 baseNormal, float3 AdditionalNormal)
 	
 	return normalResult1 - normalResult2;
 }
+
+float AddComponents(float3 vInput)
+{
+	return float(vInput.r + vInput.g + vInput.b);
+}
+
+float3 CheapContrast_RGB(float Contrast, float3 vInput)
+{
+	float A = 0 - Contrast;
+	float3 A3 = float3(A, A, A);
+	float B = Contrast + 1;
+	
+	float3 result = lerp(A3, B, vInput);
+	return clamp(result, 0, 1);
+}
+
+//float2 TriPlanarUV(float3 objPos, float3 normal, float3x3 TBNMatrix)
+//{
+//	float3 resultA = abs(objPos) / 1;
+//	float2 AxRG = resultA.rg;
+//	float2 AxGB = resultA.bg;
+//	float2 AxRB = resultA.rb;
+	
+//	//float3 B = pow(abs(input.normal), 160);
+//	float3 B = abs(normal);
+//	float3 C = B / AddComponents(B);
+//	float3 afterContrast = CheapContrast_RGB(0, C);
+	
+//	float2 result1 = AxRG * afterContrast.b;
+//	float2 result2 = AxGB * afterContrast.r;
+//	float2 result3 = AxRB * afterContrast.g;
+
+//	float2 add1 = result2 + result3;
+//	float2 finalTriPlanarUV = result1 + add1;
+	
+//	return finalTriPlanarUV;
+//}
+
+//float3 TriPlanarUVColor(float3 pixelWorldPos, float3 worldNormal, Texture2D texture, SamplerState textureSampler)
+//{
+//	float2 uvXY = pixelWorldPos.xy;
+//	float2 uvZY = pixelWorldPos.zy;
+//	float2 uvXZ = pixelWorldPos.xz;
+	
+//	float3 sampleXY = texture.Sample(textureSampler, uvXY).rgb;
+//	float3 sampleZY = texture.Sample(textureSampler, uvZY).rgb;
+//	float3 sampleXZ = texture.Sample(textureSampler, uvXZ).rgb;
+
+//	return (sampleXY + sampleZY + sampleXZ) * 0.333333333333;
+//}
+
+
+//float3 TriPlanarUVGrayscale(float3 pixelWorldPos, float3 worldNormal, Texture2D texture, SamplerState textureSampler, int3 sampleChannel)
+//{
+//	float2 uvXY = pixelWorldPos.xy;
+//	float2 uvZY = pixelWorldPos.zy;
+//	float2 uvXZ = pixelWorldPos.xz;
+	
+//	float3 sampleXY = texture.Sample(textureSampler, uvXY).rgb * sampleChannel;
+//	float3 sampleZY = texture.Sample(textureSampler, uvZY).rgb * sampleChannel;
+//	float3 sampleXZ = texture.Sample(textureSampler, uvXZ).rgb * sampleChannel;
+
+//	return (sampleXY + sampleZY + sampleXZ) * 0.333333333333;
+//}
