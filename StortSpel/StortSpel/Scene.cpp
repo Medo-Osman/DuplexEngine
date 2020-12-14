@@ -2329,11 +2329,11 @@ Entity* Scene::addTrampoline(Vector3 position)
 	trampoline->setPosition(position);
 	trampoline->setScale(0.5f, 0.5f, 0.5f);
 	addComponent(trampoline, "mesh1", //Dun edit diz them nems plz.
-		new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+		new MeshComponent("Trampolin__Bot.lrm", Material({ L"T_TrampolinBot_P_D.png" })));
 	addComponent(trampoline, "mesh2",
-		new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
+		new MeshComponent("Trampolin__Spring.lrm", Material({ L"T_TrampolinBot_P_D.png" })));
 	addComponent(trampoline, "mesh3",
-		new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
+		new MeshComponent("Trampolin__Top.lrm", Material({ L"T_Top_P_D.png" })));
 
 
 	createNewPhysicsComponent(trampoline, false);
