@@ -16,55 +16,62 @@ Renderer::Renderer()
 
 void Renderer::drawBoundingVolumes()
 {
-	//m_dContextPtr->OMSetBlendState(m_states->Opaque(), nullptr, 0xFFFFFFFF);
-	//m_dContextPtr->OMSetDepthStencilState(m_states->DepthNone(), 0);
-	//m_dContextPtr->RSSetState(m_states->CullNone());
+	m_dContextPtr->OMSetBlendState(m_states->Opaque(), nullptr, 0xFFFFFFFF);
+	m_dContextPtr->OMSetDepthStencilState(m_states->DepthNone(), 0);
+	m_dContextPtr->RSSetState(m_states->CullNone());
 
-	//m_dContextPtr->IASetInputLayout(m_inputLayout.Get());
+	m_dContextPtr->IASetInputLayout(m_inputLayout.Get());
 
-	//m_batch->Begin();
+	m_batch->Begin();
 
-	//this->m_effect->SetView(m_switchCamera ? m_testCamera.getViewMatrix() : m_camera->getViewMatrix());
-	//this->m_effect->SetProjection(m_switchCamera ? m_testCamera.getProjectionMatrix() : m_camera->getProjectionMatrix());
-	//this->m_effect->Apply(m_dContextPtr.Get());
+	this->m_effect->SetView(m_switchCamera ? m_testCamera.getViewMatrix() : m_camera->getViewMatrix());
+	this->m_effect->SetProjection(m_switchCamera ? m_testCamera.getProjectionMatrix() : m_camera->getProjectionMatrix());
+	this->m_effect->Apply(m_dContextPtr.Get());
 
 
-	//for (int i = 0; i < (int)m_boundingVolumes.size(); i++)
-	//{
-	//	BoundingVolumeHolder bvh = m_boundingVolumes[i];
-	//	switch (bvh.getBoundingVolumeType())
-	//	{
-	//	case BoundingVolumeTypes::FRUSTUM:
-	//		DX::Draw(m_batch.get(), *(BoundingFrustum*)bvh.getBoundingVolumePtr(), Colors::Red);
-	//		break;
-	//	case BoundingVolumeTypes::BOX:
-	//		DX::Draw(m_batch.get(), *(BoundingBox*)bvh.getBoundingVolumePtr(), Colors::Blue);
-	//		break;
-	//	case BoundingVolumeTypes::ORIENTEDBOX:
-	//	{
-	//		BoundingOrientedBox b = *(BoundingOrientedBox*)bvh.getBoundingVolumePtr();
-	//		DX::Draw(m_batch.get(), b, Colors::Cyan);
-	//		break;
-	//	}
-	//	case BoundingVolumeTypes::SPHERE:
-	//		DX::Draw(m_batch.get(), *(DirectX::BoundingSphere*)bvh.getBoundingVolumePtr(), Colors::Blue);
-	//		break;
-	//	default:
-	//		break;
-	//	}
+	for (int i = 0; i < (int)m_boundingVolumes.size(); i++)
+	{
+		BoundingVolumeHolder bvh = m_boundingVolumes[i];
+		switch (bvh.getBoundingVolumeType())
+		{
+		case BoundingVolumeTypes::FRUSTUM:
+			DX::Draw(m_batch.get(), *(BoundingFrustum*)bvh.getBoundingVolumePtr(), Colors::Red);
+			break;
+		case BoundingVolumeTypes::BOX:
+			DX::Draw(m_batch.get(), *(BoundingBox*)bvh.getBoundingVolumePtr(), Colors::Blue);
+			break;
+		case BoundingVolumeTypes::ORIENTEDBOX:
+		{
+			BoundingOrientedBox b = *(BoundingOrientedBox*)bvh.getBoundingVolumePtr();
+			DX::Draw(m_batch.get(), b, Colors::Cyan);
+			break;
+		}
+		case BoundingVolumeTypes::SPHERE:
+			DX::Draw(m_batch.get(), *(DirectX::BoundingSphere*)bvh.getBoundingVolumePtr(), Colors::Blue);
+			break;
+		default:
+			break;
+		}
 
-	//	delete bvh.getBoundingVolumePtr();
-	//}
+		delete bvh.getBoundingVolumePtr();
+	}
 
-	//m_batch->End();
+	m_batch->End();
 
-	//m_boundingVolumes.clear();
+	m_boundingVolumes.clear();
 
-	//this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
-	//m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
+	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
-	//m_compiledShaders[ShaderProgramsEnum::PBRTEST]->setShaders();
-	//m_currentSetShaderProg = ShaderProgramsEnum::PBRTEST;
+	m_compiledShaders[ShaderProgramsEnum::PBRTEST]->setShaders();
+	m_currentSetShaderProg = ShaderProgramsEnum::PBRTEST;
+
+	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(2, 1, m_perObjectConstantBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(3, 1, m_currentMaterialConstantBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(5, 1, m_atmosphericFogConstBuffer.GetAddressOf());
 
 }
 
@@ -902,7 +909,6 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 	{
 		renderMeshComponent(frust, wvp, V, P, meshComponent, false);
 	}
-
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 	m_dContextPtr->PSSetShaderResources(7, 1, nullSRV);
 }
@@ -1225,6 +1231,9 @@ void Renderer::render()
 
 
 	m_swapChainPtr->Present(0, 0);
+
+	
+
 }
 
 ID3D11Device* Renderer::getDevice()
