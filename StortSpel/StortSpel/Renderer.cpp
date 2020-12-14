@@ -925,7 +925,7 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 
 	//Shadow
 	m_shadowMap->bindResourcesAndSetNullRTV(m_dContextPtr.Get());
-	m_shadowMap->computeShadowMatrix(Engine::get().getCameraPtr()->getPosition());
+	m_shadowMap->computeShadowMatrix(m_camera->getPosition());
 
 	shadowBuffer shadowBufferStruct;
 	shadowBufferStruct.lightProjMatrix = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);
@@ -1036,15 +1036,19 @@ void Renderer::update(const float& dt)
 		{
 			m_useFlyingCamera = !m_useFlyingCamera;
 			Engine::get().getPlayerPtr()->m_ignoreInput = m_useFlyingCamera;
+
+			m_camera = &m_flyingCamera;
+			m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
+			m_camera->frustumCullingOn = false;
+			m_camera->setPosition(Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation());
 		}
 	}
 
 	if (m_useFlyingCamera)
 	{
-		m_camera = &m_flyingCamera;
-		m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
+		
 		m_camera->update(dt);
-		m_camera->frustumCullingOn = false;
+		
 		
 	}
 	else

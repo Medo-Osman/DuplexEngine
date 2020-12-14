@@ -220,6 +220,7 @@ void Camera::inputUpdate(InputData& inputData)
 				if (inputData.actionData[i] == Action::SCROLL_DOWN)
 				{
 					targetFov += 1;
+					m_sensitivity = 0.05f * abs(targetFov / 80.f);
 					//setProjectionMatrix(fovAmount, width, const float& nearZ, const float& farZ)
 				}
 
@@ -227,6 +228,7 @@ void Camera::inputUpdate(InputData& inputData)
 				{
 					if (targetFov > 1)
 						targetFov -= 1;
+					m_sensitivity = 0.05f * abs(targetFov / 80.f);
 				}
 			}
 			
