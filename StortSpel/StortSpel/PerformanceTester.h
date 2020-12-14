@@ -100,8 +100,8 @@ public:
 		float vram = checkVram();
 		float ram = checkRam();
 		
-		ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
-		ImGui::SetNextWindowSize(ImVec2(250.f, 70.f));
+		ImGui::SetNextWindowPos(ImVec2(500.f, 0.f));
+		ImGui::SetNextWindowSize(ImVec2(250.f, 60.f));
 
 		double time = m_internalTimer.timeElapsed();
 		if (time >= m_sampleFrequency)

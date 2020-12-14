@@ -67,9 +67,9 @@ class Player : public InputObserver, public PhysicsObserver, public GUIObserver,
 {
 private:
     //WALK CONFIG
-    const float PLAYER_MAX_SPEED = 8.f;
-    const float PLAYER_ACCELERATION = 30.f; // times dt
-    const float PLAYER_DECELERATION = 15.f; // times dt
+    const float PLAYER_MAX_SPEED = 5.f;
+    const float PLAYER_ACCELERATION = 40.f; // times dt
+    const float PLAYER_DECELERATION = 20.f; // times dt
     const float PLAYER_ROTATION_SPEED = 0.08f;
     float m_verticalMultiplier = 0.f;
     float m_horizontalMultiplier = 0.f;
@@ -77,10 +77,10 @@ private:
 
     //JUMP CONFIG
     const float JUMP_SPEED = 70.f;
-    const float JUMP_START_SPEED = 4.f;
+    const float JUMP_START_SPEED = 6.f;
     //const float JUMP_SPEED = 10.f;
-    const float PLAYER_AIR_ACCELERATION = 20.f;
-    const float PLAYER_AIR_DECELERATION = 15.f;
+    const float PLAYER_AIR_ACCELERATION = 30.f;
+    const float PLAYER_AIR_DECELERATION = 20.f;
     const float JUMP_HEIGHT_FORCE_LIMIT = 1.0f;
     float m_jumpLimit = JUMP_HEIGHT_FORCE_LIMIT;
 
@@ -96,20 +96,21 @@ private:
     float m_gravityScale = 4.f;
 
     //DASH CONFIG
-    const float DASH_TRAVEL_DISTANCE = 3.f;
+    const float DASH_TRAVEL_DISTANCE = 4.f;
     const float DASH_SPEED = 30.0f;
     const float DASH_OUT_SPEED = 10.0f;
     float m_beginDashSpeed = -1.f;
     bool m_hasDashed;
 
     //Roll CONFIG
-    const float ROLL_TRAVEL_DISTANCE = 30.f;
-    const float ROLL_SPEED = 50.0f;
+    const float ROLL_TRAVEL_DISTANCE = 15.f;
+    const float ROLL_SPEED = 30.0f;
     const float ROLL_HEIGHT = 0.2f;
     const float ROLL_RADIUS = 0.2f; // not used
     const float ROLL_TRANSITION_SPEED = 8.0f;
-    const float MAX_TRANSITION_TIME = 0.2f; // Sec
+    const float MAX_TRANSITION_TIME = 0.3f; // seconds
     float m_transitionTime;
+    bool m_rollAnimationAnimChanged = false;
 
     //Cannon Config
     const float CANNON_POWER = 30;
@@ -179,7 +180,7 @@ private:
 
     //Checkpoint
     Vector3 m_checkpointPos = Vector3(0.f, 9.f, 5.f);
-    int m_heightLimitBeforeRespawn = -10.f;
+    int m_heightLimitBeforeRespawn = -7.f;
 
     //trap
     Vector3 m_trapPos = Vector3(0, 9, 20);
@@ -252,6 +253,7 @@ public:
     void setPlayerEntity(Entity* entity);
 
     Vector3 getCheckpointPos();
+    bool getRespawnNextFrame();
     Vector3 getVelocity();
     LineData* getLineDataArray();
     PlayerState getState();

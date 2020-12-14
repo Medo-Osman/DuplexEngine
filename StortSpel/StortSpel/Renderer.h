@@ -13,6 +13,8 @@
 #include"Particles\ScorePickupParticle.h"
 
 static const int debugViewModeCount = 2;
+#include"DebugDraw.h"
+#include"BoundingVolumeHolder.h"
 
 enum DebugViewMode
 {
@@ -33,6 +35,7 @@ class Renderer : public InputObserver
 {
 
 private:
+	static const bool USE_Z_PRE_PASS;
 	//Pointers
 	//ID3D11RenderTargetView** m_rTargetViewsArray;
 	Microsoft::WRL::ComPtr<ID3D11Device> m_devicePtr = NULL;
@@ -45,6 +48,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_finalRenderTargetViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_depthStencilViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStateCompLessPtr = NULL;
 
 	// Bloom stuff
 	ID3D11RenderTargetView* m_geometryPassRTVs[2];
@@ -137,13 +141,28 @@ private:
 	void downSamplePass();
 	void blurPass();
 	void initRenderQuad();
+	void zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	Renderer(); //{};
 
+	Camera m_testCamera;
+
+	using VertexType = DirectX::VertexPositionColor;
+
+	std::unique_ptr<DirectX::CommonStates> m_states;
+	std::unique_ptr<DirectX::BasicEffect> m_effect;
+	std::unique_ptr<DirectX::PrimitiveBatch<VertexType>> m_batch;
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
+
+	//BoundingVolume DrawStuff
+	std::vector<BoundingVolumeHolder> m_boundingVolumes;
+	void drawBoundingVolumes();
 
 	int m_drawn = 0;
 	bool m_isFullscreen = false;
+
+	bool m_switchCamera = false;
 public:
 	Renderer(const Renderer&) = delete;
 	void operator=(Renderer const&) = delete;
@@ -173,7 +192,8 @@ public:
 
 	globalConstBuffer getGlobalConstBuffer();
 
-
 	// Inherited via InputObserver
 	virtual void inputUpdate(InputData& inputData) override;
+
+	void addPrimitiveToDraw();
 };

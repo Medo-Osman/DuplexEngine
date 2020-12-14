@@ -105,7 +105,7 @@ public:
 	{
 		if (texture)
 		{
-			spriteBatch->Draw(texture, m_style.position, nullptr, m_style.color, m_style.rotation, m_style.origin, m_style.scale);
+			spriteBatch->Draw(texture, m_style.position, nullptr, m_style.color, m_style.rotation, { 0,0 }, m_style.scale);
 		}
 	}
 
@@ -113,26 +113,30 @@ public:
 	virtual void inputUpdate(InputData& inputData) override
 	{
 		//Mouse pos
-		//float x = inputData.mousePtr->getPosX();
-		//float y = inputData.mousePtr->getPosY();
-		POINT p;
+		float x = inputData.mousePtr->getPosX();
+		float y = inputData.mousePtr->getPosY();
+		/*POINT p;
 		float x;
-		float y;
-		if (GetCursorPos(&p))
-		{
+		float y;*/
+		//if (GetCursorPos(&p))
+		//{
 			//cursor position now in p.x and p.y
-		}
-		if (ScreenToClient(*m_window, &p))
-		{
-			//p.x and p.y are now relative to hwnd's client area
-			x = (float)p.x;
-			y = (float)p.y;
-			
-		}
+		//}
+		//if (ScreenToClient(*m_window, &p))
+		//{
+		//	//p.x and p.y are now relative to hwnd's client area
+		//	x = (float)p.x;
+		//	y = (float)p.y;
+		//	
+		//}
+
+		POINT p = { m_style.position.x,  m_style.position.y };
+		//ScreenToClient(*m_window, &p);
+		//ClientToScreen(*m_window, &p);
 
 		//Check if mouse is hovering over button
-		if (x > m_style.position.x && x < (m_style.position.x + (m_textureWidth * m_style.scale.x))
-			&& y > m_style.position.y && y < (m_style.position.y + (m_textureHeight * m_style.scale.y)) && m_visible)
+		if (x > p.x && x < (p.x + (m_textureWidth * m_style.scale.x))
+			&& y > p.y && y < (p.y + (m_textureHeight * m_style.scale.y)) && m_visible)
 		{
 			//Notify all observers
 			if (m_hovered == false)
@@ -164,8 +168,8 @@ public:
 			{
 
 				//Bounds & visibility check for button vs mouse
-				if (x > m_style.position.x && x < (m_style.position.x + (m_textureWidth * m_style.scale.x))
-					&& y > m_style.position.y && y < (m_style.position.y + (m_textureHeight * m_style.scale.y)) && m_visible)
+				if (x > p.x && x < (p.x + (m_textureWidth * m_style.scale.x))
+					&& y > p.y && y < (p.y + (m_textureHeight * m_style.scale.y)) && m_visible)
 				{
 					//Notify all observers if clicked
 					Notify(GUIUpdateType::CLICKED);

@@ -94,6 +94,9 @@
     <Filter Include="Source Files\Graphics\Particles\PlatformWarning">
       <UniqueIdentifier>{ea91ae63-a675-4fa1-a31d-4759086d677a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Shader\ZPrePass">
+      <UniqueIdentifier>{95f52e81-a96b-4cb8-a1d0-db72c2917be7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -188,6 +191,9 @@
     </ClCompile>
     <ClCompile Include="Boss.cpp">
       <Filter>Source Files\Game\Boss</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDraw.cpp">
+      <Filter>Source Files\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -500,6 +506,12 @@
     <ClInclude Include="ThunderAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
     </ClInclude>
+    <ClInclude Include="DebugDraw.h">
+      <Filter>Source Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingVolumeHolder.h">
+      <Filter>Source Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">
@@ -627,8 +639,14 @@
     <FxCompile Include="CloudShaderVS.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
-    <FxCompile Include="TransparencyTestPS.hlsl">
-      <Filter>Resource Files\Shader</Filter>
+    <FxCompile Include="ZPrePassPixelShader.hlsl">
+      <Filter>Resource Files\Shader\ZPrePass</Filter>
+    </FxCompile>
+    <FxCompile Include="ZPrePassVertexShaderBasic.hlsl">
+      <Filter>Resource Files\Shader\ZPrePass</Filter>
+    </FxCompile>
+    <FxCompile Include="ZPrePassVertexShaderAnim.hlsl">
+      <Filter>Resource Files\Shader\ZPrePass</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

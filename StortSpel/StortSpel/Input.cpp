@@ -42,6 +42,7 @@ Input::Input()
 
 	// Gamepad
 	m_gamepad = std::make_unique<GamePad>();
+
 }
 
 Input::~Input()
@@ -93,8 +94,9 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 		}
 
 		MousePos mPos;
-		mPos.x = LOWORD(lParam);
-		mPos.y = HIWORD(lParam);
+		mPos = getMouse()->getPos();
+		/*mPos.x = LOWORD(lParam);
+		mPos.y = HIWORD(lParam);*/
 
 		m_Mouse.onLeftPress(mPos);
 		return 0;
@@ -149,6 +151,14 @@ LRESULT Input::handleMessages(HWND hwnd, UINT& uMsg, WPARAM& wParam, LPARAM& lPa
 		MousePos mPos;
 		mPos.x = LOWORD(lParam);
 		mPos.y = HIWORD(lParam);
+
+		POINT p = { mPos.x, mPos.y };
+		//POINT p;
+		//GetCursorPos(&p);
+		//ScreenToClient(hwnd, &p);
+
+		mPos.x = p.x;
+		mPos.y = p.y;
 
 		m_Mouse.onMove(mPos);
 		return 0;
@@ -404,6 +414,12 @@ void Input::readBuffers(const float& dt)
 		{
 			inputDataChanged = this->fillInputDataUsingKey('D', false) || inputDataChanged;
 		}
+
+		// Right Trigger
+		if (m_tracker.rightTrigger == BState::PRESSED)
+			inputDataChanged = this->fillInputDataUsingKey('\x0D', true) || inputDataChanged;
+		else if (m_tracker.rightTrigger == BState::RELEASED)
+			inputDataChanged = this->fillInputDataUsingKey('\x0D', false) || inputDataChanged;
 
 		// Analog Left Stick input
 		if (!m_contexts[0]->getMute()) // only for Movement Context for now

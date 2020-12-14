@@ -53,34 +53,34 @@ public:
 		return range;
 	}
 
-	static int convertEventToMouseChar(Event mouseEvent)
+	static char convertEventToMouseChar(Event mouseEvent)
 	{
-		int convertedChar = 0;
+		char convertedChar;
 		switch (mouseEvent)
 		{
 		case Event::MouseLPressed:
-			convertedChar = 'm_lp';
+			convertedChar = '\x0D';
 			break;
 		case Event::MouseLReleased:
-			convertedChar = 'm_lr';
+			convertedChar = 'mlr';
 			break;
 		case Event::MouseRPressed:
-			convertedChar = 'm_rp';
+			convertedChar = 'mrp';
 			break;
 		case Event::MouseRReleased:
-			convertedChar = 'm_rr';
+			convertedChar = 'mrr';
 			break;
 		case Event::MouseMPressed:
-			convertedChar = 'm_mp';
+			convertedChar = 'mmp';
 			break;
 		case Event::MouseMReleased:
-			convertedChar = 'm_mr';
+			convertedChar = 'mmr';
 			break;
 		case Event::MouseWheelUp:
-			convertedChar = 'm_wp';
+			convertedChar = 'mwp';
 			break;
 		case Event::MouseWheelDown:
-			convertedChar = 'm_wr';
+			convertedChar = 'mwr';
 			break;
 		case Event::MouseMove:
 			convertedChar = 'move';

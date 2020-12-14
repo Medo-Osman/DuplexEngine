@@ -25,6 +25,7 @@ public:
 		m_actionMapping['\x1B'] = Action::MENU; // Escape
 		m_actionMapping['\x72'] = Action::PREVIOUSDEBUGVIEWMODE;
 		m_actionMapping['\x73'] = Action::NEXTDEBUGVIEWMODE;
+		m_actionMapping['\x0D'] = Action::USE;
 
 		//States
 		m_stateMapping['W'] = State::WALK_FORWARD;

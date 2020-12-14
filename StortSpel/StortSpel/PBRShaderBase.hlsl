@@ -102,14 +102,14 @@ struct ps_out
     float4 glow : SV_Target1;
 };
 
-TextureCube skyIR : register(t0);
-TextureCube skyPrefilter : register(t1);
-Texture2D brdfLUT : register(t2);
+TextureCube skyIR : register(t4);
+TextureCube skyPrefilter : register(t5);
+Texture2D brdfLUT : register(t6);
 
-Texture2D albedoTexture		: TEXTURE : register(t3);
-Texture2D emissiveTexture	: TEXTURE : register(t4);
-Texture2D normalTexture		: TEXTURE : register(t5);
-Texture2D ORMtexture		: TEXTURE : register(t6);
+Texture2D albedoTexture		: TEXTURE : register(t0);
+Texture2D emissiveTexture	: TEXTURE : register(t1);
+Texture2D normalTexture		: TEXTURE : register(t2);
+Texture2D ORMtexture		: TEXTURE : register(t3);
 Texture2D shadowMap			: TEXTURE : register(t7);
 
 SamplerState sampState		: SAMPLER : register(s0);

@@ -23,17 +23,20 @@ Material::Material(std::wstring materialName, bool isPBR)
 	/*:Material(m_MaterialCache[materialName])*/
 	:m_materialId(m_MaterialCache[materialName].MaterialID), m_isDefault(false)
 {
+	int i = 0;
+	for (auto fileName : m_MaterialCache[materialName].fileNames)
+	{
+		addTexture(fileName.c_str());
+		i++;
+	}
+
 	if (isPBR)
 	{
 		addTexture(L"skybox_bluesky_2.dds", true);
 		addTexture(L"skybox_bluesky_2.dds", true);
 		addTexture(L"ibl_brdf_lut.png");
 	}
-	
-	for (auto fileName : m_MaterialCache[materialName].fileNames)
-	{
-		addTexture(fileName.c_str());
-	}
+	i += 3;
 
 	if (m_MaterialCache[materialName].fileNames.empty())
 	{

@@ -1932,6 +1932,9 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	sceneObject->imageStyle.scale = Vector2(1.f, 0.8f);
 	sceneObject->m_bossHP_barBackgroundGuiIndex = GUIHandler::get().addGUIImage(L"BossHP-barBG.png", sceneObject->imageStyle);
 
+	sceneObject->textStyle.position = Vector2(700.f, 500.f);
+	sceneObject->textStyle.scale = Vector2(1.f, 1.f);
+	sceneObject->m_bossPromptTextIndex = GUIHandler::get().addGUIText("Prepare to collect all the stars! \nAvoid the boss!" , L"concert_one_32.spritefont", sceneObject->textStyle);
 
 
 
@@ -1940,21 +1943,23 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	Entity* bossEnt = sceneObject->addEntity("boss");
 	sceneObject->m_bossMusicComp = new AudioComponent(L"BossMusic.wav", true, 0.1f, 0.f, false);
 
+	sceneObject->m_bossPromptTimer.start();
+	
 	if (bossEnt)
 	{
 		bossEnt->scale({ 1, 1, 1 });
-		bossEnt->translate({ 15, 4.6f, 15 });
+		bossEnt->translate({ 15.0f, 50.0f, 15.0f });
 
 		sceneObject->addComponent(bossEnt, "sound", sceneObject->m_bossMusicComp);
 
 		sceneObject->m_boss = new Boss();
 		sceneObject->m_boss->Attach(sceneObject);
-		sceneObject->m_boss->initialize(bossEnt, true);
+		sceneObject->m_boss->initialize(bossEnt, true, 8);
 		sceneObject->m_boss->setNrOfMaxStars(100);
 		sceneObject->m_endBossAtPecentNrOfStarts = 0; // if this is 0 the end secene will be triggered
 
 		//// Init grid structure
-		BossStructures::PlatformArray* platformArray = &sceneObject->m_boss->platformArray;
+		BossStructures::PlatformArray* platformArray = sceneObject->m_boss->platformArray;
 		float spacingBetweenPlatforms = 1.f;
 		int total = 0;
 		float scaling = 2.5f;
@@ -2040,10 +2045,12 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 			pys->setSlide(true);
 			segmentEntity->getComponentsByType<PhysicsComponent>(ComponentType::PHYSICS)->makeKinematic();
 			projectileSegment->Attach(sceneObject);
-
+			
 			//This is to add actions to the segment just generated, they will however shoot independently of the boss moving aroud.
 			//ShootLaserAction* action = new ShootLaserAction(segmentEntity, projectileSegment, 5);
 			//projectileSegment->addAction(action);
+
+			sceneObject->m_boss->addAction(new MoveToAction(sceneObject->m_boss->m_bossEntity, sceneObject->m_boss, Vector3(15.0f, 4.6f, 15.0f), 3.0f));
 		}
 
 		//Add the head of the boss, just another mesh in the boss entity.
@@ -2080,6 +2087,174 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	}
 
 	*finished = true;
+}
+
+void Scene::loadBossTestPhaseTwo(Scene* sceneObject, bool* finished)
+{
+	sceneObject->imageStyle.position = Vector2(400.f, 50.f);
+	sceneObject->imageStyle.scale = Vector2(1.f, 0.8f);
+	sceneObject->m_bossHP_barGuiIndex = GUIHandler::get().addGUIImage(L"BossHP-bar.png", sceneObject->imageStyle);
+
+	sceneObject->imageStyle.position = Vector2(400.f, 50.f);
+	sceneObject->imageStyle.scale = Vector2(1.f, 0.8f);
+	sceneObject->m_bossHP_barBackgroundGuiIndex = GUIHandler::get().addGUIImage(L"BossHP-barBG.png", sceneObject->imageStyle);
+
+	sceneObject->textStyle.position = Vector2(700.f, 500.f);
+	sceneObject->textStyle.scale = Vector2(1.f, 1.f);
+	sceneObject->m_bossPromptTextIndex = GUIHandler::get().addGUIText("Prepare to collect all the stars! \nAvoid the boss!", L"concert_one_32.spritefont", sceneObject->textStyle);
+
+
+
+
+	//Generate the boss, if boss does not exist in the scene it will not be updated in sceneUpdate() either.
+	Entity* bossEnt = sceneObject->addEntity("boss");
+	sceneObject->m_bossMusicComp = new AudioComponent(L"BossMusic.wav", true, 0.1f, 0.f, false);
+
+	sceneObject->m_bossPromptTimer.start();
+
+	if (bossEnt)
+	{
+		bossEnt->scale({ 1, 1, 1 });
+		bossEnt->translate({ 15.0f, 50.0f, 15.0f });
+
+		sceneObject->addComponent(bossEnt, "sound", sceneObject->m_bossMusicComp);
+
+		sceneObject->m_boss = new Boss();
+		sceneObject->m_boss->Attach(sceneObject);
+		sceneObject->m_boss->initialize(bossEnt, true, 6);
+		sceneObject->m_boss->setNrOfMaxStars(100);
+		sceneObject->m_endBossAtPecentNrOfStarts = 0; // if this is 0 the end secene will be triggered
+
+		//// Init grid structure
+		BossStructures::PlatformArray* platformArray = sceneObject->m_boss->platformArray;
+		float spacingBetweenPlatforms = 1.f;
+		int total = 0;
+		float scaling = 2.5f;
+		Vector3 platformPos = Vector3(15, 0, 15);
+		for (int x = 0; x < platformArray->columns.size(); x++)
+		{
+			for (int y = 0; y < platformArray->columns.size(); y++)
+			{
+				Entity* platform = sceneObject->addEntity("bossPlatform-" + std::to_string(total++));
+				Vector3 offset = sceneObject->m_sceneEntryPosition;
+				if (platform)
+				{
+					platform->setPosition(Vector3(((float)x) * scaling + (x) * 0.05f, 2, (float)(y)*scaling + (y) * 0.05f) + platformPos);
+					platform->scale(scaling, 9.f, scaling);
+					platform->addComponent("grow", new GrowingComponent(platform, platform->getScaling(), 8.f));
+					static_cast<GrowingComponent*>(platform->getComponent("grow"))->setDone(true);
+					platform->addComponent("shrink", new ShrinkingComponent(platform, Vector3(0.01, 0.01, 0.01), 8.f));
+					static_cast<ShrinkingComponent*>(platform->getComponent("shrink"))->setDone(true);
+
+					Material emissiveMat({ L"DarkGrayTexture.png", L"BlueEmissive.png" });
+					emissiveMat.setEmissiveStrength(40);
+					sceneObject->addComponent(platform, "mesh", new MeshComponent("BossPlatform.lrm",
+						{
+							EMISSIVE,
+							DEFAULT,
+							DEFAULT
+						},
+						{
+							emissiveMat,
+							Material({ L"DarkGrayTexture.png" }),
+							Material({ L"DarkGrayTexture.png" })
+						}));
+
+					sceneObject->createNewPhysicsComponent(platform);
+
+					(*platformArray)[x][y] = platform;
+
+				}
+
+			}
+		}
+		//// Grid structure finished
+		float a = 2.5f * 4;
+		a = a + 10 + 1.25f;
+		sceneObject->m_sceneEntryPosition = Vector3(10, 6, a);
+		sceneObject->createStaticPlatform(Vector3(10, 4.9, a), Vector3(0, 0, 0), Vector3(3, 0.2, 3), "testCube_pCube1.lrm");
+
+		//Added the platform to spawn on, as well as a checkpoint on it.
+		sceneObject->addCheckpoint(sceneObject->m_sceneEntryPosition - Vector3(0, 1, 0), 0);
+		Physics::get().Attach(sceneObject->m_boss, true, false);
+
+
+		//Generate a set of segments on the boss, primarily to display the interface.
+		for (int i = 0; i < 1; i++)
+		{
+			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
+
+			Material emissiveMat({ L"DarkGrayTexture.png", L"RedCrystalEmissive.png" });
+			emissiveMat.setEmissiveStrength(20);
+
+			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("BossModel_polySurface188.lrm",
+				{
+					DEFAULT,
+					EMISSIVE
+				},
+				{
+					Material({ L"Boss_Albedo.png" }),
+					emissiveMat
+				}));
+
+			LightComponent* light = new LightComponent(Vector3(0, 0, 0), Vector3(1, 0, 0), 0.5f);
+
+			sceneObject->addComponent(segmentEntity, "light", new LightComponent(Vector3(0, 0, 0), Vector3(1, 0, 0), 1));
+
+			segmentEntity->setScale({ 0.5f, 0.5f, 0.5f });
+
+			BossSegment* projectileSegment = new BossSegment();
+			projectileSegment->initializeSegment(segmentEntity, false);
+			projectileSegment->m_entityOffset = Vector3(0, 2.5 * sceneObject->m_boss->m_bossSegments.size(), 0);
+			sceneObject->m_boss->addSegment(projectileSegment);
+			sceneObject->createNewPhysicsComponent(segmentEntity, true, "physics");
+			PhysicsComponent* pys = (PhysicsComponent*)segmentEntity->getComponent("physics");
+			pys->setSlide(true);
+			segmentEntity->getComponentsByType<PhysicsComponent>(ComponentType::PHYSICS)->makeKinematic();
+			projectileSegment->Attach(sceneObject);
+
+			//This is to add actions to the segment just generated, they will however shoot independently of the boss moving aroud.
+			//ShootLaserAction* action = new ShootLaserAction(segmentEntity, projectileSegment, 5);
+			//projectileSegment->addAction(action);
+
+			sceneObject->m_boss->addAction(new MoveToAction(sceneObject->m_boss->m_bossEntity, sceneObject->m_boss, Vector3(15.0f, 4.6f, 15.0f), 3.0f));
+		}
+
+		//Add the head of the boss, just another mesh in the boss entity.
+		//MeshComponent* headComponent = new MeshComponent("Boss_Top.lrm", Material({ L"DarkGrayTexture.png" }));
+		//headComponent->setScale({ 0.5f, 0.5f, 0.5f });
+		//headComponent->setPosition(0, (sceneObject->m_boss->m_bossSegments.size()), 0);
+		//sceneObject->addComponent(bossEnt, "meshHead", headComponent);
+
+		//Add custom action
+		//sceneObject->m_boss->addAction(new ShootLaserAction(bossEnt, sceneObject->m_boss, 4.f));
+	}
+
+
+	Entity* walls = sceneObject->addEntity("Walls");
+	if (walls)
+	{
+		sceneObject->addComponent(walls, "mesh", new MeshComponent("BossWalls_polySurface54.lrm",
+			Material({ L"DarkGrayTexture.png" })));
+		walls->setPosition(22.5, -35, 22.5);
+		walls->setScaleUniform(0.5);
+	}
+
+
+
+	Entity* skybox = sceneObject->addEntity("SkyBox");
+	skybox->m_canCull = false;
+	if (skybox)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+		//Disable shadow casting
+		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	}
+
+	*finished = true;
+
 }
 
 void Scene::loadEmpty(Scene* sceneObject, bool* finished)
@@ -2126,11 +2301,11 @@ void Scene::updateScene(const float& dt)
 		{
 			BossStructures::IntVec platformTargetIndex = m_boss->getNewPlatformTarget();
 			//m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 20)); //Wait before moving again
-			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 5.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
+			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 5.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
 			m_boss->addAction(new ShootLaserAction(m_boss->m_bossSegments.at(0)->m_bossEntity, m_boss, 1));
-			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 5.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
+			m_boss->addAction(new MoveToTargetInGridAction(m_boss->m_bossEntity, m_boss, m_boss->platformArray, Vector2(platformTargetIndex.x, platformTargetIndex.y), 5.f, &m_boss->currentPlatformIndex, m_boss->getActionQueue()));
 			//m_boss->addAction(new WaitAction(m_boss->m_bossEntity, m_boss, 5)); //Wait before moving again
-			m_boss->addAction(new ThunderAction(m_boss->m_bossEntity, m_boss, &m_boss->platformArray, &m_displacedPlatforms));
+			m_boss->addAction(new ThunderAction(m_boss->m_bossEntity, m_boss, m_boss->platformArray, &m_displacedPlatforms));
 		}
 		
 		ShootProjectileAction* ptr = dynamic_cast<ShootProjectileAction*>(m_boss->getCurrentAction());
@@ -2159,9 +2334,13 @@ void Scene::updateScene(const float& dt)
 			m_activeStars[ent->getIdentifier()] = activeStar;
 		}
 
-		
-
 		deferredPointInstantiationList.clear();
+
+		if (m_bossPromptTimer.timeElapsed() > 10)
+		{
+			GUIHandler::get().setVisible(m_bossPromptTextIndex, false);
+		}
+
 	}
 	
 
@@ -2173,6 +2352,8 @@ void Scene::updateScene(const float& dt)
 			m_tempParticleComponent.erase(m_tempParticleComponent.begin() + i);
 		}
 	}
+
+
 
 	// AUDIO TEST
 	/*m_nightVolume += dt * m_nightSlide;
@@ -2404,17 +2585,17 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 	if (type == BossMovementType::ClearColumn)
 	{
-		for (int i = 0; i < m_boss->platformArray.columns.size(); i++)
+		for (int i = 0; i < (*m_boss->platformArray).columns.size(); i++)
 		{
-			displacePlatform(m_boss->platformArray[m_boss->currentPlatformIndex.x][i]);
+			displacePlatform((*m_boss->platformArray)[m_boss->currentPlatformIndex.x][i]);
 		}
 	}
 
 	if (type == BossMovementType::ClearRow)
 	{
-		for (int i = 0; i < m_boss->platformArray.columns.size(); i++)
+		for (int i = 0; i < (*m_boss->platformArray).columns.size(); i++)
 		{
-			displacePlatform(m_boss->platformArray[i][m_boss->currentPlatformIndex.y]);
+			displacePlatform((*m_boss->platformArray)[i][m_boss->currentPlatformIndex.y]);
 		}
 	}
 
@@ -2949,6 +3130,8 @@ void Scene::removeBoss()
 	UINT id = m_boss->addAction(new MoveToAction(m_boss->m_bossEntity, m_boss, Vector3(0, 10000, 0), 100000));
 	GUIHandler::get().setVisible(m_bossHP_barGuiIndex, false);
 	GUIHandler::get().setVisible(m_bossHP_barBackgroundGuiIndex, false);
+	GUIHandler::get().removeElement(m_bossHP_barGuiIndex);
+	GUIHandler::get().removeElement(m_bossHP_barBackgroundGuiIndex);
 }
 
 void Scene::createPortal()
