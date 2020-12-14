@@ -2,14 +2,17 @@
 #include"3DPCH.h"
 #include"Entity.h"
 #include"MeshComponent.h"
+#include"BoundingVolumeHolder.h"
+#include"OptimizationConfiguration.h"
 
 class QuadTree
 {
 
 private:
-	const static int NR_OF_VERTICIES_FOR_PARTITION = 1000;
+	const static int NR_OF_VERTICIES_FOR_PARTITION = 500;
 	Vector3 m_maxPos;
 	Vector3 m_minPos;
+	const bool addBoundingBoxes = false;
 
 	std::vector<Entity*> m_entities;
 
@@ -37,6 +40,7 @@ private:
 
 	void partition(const XMFLOAT3& minPos, const XMFLOAT3& maxPos, const std::vector<Entity*>& entitys)
 	{
+		if (!USE_QUADTREE) return;
 		int totalNrOfVerticies = 0;
 
 		for (int i = 0; i < (int)entitys.size(); i++)
@@ -164,33 +168,42 @@ public:
 
 	}
 
-	void getRenderList(const BoundingFrustum* frust, std::vector<MeshComponent*> & meshComponentVec, XMMATRIX* V)
+	void getRenderList(const BoundingFrustum* frust, std::vector<MeshComponent*> & meshComponentVec, std::vector<BoundingVolumeHolder>& vecOut)
 	{
 
 		Vector3 min = m_minPos, max = m_maxPos, center, ext;
 		center = (min + max) * 0.5f;
 		ext = (max - min) * 0.5f;
-		center = XMVector3Transform(center, *V);
+
 		DirectX::BoundingBox bb;
 		XMStoreFloat3(&bb.Center, center);
 		XMStoreFloat3(&bb.Extents, ext);
+
+		if(addBoundingBoxes)
+			vecOut.emplace_back(BoundingVolumeTypes::BOX, new BoundingBox(bb));
+
 		if (frust->Contains(bb) == ContainmentType::INTERSECTS || frust->Contains(bb) == ContainmentType::CONTAINS)
 		{
 			if (m_entities.size() >= 1)
 			{
 				for (int i = 0; i < (int)m_entities.size(); i++)
 				{
-					meshComponentVec.emplace_back(static_cast<MeshComponent*>(m_entities.at(i)->getComponent("mesh")));
+					std::vector<Component*> compVect;
+					m_entities.at(i)->getComponentsOfType(compVect, ComponentType::MESH);
+					for (size_t j = 0; j < compVect.size(); j++)
+					{
+						meshComponentVec.emplace_back(static_cast<MeshComponent*>(compVect.at(j)));
+					}
 				}
 			}
 			if (this->m_topLeftQuad != nullptr)
-				this->m_topLeftQuad->getRenderList(frust, meshComponentVec, V);
+				this->m_topLeftQuad->getRenderList(frust, meshComponentVec, vecOut);
 			if (this->m_topRightQuad != nullptr)
-				this->m_topRightQuad->getRenderList(frust, meshComponentVec, V);
+				this->m_topRightQuad->getRenderList(frust, meshComponentVec, vecOut);
 			if (this->m_botLeftQuad != nullptr)
-				this->m_botLeftQuad->getRenderList(frust, meshComponentVec, V);
+				this->m_botLeftQuad->getRenderList(frust, meshComponentVec, vecOut);
 			if (this->m_botRightQuad != nullptr)
-				this->m_botRightQuad->getRenderList(frust, meshComponentVec, V);
+				this->m_botRightQuad->getRenderList(frust, meshComponentVec, vecOut);
 		}
 
 	}
@@ -216,12 +229,12 @@ public:
 					MeshResource* meshResource = meshComponent->getMeshResourcePtr();
 					if (meshResource)
 					{
-						LRM_VERTEX* verts = meshResource->getVertexArray();
+						PositionVertex* verts = meshResource->getVertexArray();
 						if (verts)
 						{
 							for (int y = 0; y < (int)meshResource->getVertexBuffer().getSize(); y++)
 							{
-								Vector3 pos = verts[y].pos;
+								Vector3 pos = verts[y].position;
 								pos = XMVector3Transform(pos, XMMatrixIdentity() * XMMatrixScalingFromVector(entity->getScaling())
 									* XMMatrixRotationQuaternion(entity->getRotation())
 									* XMMatrixTranslationFromVector(entity->getTranslation()));
@@ -258,12 +271,12 @@ public:
 			MeshResource* meshResource = meshComponent->getMeshResourcePtr();
 			if (meshResource)
 			{
-				LRM_VERTEX* verts = meshResource->getVertexArray();
+				PositionVertex* verts = meshResource->getVertexArray();
 				if (verts)
 				{
 					for (int y = 0; y < (int)meshResource->getVertexBuffer().getSize(); y++)
 					{
-						Vector3 pos = verts[y].pos;
+						Vector3 pos = verts[y].position;
 						pos = XMVector3Transform(pos, XMMatrixIdentity() * XMMatrixScalingFromVector(entity->getScaling())
 							* XMMatrixRotationQuaternion(entity->getRotation())
 							* XMMatrixTranslationFromVector(entity->getTranslation()));
@@ -291,7 +304,12 @@ public:
 		{
 			for (int i = 0; i < (int)m_entities.size(); i++)
 			{
-				vecOut.emplace_back(static_cast<MeshComponent*>(m_entities.at(i)->getComponent("mesh")));
+				std::vector<Component*> compVect;
+				m_entities.at(i)->getComponentsOfType(compVect, ComponentType::MESH);
+				for (size_t j = 0; j < compVect.size(); j++)
+				{
+					vecOut.emplace_back(static_cast<MeshComponent*>(compVect.at(j)));
+				}
 			}
 		}
 		if (this->m_topLeftQuad != nullptr)
@@ -304,4 +322,5 @@ public:
 			this->m_botRightQuad->getAllMeshComponents(vecOut);
 
 	}
+
 };

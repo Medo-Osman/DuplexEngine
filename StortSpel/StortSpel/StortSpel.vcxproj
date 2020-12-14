@@ -285,6 +285,7 @@
     <ClInclude Include="GUIContext.h" />
     <ClInclude Include="GUIImageLabel.h" />
     <ClInclude Include="HeightPickup.h" />
+    <ClInclude Include="OptimizationConfiguration.h" />
     <ClInclude Include="Particles\LineArrayParticle.h" />
     <ClInclude Include="MoveToAction.h" />
     <ClInclude Include="MoveOneInGridAction.h" />

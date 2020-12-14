@@ -1368,8 +1368,6 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 	sceneObject->m_nightSlide = 0.01f;
 	sceneObject->m_nightVolume = 0.2f;
 
-	sceneObject->m_quadTree = new QuadTree();
-	sceneObject->m_quadTree->partition(sceneObject->m_entities);
 
 	createQuadTree(sceneObject);
 
