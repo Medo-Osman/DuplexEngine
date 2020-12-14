@@ -15,6 +15,7 @@ struct vs_out
 cbuffer cbPerFrame : register(b4)
 {
     float4x4 viewToTexSpace;
+    float4x4 worldInverseTransposeView;
     float4 offsetVectors[14];
     float4 frustumCorners[4];
     

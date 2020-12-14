@@ -31,7 +31,7 @@ struct perObjectMVP
 
 struct lightBufferStruct
 {
-    FLOAT ambientLightLevel = 0.1f;
+    FLOAT ambientLightLevel = 0.3f;
     PointLightRepresentation pointLights[8];
     int nrOfPointLights = 0;
 
@@ -78,6 +78,7 @@ struct CS_BLUR_CBUFFER
 struct SSAO_BUFFER
 {
     XMMATRIX viewToTexSpace;
+    XMMATRIX worldInverseTransposeView;
     XMFLOAT4 offsetVectors[14];
     XMFLOAT4 frustumCorners[4];
 

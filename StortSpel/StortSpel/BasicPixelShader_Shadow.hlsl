@@ -72,19 +72,22 @@ struct ps_in
     float3 bitangent : BITANGENT;
     float4 worldPos : POSITION;
     float4 shadowPos : SPOS;
+    float4 ssaoPos : SSAOPOS;
+
 };
 
 struct ps_out
 {
     float4 diffuse : SV_Target0;
     float4 glow : SV_Target1;
-    float4 normalsNDepth : SV_Target2;
 };
 
 Texture2D diffuseTexture : TEXTURE : register(t0);
 SamplerState sampState : SAMPLER : register(s0);
 SamplerComparisonState shadowSampState : SAMPLER1 : register(s1);
 Texture2D shadowMap : TEXTURE : register(t2);
+
+Texture2D ambientOcclusionMap : TEXTURE : register(t8);
 
 struct lightComputeResult
 {
@@ -137,6 +140,12 @@ lightComputeResult computeLightFactor(ps_in input)
     float3 diffuse = diffuseTexture.Sample(sampState, input.uv).xyz;
     float shadowFactor = computeShadowFactor(input.shadowPos);
     
+   
+    // SSAO
+    
+    float2 ssaoUV = input.ssaoPos.xy /= input.ssaoPos.w;
+    float ambientFactor = ambientOcclusionMap.SampleLevel(sampState, ssaoUV, 0.0f).r;
+    
     //Loop through all pointlights
     for (int i = 0; i < nrOfPointLights; i++)
     {
@@ -171,7 +180,9 @@ lightComputeResult computeLightFactor(ps_in input)
     
     finalColor = finalColor + shadowFactor*saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
     
-    result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel));
+    result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel)) + (float3(1, 0, 0) * (-ambientFactor + 1) );
+    
+    
     
     return result;
 }
@@ -187,10 +198,6 @@ ps_out main(ps_in input)
     
     // Diffuse color
     output.diffuse = float4(lightResult.lightColor, 1.f);
-    
-    // Normals & depth
-    output.normalsNDepth.rgb = normalize(input.vNormal);
-    output.normalsNDepth.a = input.depth;
     
     return output;
 }

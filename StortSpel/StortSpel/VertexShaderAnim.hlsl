@@ -19,7 +19,6 @@ struct vs_out
     float depth : DEPTH;
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
-	
 };
 
 cbuffer perModel : register(b0)
@@ -54,6 +53,8 @@ vs_out main(vs_in input, in uint vID : SV_VertexID)
     }
     
     localPosition = float4(blendedPosition, 1.f);
+    
+
     
     //output.normal = mul(input.normal, (float3x3) inverseTransposeWorldMatrix);
 	output.normal = blendedNormal;

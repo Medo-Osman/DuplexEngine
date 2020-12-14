@@ -155,6 +155,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	compileAllShaders(&m_compiledShaders, m_devicePtr.Get(), m_dContextPtr.Get(), m_depthStencilViewPtr.Get());
 
 	createViewPort(m_defaultViewport, m_settings.width, m_settings.height);
+	createViewPort(m_SSAOViewport, m_settings.width/2, m_settings.height/2);
 	rasterizerSetup();
 
 	// Setup glowMap
@@ -173,9 +174,9 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	ID3D11Texture2D* normalsNDepthTexture;
 
-	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	//textureDesc.SampleDesc.Count = 1;
-	//srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	textureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	textureDesc.SampleDesc.Count = 1;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Format = textureDesc.Format;
 
 	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &normalsNDepthTexture);
@@ -191,6 +192,12 @@ HRESULT Renderer::initialize(const HWND& window)
 	normalsNDepthTexture->Release();
 
 	ID3D11Texture2D* SSAOTexture;
+	textureDesc.Format = DXGI_FORMAT_R16_FLOAT;
+	textureDesc.Width /= 2;
+	textureDesc.Height /= 2;
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+
+	srvDesc.Format = textureDesc.Format;
 
 	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &SSAOTexture);
 	if (!SUCCEEDED(hr)) return hr;
@@ -201,11 +208,30 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = m_devicePtr->CreateShaderResourceView(SSAOTexture, &srvDesc, &m_SSAOShaderResourceViewPtr);
 	if (!SUCCEEDED(hr)) return hr;
 
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+
+	uavDesc.Format = textureDesc.Format;
+	uavDesc.ViewDimension = D3D11_UAV_DIMENSION::D3D11_UAV_DIMENSION_TEXTURE2D;
+	uavDesc.Texture2D.MipSlice = 0;
+	hr = m_devicePtr->CreateUnorderedAccessView(SSAOTexture, &uavDesc, &m_SSAOUnorderedAccessViewPtr);
+	if (!SUCCEEDED(hr)) return hr;
+
 	SSAOTexture->Release();
+
+	ID3D11Texture2D* SSAOblurTexture;
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &SSAOblurTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateShaderResourceView(SSAOblurTexture, &srvDesc, &m_SSAOblurSrv);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateUnorderedAccessView(SSAOblurTexture, &uavDesc, &m_SSAOblurUav);
+	if (!SUCCEEDED(hr)) return hr;
+
 
 	m_geometryPassRTVs[0] = m_geometryRenderTargetViewPtr.Get();
 	m_geometryPassRTVs[1] = m_glowMapRenderTargetViewPtr.Get();
-	m_geometryPassRTVs[2] = m_normalsNDepthRenderTargetViewPtr.Get();
+	//m_geometryPassRTVs[2] = m_normalsNDepthRenderTargetViewPtr.Get();
 
 	
 
@@ -232,18 +258,40 @@ HRESULT Renderer::initialize(const HWND& window)
 	assert(SUCCEEDED(hr) && "Failed to create SampleState");
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 
-	samplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	// SSAO Random sampler
+	
+	ZeroMemory(&samplerStateDesc, sizeof(D3D11_SAMPLER_DESC));
+
+	samplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+	samplerStateDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerStateDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerStateDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerStateDesc.MinLOD = -D3D11_FLOAT32_MAX;
+	samplerStateDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	samplerStateDesc.MipLODBias = 0;
+	samplerStateDesc.MaxAnisotropy = 1;
+	samplerStateDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerStateDesc.BorderColor[0] = 1.f;
+	samplerStateDesc.BorderColor[1] = 1.f;
+	samplerStateDesc.BorderColor[2] = 1.f;
+	samplerStateDesc.BorderColor[3] = 1.f;
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_SSAOSamplerStateRAND);
 	assert(SUCCEEDED(hr) && "Failed to create SamplerState");
-	m_dContextPtr->PSSetSamplers(1, 1, m_SSAOSamplerStateRAND.GetAddressOf());
+	m_dContextPtr->PSSetSamplers(2, 1, m_SSAOSamplerStateRAND.GetAddressOf());
+
+	// SSAO Normal & Depth Sampler
 
 	samplerStateDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
 	samplerStateDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 	samplerStateDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerStateDesc.BorderColor[0] = 0.f;
+	samplerStateDesc.BorderColor[1] = 0.f;
+	samplerStateDesc.BorderColor[2] = 0.f;
+	samplerStateDesc.BorderColor[3] = 1e5f;
 
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_SSAOSamplerStateNRM);
 	assert(SUCCEEDED(hr) && "Failed to create SamplerState");
-	m_dContextPtr->PSSetSamplers(2, 1, m_SSAOSamplerStateNRM.GetAddressOf());
+	m_dContextPtr->PSSetSamplers(3, 1, m_SSAOSamplerStateNRM.GetAddressOf());
 
 
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
@@ -368,11 +416,26 @@ HRESULT Renderer::createDepthStencil()
 	depthTextureDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
 
 	ID3D11Texture2D* depthStencilBufferPtr;
+
+
 	hr = m_devicePtr->CreateTexture2D(&depthTextureDesc, 0, &depthStencilBufferPtr);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = m_devicePtr->CreateDepthStencilView(depthStencilBufferPtr, NULL, m_depthStencilViewPtr.GetAddressOf());
 	depthStencilBufferPtr->Release();
+
+	// Normals & Depth depthStencil
+	ID3D11Texture2D* NandDDepthBufferPtr;
+
+	depthTextureDesc.SampleDesc.Count = 1;
+
+	hr = m_devicePtr->CreateTexture2D(&depthTextureDesc, 0, &NandDDepthBufferPtr);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateDepthStencilView(NandDDepthBufferPtr, NULL, m_NormalDepthStencilViewPtr.GetAddressOf());
+
+	NandDDepthBufferPtr->Release();
+
 	//Binding rendertarget and depth target to pipline
 //Best practice to use an array even if only using one rendertarget
 	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
@@ -417,18 +480,20 @@ HRESULT Renderer::buildRandomVectorTexture()
 	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	texDesc.MiscFlags = 0;
-	int number = 256 * 256;
+
 	m_randomColors = new XMFLOAT4[256 * 256];
-	for (int i = 0; i < number; i++)
+	for (int i = 0; i < 256; i++)
 	{
-		XMFLOAT4 v = XMFLOAT4(randomFloat(), randomFloat(), randomFloat(), randomFloat());
-		m_randomColors[i] = v;
+		for(int j = 0; j < 256; j++)
+		{
+			m_randomColors[i * 256 + j] = XMFLOAT4(randomFloat(), randomFloat(), randomFloat(), 0);
+		}
 	}
 
 	D3D11_SUBRESOURCE_DATA subData;
 	subData.pSysMem = m_randomColors;
-	subData.SysMemPitch = texDesc.Width * sizeof(float) * 4;
-	subData.SysMemSlicePitch = texDesc.Width * texDesc.Height * sizeof(float) * 4;
+	subData.SysMemPitch = texDesc.Width * sizeof(XMFLOAT4);
+	//subData.SysMemSlicePitch = texDesc.Width * texDesc.Height * sizeof(float) * 4;
 
 	hr = m_devicePtr->CreateTexture2D(&texDesc, &subData, &m_randomTexture);
 	if (!SUCCEEDED(hr)) return hr;
@@ -446,44 +511,42 @@ HRESULT Renderer::buildRandomVectorTexture()
 
 void Renderer::buildOffsetVectors()
 {
-	m_offsetVectors = new Vector4[14];
+	m_offsetVectors[0] = XMFLOAT4(+1.0f, +1.0f, +1.0f, 0.0f);
+	m_offsetVectors[1] = XMFLOAT4(-1.0f, -1.0f, -1.0f, 0.0f);
 
-	m_offsetVectors[0] = Vector4(+1, +1, +1, 0);
-	m_offsetVectors[1] = Vector4(-1, -1, -1, 0);
+	m_offsetVectors[2] = XMFLOAT4(-1.0f, +1.0f, +1.0f, 0.0f);
+	m_offsetVectors[3] = XMFLOAT4(+1.0f, -1.0f, -1.0f, 0.0f);
 
-	m_offsetVectors[2] = Vector4(-1, +1, +1, 0);
-	m_offsetVectors[3] = Vector4(+1, -1, -1, 0);
+	m_offsetVectors[4] = XMFLOAT4(+1.0f, +1.0f, -1.0f, 0.0f);
+	m_offsetVectors[5] = XMFLOAT4(-1.0f, -1.0f, +1.0f, 0.0f);
 
-	m_offsetVectors[4] = Vector4(+1, +1, -1, 0);
-	m_offsetVectors[5] = Vector4(-1, -1, +1, 0);
+	m_offsetVectors[6] = XMFLOAT4(-1.0f, +1.0f, -1.0f, 0.0f);
+	m_offsetVectors[7] = XMFLOAT4(+1.0f, -1.0f, +1.0f, 0.0f);
 
-	m_offsetVectors[6] = Vector4(-1, +1, -1, 0);
-	m_offsetVectors[7] = Vector4(+1, -1, +1, 0);
+	// 6 centers of cube faces
+	m_offsetVectors[8] = XMFLOAT4(-1.0f, 0.0f, 0.0f, 0.0f);
+	m_offsetVectors[9] = XMFLOAT4(+1.0f, 0.0f, 0.0f, 0.0f);
 
-	// cube face centers
-	m_offsetVectors[8] = Vector4(-1, 0, 0, 0);
-	m_offsetVectors[9] = Vector4(+1, 0, 0, 0);
+	m_offsetVectors[10] = XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f);
+	m_offsetVectors[11] = XMFLOAT4(0.0f, +1.0f, 0.0f, 0.0f);
 
-	m_offsetVectors[10] = Vector4(0, -1, 0, 0);
-	m_offsetVectors[11] = Vector4(0, +1, 0, 0);
-
-	m_offsetVectors[12] = Vector4(0, 0, -1, 0);
-	m_offsetVectors[13] = Vector4(0, 0, +1, 0);
+	m_offsetVectors[12] = XMFLOAT4(0.0f, 0.0f, -1.0f, 0.0f);
+	m_offsetVectors[13] = XMFLOAT4(0.0f, 0.0f, +1.0f, 0.0f);
 
 	
-	for (int i = 0; i < 14; i++) {
-		float s = randomFloat();
+	for (int i = 0; i < 14; ++i) {
+		float s = randomFloat(0.25f, 1.0f);
 		m_offsetVectors[i].Normalize();
 		Vector4 v = s * m_offsetVectors[i];
-		m_offsetVectors[i] = v;
+		m_offsetVectors[i] = v/4;
 	}
 }
 
 void Renderer::buildFrustumFarCorners(float fovY, float farZ)
 {
-	float aspect = (float)(m_settings.width / m_settings.height);
+	float aspect = (float)(m_settings.width) / (float)(m_settings.height);
 
-	float halfHeight = farZ * tan(0.5f * fovY);
+	float halfHeight = farZ * tanf(0.5f * fovY);
 	float halfWidth = aspect * halfHeight;
 
 	m_frustumFarCorners[0] = Vector4(-halfWidth, -halfHeight, farZ, 0);
@@ -497,25 +560,32 @@ void Renderer::computeSSAO()
 	UINT offset = 0;
 	int vertexCount = 6;
 
+	m_dContextPtr->RSSetViewports(1, &m_SSAOViewport); 
+
 	m_dContextPtr->OMSetRenderTargets(1, &nullRtv, NULL);
 
 
-	/*m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
-	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);*/
+	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(8, 1, &nullSrv);
 
-	Matrix T = Matrix::Identity;
+	/*Matrix T = Matrix::Identity;
 	T._11 = 0.5f;
 	T._22 = -0.5f;
 	T._41 = 0.5f;
-	T._42 = 0.5f;
-
+	T._42 = 0.5f;*/
+	XMMATRIX T(
+		0.5f, 0.0f, 0.0f, 0.0f,
+		0.0f, -0.5f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.0f, 1.0f);
 	Matrix P = m_camera->getProjectionMatrix();
 	Matrix pt = P * T;
 
 	buildOffsetVectors();
-	buildFrustumFarCorners(80.f, 1000.0f); // Change this to whatever global constants that get available later xD
+	buildFrustumFarCorners((80.f / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
 
-	m_ssaoData.viewToTexSpace = pt;
+	m_ssaoData.viewToTexSpace = XMMatrixTranspose(pt);
 
 	for(UINT i = 0; i < 4; i++)
 	{
@@ -529,9 +599,11 @@ void Renderer::computeSSAO()
 
 	m_ssaoBuffer.updateBuffer(m_dContextPtr.Get(), &m_ssaoData);
 
-	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), NULL);
-
 	m_dContextPtr->IASetVertexBuffers(0, 1, m_renderQuadBuffer.GetAddressOf(), m_renderQuadBuffer.getStridePointer(), &offset);
+
+	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), NULL);
+	m_dContextPtr->ClearRenderTargetView(m_SSAORenderTargetViewPtr.Get(), m_blackClearColor);
+
 	m_compiledShaders[ShaderProgramsEnum::SSAO_MAP]->setShaders();
 	m_currentSetShaderProg = ShaderProgramsEnum::SSAO_MAP;
 
@@ -541,6 +613,11 @@ void Renderer::computeSSAO()
 	m_dContextPtr->PSSetShaderResources(1, 1, m_randomVectorsSRV.GetAddressOf());
 
 	m_dContextPtr->Draw(vertexCount, 0);
+
+	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
+
+	m_dContextPtr->OMSetRenderTargets(1, &nullRtv, NULL);
+
 	/*m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
 	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);*/
 
@@ -738,21 +815,23 @@ void Renderer::blurPass()
 	m_dContextPtr->PSSetShaderResources(2, 1, m_randomVectorsSRV.GetAddressOf()); // TEMPORARY
 
 	ImGui::Begin("someWindow");
-	ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(256, 256));
+	ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(1024, 576));
+	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(1024, 576));
 
 	ImGui::End();
 
-	int number = 256 * 256;
-	for (int i = 0; i < number; i++)
+	for (int i = 0; i < 256; i++)
 	{
-		XMFLOAT4 v = XMFLOAT4(randomFloat(), randomFloat(), randomFloat(), randomFloat());
-		m_randomColors[i] = v;
+		for (int j = 0; j < 256; j++)
+		{
+			m_randomColors[i * 256 + j] = XMFLOAT4(randomFloat(), randomFloat(), randomFloat(), 0);
+		}
 	}
 
 	D3D11_MAPPED_SUBRESOURCE mappedSubResource;
 	ZeroMemory(&mappedSubResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
 	m_dContextPtr->Map(m_randomTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubResource);
-	memcpy(mappedSubResource.pData, m_randomColors, number * 4);
+	memcpy(mappedSubResource.pData, m_randomColors, 256 * sizeof(XMFLOAT4));
 	m_dContextPtr->Unmap(m_randomTexture.Get(), 0);
 
 	m_dContextPtr->Draw(vertexCount, 0);
@@ -761,24 +840,171 @@ void Renderer::blurPass()
 
 }
 
+void Renderer::ssaoBlurPass()
+{
+	UINT offset = 0;
+	int vertexCount = 6;
+	UINT cOffset = -1;
+
+	m_dContextPtr->OMSetRenderTargets(1, &nullRtv, NULL);
+
+	this->m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &this->nullUav, &cOffset);
+
+	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
+	m_dContextPtr->CSSetShader(m_CSBlurr.Get(), 0, 0);
+
+	ID3D11ShaderResourceView* blurSRVs[] = { m_SSAOShaderResourceViewPtr.Get(), m_SSAOblurSrv.Get() };
+
+	ID3D11UnorderedAccessView* blurUAVs[] = { m_SSAOblurUav.Get(), m_SSAOUnorderedAccessViewPtr.Get() };
+
+
+
+	for (UINT i = 0; i < 2; i++)
+	{
+		// Blur Constant Buffer
+		this->m_blurData.direction = i;
+		this->m_blurBuffer.updateBuffer(m_dContextPtr.Get(), &m_blurData);
+		this->m_dContextPtr->CSSetConstantBuffers(0, 1, m_blurBuffer.GetAddressOf());
+
+		// Set Rescources
+		this->m_dContextPtr->CSSetShaderResources(0, 1, &blurSRVs[this->m_blurData.direction]);
+		this->m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &blurUAVs[this->m_blurData.direction], &cOffset);
+
+		// Dispatch Shader
+		this->m_dContextPtr->Dispatch(m_settings.width / 16, m_settings.height / 16, 1);
+
+		// Unbind Unordered Access View and Shader Resource View
+		this->m_dContextPtr->CSSetShaderResources(0, 1, &this->nullSrv);
+		this->m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &this->nullUav, &cOffset);
+
+	}
+
+	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
+
+
+}
+
+void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
+{
+	m_drawn = 0;
+
+	m_dContextPtr->OMSetRenderTargets(1, m_normalsNDepthRenderTargetViewPtr.GetAddressOf(), m_NormalDepthStencilViewPtr.Get());
+	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_AOclearColor);
+
+	for (auto& component : *Engine::get().getMeshComponentMap())
+	{
+		// Get Entity map from Engine
+		std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+		XMFLOAT3 min, max;
+		bool draw = true;
+		Entity* parentEntity;
+
+		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+		else
+			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
+
+
+		if (m_frustumCullingOn && parentEntity->m_canCull)
+		{
+			//Culling
+			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), *V);
+			XMFLOAT3 posFloat3;
+			XMStoreFloat3(&posFloat3, pos);
+
+			if (frust->Contains(pos) != ContainmentType::CONTAINS)
+			{
+				component.second->getMeshResourcePtr()->getMinMax(min, max);
+
+				XMFLOAT3 ext = (max - min);
+				ext = ext * parentEntity->getScaling();
+				XMFLOAT4 rot = parentEntity->getRotation();
+				BoundingOrientedBox box(posFloat3, ext, rot);
+				ContainmentType contType = frust->Contains(box);
+
+				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+			}
+			else
+			{
+				draw = true;
+			}
+
+
+		}
+
+		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
+		if (draw && meshComp->isVisible())
+		{
+			m_drawn++;
+
+			perObjectMVP constantBufferPerObjectStruct;
+			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
+			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
+			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
+			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+
+			XMMATRIX w = parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix();
+			w.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+
+			XMVECTOR det = XMMatrixDeterminant(w);
+			w = XMMatrixTranspose(XMMatrixInverse(&det, w));
+
+			m_ssaoData.worldInverseTransposeView = XMMatrixTranspose(w * m_camera->getViewMatrix());
+
+			m_ssaoBuffer.updateBuffer(m_dContextPtr.Get(), &m_ssaoData);
+
+			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
+			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH;
+
+			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
+			{
+				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+				meshShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH_ANIM;
+			}
+
+			int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
+
+			for (int mat = 0; mat < materialCount; mat++)
+			{
+				if (m_currentSetShaderProg != meshShaderEnum)
+				{
+					m_compiledShaders[meshShaderEnum]->setShaders();
+					m_currentSetShaderProg = meshShaderEnum;
+				}
+
+				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
+
+				m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
+			}
+		}
+	}
+}
+
 void Renderer::initRenderQuad()
 {
-	std::vector<PositionTextureVertex> fullScreenQuad;
-
-	fullScreenQuad.push_back({ XMFLOAT3(-1.f, 1.f, 0.f), XMFLOAT2(0.f, 0.f) });
-	fullScreenQuad.push_back({ XMFLOAT3(1.f, -1.f, 0.f), XMFLOAT2(1.f, 1.f) });
-	fullScreenQuad.push_back({ XMFLOAT3(-1.f, -1.f, 0.f), XMFLOAT2(0.f, 1.f) });
-	fullScreenQuad.push_back({ XMFLOAT3(-1.f, 1.f, 0.f), XMFLOAT2(0.f, 0.f) });
-	fullScreenQuad.push_back({ XMFLOAT3(1.f, 1.f, 0.f), XMFLOAT2(1.f, 0.f) });
-	fullScreenQuad.push_back({ XMFLOAT3(1.f, -1.f, 0.f), XMFLOAT2(1.f, 1.f) });
+	std::vector<TextureNormalVertex> fullScreenQuad;
+	
+	fullScreenQuad.push_back({ XMFLOAT3(-1.f, -1.f, 0.f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.f, 1.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(-1.f, 1.f, 0.f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.f, 0.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(1.f, 1.f, 0.f), XMFLOAT3(2.0f, 0.0f, 0.0f), XMFLOAT2(1.f, 0.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(-1.f, -1.f, 0.f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.f, 1.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(1.f, 1.f, 0.f), XMFLOAT3(2.0f, 0.0f, 0.0f), XMFLOAT2(1.f, 0.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(1.f, -1.f, 0.f), XMFLOAT3(3.0f, 0.0f, 0.0f), XMFLOAT2(1.f, 1.f) });
 
 	m_renderQuadBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_VERTEX_BUFFER, fullScreenQuad.data(), (int)fullScreenQuad.size());
+
 }
 
 void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
 {
 
 	m_drawn = 0;
+
+	m_dContextPtr->PSSetShaderResources(8, 1, m_SSAOShaderResourceViewPtr.GetAddressOf());
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
@@ -992,6 +1218,7 @@ void Renderer::render()
 	if (m_depthStencilViewPtr)
 	{
 		m_dContextPtr->ClearDepthStencilView(m_depthStencilViewPtr.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+		m_dContextPtr->ClearDepthStencilView(m_NormalDepthStencilViewPtr.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 	}
 
 	//NormalPass
@@ -1037,12 +1264,22 @@ void Renderer::render()
 	ID3D11RenderTargetView* nullRenderTargets[1] = { 0 };
 	m_dContextPtr->OMSetRenderTargets(1, nullRenderTargets, nullptr);
 
-	
-
-	//Run ordinary pass
-	m_dContextPtr->OMSetRenderTargets(3, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
+
+
+	// Normals & Depth pass
+	normalsNDepthPass(&frust, &wvp, &V, &P);
+
+	// SSAO
+	computeSSAO();
+
+	// SSAO Blur
+	ssaoBlurPass();
+
+	//Run ordinary pass
+	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
+
 	renderScene(&frust, &wvp, &V, &P);
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
@@ -1066,14 +1303,10 @@ void Renderer::render()
 	}
 	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
 	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
-	this->m_dContextPtr->PSSetSamplers(1, 1, this->m_psSamplerState.GetAddressOf());
 
 	ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 	ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
 	ImGui::End();
-
-	// SSAO
-	computeSSAO();
 
 	// Bloom Filter
 	downSamplePass();

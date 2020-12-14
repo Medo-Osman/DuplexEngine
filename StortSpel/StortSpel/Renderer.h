@@ -30,6 +30,9 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilStatePtr = NULL;
 
 	// SSAO stuff
+
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_NormalDepthStencilViewPtr = NULL;
+
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_normalsNDepthSRV = NULL;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_normalsNDepthRenderTargetViewPtr = NULL;
 
@@ -39,10 +42,16 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_SSAORenderTargetViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_SSAOUnorderedAccessViewPtr = NULL;
 
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_SSAOblurSrv = NULL;
+	Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_SSAOblurUav = NULL;
+
+
 	Microsoft::WRL::ComPtr <ID3D11Texture2D> m_randomTexture = NULL;
 	XMFLOAT4* m_randomColors;
-	Vector4* m_offsetVectors;
+	Vector4 m_offsetVectors[14];
 	Vector4 m_frustumFarCorners[4];
+
+	D3D11_VIEWPORT m_SSAOViewport;
 
 	// SSAO Buffer
 	SSAO_BUFFER m_ssaoData;
@@ -53,7 +62,7 @@ private:
 
 
 	// Bloom stuff
-	ID3D11RenderTargetView* m_geometryPassRTVs[3];
+	ID3D11RenderTargetView* m_geometryPassRTVs[2];
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_glowMapRenderTargetViewPtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_glowMapShaderResourceView = NULL;
 
@@ -86,7 +95,7 @@ private:
 
 	// Blur stuff
 	Buffer<CS_BLUR_CBUFFER> m_blurBuffer;
-	Buffer<PositionTextureVertex> m_renderQuadBuffer;
+	Buffer<TextureNormalVertex> m_renderQuadBuffer;
 
 	CS_BLUR_CBUFFER m_blurData;
 	float m_weightSigma = 5.f;
@@ -121,6 +130,8 @@ private:
 	
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 	float m_blackClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
+	float m_AOclearColor[4] = { 0.0f, 0.0f, -1.0f, 1e5f };
+
 	//FrustumCulling
 	bool m_frustumCullingOn = true;
 	
@@ -145,16 +156,20 @@ private:
 	void buildFrustumFarCorners(float fovY, float farZ);
 	void computeSSAO();
 
-	float randomFloat()
+	static float randomFloat(float a, float b)
 	{
-		float r = (float)rand() / RAND_MAX;
-		return r;
+		return a + ((float)(rand()) / (float)RAND_MAX) * (b - a);
 	}
-
+	static float randomFloat()
+	{
+		return ((float)(rand()) / (float)RAND_MAX);
+	}
 	HRESULT initializeBloomFilter();
 	void calculateBloomWeights();
 	void downSamplePass();
 	void blurPass();
+	void ssaoBlurPass();
+	void normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void initRenderQuad();
 	void renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);

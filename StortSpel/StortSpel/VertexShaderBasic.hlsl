@@ -25,6 +25,7 @@ struct vs_out
     float3 bitangent : BITANGENT;
     float4 worldPos : POSITION;
     float4 shadowPos : SPOS;
+    float4 ssaoPos : SSAOPOS;
 };
 
 cbuffer perModel : register(b0)
@@ -56,6 +57,14 @@ vs_out main(vs_in input)
     output.worldPos = mul(float4(input.pos, 1), worldMatrix);
     float4 vPos = mul(output.worldPos, viewMatrix);
     output.depth = 1 - output.pos.z;
+    
+    
+    matrix M = (0.5f, 0.0f, 0.0f, 0.5f,
+    0.0f, -0.5f, 0.0f, 0.5f,
+0.0f, 0.0f, 1.0f, 0.0f,
+0.0f, 0.0f, 0.0f, 1.0f);
+    
+    output.ssaoPos = mul(float4(input.pos, 1), wvpMatrix * M);
     
     //output.shadowPos = mul(float4(input.pos, 1), shadowMatrix);
     

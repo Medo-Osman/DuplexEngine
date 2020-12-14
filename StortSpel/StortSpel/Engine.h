@@ -44,7 +44,7 @@ private:
 	Vector4 m_skyLightDir = Vector4(0.25, -0.5, 0.25, 0);//Vector4(-0.8f, 1.0f, -0.7f, 0);//Vector4(-0.5, 0, -0.5, 0);
 	Vector4 m_skyLightColor = Vector4(1, 1, 1, 1);
 	FLOAT m_skyLightBrightness = 4.f;
-	FLOAT m_ambientLightLevel = 0.3f;
+	FLOAT m_ambientLightLevel = 0.5f;
 
 	// Entities
 	std::unordered_map<std::string, Entity*>* m_entities;

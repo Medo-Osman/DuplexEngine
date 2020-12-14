@@ -564,6 +564,15 @@
     <FxCompile Include="SSAOPixel.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
+    <FxCompile Include="NormalsDepthVertex.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="NormalsDepthVertexAnim.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="NormalsDepthPixel.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
