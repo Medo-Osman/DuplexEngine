@@ -78,9 +78,9 @@ public:
 	
 	std::string convert(BSTR source);
 
-	BossStructures::BossActionData getBossActionData();
+	std::vector<BossStructures::BossActionData>& getBossActionData();
 	bool gameStarted = false;
-	int bossEnum;
+	std::vector<int> bossEnum;
 	bool hasDoneAction = true;
 private:
 	WSAData data;
@@ -95,7 +95,7 @@ private:
 	std::vector<TrapData> trapData;
 	std::vector<std::string> entitiesToBeRemoved;
 	BossData bossData;
-	BossStructures::BossActionData bossActionData;
+	std::vector<BossStructures::BossActionData> bossActionData;
 
 	
 

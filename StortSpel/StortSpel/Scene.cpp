@@ -1631,6 +1631,7 @@ void Scene::onSceneLoaded()
 
 void Scene::updateScene(const float& dt)
 {
+	
 	if (m_boss)
 	{
 		//Check lasers
@@ -1678,9 +1679,14 @@ void Scene::updateScene(const float& dt)
 		Server::get().setBossData(m_boss->getPosition(), m_boss->currentPlatformIndex.x, m_boss->currentPlatformIndex.y);
 
 	}
-	else if(!PacketHandler::get().hasDoneAction && m_boss)
+	else if(PacketHandler::get().getBossActionData().size() > 0 && m_boss)
 	{
-		bossEventUpdate((BossMovementType)PacketHandler::get().bossEnum, PacketHandler::get().getBossActionData());
+		for (int i = 0; i < PacketHandler::get().getBossActionData().size(); i++)
+		{
+			bossEventUpdate((BossMovementType)PacketHandler::get().bossEnum.at(i), PacketHandler::get().getBossActionData().at(i));
+
+		}
+		PacketHandler::get().getBossActionData().clear();
 	}
 	if (!Engine::get().getIsHost() && m_boss)
 	{
@@ -2011,7 +2017,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 		}
 
 	
-		Component* component = projectile->getComponent("projectile");
+		//Component* component = projectile->getComponent("projectile");
 
 		m_boss->dropStar(1);
 		float c = float(m_boss->getCurrnentNrOfStars()) / float(m_boss->getNrOfMaxStars());
@@ -2020,15 +2026,15 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 			imageStyle.scale = Vector2(c, 0.8f);
 			GUIHandler::get().setImageStyle(m_bossHP_barGuiIndex, imageStyle);
 
-			if (component != nullptr)
+			/*if (component != nullptr)
 			{
 				ProjectileComponent* projComponent = dynamic_cast<ProjectileComponent*>(projectile->getComponent("projectile"));
 				m_projectiles.erase(projComponent->m_id);
 				removeEntity(projectile->getIdentifier());
 				deferredPointInstantiationList.push_back(data.origin + Vector3(0, 1, 0));
-			}
-			else
-				addScore(data.origin + Vector3(0, 5, 0));
+			}*/
+			//else
+			//	addScore(data.origin + Vector3(0, 5, 0));
 		}
 
 

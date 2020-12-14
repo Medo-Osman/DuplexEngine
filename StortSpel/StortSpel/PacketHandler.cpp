@@ -269,17 +269,19 @@ void PacketHandler::setBossData(Packet* _packet)
 
 void PacketHandler::setBossActionData(Packet* _packet)
 {
-	bossEnum = _packet->ReadInt();
-	bossActionData.direction = _packet->ReadVector3();
-	bossActionData.origin = _packet->ReadVector3();
-	bossActionData.rotation = _packet->ReadVector3();
-	bossActionData.speed = _packet->ReadFloat();
-	bossActionData.maxStarCount = _packet->ReadInt();
-	bossActionData.currentStarCount = _packet->ReadInt();
-	int length = _packet->ReadInt();
-	bossActionData.entityID = _packet->ReadString(length);
+	BossStructures::BossActionData data;
 
-	hasDoneAction = false;
+	bossEnum.push_back(_packet->ReadInt());
+	data.direction = _packet->ReadVector3();
+	data.origin = _packet->ReadVector3();
+	data.rotation = _packet->ReadVector3();
+	data.speed = _packet->ReadFloat();
+	data.maxStarCount = _packet->ReadInt();
+	data.currentStarCount = _packet->ReadInt();
+	int length = _packet->ReadInt();
+	data.entityID = _packet->ReadString(length);
+
+	bossActionData.push_back(data);
 }
 
 void PacketHandler::sendTrapData(std::string entityID)
@@ -414,7 +416,7 @@ std::string PacketHandler::convert(BSTR source)
 	
 }
 
-BossStructures::BossActionData PacketHandler::getBossActionData()
+std::vector<BossStructures::BossActionData> &PacketHandler::getBossActionData()
 {
 	hasDoneAction = true;
 	return bossActionData;
