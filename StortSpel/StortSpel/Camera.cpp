@@ -197,7 +197,6 @@ void Camera::inputUpdate(InputData& inputData)
 				foundShift = true;
 				std::cout << "Shift down" << std::endl;
 			}
-			std::cout << inputData.stateData.size() << std::endl;
 		}
 
 		for (size_t i = 0; i < inputData.actionData.size(); i++)
@@ -269,7 +268,6 @@ void Camera::update(const float& dt)
 		this->updateViewMatrix();
 
 		fovAmount = lerp(fovAmount, targetFov, 0.1f);
-		std::cout << fovAmount << std::endl;
 	}
 
 	
