@@ -272,7 +272,7 @@ void Scene::removeQuadTreeMeshComponentsFromMeshComponentMap(Scene* sceneObject)
 	sceneObject->m_quadTree->getAllMeshComponents(quadTreeMeshComponents);
 	for (int i = 0; i < quadTreeMeshComponents.size(); i++)
 	{
-		sceneObject->m_meshComponentMap.erase(quadTreeMeshComponents.at(i)->getRenderId());
+		sceneObject->removeMeshFromDrawCallList(quadTreeMeshComponents.at(i));
 	}
 }
 

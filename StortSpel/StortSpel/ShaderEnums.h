@@ -3,7 +3,6 @@
 
 enum ShaderProgramsEnum
 {
-	NONE
 	DEFAULT,			// 0
 	TEMP_TEST,			// 1
 	SKYBOX,				// 2

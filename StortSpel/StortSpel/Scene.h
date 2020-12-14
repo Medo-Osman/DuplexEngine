@@ -139,7 +139,6 @@ private:
 
 
 	int m_nrOfPickups = 0;
-	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
 	static void createQuadTree(Scene* sceneObject);
 	
 	void addPickup(const Vector3& position, const int tier = 1, std::string name = "", const int pickupType = 3);

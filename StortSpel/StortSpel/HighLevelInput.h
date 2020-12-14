@@ -23,7 +23,7 @@ enum Action
 	RESPAWN,
 	MENU,
 	SCROLL_DOWN,
-	SCROLL_UP
+	SCROLL_UP,
 	SORT_TEST
 };
 

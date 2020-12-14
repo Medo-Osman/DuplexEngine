@@ -899,10 +899,10 @@ void Renderer::zPrePassRenderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp
 void Renderer::zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, std::vector<MeshComponent*> &meshComponentsFromQuadTree)
 {
 
-	for (auto& component : *Engine::get().getMeshComponentMap())
-	{
-		this->zPrePassRenderMeshComponent(frust, wvp, V, P, component.second, true);
-	}
+	//for (auto& component : *Engine::get().getMeshComponentMap())
+	//{
+	//	this->zPrePassRenderMeshComponent(frust, wvp, V, P, component.second, true);
+	//}
 
 
 	for (auto& meshComponent : meshComponentsFromQuadTree)
@@ -994,18 +994,18 @@ void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATR
 				meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
 				m_currentSetMaterialId = meshMatPtr->getMaterialId();
 
-				int materialCount = component->getMeshResourcePtr()->getMaterialCount();
+				int materialCount = meshComponent->getMeshResourcePtr()->getMaterialCount();
 				
 				for (int mat = 0; mat < materialCount; mat++)
 				{
-					ShaderProgramsEnum meshShaderEnum = component->getShaderProgEnum(mat);
+					ShaderProgramsEnum meshShaderEnum = meshComponent->getShaderProgEnum(mat);
 					if (m_currentSetShaderProg != meshShaderEnum)
 					{
 						m_compiledShaders[meshShaderEnum]->setShaders();
 						m_currentSetShaderProg = meshShaderEnum;
 					}
 
-					Material* meshMatPtr = component->getMaterialPtr(mat);
+					Material* meshMatPtr = meshComponent->getMaterialPtr(mat);
 					if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
 					{
 						meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
@@ -1022,7 +1022,7 @@ void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATR
 					}
 					m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 
-					std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
+					std::pair<std::uint32_t, std::uint32_t> offsetAndSize = meshComponent->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
 
 					m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
 				}
@@ -1041,10 +1041,10 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 {
 	m_drawn = 0;
 
-	for (auto& component : *Engine::get().getMeshComponentMap())
-	{
-		renderMeshComponent(frust, wvp, V, P, component.second, true);
-	}
+	//for (auto& component : *Engine::get().getMeshComponentMap())
+	//{
+	//	renderMeshComponent(frust, wvp, V, P, component.second, true);
+	//}
 
 
 	for (auto& meshComponent : meshComponentsFromQuadTree)
@@ -1374,7 +1374,7 @@ void Renderer::render()
 	renderScene(&frust, &W, &V, &P, meshCompVec);
 
 	//renderScene(&frust, &wvp, &V, &P);
-	renderSortedScene(&frust, &wvp, &V, &P);
+	renderSortedScene(&frust, &W, &V, &P);
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
 	m_dContextPtr->PSSetShaderResources(0, 1, srv);

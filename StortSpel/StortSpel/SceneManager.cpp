@@ -55,7 +55,6 @@ void SceneManager::initalize(Input* input)
 	// Update currentScene in engine
 	Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
-	Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 	Engine::get().setQuadTreePtr(m_currentScene->getQuadTreePtr());
 	//Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 	Engine::get().setDrawCallsPtr(m_currentScene->getDrawCallsPtr());
@@ -419,7 +418,6 @@ void SceneManager::swapScenes()
 		// Update currentScene in engine
 		Engine::get().setEntitiesMapPtr(m_currentScene->getEntityMap());
 		Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
-		Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 		Engine::get().getPlayerPtr()->reset3DMarker();
 		//Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 		Engine::get().setDrawCallsPtr(m_currentScene->getDrawCallsPtr());
