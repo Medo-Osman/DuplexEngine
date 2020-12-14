@@ -680,7 +680,7 @@ void Renderer::initRenderQuad()
 	m_renderQuadBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_VERTEX_BUFFER, fullScreenQuad.data(), (int)fullScreenQuad.size());
 }
 
-void Renderer::zPrePassRenderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent)
+void Renderer::zPrePassRenderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent, const bool& useFrustumCullingParam)
 {
 	bool draw = true;
 	bool isAnim = false;
@@ -697,7 +697,7 @@ void Renderer::zPrePassRenderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp
 		parentEntity = (*entityMap)[meshComponent->getParentEntityIdentifier()];
 
 
-	if (m_camera->frustumCullingOn && parentEntity->m_canCull && USE_FRUSTUM_CULLING)
+	if (m_camera->frustumCullingOn && parentEntity->m_canCull && USE_FRUSTUM_CULLING && useFrustumCullingParam)
 	{
 		//Culling
 		Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
@@ -783,18 +783,18 @@ void Renderer::zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMA
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
-		this->zPrePassRenderMeshComponent(frust, wvp, V, P, component.second);
+		this->zPrePassRenderMeshComponent(frust, wvp, V, P, component.second, true);
 	}
 
 
 	for (auto& meshComponent : meshComponentsFromQuadTree)
 	{
-		this->zPrePassRenderMeshComponent(frust, wvp, V, P, meshComponent);
+		this->zPrePassRenderMeshComponent(frust, wvp, V, P, meshComponent, false);
 	}
 
 }
 
-void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent)
+void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent, const bool& useFrustumCullingParam)
 {
 	// Get Entity map from Engine
 	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
@@ -810,7 +810,7 @@ void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATR
 		parentEntity = (*entityMap)[meshComponent->getParentEntityIdentifier()];
 
 
-	if (m_camera->frustumCullingOn && parentEntity->m_canCull && USE_FRUSTUM_CULLING)
+	if (m_camera->frustumCullingOn && parentEntity->m_canCull && USE_FRUSTUM_CULLING && useFrustumCullingParam)
 	{
 		//Culling
 		Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
@@ -901,13 +901,13 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
-		renderMeshComponent(frust, wvp, V, P, component.second);
+		renderMeshComponent(frust, wvp, V, P, component.second, true);
 	}
 
 
 	for (auto& meshComponent : meshComponentsFromQuadTree)
 	{
-		renderMeshComponent(frust, wvp, V, P, meshComponent);
+		renderMeshComponent(frust, wvp, V, P, meshComponent, false);
 	}
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 	m_dContextPtr->PSSetShaderResources(7, 1, nullSRV);
