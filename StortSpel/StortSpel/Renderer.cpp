@@ -812,6 +812,8 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
 {
+	std::vector<MeshComponent*>* shadowPassDrawCalls = Engine::get().getShadowPassDrawCallsPtr();
+	
 	ID3D11ShaderResourceView* emptySRV[1] = { nullptr };
 	m_dContextPtr->PSSetShaderResources(2, 1, emptySRV);
 
@@ -825,13 +827,15 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	shadowBufferStruct.shadowMatrix = XMMatrixTranspose(m_shadowMap->m_shadowTransform);
 	m_shadowConstantBuffer.updateBuffer(m_dContextPtr.Get(), &shadowBufferStruct);
 
-	for (auto& drawCallVector : *Engine::get().getDrawCallsPtr())
+	//for (auto& drawCallVector : *Engine::get().getDrawCallsPtr())
 	{
-		for (auto& drawCallStruct : drawCallVector)
+		//for (auto& drawCallStruct : drawCallVector)
+		for (int i = 0; i < shadowPassDrawCalls->size(); i++)
 		{
-			MeshComponent* component = drawCallStruct.mesh;
+			//MeshComponent* component = drawCallStruct.mesh;
+ 			MeshComponent* component = shadowPassDrawCalls->at(i);
 
-			if (component->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
+			if (component->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_PBR && component->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && component->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
 			{
 				ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
 				m_compiledShaders[meshShaderEnum]->setShaders();
@@ -868,9 +872,10 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 					m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());// ? does this need to be optimised or is it fine to do this for every mesh?
 				}
 
-				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component->getMeshResourcePtr()->getMaterialOffsetAndSize(drawCallStruct.material_IDX);
+				//std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component->getMeshResourcePtr()->getMaterialOffsetAndSize(drawCallStruct.material_IDX);
 
-				m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
+				//m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
+				m_dContextPtr->DrawIndexed(component->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 				//m_dContextPtr->DrawIndexed(component->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 			}
 		}

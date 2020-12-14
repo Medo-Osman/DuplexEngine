@@ -52,6 +52,7 @@ private:
 	// Entities
 	std::unordered_map<std::string, Entity*>* m_entities;
 	std::vector<std::vector<drawCallStruct>>* m_drawCallsPtr;
+	std::vector<MeshComponent*>* m_shadowPassDrawCallsPtr;
 	std::unordered_map<std::string, LightComponent*>* m_lightComponentMap;
 
 	// Player
@@ -82,11 +83,13 @@ public:
 
 	void setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entities);
 	void setDrawCallsPtr(std::vector<std::vector<drawCallStruct>>* drawCallsPtr);
+	void setShadowPassDrawCallsPtr(std::vector<MeshComponent*>* shadowPassDrawCallsPtr);
 	void setLightComponentMapPtr(std::unordered_map<std::string, LightComponent*>* lightComponents);
 
 	bool addComponentToPlayer(std::string componentIdentifier, Component* component);
 
 	std::vector<std::vector<drawCallStruct>>* getDrawCallsPtr();
+	std::vector<MeshComponent*>* getShadowPassDrawCallsPtr();
 	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	Vector4& getSkyLightDir();

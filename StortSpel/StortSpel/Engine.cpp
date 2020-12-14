@@ -84,6 +84,11 @@ void Engine::setDrawCallsPtr(std::vector<std::vector<drawCallStruct>>* drawCalls
 	m_drawCallsPtr = drawCallsPtr;
 }
 
+void Engine::setShadowPassDrawCallsPtr(std::vector<MeshComponent*>* shadowPassDrawCallsPtr)
+{
+	m_shadowPassDrawCallsPtr = shadowPassDrawCallsPtr;
+}
+
 void Engine::setLightComponentMapPtr(std::unordered_map<std::string, LightComponent*>* lightComponents)
 {
 	m_lightComponentMap = lightComponents;
@@ -130,6 +135,11 @@ bool Engine::addComponentToPlayer(std::string componentIdentifier, Component* co
 std::vector<std::vector<drawCallStruct>>* Engine::getDrawCallsPtr()
 {
 	return m_drawCallsPtr;
+}
+
+std::vector<MeshComponent*>* Engine::getShadowPassDrawCallsPtr()
+{
+	return m_shadowPassDrawCallsPtr;
 }
 
 std::unordered_map<std::string, LightComponent*>* Engine::getLightComponentMap()

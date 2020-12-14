@@ -57,6 +57,7 @@ void SceneManager::initalize(Input* input)
 	Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 	//Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 	Engine::get().setDrawCallsPtr(m_currentScene->getDrawCallsPtr());
+	Engine::get().setShadowPassDrawCallsPtr(m_currentScene->getShadowPassDrawCallsPtr());
 
 	// Sorting
 	//Renderer::get().initializeDrawCallList();
@@ -490,6 +491,7 @@ void SceneManager::swapScenes()
 		Engine::get().setLightComponentMapPtr(m_currentScene->getLightMap());
 		//Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 		Engine::get().setDrawCallsPtr(m_currentScene->getDrawCallsPtr());
+		Engine::get().setShadowPassDrawCallsPtr(m_currentScene->getShadowPassDrawCallsPtr());
 
 		m_currentScene->activateScene();
 

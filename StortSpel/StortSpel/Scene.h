@@ -122,6 +122,7 @@ private:
 
 	std::unordered_map<std::string, Entity*> m_entities;
 	std::vector<std::vector<drawCallStruct>> m_drawCalls;
+	std::vector<MeshComponent*> m_shadowPassDrawCalls;
 	std::unordered_map<std::string, LightComponent*> m_lightComponentMap;
 	std::vector<ParticleComponent*> m_tempParticleComponent;
 
@@ -167,6 +168,7 @@ private:
 	//Sorting
 	void addMeshToDrawCallList(MeshComponent* meshComp);
 	void removeMeshFromDrawCallList(MeshComponent* meshComp);
+	void removeMeshFromShadowPassDrawCallList(MeshComponent* meshComp);
 	void clearDrawCallList();
 	static bool compairDrawCalls(const drawCallStruct& A, const drawCallStruct& B) { return (A.material_ID < B.material_ID); }
 	void sortDrawCallList();
@@ -232,6 +234,8 @@ public:
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::vector<std::vector<drawCallStruct>>* getDrawCallsPtr();
+	std::vector<MeshComponent*>* getShadowPassDrawCallsPtr();
+
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
 	Entity* addTrampoline(Vector3 position);
