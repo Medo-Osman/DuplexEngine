@@ -223,6 +223,7 @@ public:
     Player();
     ~Player();
     bool m_shouldDrawLine = false;
+    bool m_ignoreInput = false;
 
 
     virtual void Attach(PlayerObserver* observer)
@@ -285,4 +286,5 @@ public:
     // Inherited via GUIObserver
     virtual void update(GUIUpdateType type, GUIElement* guiElement) override;
     void serverPlayerAnimationChange(PlayerState currentState, float currentBlend);
+
 };

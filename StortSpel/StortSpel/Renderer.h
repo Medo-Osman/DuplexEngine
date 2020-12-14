@@ -128,7 +128,7 @@ private:
 	Renderer(); //{};
 
 	Camera m_testCamera;
-	//Camera m_flyingcamera;
+	Camera m_flyingCamera;
 
 	using VertexType = DirectX::VertexPositionColor;
 
@@ -145,6 +145,7 @@ private:
 	bool m_isFullscreen = false;
 
 	bool m_switchCamera = false;
+	bool m_useFlyingCamera = false;
 public:
 	Renderer(const Renderer&) = delete;
 	void operator=(Renderer const&) = delete;

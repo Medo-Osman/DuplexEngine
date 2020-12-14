@@ -21,7 +21,9 @@ enum Action
 	USE,
 	SELECT,
 	RESPAWN,
-	MENU
+	MENU,
+	SCROLL_DOWN,
+	SCROLL_UP
 };
 
 enum State
@@ -30,9 +32,12 @@ enum State
 	WALK_RIGHT,
 	WALK_FORWARD,
 	WALK_BACKWARD,
+	FLY_UP,
+	FLY_DOWN,
 	MENU_UP,
 	MENU_DOWN,
-	JUMPING
+	JUMPING,
+	SHIFTDOWN
 };
 
 enum Range
