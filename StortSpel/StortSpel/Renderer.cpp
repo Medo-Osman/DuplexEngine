@@ -1101,7 +1101,12 @@ void Renderer::render()
 	m_dContextPtr->ExecuteCommandList(ResourceHandler::get().m_commandList, TRUE);
 
 	//Update camera position for pixel shader buffer
-	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
+	cameraBufferStruct cameraStruct;
+	//if (!m_switchCamera)
+		cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
+	//else
+		//cameraStruct = cameraBufferStruct{ m_testCamera.getPosition() };
+
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
 
 	
@@ -1130,9 +1135,22 @@ void Renderer::render()
 	// Skybox constant buffer:
 	m_dContextPtr->OMSetDepthStencilState(skyboxDSSPtr, 0);
 	skyboxMVP constantBufferSkyboxStruct;
-	XMMATRIX W = XMMatrixTranslation(XMVectorGetX(m_camera->getPosition()), XMVectorGetY(m_camera->getPosition()), XMVectorGetZ(m_camera->getPosition()));
-	XMMATRIX V = m_camera->getViewMatrix();
-	XMMATRIX P = m_camera->getProjectionMatrix();
+	XMMATRIX W;
+	XMMATRIX V;
+
+	XMMATRIX P;
+	if (!m_switchCamera)
+	{
+		W = XMMatrixTranslation(XMVectorGetX(m_camera->getPosition()), XMVectorGetY(m_camera->getPosition()), XMVectorGetZ(m_camera->getPosition()));
+		P = m_camera->getProjectionMatrix();
+		V = m_camera->getViewMatrix();
+	}
+	else
+	{
+		W = XMMatrixTranslation(XMVectorGetX(m_testCamera.getPosition()), XMVectorGetY(m_testCamera.getPosition()), XMVectorGetZ(m_testCamera.getPosition()));
+		P = m_testCamera.getProjectionMatrix();
+		V = m_testCamera.getViewMatrix();
+	}
 	constantBufferSkyboxStruct.mvpMatrix = XMMatrixTranspose(W * V * P);
 	m_skyboxConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferSkyboxStruct);
 

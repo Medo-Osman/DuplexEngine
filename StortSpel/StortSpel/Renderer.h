@@ -128,6 +128,7 @@ private:
 	Renderer(); //{};
 
 	Camera m_testCamera;
+	//Camera m_flyingcamera;
 
 	using VertexType = DirectX::VertexPositionColor;
 
