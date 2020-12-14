@@ -226,7 +226,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 			{
 				m_nextScene = new Scene();
 				//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
-				std::thread sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+				std::thread sceneLoaderThread = std::thread(Scene::loadBossTestPhaseTwo, m_nextScene, m_nextSceneReady);
 				sceneLoaderThread.detach();
 
 				m_gameStarted = true;
