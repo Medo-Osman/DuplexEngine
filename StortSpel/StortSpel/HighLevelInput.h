@@ -24,6 +24,7 @@ enum Action
 	MENU,
 	SCROLL_DOWN,
 	SCROLL_UP
+	SORT_TEST
 };
 
 enum State

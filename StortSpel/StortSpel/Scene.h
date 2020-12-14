@@ -127,7 +127,8 @@ private:
 	std::vector<std::pair<int, std::string>> m_scores;
 
 	std::unordered_map<std::string, Entity*> m_entities;
-	std::unordered_map<unsigned int long, MeshComponent*> m_meshComponentMap;
+	std::vector<std::vector<drawCallStruct>> m_drawCalls;
+	std::vector<MeshComponent*> m_shadowPassDrawCalls;
 	std::unordered_map<std::string, LightComponent*> m_lightComponentMap;
 	std::vector<ParticleComponent*> m_tempParticleComponent;
 
@@ -140,6 +141,8 @@ private:
 	int m_nrOfPickups = 0;
 	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
 	static void createQuadTree(Scene* sceneObject);
+	
+	void addPickup(const Vector3& position, const int tier = 1, std::string name = "", const int pickupType = 3);
 	void loadPickups();
 	void loadScore();
 	Entity* addScore(const Vector3& position, const int tier = 1, std::string name = "");
@@ -173,6 +176,15 @@ private:
 	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
 
 	int startGameIndex = 0;
+
+	//Sorting
+	void addMeshToDrawCallList(MeshComponent* meshComp);
+	void removeMeshFromDrawCallList(MeshComponent* meshComp);
+	void removeMeshFromShadowPassDrawCallList(MeshComponent* meshComp);
+	void clearDrawCallList();
+	static bool compairDrawCalls(const drawCallStruct& A, const drawCallStruct& B) { return (A.material_ID < B.material_ID); }
+	void sortDrawCallList();
+
 public:
 	Boss* m_boss = nullptr;
 	Scene();
@@ -193,6 +205,7 @@ public:
 	static void loadBossTestPhaseTwo(Scene* sceneObject, bool* finished);
 	static void loadEmpty(Scene* sceneObject, bool* finished);
 	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
+	static void loadSortTest(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
 	
@@ -235,6 +248,10 @@ public:
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	QuadTree* getQuadTreePtr();
+	std::vector<std::vector<drawCallStruct>>* getDrawCallsPtr();
+	std::vector<MeshComponent*>* getShadowPassDrawCallsPtr();
+
+
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
 	Entity* addTrampoline(Vector3 position);

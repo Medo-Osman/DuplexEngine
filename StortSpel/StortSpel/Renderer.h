@@ -107,7 +107,7 @@ private:
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
-	unsigned int long m_currentSetMaterialId = 1000;
+	unsigned int long m_currentSetMaterialId = -1;
 
 	//Functions
 	HRESULT createDeviceAndSwapChain();
@@ -144,8 +144,12 @@ private:
 	int m_drawn = 0;
 	bool m_isFullscreen = false;
 
+
 	bool m_switchCamera = false;
 	bool m_useFlyingCamera = false;
+	// Sorting
+	void renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
+
 public:
 	Renderer(const Renderer&) = delete;
 	void operator=(Renderer const&) = delete;

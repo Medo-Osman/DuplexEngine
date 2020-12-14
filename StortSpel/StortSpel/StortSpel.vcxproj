@@ -227,6 +227,7 @@
     <ClCompile Include="DebugDraw.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClInclude Include="DebugDraw.h" />
+    <ClInclude Include="DrawCallStructFile.h" />
     <ClInclude Include="Entity.h" />
     <ClCompile Include="GUIHandler.cpp" />
     <ClCompile Include="Material.cpp" />

@@ -18,6 +18,7 @@ public:
 		m_actionMapping['8'] = Action::LOAD_ARENA;
 		m_actionMapping['7'] = Action::LOAD_EMPTY;
 		m_actionMapping['6'] = Action::LOAD_ALMOST_EMPTY;
+		m_actionMapping['5'] = Action::SORT_TEST;
 		m_actionMapping['\x10'] = Action::DASH; // Shift: '\x10'
 		m_actionMapping[(char)'\x0D'] = Action::CLOSEINTROGUI; //Enter 
 		m_actionMapping['F'] = Action::USEPICKUP;

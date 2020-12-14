@@ -8,6 +8,82 @@
 #include"Renderer.h"
 #include"TrampolineComponent.h"
 
+void Scene::addMeshToDrawCallList(MeshComponent* meshComp)
+{
+	for (int i = 0; i < meshComp->getMeshResourcePtr()->getMaterialCount(); i++) // Loop over all materials on the mesh
+	{
+		int indexToInsertAt = 0;
+		for (int j = 0; j < m_drawCalls.at(meshComp->getShaderProgEnum(i)).size(); j++) // Loop over all existong materials in this shader enum
+		{
+			if (m_drawCalls.at(meshComp->getShaderProgEnum(i)).at(j).material_ID <= meshComp->getMaterialPtr(i)->getMaterialId())
+			{
+				indexToInsertAt++;
+			}
+			else
+			{
+				j = m_drawCalls.at(meshComp->getShaderProgEnum(i)).size();
+			}
+		}
+
+		m_drawCalls.at(meshComp->getShaderProgEnum(i)).insert(
+			m_drawCalls.at(meshComp->getShaderProgEnum(i)).begin() + indexToInsertAt,
+			drawCallStruct(meshComp,													// mesh
+				meshComp->getShaderProgEnum(i),								// shaderEnu
+				meshComp->getMaterialPtr(i)->getMaterialId(),				// matID
+				i,															// matIDX
+				meshComp->getFilePath()));
+	}
+}
+
+void Scene::removeMeshFromDrawCallList(MeshComponent* meshComp)
+{
+	for (int i = 0; i < meshComp->getMeshResourcePtr()->getMaterialCount(); i++) // Loop over all materials on the mesh
+	{
+		int indexToPop = 0;
+		for (int j = 0; j < m_drawCalls.at(meshComp->getShaderProgEnum(i)).size(); j++) // Loop over all existong materials in this shader enum
+		{
+			if (m_drawCalls.at(meshComp->getShaderProgEnum(i)).at(j) == drawCallStruct(meshComp,
+				meshComp->getShaderProgEnum(i),
+				meshComp->getMaterialPtr(i)->getMaterialId(),
+				i,
+				meshComp->getFilePath()))
+			{
+				indexToPop = j;
+				j = m_drawCalls.at(meshComp->getShaderProgEnum(i)).size();
+			}
+		}
+		m_drawCalls.at(meshComp->getShaderProgEnum(i)).erase(m_drawCalls.at(meshComp->getShaderProgEnum(i)).begin() + indexToPop);
+	}
+}
+
+void Scene::removeMeshFromShadowPassDrawCallList(MeshComponent* meshComp)
+{
+	int indexToPop = 0;
+
+	for (int i = 0; i < m_shadowPassDrawCalls.size(); i++)
+	{
+		if (m_shadowPassDrawCalls.at(i) == meshComp)
+		{
+			indexToPop = i;
+			i = m_shadowPassDrawCalls.size();
+		}
+	}
+	m_shadowPassDrawCalls.erase(m_shadowPassDrawCalls.begin() + indexToPop);
+}
+
+void Scene::clearDrawCallList()
+{
+	m_drawCalls.clear();
+}
+
+void Scene::sortDrawCallList()
+{
+	for (int i = 0; i < NR_OF_SHADER_PROGRAM_ENUMS; i++)
+	{
+		std::sort(m_drawCalls.at(i).begin(), m_drawCalls.at(i).end(), compairDrawCalls);
+	}
+}
+
 Scene::Scene()
 {
 	// Player
@@ -17,6 +93,8 @@ Scene::Scene()
 
 	m_sceneEntryPosition = { 0, 0, 0 };
 	m_sceneID = Physics::get().getNewSceneID();
+
+	m_drawCalls.resize(NR_OF_SHADER_PROGRAM_ENUMS);
 
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
@@ -85,55 +163,64 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 {
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 
-	/*Entity* music = sceneObject->addEntity("lobbyMusic");
-	if (music)
-	{
-		sceneObject->addComponent(music, "Music", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
-	}*/
-
 	Entity* floor = sceneObject->addEntity("Floor");
 	if (floor)
 	{
 		sceneObject->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm",
 			Material({ L"DarkGrayTexture.png" })));
-		floor->scale({ 30, 1, 30 });
+		floor->scale({ 5, 1, 5 });
 		floor->translate({ 0,-2,0 });
 		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
 	}
 
-	/*Entity* test = sceneObject->addEntity("test");
-	if (test)
-	{
-		sceneObject->addComponent(test, "mesh",
-			new MeshComponent("GlowCube.lrm",
-				EMISSIVE,
-				Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
-
-		test->setScale({ 5, 5, 5 });
-		test->setPosition({ 9, 2, 10 });
-
-		sceneObject->createNewPhysicsComponent(test, true);
-		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
-
-		sceneObject->addComponent(test, "flipp",
-			new FlippingComponent(test, 1, 1));
-	}*/
-
-	/*Entity* sign = sceneObject->addEntity("sign");
-	if (sign)
-	{
-		sceneObject->addComponent(sign, "mesh",
-			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
-		sign->setScale(Vector3(10.f, 5.f, 0.2f));
-
-		sceneObject->createNewPhysicsComponent(sign, true, "", PxGeometryType::eBOX, "default", true);
-		static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
-
-		sceneObject->addComponent(sign, "sweep",
-			new SweepingComponent(sign, Vector3(0.f, 5.f, 10.f), Vector3(0.f, 5.5f, 10.f), 5.f));
-	}*/
-
-
+	//Entity* platform = sceneObject->addEntity("Platform");
+	//if (platform)
+	//{
+	//	Material emissiveMat({ L"DarkGrayTexture.png", L"BlueEmissive.png" });
+	//	sceneObject->addComponent(platform, "mesh", new MeshComponent("BossPlatform.lrm",
+	//		{
+	//			EMISSIVE,
+	//			DEFAULT,
+	//			DEFAULT
+	//		},
+	//		{
+	//			emissiveMat,
+	//			Material(L"DarkGrayTexture"),
+	//			Material(L"DarkGrayTexture")
+	//		}));
+	//}
+	//Entity* platform1 = sceneObject->addEntity("Platform1");
+	//if (platform1)
+	//{
+	//	Material emissiveMat({ L"DarkGrayTexture.png", L"RedEmissive.png" });
+	//	sceneObject->addComponent(platform1, "mesh", new MeshComponent("BossPlatform.lrm",
+	//		{
+	//			EMISSIVE,
+	//			DEFAULT,
+	//			DEFAULT
+	//		},
+	//		{
+	//			emissiveMat,
+	//			Material(L"DarkGrayTexture"),
+	//			Material(L"DarkGrayTexture")
+	//		}));
+	//}
+	//Entity* platform2 = sceneObject->addEntity("Platform2");
+	//if (platform2)
+	//{
+	//	Material emissiveMat({ L"DarkGrayTexture.png", L"BlueEmissive.png" });
+	//	sceneObject->addComponent(platform2, "mesh", new MeshComponent("BossPlatform.lrm",
+	//		{
+	//			EMISSIVE,
+	//			DEFAULT,
+	//			DEFAULT
+	//		},
+	//		{
+	//			emissiveMat,
+	//			Material(L"DarkGrayTexture"),
+	//			Material(L"DarkGrayTexture")
+	//		}));
+	//}
 
 	Entity* skybox = sceneObject->addEntity("SkyBox");
 	skybox->m_canCull = false;
@@ -148,9 +235,6 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
 
-	sceneObject->createParisWheel(Vector3(30.f, 7.f, 0.f), 90.f, 30.f, 4);
-
-	sceneObject->createSpotLight(Vector3(0.f, 21.f, -20.f), Vector3(10.f, 0.f, 0.f), Vector3(0.5f, 0.1f, 0.3f), 3.f);
 	*finished = true;
 }
 
@@ -344,10 +428,14 @@ void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 tr
 	}
 }
 
-void Scene::addPickup(const Vector3& position, const int tier, std::string name)
+void Scene::addPickup(const Vector3& position, const int tier, std::string name, const int pickupType)
 {
 	int nrOfPickups = (int)PickupType::COUNT - 1; //-1 due to Score being in pickupTypes
-	int pickupEnum = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / nrOfPickups));
+	int pickupEnum;
+	if (pickupType >= 3)
+		pickupEnum = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / nrOfPickups));
+	else
+		pickupEnum = pickupType;
 
 	const char* pickupName = "";
 	const WCHAR* textureName = L"";
@@ -1956,6 +2044,51 @@ void Scene::loadAlmostEmpty(Scene* sceneObject, bool* finished)
 	*finished = true;
 }
 
+void Scene::loadSortTest(Scene* sceneObject, bool* finished)
+{
+	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
+	//Material test = Material({ L"DarkGrayTexture.png" });
+
+	Entity* floor = sceneObject->addEntity("Floor");
+	if (floor)
+	{
+		sceneObject->addComponent(floor, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"T_tempTestDog.jpeg" })));
+		floor->scale({ 10, 0.5, 10 });
+		floor->translate({ 0,-2,0 });
+		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+	Entity* roof = sceneObject->addEntity("Roof");
+	if (roof)
+	{
+		sceneObject->addComponent(roof, "mesh", new MeshComponent("testCube_pCube1.lrm",
+			Material({ L"T_tempTestDog.jpeg" })));
+		roof->scale({ 10, 0.5, 10 });
+		roof->translate({ 0,10,0 });
+		sceneObject->createNewPhysicsComponent(roof, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	////addPickup({ 0, 0, 0 }, 0, "");
+	//sceneObject->addPickup(Vector3(5, 0, 0), 1, "", 0);
+	//sceneObject->addPickup(Vector3(0, 0, 5), 1, "", 1);
+	//sceneObject->addPickup(Vector3(0, 0, -5), 1, "", 2);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////
+	Entity* skybox = sceneObject->addEntity("SkyBox");
+	skybox->m_canCull = false;
+	if (skybox)
+	{
+		Material skyboxMat;
+		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+		sceneObject->addComponent(skybox, "cube",
+			new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+
+		//Disable shadow casting
+		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	}
+
+	*finished = true;
+}
+
 void Scene::onSceneLoaded()
 {
 	for (auto& entity : m_entities)
@@ -2071,12 +2204,14 @@ Entity* Scene::addEntity(std::string identifier)
 
 void Scene::removeEntity(std::string identifier)
 {
+	
 	std::vector<Component*> meshCompVec;
 	m_entities[identifier]->getComponentsOfType(meshCompVec,ComponentType::MESH);
 	for (auto meshComponent : meshCompVec)
 	{
-		int index = static_cast<MeshComponent*>(meshComponent)->getRenderId();
-		m_meshComponentMap.erase(index);
+		MeshComponent* meshComp = static_cast<MeshComponent*>(meshComponent);
+		removeMeshFromDrawCallList(meshComp);
+		removeMeshFromShadowPassDrawCallList(meshComp);
 		m_entities[identifier]->removeComponent(meshComponent);
 	}
 	delete m_entities[identifier];
@@ -2108,8 +2243,9 @@ bool Scene::addComponent(Entity* entity, std::string componentIdentifier, Compon
 
 void Scene::addMeshComponent(MeshComponent* component)
 {
-	component->setRenderId(++m_meshCount);
-	m_meshComponentMap[m_meshCount] = component;
+	//component->setRenderId(++m_meshCount);
+	addMeshToDrawCallList(component);
+	m_shadowPassDrawCalls.push_back(component);
 }
 
 void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
@@ -2240,9 +2376,9 @@ std::unordered_map<std::string, LightComponent*>* Scene::getLightMap()
 	return &m_lightComponentMap;
 }
 
-std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMap()
+std::vector<std::vector<drawCallStruct>>* Scene::getDrawCallsPtr()
 {
-	return &m_meshComponentMap;
+	return &m_drawCalls;
 }
 
 QuadTree* Scene::getQuadTreePtr()
@@ -2250,6 +2386,10 @@ QuadTree* Scene::getQuadTreePtr()
 	return m_quadTree;
 }
 
+std::vector<MeshComponent*>* Scene::getShadowPassDrawCallsPtr()
+{
+	return &m_shadowPassDrawCalls;
+}
 
 void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionData data)
 {
@@ -2365,25 +2505,28 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 Entity* Scene::addTrampoline(Vector3 position)
 {
+	// FIXIDIXA HÄR 2
+	MeshComponent* part1 = new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" }));
+	MeshComponent* part2 = new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" }));
+	MeshComponent* part3 = new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" }));
+
 	Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
 	trampoline->setPosition(position);
 	trampoline->setScale(0.5f, 0.5f, 0.5f);
-	addComponent(trampoline, "mesh1", //Dun edit diz them nems plz.
-		new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
-	addComponent(trampoline, "mesh2",
-		new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
-	addComponent(trampoline, "mesh3",
-		new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
+	addComponent(trampoline, "mesh1", part1); //Dun edit diz them nems plz.
+	addComponent(trampoline, "mesh2", part2);
+	addComponent(trampoline, "mesh3", part3);
 
 
 	createNewPhysicsComponent(trampoline, false);
 	TriggerComponent* triggerComponent = new TriggerComponent();
 	triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
 	triggerComponent->setIntData(0);
+	
 	trampoline->addComponent("heightTrigger", triggerComponent);
 	triggerComponent->initTrigger(m_sceneID, trampoline, { 0.475f, 0.05, 0.475f }, { 0.f, 1.15f, 0.f });
 
-	trampoline->addComponent("trampoline", new TrampolineComponent(trampoline)); //Dun edit diz nem ethar plz, cuz chardcohoded somwere.
+	addComponent(trampoline, "trampoline", new TrampolineComponent(trampoline)); //Dun edit diz nem ethar plz, cuz chardcohoded somwere.
 
 	return trampoline;
 }
@@ -2410,19 +2553,27 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 		{
 			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", Material({ L"DarkGrayTexture.png" }));
 			pipe->setPosition(Vector3(0, 1, 0));
+			MeshComponent* base = new MeshComponent("Canon_Base.lrm", Material({ L"DarkGrayTexture.png" }));
 
 			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
 			cannon->setScale(0.5f, 0.5f, 0.5f);
-			addComponent(cannon, "mesh1", new MeshComponent("Canon_Base.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(cannon, "mesh1", base);
 			addComponent(cannon, "mesh2", pipe);
 			cannon->setPosition(m_player->getPlayerEntity()->getTranslation());
 			//cannon->setRotationQuat(m_input);
 
-			static_cast<Player*>(msg.playerPtr)->setCannonEntity(cannon, pipe);
+			Entity* marker3D = addEntity("marker3D" + std::to_string(m_nrOf++));
+			marker3D->scale(0.25f, 0.25f, 0.25f);
+			MeshComponent* marker3Dmesh = new MeshComponent("testCube_pCube1.lrm");
+			addComponent(marker3D, "mesh1", marker3Dmesh);
+
+			static_cast<Player*>(msg.playerPtr)->setCannonEntity(cannon, pipe, marker3D);
 		}
 	}
 	else if (msg.playerActionType == PlayerActions::ON_FIRE_CANNON)
 	{
+		//Renderer::get().removeMeshFromDrawCallList(static_cast<MeshComponent*>(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getComponent("mesh1")));
+		//Renderer::get().removeMeshFromDrawCallList(static_cast<MeshComponent*>(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getComponent("mesh2")));
 		removeEntity(static_cast<Player*>(msg.playerPtr)->getCannonEntity()->getIdentifier());
 	}
 	else if (msg.playerActionType == PlayerActions::ON_ENVIRONMENTAL_USE)
@@ -2709,6 +2860,7 @@ void Scene::checkLasers(float dt)
 	for (int i = 0; i < idsToRemove.size(); i++)
 	{
 		removeEntity(m_lasers[idsToRemove[i]]->entity->getIdentifier());
+		//Renderer::get().removeMeshFromDrawCallList(static_cast<MeshComponent*>(m_lasers[idsToRemove[i]]->entity->getComponent("mesh")));
 		delete m_lasers[idsToRemove[i]];
 		m_lasers.erase(idsToRemove[i]);
 	}
@@ -2817,26 +2969,25 @@ void Scene::createPortal()
 {
 	float a = 2.5f * 4;
 	a = a + 10 + 1.25f;
+	MeshComponent* frame = new MeshComponent("Portal_pCube41.lrm", Material({ L"DarkGrayTexture.png" }));
 	Entity* goalTriggerFrame = addEntity("triggerFrame");
 	if (goalTriggerFrame)
 	{
 		goalTriggerFrame->setPosition(Vector3(30, 3, a));
 		goalTriggerFrame->setRotation(Vector3(0, XMConvertToRadians(90), 0));
-		addComponent(goalTriggerFrame, "mesh",
-			new MeshComponent("Portal_pCube41.lrm", Material({ L"DarkGrayTexture.png" })));
+		addComponent(goalTriggerFrame, "mesh", frame);
 	}
 
+	Material emissiveMat({ L"DarkGrayTexture.png", L"PortalEmissive.jpg" });
+	emissiveMat.setEmissiveStrength(30);
+	MeshComponent* portalGlow = new MeshComponent("portalMagic_pCylinder8.lrm", EMISSIVE, emissiveMat);
 	Entity* goalTrigger = addEntity("trigger");
 	if (goalTrigger)
 	{
 		goalTrigger->setPosition(Vector3(30, 4.5, a));
 		goalTrigger->setRotation(Vector3(0, XMConvertToRadians(90), 0));
 
-		Material emissiveMat({ L"DarkGrayTexture.png", L"PortalEmissive.jpg" });
-		emissiveMat.setEmissiveStrength(30);
-		addComponent(goalTrigger, "mesh",
-			new MeshComponent("portalMagic_pCylinder8.lrm",
-				EMISSIVE, emissiveMat));
+		addComponent(goalTrigger, "mesh", portalGlow);
 
 
 		addComponent(goalTrigger, "trigger",
@@ -2855,26 +3006,25 @@ void Scene::createEndScenePortal()
 	float a = 2.5f * 4;
 	a = a + 10 + 1.25f;
 
-	Entity* endSceneTriggerFrame = addEntity("endTrriggerFrame");
-	if (endSceneTriggerFrame)
+	MeshComponent* frame = new MeshComponent("Portal_pCube41.lrm", Material({ L"DarkGrayTexture.png" }));
+	Entity* goalTriggerFrame = addEntity("triggerFrame");
+	if (goalTriggerFrame)
 	{
-		endSceneTriggerFrame->setPosition(Vector3(30, 3, a));
-		endSceneTriggerFrame->setRotation(Vector3(0, XMConvertToRadians(90), 0));
-		addComponent(endSceneTriggerFrame, "mesh",
-			new MeshComponent("Portal_pCube41.lrm", Material({ L"DarkGrayTexture.png" })));
+		goalTriggerFrame->setPosition(Vector3(30, 3, a));
+		goalTriggerFrame->setRotation(Vector3(0, XMConvertToRadians(90), 0));
+		addComponent(goalTriggerFrame, "mesh", frame);
 	}
 
+	Material emissiveMat({ L"DarkGrayTexture.png", L"PortalEmissive.jpg" });
+	emissiveMat.setEmissiveStrength(30);
+	MeshComponent* portalGlow = new MeshComponent("portalMagic_pCylinder8.lrm", EMISSIVE, emissiveMat);
 	Entity* endSceneTrigger = addEntity("endTrigger");
 	if (endSceneTrigger)
 	{
 		endSceneTrigger->setPosition(Vector3(30, 4.5, a));
 		endSceneTrigger->setRotation(Vector3(0, XMConvertToRadians(90), 0));
 
-		Material emissiveMat({ L"DarkGrayTexture.png", L"PortalEmissive.jpg" });
-		emissiveMat.setEmissiveStrength(30);
-		addComponent(endSceneTrigger, "mesh", 
-			new MeshComponent("portalMagic_pCylinder8.lrm",
-			EMISSIVE, emissiveMat));
+		addComponent(endSceneTrigger, "mesh", portalGlow);
 
 
 		addComponent(endSceneTrigger, "endSceneTrigger",
