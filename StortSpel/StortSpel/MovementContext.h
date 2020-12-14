@@ -34,7 +34,7 @@ public:
 		m_stateMapping['A'] = State::WALK_LEFT;
 		m_stateMapping['Q'] = State::FLY_DOWN;
 		m_stateMapping['E'] = State::FLY_UP;
-		m_stateMapping['\x11'] = State::SHIFTDOWN;
+		m_stateMapping['\x11'] = State::CTRLDOWN;
 		m_stateMapping[' '] = State::JUMPING;
 
 		//Range

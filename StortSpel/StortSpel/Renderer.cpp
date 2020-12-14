@@ -1038,7 +1038,6 @@ void Renderer::update(const float& dt)
 			Engine::get().getPlayerPtr()->m_ignoreInput = m_useFlyingCamera;
 
 			m_camera = &m_flyingCamera;
-			m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 			m_camera->frustumCullingOn = false;
 			m_camera->setPosition(Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation());
 		}
@@ -1048,6 +1047,7 @@ void Renderer::update(const float& dt)
 	{
 		
 		m_camera->update(dt);
+		m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 		
 		
 	}

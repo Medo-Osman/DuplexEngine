@@ -38,7 +38,7 @@ public:
 	Camera();
 	~Camera();
 	void initialize(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ);
-	void setProjectionMatrix(const int &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
+	void setProjectionMatrix(const float &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
 	void setPosition(const Vector3&pos);
 	void setRotation(const XMVECTOR&rot);
 	bool endSceneCamera = false;

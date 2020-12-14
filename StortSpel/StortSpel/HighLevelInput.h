@@ -37,7 +37,7 @@ enum State
 	MENU_UP,
 	MENU_DOWN,
 	JUMPING,
-	SHIFTDOWN
+	CTRLDOWN
 };
 
 enum Range

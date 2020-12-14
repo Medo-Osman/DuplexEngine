@@ -20,7 +20,7 @@ void Camera::initialize(const int& fov, const float& aspectRatio, const float& n
 	setProjectionMatrix(fov, aspectRatio, nearZ, farZ);
 }
 
-void Camera::setProjectionMatrix(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
+void Camera::setProjectionMatrix(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
 {
 	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH((fov / 360.f) * DirectX::XM_2PI,
 		aspectRatio, nearZ, farZ);
@@ -192,7 +192,7 @@ void Camera::inputUpdate(InputData& inputData)
 				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
 				setPosition(m_position);
 			}
-			if (inputData.stateData[i] == State::SHIFTDOWN)
+			if (inputData.stateData[i] == State::CTRLDOWN)
 			{
 				foundShift = true;
 				std::cout << "Shift down" << std::endl;
@@ -221,12 +221,11 @@ void Camera::inputUpdate(InputData& inputData)
 				{
 					targetFov += 1;
 					m_sensitivity = 0.05f * abs(targetFov / 80.f);
-					//setProjectionMatrix(fovAmount, width, const float& nearZ, const float& farZ)
 				}
 
 				if (inputData.actionData[i] == Action::SCROLL_UP)
 				{
-					if (targetFov > 1)
+					if (targetFov > 10)
 						targetFov -= 1;
 					m_sensitivity = 0.05f * abs(targetFov / 80.f);
 				}
