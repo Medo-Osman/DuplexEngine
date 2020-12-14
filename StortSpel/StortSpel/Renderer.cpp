@@ -16,6 +16,17 @@ void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
 	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &buffer);
 }
 
+void Renderer::setFullScreen(BOOL val)
+{
+	m_swapChainPtr->SetFullscreenState(val, NULL);
+	m_isFullscreen = val;
+}
+
+bool Renderer::isFullscreen()
+{
+	return m_isFullscreen;
+}
+
 void Renderer::release()
 {
 	delete m_shadowMap;
@@ -186,16 +197,25 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_psSamplerState);
 	assert(SUCCEEDED(hr) && "Failed to create SampleState");
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
+	m_dContextPtr->DSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 
 	perObjectMVP perObjectMVP;
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP, 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+	m_dContextPtr->HSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+	m_dContextPtr->DSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+
 	skyboxMVP skyboxMVP;
 	m_skyboxConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skyboxMVP, 1);
 	m_dContextPtr->VSSetConstantBuffers(1, 1, m_skyboxConstantBuffer.GetAddressOf());
 	skeletonAnimationCBuffer skeletonAnimationCBuffer;
 	m_skelAnimationConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skeletonAnimationCBuffer, 1);
 	m_dContextPtr->VSSetConstantBuffers(2, 1, m_skelAnimationConstantBuffer.GetAddressOf());
+
+	globalConstBuffer globalConstBuffer;
+	m_globalConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &globalConstBuffer, 1);
+	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
+	m_dContextPtr->DSSetConstantBuffers(1, 1, m_globalConstBuffer.GetAddressOf());
 
 	lightBufferStruct initalLightData; //Not sure why, but it refuses to take &lightBufferStruct() as argument on line below
 	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);
@@ -213,6 +233,10 @@ HRESULT Renderer::initialize(const HWND& window)
 	MATERIAL_CONST_BUFFER MATERIAL_CONST_BUFFER;
 	m_currentMaterialConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &MATERIAL_CONST_BUFFER, 1);
 	m_dContextPtr->PSSetConstantBuffers(3, 1, m_currentMaterialConstantBuffer.GetAddressOf());
+
+	atmosphericFogConstBuffer atmosphericFogConstBuffer;
+	m_atmosphericFogConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &atmosphericFogConstBuffer, 1);
+	m_dContextPtr->PSSetConstantBuffers(5, 1, m_atmosphericFogConstBuffer.GetAddressOf());
 
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
 	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get(), m_deferredContext.Get());
@@ -262,6 +286,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.BufferCount = 2;
 	sChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sChainDesc.Windowed = true; //Windowed or fullscreen
+	//sChainDesc.Windowed = false; //Windowed or fullscreen
 	sChainDesc.BufferDesc.Height = m_settings.height; //Size of buffer in pixels, height
 	sChainDesc.BufferDesc.Width = m_settings.width; //Size of window in pixels, width
 	sChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; //DXGI Format, 8 bits for Red, green, etc
@@ -575,6 +600,8 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		
 		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
 			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+		else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
+			parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
 		else
 			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
@@ -606,8 +633,6 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 			{
 				draw = true;
 			}
-			
-
 		}
 
 		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
@@ -657,7 +682,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
-				m_dContextPtr->PSSetShaderResources(2, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
+				m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 
 				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
 				
@@ -665,6 +690,8 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 			}
 		}
 	}
+	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+	m_dContextPtr->PSSetShaderResources(7, 1, nullSRV);
 }
 
 void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
@@ -727,6 +754,20 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	}
 }
 
+void Renderer::resizeBackbuff(int x, int y)
+{
+	//m_swapChainPtr.
+	
+	/*ID3D11Texture2D* swapChainBufferPtr;
+	HRESULT hr = m_swapChainPtr->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&swapChainBufferPtr);
+	int succInt = swapChainBufferPtr->Release();
+
+	m_dContextPtr->ClearState();
+	HRESULT succ = m_swapChainPtr->ResizeBuffers(0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, 0);
+	assert(SUCCEEDED(succ));*/
+	//m_swapChainPtr->SetFullscreenState(TRUE, nullptr);
+}
+
 void Renderer::rasterizerSetup()
 {
 	HRESULT hr = 0;
@@ -749,10 +790,64 @@ void Renderer::rasterizerSetup()
 
 void Renderer::update(const float& dt)
 {
-	if (ImGui::Button("Toggle FrustumCulling"))
+	if (DEBUGMODE)
 	{
-		m_camera->frustumCullingOn = !m_camera->frustumCullingOn;
+		if (ImGui::Button("Toggle FrustumCulling"))
+		{
+			m_camera->frustumCullingOn = !m_camera->frustumCullingOn;
+		}
 	}
+
+
+	// Constant buffer updates and settings
+	static globalConstBuffer globalConstBufferTemp;
+	static atmosphericFogConstBuffer fogConstBufferTemp;
+	static lightBufferStruct lightBufferTemp;
+
+	static float tempSunDirectionX = 0.0f;
+	static float tempSunDirectionY = -1.0f;
+	static float tempSunDirectionZ = 1.0f;
+
+	if (DEBUGMODE)
+	{
+		ImGui::SetNextWindowPos(ImVec2(1300.0f, 200.0f));
+		ImGui::SetNextWindowSize(ImVec2(550.0f, 500.0f));
+		ImGui::Begin("Global Shader Settings");
+
+		ImGui::Text("");
+		ImGui::Text("Directional Light");
+		ImGui::SliderFloat("Intensity", (float*)&lightBufferTemp.skyLight.brightness, 0.0f, 100.0f);
+		ImGui::SliderFloat("Sun direction X", (float*)&tempSunDirectionX, -1.0f, 1.0f);
+		ImGui::SliderFloat("Sun direction Y", (float*)&tempSunDirectionY, -1.0f, 1.0f);
+		ImGui::SliderFloat("Sun direction Z", (float*)&tempSunDirectionZ, -1.0f, 1.0f);
+		ImGui::ColorEdit3("Color:", (float*)&lightBufferTemp.skyLight.color);
+
+		ImGui::Text("");
+		ImGui::Text("Atmospheric Fog Settings");
+		ImGui::ColorEdit3("Color", (float*)&fogConstBufferTemp.FogColor);
+		ImGui::SliderFloat("Start depth", (float*)&fogConstBufferTemp.FogStartDepth, 0.0f, 100.0f);
+		ImGui::SliderFloat("Start depth (Skybox)", (float*)&fogConstBufferTemp.FogStartDepthSkybox, 0.0f, 100.0f);
+		ImGui::ColorEdit3("Highlight color", (float*)&fogConstBufferTemp.FogHighlightColor);
+		ImGui::SliderFloat("Global Density", (float*)&fogConstBufferTemp.FogGlobalDensity, 0.0f, 0.5f);
+		ImGui::SliderFloat("Height falloff", (float*)&fogConstBufferTemp.FogHeightFalloff, 0.0f, 100.0f);
+		ImGui::Text("Cloud Fog");
+		ImGui::SliderFloat("Start", (float*)&fogConstBufferTemp.cloudFogHeightStart, -100.0f, 100.0f);
+		ImGui::SliderFloat("End", (float*)&fogConstBufferTemp.cloudFogHeightEnd, -100.0f, 100.0f);
+		ImGui::SliderFloat("Strength", (float*)&fogConstBufferTemp.cloudFogStrength, 0.0f, 1.0f);
+		ImGui::ColorEdit3("Cloud Fog Color", (float*)&fogConstBufferTemp.cloudFogColor);
+
+		ImGui::End();
+	}
+
+
+	// Misc updates
+	lightBufferTemp.skyLight.direction = { tempSunDirectionX, tempSunDirectionY, tempSunDirectionZ };
+	fogConstBufferTemp.FogSunDir = lightBufferTemp.skyLight.direction;
+	globalConstBufferTemp.time += dt;
+
+	m_globalConstBuffer.updateBuffer(m_dContextPtr.Get(), &globalConstBufferTemp);
+	m_atmosphericFogConstBuffer.updateBuffer(m_dContextPtr.Get(), &fogConstBufferTemp);
+	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &lightBufferTemp);
 }
 
 void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
@@ -833,6 +928,7 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
+	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 	renderScene(&frust, &wvp, &V, &P);
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
@@ -860,9 +956,13 @@ void Renderer::render()
 	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
 	this->m_dContextPtr->PSSetSamplers(1, 1, this->m_psSamplerState.GetAddressOf());
 
-	ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
-	ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
-	ImGui::End();
+	if (DEBUGMODE)
+	{
+		ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+		ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
+		ImGui::End();
+
+	}
 
 	// Bloom Filter
 	downSamplePass();
@@ -876,7 +976,7 @@ void Renderer::render()
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-	m_swapChainPtr->Present(1, 0);
+	m_swapChainPtr->Present(0, 0);
 }
 
 ID3D11Device* Renderer::getDevice()

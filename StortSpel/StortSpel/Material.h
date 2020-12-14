@@ -16,7 +16,7 @@ struct MATERIAL_CONST_BUFFER
 	float UVScale			= 1.0f;
 	float roughness			= 0.5f;
 	float metallic			= 0.f;
-	int textured			= 0;
+	int textured			= 1;
 	float emissiveStrength	= 0.f; // 0 to 100
 	XMFLOAT3 pad;
 };
@@ -35,7 +35,7 @@ public:
 
 	Material();
 	Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData = MATERIAL_CONST_BUFFER());
-	Material(std::wstring materialName);
+	Material(std::wstring materialName, bool isPBR = false);
 	Material(const Material& other);
 	~Material();
 

@@ -90,14 +90,9 @@ using namespace SimpleMath;
 
 #include "PerformanceTester.h"
 
-//String Manipulation
-#include <locale>
-#include <codecvt>
-
 //Defines
 #define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = nullptr; } }
 #define SAFE_DELETE(a) if( (a) != NULL ) delete (a); (a) = NULL;
-
 enum class TriggerType
 {
 	UNDEFINED,
@@ -107,7 +102,7 @@ enum class TriggerType
 	PROJECTILE,
 	TRAP,
 	BARREL,
-	RESPAWN
+	RESPAWN,
 };
 
 enum class EventType
@@ -115,3 +110,5 @@ enum class EventType
 	SWAPSCENE,
 	BOSS_PROJECTILE_HIT,
 };
+
+const bool DEBUGMODE = true;

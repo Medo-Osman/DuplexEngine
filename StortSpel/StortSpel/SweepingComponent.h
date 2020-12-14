@@ -50,20 +50,42 @@ public:
 		init(transform, startPos, endPos, travelTime, singleSweeps, timedInterval, waitTime, startsAtEndPos);
 	}
 
-	SweepingComponent(char* paramData, Transform* transform)
+	SweepingComponent(char* paramData, Transform* transform, bool isSweeping2 = false)
 	{
 		// Read data from package
 		int offset = 0;
+		Vector3 startPos, endPos;
+		bool singleSweeps, timeInterval, startAtEndPos;
+		float travelTime, waitTime;
 
-		Vector3 startPos = readDataFromChar<Vector3>(paramData, offset);
-		Vector3 endPos = readDataFromChar<Vector3>(paramData, offset);
-		float travelTime = readDataFromChar<float>(paramData, offset);
-		bool singleSweeps = readDataFromChar<bool>(paramData, offset);
-		bool timeInterval = readDataFromChar<bool>(paramData, offset);
-		float waitTime = readDataFromChar<float>(paramData, offset);
-		bool startAtEndPos = readDataFromChar<bool>(paramData, offset);
+		if (isSweeping2)
+		{
+			startPos = readDataFromChar<Vector3>(paramData, offset);
+			Vector3 movementDirection = readDataFromChar<Vector3>(paramData, offset);
+			flipX(movementDirection);
+			float travelDist = readDataFromChar<float>(paramData, offset);
+			travelTime = readDataFromChar<float>(paramData, offset);
+			singleSweeps = readDataFromChar<bool>(paramData, offset);
+			timeInterval = readDataFromChar<bool>(paramData, offset);
+			waitTime = readDataFromChar<float>(paramData, offset);
+			startAtEndPos = readDataFromChar<bool>(paramData, offset);
 
-		init(transform, startPos, endPos, travelTime, singleSweeps, timeInterval, waitTime, m_startsAtEnd);
+			endPos = startPos + (movementDirection * travelDist);
+		}
+		else
+		{
+			startPos = readDataFromChar<Vector3>(paramData, offset);
+			endPos = readDataFromChar<Vector3>(paramData, offset);
+			flipX(endPos);
+			travelTime = readDataFromChar<float>(paramData, offset);
+			singleSweeps = readDataFromChar<bool>(paramData, offset);
+			timeInterval = readDataFromChar<bool>(paramData, offset);
+			waitTime = readDataFromChar<float>(paramData, offset);
+			startAtEndPos = readDataFromChar<bool>(paramData, offset);
+		}
+		
+
+		init(transform, startPos, endPos, travelTime, singleSweeps, timeInterval, waitTime, startAtEndPos);
 	}
 
 	void activate()

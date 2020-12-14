@@ -33,6 +33,11 @@ inline std::string readStringFromChar(char* data, int& offset)
 	return strData;
 }
 
+inline void flipX(DirectX::SimpleMath::Vector3& vec)
+{
+	vec.x = -vec.x;
+}
+
 /*
 inline std::wstring readWStringFromChar(char* data, int& offset)
 {

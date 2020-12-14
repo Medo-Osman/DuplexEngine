@@ -9,6 +9,7 @@ private:
 	float m_warningTime;
 	int m_chanseToSpwanStar;
 
+	Entity* m_bossEntity;
 	BossStructures::PlatformArray* m_platformArray = nullptr;
 	BossStructures::BossActionData m_data;
 	std::unordered_map<UINT, BossStructures::PlatformDisplace*>* m_removedPlatforms = nullptr;
@@ -21,6 +22,8 @@ private:
 	{
 		// Spawn particles on entity
 		m_data.pointer0 = entity; //Get entity
+		m_data.pointer1 = m_bossEntity;
+
 		m_subjectPtr->Notify(BossMovementType::SpawnParticlesOnPlatform, m_data);
 	}
 	void movePlatform(Entity* entity, bool spawnStar)
@@ -50,6 +53,7 @@ public:
 		m_nrOfTargets = nrOfPlatformsToRemove;
 		m_warningTime = warningTime;
 		m_chanseToSpwanStar = chanseToSpwanStar;
+		m_bossEntity = bossEntity;
 	};
 
 	virtual void beginAction() override
@@ -89,6 +93,8 @@ public:
 
 		if (m_timer.timeElapsed() >= m_warningTime)
 		{
+			m_subjectPtr->Notify(BossMovementType::I_AM_TIRED_THIS_LOWERS_THE_EMISSIVE_ON_THE_CRYSTAL, m_data);
+
 			for (int i = 0; i < m_nrOfTargets; i++)
 			{
 				bool spawnStar = false;

@@ -20,7 +20,9 @@ enum Action
 	CLOSEINTROGUI,
 	USE,
 	SELECT,
-	READY_UP
+	READY_UP,
+	RESPAWN,
+	MENU
 };
 
 enum State
@@ -30,11 +32,13 @@ enum State
 	WALK_FORWARD,
 	WALK_BACKWARD,
 	MENU_UP,
-	MENU_DOWN
+	MENU_DOWN,
+	JUMPING
 };
 
 enum Range
 {
 	RAW,
 	REL,
+	WALK
 };

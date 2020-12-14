@@ -8,29 +8,32 @@ class SpeedPickup : public Pickup
 {
 private:
 	ParticleComponent* m_lineParticleComponentPtr;
-
+	const float SPEEDDURATION = 4.f;
 public:
 	SpeedPickup()
 		:Pickup(PickupType::SPEED)
 	{
 		//m_onPickupSound = L"";
 		m_whileActiveSound = L"SpeedSound.wav";
-		m_activateOnPickup = true;
+		m_activateOnPickup = false;
+		m_duration = SPEEDDURATION;
+		m_isTimeBased = true;
+		m_pickupIcon = L"SpeedIcon.png";
 	}
 	virtual void update(const float& dt)
 	{
 		Pickup::update(dt);
 	}
-	virtual void onPickup(Entity* entityToDoEffectsOn, int duration)
+	virtual void onPickup(Entity* entityToDoEffectsOn, bool isEnvironmental)
 	{
-		Pickup::onPickup(entityToDoEffectsOn, (float)duration);
+		Pickup::onPickup(entityToDoEffectsOn, isEnvironmental);
 	}
 
 	virtual void onUse()
 	{
 		Pickup::onUse();
 		m_lineParticleComponentPtr = new ParticleComponent(m_entityToDoEffectsOn, new PlayerLineParticle());
-		m_entityToDoEffectsOn->addComponent("particle", m_lineParticleComponentPtr);
+		m_entityToDoEffectsOn->addComponent("speedParticle", m_lineParticleComponentPtr);
 		m_lineParticleComponentPtr->activate();
 	}
 	virtual void onDepleted()

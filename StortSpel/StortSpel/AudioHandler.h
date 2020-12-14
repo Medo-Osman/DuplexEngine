@@ -9,7 +9,7 @@ class AudioHandler
 private:
 	AudioHandler();
 	std::shared_ptr<AudioEngine> m_audioEngine;
-
+	bool m_hasAudioChanged;
 	bool m_retryAudio;
 	HDEVNOTIFY m_newAudio = nullptr;
 
@@ -18,12 +18,14 @@ private:
 	std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_soundInstances;
 	std::unordered_map<int, std::unique_ptr<SoundEffectInstance>>  m_loopingSoundInstances;
 	size_t m_idNum = 0;
-	
+
 	// 3D Positional Audio
 	AudioEmitter m_emitter;
-
 	AudioListener m_listener;
 	Transform* m_listenerTransformPtr;
+	int m_volumeAmount = 5;
+
+	const int MAX_VOLUME = 15;
 
 	bool m_isReleased = false;
 
@@ -39,6 +41,8 @@ public:
 
 	void release();
 
+	bool getAudioChanged();
+
 	void initialize(HWND &handle);
 	void setListenerTransformPtr(Transform* listenerTransform);
 	void onNewAudioDevice() { m_retryAudio = true; }
@@ -52,6 +56,11 @@ public:
 	void setVolume(int index, float volume, bool isLooping);
 	void setPitch(int index, float pitch, bool isLooping);
 	void setEmitterPosition(int index, Vector3 position, bool isLooping);
+
+	int increaseVolume();
+	int decreaseVolume();
+	int getVolumeAmount();
+
 	void update(float dt);
 	void suspend();
 	void resume();

@@ -9,8 +9,17 @@
 
 Engine::Engine()
 {
-	m_settings.width = m_startWidth;
-	m_settings.height = m_startHeight;
+	//m_settings.width = m_startWidth;
+	//m_settings.height = m_startHeight;
+			// OR!
+	//static const int m_startWidth = ApplicationLayer::getInstance().m_width;
+	//static const int m_startHeight = ApplicationLayer::m_height;
+
+	int x = ApplicationLayer::getInstance().m_width;
+	int y = ApplicationLayer::getInstance().m_height;
+
+	m_settings.width = x;
+	m_settings.height = y;
 }
 
 Engine& Engine::get()
@@ -24,9 +33,11 @@ Engine::~Engine()
 	if (m_player)
 		delete m_player;
 
+	//static const int m_startWidth = ApplicationLayer::getInstance().m_width;
+	//static const int m_startHeight = ApplicationLayer::m_height;
 	//for (std::pair<std::string, Entity*> entity : m_entities)
 	//	delete entity.second;
-
+	
 	//m_entities->clear();
 	//m_entities->clear();
 }
@@ -47,8 +58,14 @@ void Engine::update(const float& dt)
 	for (auto& entity : *m_entities)
 		entity.second->update(dt);
 
+	if (AudioHandler::get().getAudioChanged())
+	{
+		AudioHandler::get().update(dt);
+	}
+
 	m_camera.update(dt);
 	m_player->updatePlayer(dt);
+	m_camera.setProjectionMatrix(m_camera.fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 	updateLightData();
 
 
@@ -59,7 +76,7 @@ void Engine::update(const float& dt)
 	}
 	PacketHandler::get().setPlayerData(m_player->getPlayerEntity()->getTranslation());
 	PacketHandler::get().setPlayerData(m_player->getPlayerEntity()->getRotation());
-	PacketHandler::get().setPlayerState(m_player->getState());
+	PacketHandler::get().setPlayerState(m_player->getStateAsInt());
 	PacketHandler::get().setPlayerData(m_player->getAnimMeshComp()->getCurrentBlend());
 	PacketHandler::get().setPlayerScore(m_player->getScore());
 
@@ -231,11 +248,11 @@ void Engine::initialize(Input* input)
 		// before this function call be called.
 		assert(false);
 	}
-
-	m_camera.initialize(80.f, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
-
+	Material::readMaterials();
+	m_camera.initialize(m_camera.fovAmount,(float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 	// Audio Handler Listener setup
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
+	
 
 	// Player
 	m_player = new Player(true);
@@ -249,12 +266,14 @@ void Engine::initialize(Input* input)
 	//playerEntity->scaleUniform(0.02f);
 
 	// - Mesh Componenet
-	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM, Material({ L"GlowTexture.png" }));
+	//AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth", true), Material(L"Skin", true), Material(L"Hair", true), Material(L"LucyEyes") });
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth"), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
 	playerEntity->addComponent("mesh", animMeshComp);
+	playerEntity->setScaleUniform(0.5f);
 
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
-	animMeshComp->addAndPlayBlendState({ {"platformer_guy_idle", 0.f}, {"Running4.1", 1.f} }, "runOrIdle", 0.f, true, true);
+	animMeshComp->addAndPlayBlendState({ {"Idle", 0.f}, {"RunLoop", 1.f} }, "runOrIdle", 0.f, true, true);
 
 	m_player->setAnimMeshPtr(animMeshComp);
 
@@ -262,7 +281,7 @@ void Engine::initialize(Input* input)
 	// - Physics Componenet
 	playerEntity->addComponent("CCC", new CharacterControllerComponent());
 	CharacterControllerComponent* pc = static_cast<CharacterControllerComponent*>(playerEntity->getComponent("CCC"));
-	pc->initController(playerEntity, 1.75f, 0.5, "human");
+	pc->initController(playerEntity, PLAYER_CAPSULE_HEIGHT, PLAYER_CAPSULE_RADIUS, "human");
 
 	// - Camera Follow Transform ptr
 	m_player->setCameraTranformPtr(m_camera.getTransform());
@@ -318,6 +337,10 @@ void Engine::runServer()
 		//std::this_thread::sleep_for(0.3ms);
 
 	}
+
+	
+
+	Renderer::get().setFullScreen(false);
 }
 
 void Engine::updateLightData()

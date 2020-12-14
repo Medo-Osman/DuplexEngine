@@ -30,14 +30,16 @@ struct Settings
 };
 
 const std::string PLAYER_ENTITY_NAME = "playerEntity";
+const float PLAYER_CAPSULE_HEIGHT = 1.f;
+const float PLAYER_CAPSULE_RADIUS = .2f;
 
 class Engine
 {
 private:
 	Engine();
 
-	static const int m_startWidth = 1920;
-	static const int m_startHeight = 1080;
+	//static const int m_startWidth = ApplicationLayer::getInstance().m_width;
+	//static const int m_startHeight = ApplicationLayer::m_height;
 
 
 	ID3D11Device* m_devicePtr = NULL;
@@ -53,6 +55,7 @@ private:
 	std::unordered_map<unsigned int long, MeshComponent*>* m_meshComponentMap;
 	std::unordered_map<std::string, LightComponent*>* m_lightComponentMap;
 
+	// Player
 	Player* m_player = nullptr;
 	std::vector<Player*>* serverPlayers;
 
@@ -61,6 +64,10 @@ private:
 	bool isClient = false;
 	bool isConnected = false;
 	Camera m_camera; 
+
+	// Camera
+	Camera m_camera;
+
 	Settings m_settings;
 
 	Input* m_input = nullptr;

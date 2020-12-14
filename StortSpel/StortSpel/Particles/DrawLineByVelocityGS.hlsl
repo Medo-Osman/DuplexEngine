@@ -49,9 +49,9 @@ void main(
 		float3 end = input[0].wPos;
 
         float3 originToEnd = end - origin;
-		float3 pltp = g_eyePos - (origin + (end * 0.5f));
+		float3 pltp = g_eyePos - (origin + (end * 0.2f));
 		float3 perp = normalize(cross(pltp, originToEnd));
-		perp = perp * (length(originToEnd) * 0.25f);
+		perp = perp * (length(originToEnd) * 0.1f);
 
 
         points[0].uv = float2(0, 1);

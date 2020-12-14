@@ -13,6 +13,16 @@ enum class ScenesEnum
 	ARENA,
 	MAINMENU,
 	ENDSCENE,
+	PHASE2,
+
+};
+// LOBBY:START:ARENA:MAINMENU:ENDSCENE:
+
+struct starStruct
+{
+	Timer timer;
+	Entity* starEntity = nullptr;
+	float lifeTime = 5;
 };
 
 enum PrefabType
@@ -28,10 +38,11 @@ enum PrefabType
 	BARRELDROP,
 	GOAL_TRIGGER,
 	SWINGING_HAMMER,
-	pfSKYBOX
+	pfSKYBOX,
+	TRAMPOLINE
 };
 
-class Scene : public PhysicsObserver, public BossObserver
+class Scene : public PhysicsObserver, public BossObserver, public PlayerObserver
 {
 private:
 	int m_sceneID = -1;
@@ -54,15 +65,13 @@ private:
 	int m_nrSwingningHammers = 0;
 	void createSwingingHammer(Vector3 position, Vector3 rotation, float swingSpeed);
 
-	void createSkybox(std::wstring textureName = std::wstring(L"Skybox_Texture.dds"));
-
 	//---------------------------------------------------------------Boss sstuff
 	UINT m_nrOfProjectiles = 0;
 	float m_projectileLifeTime = 10.f;
 	void createProjectile(Vector3 origin, Vector3 dir, float speed);
 	void checkProjectiles();
 
-	UINT m_nrOfLasers = 0;
+	UINT m_nrOfLasers = 1;
 	void createLaser(BossStructures::BossActionData data);
 	void checkLasers(float dt);
 
@@ -72,6 +81,7 @@ private:
 	void physicallyMovePlatform(Entity* entity);
 	bool findPlatformAlready(Entity* entity);
 
+	AudioComponent* m_bossMusicComp = nullptr;
 	GUIImageStyle imageStyle;
 	int m_bossHP_barGuiIndex = 0;
 	int m_bossHP_barBackgroundGuiIndex = 0;
@@ -88,11 +98,13 @@ private:
 	//For lasers
 	std::unordered_map<UINT, BossStructures::BossLaser*> m_lasers;
 
+	std::unordered_map<std::string, starStruct*> m_activeStars;
+
 	//Displaced platforms from the grid
 	std::unordered_map<UINT, BossStructures::PlatformDisplace*> m_displacedPlatforms;
 	std::vector<Vector3> deferredPointInstantiationList;
 	//---------------------------------------------------------------End of boss stuff
-	
+
 
 	Player* m_player;
 	std::vector<Player*>* m_serverPlayers;
@@ -117,39 +129,50 @@ private:
 
 	void sendPhysicsMessage(PhysicsData& physicsData, bool& removed);
 	int m_nrOfScore = 400;
-	
+
 	int m_nrOfPickups = 0;
 	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
 	void loadPickups();
 	void loadScore();
-	void addScore(const Vector3& position, const int tier = 1, std::string name = "");
-	void addCheckpoint(const Vector3& position);
-	void addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox);
-	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
-	void createParticleEntity(void* particleComponent, Vector3 position);
+	Entity* addScore(const Vector3& position, const int tier = 1, std::string name = "");
+	void addCheckpoint(const Vector3& position, float rotation = 90);
+	void createScoreParticleEntity(Vector3 position);
 
+	void addSlowTrap(const Vector3& position, Vector3 scale, Vector3 hitBox);
+	void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition, const char* meshFile = "testCube_pCube1.lrm", Vector3 meshRotation = { 0.f, 1.57f, 0.f });
+	void createParticleEntity(void* particleComponent, Vector3 position);
+	void createSkybox(std::wstring textureName = std::wstring(L"Skybox_Texture.dds"));
+	void createGoalTrigger(const Vector3& position, Vector3 rotation, Vector3 scale, ScenesEnum scene);
+	int m_nrOfGoalTriggers = 0;
 	//void addSlowTrap(const Vector3& position, Vector3 scale);
 	//void addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 triggerPosition);
 
 	void addComponentFromFile(Entity* entity, char* compData, int sizeOfData, bool& needsDynamicPhys, bool& needsKinematicPhys);
 	void addPrefabFromFile(char* params);
 
+	void checkStars();
+
 	const std::string m_LEVELS_PATH = "../res/levels/";
 
 	int m_nrOfCheckpoints = 0;
-	int m_nrOfBarrelDrops = 0;
+
 	int m_nrOftraps = 0;
+	int m_nrOf = 0; //can be used with any entity if u don't care about numbers.
 	int m_nrOfPlayers = 4;
+	int m_nrOfBarrelTrigger = 0;
 
 
 	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
-
 
 	int startGameIndex = 0;
 public:
 	Boss* m_boss = nullptr;
 	Scene();
 	~Scene();
+	void activateScene();
+	void deactivateScene();
+
+	bool disMovment = false;
 	bool hidescore = false;
 	static void loadMainMenu(Scene* sceneObject, bool* finished);
 	static void loadScene(Scene* sceneObject, std::string path, bool* finished);
@@ -161,9 +184,10 @@ public:
 	static void loadBossTest(Scene* sceneObject, bool* finished);
 	static void loadEmpty(Scene* sceneObject, bool* finished);
 	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
+	static void loadPhaseTwo(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
-
+	
 	void updateScene(const float &dt);
 	Vector3 getEntryPosition();
 	Entity* getEntity(std::string key);
@@ -174,7 +198,7 @@ public:
 	int m_nrOfScorePlayerOne = 54;
 	int m_nrOfScorePlayerTwo = 12;
 	int m_nrOfScorePlayerThree = 31;
-	
+
 	void setPlayersPosition(Entity* entity);
 
 	bool endSceneCamera = false;
@@ -189,6 +213,7 @@ public:
 	void addMeshComponent(MeshComponent* component);
 	void addLightComponent(LightComponent* component);
 	void addBarrelDrop(Vector3 Position);
+	void addBarrelDropTrigger(Vector3 Position);
 
 	int getSceneID();
 
@@ -203,5 +228,6 @@ public:
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
-
+	Entity* addTrampoline(Vector3 position);
+	virtual void reactOnPlayer(const PlayerMessageData& msg);
 };

@@ -19,10 +19,17 @@ Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST
 	m_materialConstData = materialConstData;
 }
 
-Material::Material(std::wstring materialName)
+Material::Material(std::wstring materialName, bool isPBR)
 	/*:Material(m_MaterialCache[materialName])*/
 	:m_materialId(m_MaterialCache[materialName].MaterialID), m_isDefault(false)
 {
+	if (isPBR)
+	{
+		addTexture(L"skybox_bluesky_2.dds", true);
+		addTexture(L"skybox_bluesky_2.dds", true);
+		addTexture(L"ibl_brdf_lut.png");
+	}
+	
 	for (auto fileName : m_MaterialCache[materialName].fileNames)
 	{
 		addTexture(fileName.c_str());
@@ -250,7 +257,10 @@ void Material::readMaterials()
 
 			for (int l = 0; l < 4; l++)
 			{
-				if (rawFileName.substr(rawFileName.size() - 2, std::wstring::npos) == L"_" + letters[l])
+				std::wstring testVariable1 = rawFileName.substr(rawFileName.size() - (l == 3 ? 4 : 2), std::wstring::npos);
+				std::wstring testVariable2 = L"_" + letters[l];
+
+				if (rawFileName.substr(rawFileName.size() - (l == 3 ? 4 : 2), std::wstring::npos) == L"_" + letters[l])
 				{
 					materials[textureName][letters[l]] = (rawFileName);
 					isTextrue = true;

@@ -39,6 +39,8 @@ MeshComponent::MeshComponent(char* paramData)
 
 		size_t indexAt_ = matName.find_last_of(L"_");
 
+		bool isPBR = false;
+
 		if (indexAt_ != std::string::npos)
 		{
 			//std::string suffix = matName.substr(indexAt_ + 1, matName.length());
@@ -47,6 +49,16 @@ MeshComponent::MeshComponent(char* paramData)
 			matName = matName.substr(0, indexAt_);
 
 			ShaderProgramsEnum sp = charToShaderEnum(suffix);
+
+			if (sp == PBRTEST || sp == LUCY_FACE || sp == SKEL_PBR || sp == CLOUD)
+				isPBR = true;
+
+			//if (sp == PBRTEST) // temp
+			//{
+			//	isPBR = false;
+			//	sp = DEFAULT;
+			//}
+				
 
 			m_shaderProgEnums.push_back(sp);
 		}
@@ -57,7 +69,9 @@ MeshComponent::MeshComponent(char* paramData)
 		//m_materials.push_back(matName);
 		//m_materials.push_back(Material({ L"DarkGrayTexture.png" }));
 
-		m_materials.push_back(Material(matName));
+		
+
+		m_materials.push_back(Material(matName, isPBR));
 	}
 
 
