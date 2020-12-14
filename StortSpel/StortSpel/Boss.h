@@ -21,18 +21,18 @@ class Boss : public PhysicsObserver, public BossSegment
 private:
 	int m_maxStarCount = 0;
 	int m_currentStarCount = 0;
-	const int NR_OF_PLATFORMS = 6;
+	int NR_OF_PLATFORMS = 6;
 public:
 
 
-	BossStructures::PlatformArray platformArray = BossStructures::PlatformArray(NR_OF_PLATFORMS);
+	BossStructures::PlatformArray* platformArray = nullptr;
 	Vector2 currentPlatformIndex = Vector2(0, 0);
 	std::vector<BossSegment*> m_bossSegments;
 
 	Boss() { };
 	~Boss();
 	void update(const float& dt);
-	void initialize(Entity* entity, bool destroyActionOnComplete = true);
+	void initialize(Entity* entity, bool destroyActionOnComplete = true, int nrOfPlatforms = 6);
 	void addSegment(BossSegment* segment);
 	BossStructures::IntVec getNewPlatformTarget();
 

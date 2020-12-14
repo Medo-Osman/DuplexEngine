@@ -10,7 +10,7 @@ Boss::~Boss()
 	{
 		delete m_bossSegments.at(i);
 	}
-
+	delete platformArray;
 	m_bossSegments.clear();
 }
 
@@ -47,10 +47,11 @@ void Boss::update(const float& dt)
 
 }
 
-void Boss::initialize(Entity* entity, bool destroyActionOnComplete)
+void Boss::initialize(Entity* entity, bool destroyActionOnComplete, int nrOfPlatforms)
 {
 	m_bossEntity = entity;
 	m_destroyActionOnComplete = destroyActionOnComplete;
+	platformArray = new BossStructures::PlatformArray(nrOfPlatforms);
 }
 
 void Boss::addSegment(BossSegment* segment)
@@ -62,7 +63,7 @@ BossStructures::IntVec Boss::getNewPlatformTarget() //Generate new random target
 {
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
-	std::uniform_int_distribution<int> distribution(0, platformArray.columns.size() - 1);
+	std::uniform_int_distribution<int> distribution(0, platformArray->columns.size() - 1);
 	int numberX = (int)distribution(generator);
 	int numberY = (int)distribution(generator);
 
