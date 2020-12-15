@@ -47,7 +47,7 @@ public:
 	void setMaterial(ShaderProgram* shader, ID3D11DeviceContext* dContextPtr);
 	void setMaterial(bool shaderNeedsResource[5], bool shaderNeedsCBuffer[5], ID3D11DeviceContext* dContextPtr);
 
-	void addTexture(const WCHAR* fileName, bool isTexture3D = false, bool isCubeMap = false);
+	void addTexture(const WCHAR* fileName, bool isCubeMap = false, bool isTexture3D = false);
 	void swapTexture(const WCHAR* fileName, int index, bool isCubeMap = false);
 
 	void setUVScale(float scale);

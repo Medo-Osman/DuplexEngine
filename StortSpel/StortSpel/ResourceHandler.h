@@ -57,7 +57,7 @@ public:
 	ID3D11CommandList* m_commandList = nullptr;
 
 	void checkResources();
-	TextureResource* loadTexture(std::wstring texturePath, bool isTexture3D = false, bool isCubeMap = false, bool referenceBasedDelete = false);
+	TextureResource* loadTexture(std::wstring texturePath, bool isCubeMap = false, bool isTexture3D = false, bool referenceBasedDelete = false);
 	TextureResource* loadErrorTexture();
 	MeshResource* loadLRMMesh(const char* path);
 	MeshResource* loadLRSMMesh(const char* path);

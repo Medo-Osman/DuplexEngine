@@ -756,13 +756,13 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 			entity = sceneObject->m_entities[currentSphereName];
 			Material PBRMatUntextured;
 
-			PBRMatUntextured.addTexture(L"T_Missing_D.dds", true);
-			PBRMatUntextured.addTexture(L"T_Missing_E.dds", true);
-			PBRMatUntextured.addTexture(L"T_Missing_N.dds", true);
+			PBRMatUntextured.addTexture(L"T_Missing_D.dds");
+			PBRMatUntextured.addTexture(L"T_Missing_E.dds");
+			PBRMatUntextured.addTexture(L"T_Missing_N.dds");
 			PBRMatUntextured.addTexture(L"T_Missing_ORM.png");
 
-			PBRMatUntextured.addTexture(L"Skyway_Day_IR.dds");
-			PBRMatUntextured.addTexture(L"Skyway_Day.dds");
+			PBRMatUntextured.addTexture(L"sunset_skybox1_IR.dds");
+			PBRMatUntextured.addTexture(L"sunset_skybox1.dds");
 			PBRMatUntextured.addTexture(L"ibl_brdf_lut.png");
 
 			xCounter++;

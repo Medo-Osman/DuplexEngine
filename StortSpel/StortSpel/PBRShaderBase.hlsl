@@ -389,7 +389,7 @@ ps_out main(ps_in input) : SV_TARGET
 	//ambient = float3(0.03, 0.03, 0.03) * albedo * ao;
 	
 	// Combine ambience and specular
-        float3 color = ambient + Lo;
+	float3 color = ambient + Lo;
 
 	// HDR tonemapping
 	color = color / (color + float3(1.0, 1.0, 1.0));
