@@ -29,7 +29,7 @@ private:
 	void newPlayerConnection(Packet* _packet);
 	void trapActivation(Packet* _packet);
 	void playerPickUp(Packet* _packet);
-
+	void arenaPacket(Packet* _packet);
 	void sendPlayerData();
 
 public:
@@ -59,11 +59,12 @@ public:
 	void sendTrapData(std::string entityID);
 	void sendScorePickup(std::string entityID);
 	void sendReady();
-
+	void sendArenaPacket();
 
 	bool getServerReady() { return serverReady; }
 	bool getClientReady() { return clientReady; }
 	bool getStarted();
+	bool getArena();
 	std::vector<TrapData>& getTrapData();
 	std::vector<std::string>& getEntitiesToBeRemoved();
 	void update();
@@ -79,6 +80,7 @@ private:
 	bool isConnected;
 	bool serverReady = false;
 	bool clientReady = false;
+	bool reachedArena = false;
 	SimpleData serverPlayerData[4];
 	std::vector<TrapData> trapData;
 	std::vector<std::string> entitiesToBeRemoved;

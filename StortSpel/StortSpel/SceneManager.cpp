@@ -78,28 +78,7 @@ void SceneManager::initalize(Input* input)
 	hostButton->setPrevMenuButton(joinButton);
 	joinButton->setNextMenuButton(hostButton);
 
-	//Exit button
-	btnStyle.position = Vector2(140, 850);
-	btnStyle.scale = Vector2(1, 1);
-	m_exitIndex = GUIHandler::get().addGUIButton(L"exitBtn.png", btnStyle);
-
-	GUIButton* exitButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_exitIndex));
-
-	btnStyle.position = Vector2(700, 800);
-	btnStyle.scale = Vector2(1.5, 1.5);
-	m_backToLobbyIndex = GUIHandler::get().addGUIButton(L"backToLobby.png", btnStyle);
-
-	GUIButton* backToLobbyButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_backToLobbyIndex));
-	backToLobbyButton->Attach(this);
-
-	exitButton->Attach(this);
-	exitButton->setPrevMenuButton(hostButton);
-	exitButton->setNextMenuButton(startButton);
-	startButton->setPrevMenuButton(exitButton);
-	hostButton->setNextMenuButton(exitButton);
-
-	// Used for Menu Selection
-	GUIHandler::get().setInMenu(true, m_singleplayerIndex);
+	
 
 
 	//ImGui::NewFrame();
@@ -146,12 +125,8 @@ void SceneManager::initalize(Input* input)
 	GUITextStyle textStyle;
 
 
-	style.color = Colors::Yellow;
-	m_playerOneScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(0).second), L"squirk.spritefont", style);
-	style.position.y -= 50.0f;
-	m_playerTwoScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(1).second), L"squirk.spritefont", style);
-	style.position.y -= 50.0f;
-	m_playerThreeScoreIndex = GUIHandler::get().addGUIText(std::to_string(m_scores->at(2).second), L"squirk.spritefont", style);
+
+	
 	textStyle.position.x = 140.f;
 	textStyle.position.y = 100.f;
 	m_highScoreLabelIndex = GUIHandler::get().addGUIText("High Score", L"concert_one_60.spritefont", textStyle);
@@ -227,7 +202,12 @@ void SceneManager::updateScene(const float &dt)
 		m_swapScene = true;
 		m_nextSceneEnum = ScenesEnum::PHASE2;
 	}
-	
+	if (PacketHandler::get().getArena())
+	{
+		//m_winState->secondWinState = true;
+		m_swapScene = true;
+		m_nextSceneEnum = ScenesEnum::ARENA;
+	}
 	if (m_swapScene && !m_loadNextSceneWhenReady)
 	{ 
 		
@@ -293,6 +273,7 @@ void SceneManager::updateScene(const float &dt)
 			PacketHandler::get().setPlayerScene(2);
 			GUIHandler::get().setInMenu(false);
 			m_winState->firstWinState = true; //This bool tells every player to load the boss arena
+			PacketHandler::get().sendArenaPacket();
 			break;
 		case ScenesEnum::MAINMENU:
 			disableMovement();
@@ -746,7 +727,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 				button->setTexture(L"uncheckedBoxHover.png");
 			}
 		}
-		
+
 	}
 
 	if (type == GUIUpdateType::HOVER_EXIT)
@@ -897,11 +878,11 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			m_swapScene = true;
 			if (showInputBar == false)
 			{
-				
+
 			}
 			else
 			{
-				
+
 
 			}
 			showInputBar = !showInputBar;
@@ -1060,7 +1041,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			// do stuff
 
-			
+
 			if (checked == false)
 			{
 				button->setTexture(L"checkedbox.png");
@@ -1074,16 +1055,17 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			checked = !checked;
 
 
-		static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
-		for (int i = 0; i < 3; i++)
-		{
-			Engine::get().getServerPlayers()->at(i)->getPlayerEntity()->setPosition(m_currentScene->getEntryPosition());
+			static_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->setPosition(m_currentScene->getEntryPosition());
+			for (int i = 0; i < 3; i++)
+			{
+				Engine::get().getServerPlayers()->at(i)->getPlayerEntity()->setPosition(m_currentScene->getEntryPosition());
 
+			}
 		}
+
+
+
 	}
-
-
-
 }
 void SceneManager::hideScore()
 {

@@ -15,7 +15,7 @@ PacketHandler::PacketHandler()
 	{
 		serverPlayerData[i].ID = -1;
 		serverPlayerData[i].rot = XMQuaternionIdentity();
-		serverPlayerData[i].state = 9;
+		serverPlayerData[i].state = 0;
 		serverPlayerData[i].blend = 0;
 		serverPlayerData[i].score = 50;
 		serverPlayerData[i].scene = 0;
@@ -97,6 +97,9 @@ void PacketHandler::handlePacket(Packet* _packet)
 	case 6:
 		playerPickUp(_packet);
 		break;
+
+	case 10:
+		arenaPacket(_packet);
 	}
 }
 
@@ -136,6 +139,7 @@ void PacketHandler::playerData(Packet* _packet)
 	{
 		if (serverPlayerData[i].ID == ID)
 		{
+
 			serverPlayerData[i].pos = position;
 			serverPlayerData[i].rot = rotation;
 			serverPlayerData[i].state = state;
@@ -224,6 +228,11 @@ void PacketHandler::playerPickUp(Packet* _packet)
 	
 }
 
+void PacketHandler::arenaPacket(Packet* _packet)
+{
+	reachedArena = true;
+}
+
 void PacketHandler::sendPlayerData()
 {
 	//Write Packet ID
@@ -277,6 +286,12 @@ void PacketHandler::sendReady()
 {
 	clientReady = true;
 	Packet _packet(1);
+	int sendResult = send(sock, _packet.ToArray(), _packet.Lenght() + 1, 0);
+}
+
+void PacketHandler::sendArenaPacket()
+{
+	Packet _packet(10);
 	int sendResult = send(sock, _packet.ToArray(), _packet.Lenght() + 1, 0);
 }
 
@@ -350,6 +365,13 @@ bool PacketHandler::getStarted()
 {
 	//std::cout << "getting boolean" << std::endl;
 	return serverReady;
+}
+
+bool PacketHandler::getArena()
+{
+	bool returnvalue = reachedArena;
+	reachedArena = false;
+	return returnvalue;
 }
 
 std::vector<TrapData>& PacketHandler::getTrapData()

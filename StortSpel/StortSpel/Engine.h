@@ -62,8 +62,7 @@ private:
 	bool isHost = false;
 	bool serverRunning = false;
 	bool isClient = false;
-	bool isConnected = false;
-	Camera m_camera; 
+	bool isConnected = false; 
 
 	// Camera
 	Camera m_camera;
@@ -113,6 +112,7 @@ public:
 	Player* getPlayerPtr();
 	std::vector<Player*>* getServerPlayers();
 
+	bool getHost() { return this->isHost; }
 	void setHost(bool tf);
 	void setClient(bool tf);
 	ID3D11DeviceContext* getDeviceContextPtr() { return m_dContextPtr; }

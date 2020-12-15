@@ -106,8 +106,8 @@ void Server::playerPacket(Packet* _packet)
 	//loop through players and send data to every other client
 	int id = _packet->getID();
 	int playerID = _packet->ReadInt();
-	float x, y, z, w;
-	int state, blend, score, scene;
+	float x, y, z, w, blend;
+	int state, score, scene;
 
 	Packet _outPacket(id);
 
@@ -354,6 +354,11 @@ void Server::update()
 						playersReady++;
 					}
 					playersReady++;
+				}
+				else if (_packet.getID() == 10)
+				{
+					Packet _packet(10);
+					sendToAllExcept(&_packet);
 				}
 
 

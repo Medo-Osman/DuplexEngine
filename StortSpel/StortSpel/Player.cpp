@@ -596,8 +596,7 @@ void Player::playerStateLogic(const float& dt)
 	{
 		float blend = vectorLen / (PLAYER_MAX_SPEED * dt);
 
-		if ((PLAYER_SPEED * dt) <= 0.0f)
-			blend = -1.0f;
+
 		if ((PLAYER_MAX_SPEED * dt) <= 0.0f)
 			blend = 0.0f;
 
@@ -1078,7 +1077,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				{
 					m_pickupPointer = getCorrectPickupByID(physicsData.associatedTriggerEnum);
 					m_pickupPointer->setModifierValue(physicsData.floatData);
-					m_pickupPointer->onPickup(m_playerEntity, duration);
+					m_pickupPointer->onPickup(m_playerEntity, m_speedModifierDuration);
 					if (m_pickupPointer->shouldActivateOnPickup())
 						m_pickupPointer->onUse();
 
@@ -1102,19 +1101,19 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 						}
 						if (usePickup)
 						{
-							pickupPtr->onPickup(m_playerEntity, true);
-							pickupPtr->onUse();
-							m_environmentPickup = pickupPtr;
+							m_pickupPointer->onPickup(m_playerEntity, true);
+							m_pickupPointer->onUse();
+							m_environmentPickup = m_pickupPointer;
 							m_trampolineEntityIdentifier = physicsData.entityIdentifier;
 						}
 
 					}
 					else
 					{
-						m_pickupPointer = pickupPtr;
-						pickupPtr->onPickup(m_playerEntity, false);
-						if (pickupPtr->shouldActivateOnPickup())
-							pickupPtr->onUse();
+						m_pickupPointer = m_pickupPointer;
+						m_pickupPointer->onPickup(m_playerEntity, false);
+						if (m_pickupPointer->shouldActivateOnPickup())
+							m_pickupPointer->onUse();
 					}
 				}
 			}
