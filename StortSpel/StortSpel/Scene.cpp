@@ -1716,7 +1716,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		sceneObject->m_boss->Attach(sceneObject);
 		sceneObject->m_boss->initialize(bossEnt, true, 8);
 		sceneObject->m_boss->setNrOfMaxStars(100);
-		sceneObject->m_endBossAtPecentNrOfStarts = 0; // if this is 0 the end secene will be triggered
+		sceneObject->m_endBossAtPecentNrOfStarts = 50; // if this is 0 the end secene will be triggered
 
 		//// Init grid structure
 		BossStructures::PlatformArray* platformArray = sceneObject->m_boss->platformArray;
@@ -2517,9 +2517,12 @@ Entity* Scene::addTrampoline(Vector3 position)
 	Entity* trampoline = addEntity("trampoline" + std::to_string(m_nrOf++));
 	trampoline->setPosition(position);
 	trampoline->setScale(0.5f, 0.5f, 0.5f);
-	addComponent(trampoline, "mesh1", part1); //Dun edit diz them nems plz.
-	addComponent(trampoline, "mesh2", part2);
-	addComponent(trampoline, "mesh3", part3);
+	addComponent(trampoline, "mesh1", //Dun edit diz them nems plz.
+		new MeshComponent("Trampolin__Bot.lrm", Material({ L"T_TrampolinBot_P_D.png" })));
+	addComponent(trampoline, "mesh2",
+		new MeshComponent("Trampolin__Spring.lrm", Material({ L"T_TrampolinBot_P_D.png" })));
+	addComponent(trampoline, "mesh3",
+		new MeshComponent("Trampolin__Top.lrm", Material({ L"T_Top_P_D.png" })));
 
 
 	createNewPhysicsComponent(trampoline, false);
@@ -2555,13 +2558,14 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 
 		if ((PickupType)msg.intEnum == PickupType::CANNON)
 		{
-			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", Material({ L"DarkGrayTexture.png" }));
+			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", Material({ L"T_CanonPipe_P_D.png" }));
 			pipe->setPosition(Vector3(0, 1, 0));
 			MeshComponent* base = new MeshComponent("Canon_Base.lrm", Material({ L"DarkGrayTexture.png" }));
 
 			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
 			cannon->setScale(0.5f, 0.5f, 0.5f);
-			addComponent(cannon, "mesh1", base);
+
+			addComponent(cannon, "mesh1", new MeshComponent("Canon_Base.lrm", Material({ L"T_CanonBase_P_D.png" })));
 			addComponent(cannon, "mesh2", pipe);
 			cannon->setPosition(m_player->getPlayerEntity()->getTranslation());
 			//cannon->setRotationQuat(m_input);
