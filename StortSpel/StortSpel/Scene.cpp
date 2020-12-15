@@ -1595,7 +1595,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		sceneObject->m_boss->Attach(sceneObject);
 		sceneObject->m_boss->initialize(bossEnt, true, 8);
 		sceneObject->m_boss->setNrOfMaxStars(100);
-		sceneObject->m_endBossAtPecentNrOfStarts = 0; // if this is 0 the end secene will be triggered
+		sceneObject->m_endBossAtPecentNrOfStarts = 50; // if this is 0 the end secene will be triggered
 
 		//// Init grid structure
 		BossStructures::PlatformArray* platformArray = sceneObject->m_boss->platformArray;

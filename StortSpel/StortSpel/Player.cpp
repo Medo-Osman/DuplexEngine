@@ -442,7 +442,6 @@ void Player::playerStateLogic(const float& dt)
 			m_currentDistance = 0.f;
 			m_lastState = PlayerState::JUMPING;
 			m_state = PlayerState::FALLING;
-			//std::cout << "FALLING\n";
 		}
 		else if (m_jumpPressed && !m_lastJumpPressed && m_jumps < ALLOWED_NR_OF_JUMPS)
 			jump();
@@ -1254,7 +1253,7 @@ void Player::roll()
 
 bool Player::canDash() const
 {
-	return (m_state == PlayerState::JUMPING || m_state == PlayerState::FALLING && !m_hasDashed);
+	return (m_state == PlayerState::JUMPING && !m_hasDashed || m_state == PlayerState::FALLING && !m_hasDashed);
 }
 
 void Player::dash()
