@@ -51,7 +51,7 @@ struct perObjectMVP
 
 struct lightBufferStruct
 {
-    FLOAT ambientLightLevel = 0.1f;
+    FLOAT ambientLightLevel = 0.3f;
     PointLightRepresentation pointLights[8];
     int nrOfPointLights = 0;
 
@@ -135,6 +135,19 @@ struct atmosphericFogConstBuffer
     float cloudFogStrength = 0.7f;
     Vector3 cloudFogColor = { 1.0f, 1.0f, 1.0f };
     float padding;
+};
+
+struct SSAO_BUFFER
+{
+    XMMATRIX viewToTexSpace;
+    XMMATRIX worldInverseTransposeView;
+    XMFLOAT4 offsetVectors[14];
+    XMFLOAT4 frustumCorners[4];
+
+    float occlusionRadius = 0.5f;
+    float occlusionFadeStart = 0.2f;
+    float occlusionFadeEnd = 2.0f;
+    float surfaceEpsilon = 0.05f;
 };
 
 __declspec(align(16)) struct projectionMatrix

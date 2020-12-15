@@ -145,6 +145,7 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isT
 				return m_textureCache[m_ERROR_TEXTURE_NAME.c_str()];
 			else // Load error texture
 			{
+				//m_textureCache[m_ERROR_TEXTURE_NAME] = new TextureResource();
 				path = m_TEXTURES_PATH + m_ERROR_TEXTURE_NAME;
 
 				m_textureCache[m_ERROR_TEXTURE_NAME] = new TextureResource();

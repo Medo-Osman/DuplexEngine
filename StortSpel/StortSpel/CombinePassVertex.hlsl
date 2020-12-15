@@ -1,6 +1,7 @@
 struct vs_in
 {
     float3 pos : POSITION;
+    float3 normals : NORMAL;
     float2 uv : TEXCOORD;
 };
 

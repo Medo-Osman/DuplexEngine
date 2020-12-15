@@ -633,7 +633,7 @@ public:
 		ccd.height = height;
 		ccd.radius = radius;
 		ccd.invisibleWallHeight = 0.f;
-		ccd.maxJumpHeight = 0.f; //If invisibleWalLHeigt is used, this parameter is used.
+		ccd.maxJumpHeight = 0.f; //If invisibleWalLHeight is used, this parameter is used.
 		ccd.nonWalkableMode = PxControllerNonWalkableMode::ePREVENT_CLIMBING_AND_FORCE_SLIDING;
 		ccd.position = PxExtendedVec3(position.x, position.y, position.z);
 		ccd.registerDeletionListener = true;

@@ -20,6 +20,9 @@ enum ShaderProgramsEnum
 	CLOUD,
 	Z_PRE_PASS,
 	Z_PRE_PASS_ANIM,
+	NORMALS_DEPTH,
+	NORMALS_DEPTH_ANIM,
+	SSAO_MAP,
 	NONE
 };
 
@@ -97,7 +100,7 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 	(
 		{ L"CombinePassVertex.hlsl",L"null",L"null",L"null",L"CombinePassPixel.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
-		VertexLayoutType::LRMVertexLayout,
+		VertexLayoutType::renderQuadVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 
@@ -198,7 +201,30 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 	);
 
 	// Allow binding of a displacement map to the domain shader
-	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Vertex, true);
 	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Domain, true);
 	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Pixel, true);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::NORMALS_DEPTH] = new ShaderProgram
+	(
+		{ L"NormalsDepthVertex.hlsl",L"null",L"null",L"null",L"NormalsDepthPixel.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::NORMALS_DEPTH_ANIM] = new ShaderProgram
+	(
+		{ L"NormalsDepthVertexAnim.hlsl",L"null",L"null",L"null",L"NormalsDepthPixel.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::SSAO_MAP] = new ShaderProgram
+	(
+		{ L"SSAOVertex.hlsl",L"null",L"null",L"null",L"SSAOPixel.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::renderQuadVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
 }
