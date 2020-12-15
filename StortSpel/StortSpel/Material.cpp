@@ -9,8 +9,8 @@ Material::Material()
 		this->m_textureArray.push_back(errorTexturePtr->view);
 }
 
-Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData)
-	:m_materialId(++totalMaterialCount), m_isDefault(false), m_isPRB(false)
+Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData, bool isPBR)
+	:m_materialId(++totalMaterialCount), m_isDefault(false), m_isPRB(isPBR)
 {
 	for (auto fileName : fileNames)
 	{
