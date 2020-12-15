@@ -711,6 +711,32 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 	}
 	*/
 
+	sceneObject->addCloudBedMesh(Vector3(0, 0, 0), "cloudPlane.lrm");
+
+	Entity* floor = sceneObject->addEntity("Floor");
+	if (floor)
+	{
+		Material floorMaterial;
+
+		floorMaterial.addTexture(SkyboxIR, true);
+		floorMaterial.addTexture(SkyboxMain, true);
+		floorMaterial.addTexture(L"ibl_brdf_lut.png");
+
+		floorMaterial.addTexture(L"T_SkywayPathBricks_P_D.png");
+		floorMaterial.addTexture(L"T_Missing_E.png");
+		floorMaterial.addTexture(L"T_SkywayPathBricks_P_N.png");
+		floorMaterial.addTexture(L"T_SkywayPathBricks_P_ORM.png");
+
+		floorMaterial.setTextured(true);
+		floorMaterial.setUVScale(8000.f);
+
+		sceneObject->addComponent(floor, "mesh", new MeshComponent("floorUVMapped_Cube.lrm", ShaderProgramsEnum::PBRTEST, floorMaterial));
+		floor->scale({ 1000, 1000, 1000 });
+		floor->translate({ 0, -2, 0 });
+		//floor->rotate({ (0.707), 0.f, 0.f });
+		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+	}
+
 	delete[] levelData;
 	*finished = true; //Inform the main thread that the loading is complete.
 }
@@ -3249,3 +3275,26 @@ void Scene::sortScore()
 {
 	std::sort(m_scores.begin(), m_scores.end());
 }
+
+void Scene::addCloudBedMesh(Vector3 Position, const char* meshName)
+{
+	Entity* testCloudBed = addEntity("testCloudBed");
+	if (testCloudBed)
+	{
+		Material testCloudBedMat;
+
+		testCloudBedMat.addTexture(L"sunset_skybox_1_IR.dds", true);
+		testCloudBedMat.addTexture(L"sunset_skybox_1.dds", true);
+		testCloudBedMat.addTexture(L"ibl_brdf_lut.png");
+
+		testCloudBedMat.addTexture(L"worley_2.dds", false, true);
+
+		MeshComponent* cloudMesh = new MeshComponent(meshName, ShaderProgramsEnum::CLOUD, testCloudBedMat);
+		addComponent(testCloudBed, "mesh", cloudMesh);
+		testCloudBed->scale({ 1, 1, 1 });
+		testCloudBed->translate(Position);
+		testCloudBed->rotate({ 0, 0, 0 });
+
+		cloudMesh->setCastsShadow(true);
+	}
+};

@@ -35,9 +35,11 @@ cbuffer cloudConstBuffer : register(b2)
 	float3 panSpeed;
 	float tile;
 	float dispPower;
-	float normalIntensity;
 	float occlusionFactor;
-	float padding;
+	float backlightFactor;
+	float backlightStrength;
+	float3 backlightColor;
+	float preDisplacement;
 }
 
 struct ds_out
@@ -95,6 +97,9 @@ ds_out main(
 	Output.bitangent = finalBiTangent;
 	Output.bitangent = normalize(mul(float4(finalBiTangent, 0), worldMatrix));
 	
+	float3 finalShadowPos = normalize(BarycentricCoordinates.x * tri[0].shadowPos + BarycentricCoordinates.y * tri[1].shadowPos + BarycentricCoordinates.z * tri[2].shadowPos);
+	Output.shadowPos = float4(finalShadowPos, 1);
+	
 	float2 vUV = BarycentricCoordinates.x * tri[0].uv + BarycentricCoordinates.y * tri[1].uv + BarycentricCoordinates.z * tri[2].uv;
 	Output.uv = vUV;
 	
@@ -134,6 +139,7 @@ ds_out main(
 	vWorldNormal = normalize(Output.worldNormal);
 
 	// push the world position in by the average value of the displacement map
+	Output.worldPos.xyz += Output.worldNormal * preDisplacement;
 	Output.worldPos.xyz -= vWorldNormal * 0.7937 * cloudDisplacementFactor * oneOverTile;
 	// push the world position out based on the new world normal
 	Output.worldPos.xyz += vWorldNormal * pow(fDisplacement, dispPower) * cloudDisplacementFactor * oneOverTile;

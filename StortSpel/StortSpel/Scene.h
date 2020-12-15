@@ -216,6 +216,7 @@ public:
 	void addLightComponent(LightComponent* component);
 	void addBarrelDrop(Vector3 Position);
 	void addBarrelDropTrigger(Vector3 Position);
+	void addCloudBedMesh(Vector3 Position, const char* meshName);
 
 	int getSceneID();
 

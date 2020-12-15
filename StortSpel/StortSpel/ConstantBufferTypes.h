@@ -117,17 +117,8 @@ struct cloudConstBuffer
     float backlightFactor = 5.0f;
     float backlightStrength = 1.0f;
     Vector3 backlightColor = { 1.0f, 0.156f, 0.024f };
-    float smallLargeBlend = 0.5f;
+    float preDisplacement = -15.0f;
 };
-
-//float cloudHeightPosition = 0.0f;
-//float cloudDisplacementFactor = 5.0f;
-//float cloudTessellationFactor = 5.0f;
-//float noiseScale1 = 5.0f;
-//float noiseScale2 = 5.0f;
-//float noiseSpeed1 = 0.002f;
-//float noiseSpeed2 = 0.005f;
-//float noiseBlendFactor = 0.5f;
 
 struct atmosphericFogConstBuffer
 {

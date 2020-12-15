@@ -32,8 +32,8 @@ Material::Material(std::wstring materialName, bool isPBR)
 
 	if (isPBR)
 	{
-		addTexture(L"skybox_bluesky_2.dds", true);
-		addTexture(L"skybox_bluesky_2.dds", true);
+		addTexture(L"skybox_bluesky.dds", true);
+		addTexture(L"skybox_bluesky.dds", true);
 		addTexture(L"ibl_brdf_lut.png");
 	}
 	i += 3;
@@ -242,6 +242,7 @@ void Material::readMaterials()
 	std::unordered_map<std::wstring, std::unordered_map<std::wstring, std::wstring>> materials;
 	std::vector<std::wstring> textureNames;
 	std::wstring letters[4] = { L"D", L"E", L"N", L"ORM" };
+	std::wstring fileEnding = L"";
 
 	for (const auto& file : std::filesystem::directory_iterator(m_TEXTURES_PATH))
 	{
@@ -252,6 +253,7 @@ void Material::readMaterials()
 		if (fileName.rfind(L"T_", 0) == 0)
 		{
 			rawFileName = fileName.substr(0, fileName.size() - 4);
+			fileEnding = fileName.substr(rawFileName.length());
 			textureName = rawFileName.substr(2);						// Remove start "T_"
 			textureName = textureName.substr(0, textureName.find_last_of(L"_")); // Remove ending "_D"
 			if (textureName.find_last_of(L"_") != std::wstring::npos)
@@ -265,7 +267,7 @@ void Material::readMaterials()
 
 				if (rawFileName.substr(rawFileName.size() - (l == 3 ? 4 : 2), std::wstring::npos) == L"_" + letters[l])
 				{
-					materials[textureName][letters[l]] = (rawFileName);
+					materials[textureName][letters[l]] = (rawFileName)+fileEnding;
 					isTextrue = true;
 				}
 			}
@@ -281,22 +283,22 @@ void Material::readMaterials()
 		//Material mat;
 		MATERIAL_INIT_STRUCT mat;
 		mat.MaterialID = ++totalMaterialCount;
-		
+
 		for (int l = 0; l < 4; l++)
 		{
 			if (materials[textureNames[i]].find(letters[l]) == materials[textureNames[i]].end())
 			{
-				materials[textureNames[i]][letters[l]] = L"T_Missing_" + letters[l];
+				materials[textureNames[i]][letters[l]] = L"T_Missing_" + letters[l] + L".dds";
 			}
 		}
 
 		for (int l = 0; l < 4; l++)
 		{
-			std::wstring name = materials[textureNames[i]][letters[l]] + L".png";
+			std::wstring name = materials[textureNames[i]][letters[l]] /*+ fileEnding*/;
 			//mat.addTexture(std::wstring(name.begin(), name.end()).c_str());
 			mat.fileNames.push_back(name);
 		}
-		
+
 		m_MaterialCache[textureNames[i]] = mat;
 	}
 }

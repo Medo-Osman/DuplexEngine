@@ -10,7 +10,7 @@ const bool Renderer::USE_Z_PRE_PASS = true;
 Renderer::Renderer()
 {
 	//m_rTargetViewsArray = new ID3D11RenderTargetView * [8];
-	
+
 	//Variables
 	m_shadowMap = nullptr;
 }
@@ -94,7 +94,7 @@ void Renderer::release()
 	{
 		delete element.second;
 	}
-	
+
 	Particle::cleanStaticDataForParticles();
 
 	m_states.reset();
@@ -136,7 +136,7 @@ Renderer::~Renderer()
 	m_cameraBuffer.release();
 	m_skyboxConstantBuffer.release();
 	m_shadowConstantBuffer.release();
-	
+
 	m_skelAnimationConstantBuffer.release();
 	m_currentMaterialConstantBuffer.release();
 
@@ -158,7 +158,7 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	HRESULT hr;
 	m_window = window;
-	
+
 	m_settings = Engine::get().getSettings();
 
 	hr = createDeviceAndSwapChain(); //Device and context creation
@@ -172,15 +172,15 @@ HRESULT Renderer::initialize(const HWND& window)
 #ifdef _DEBUG
 	//Get Debugger
 	hr = m_devicePtr->QueryInterface(IID_PPV_ARGS(m_debugPtr.GetAddressOf()));
-						//QueryInterface(IID_PPV_ARGS(&debug))
+	//QueryInterface(IID_PPV_ARGS(&debug))
 	if (!SUCCEEDED(hr)) return hr;
 
-//	ID3D11InfoQueue* infoQueue = nullptr;
-//	hr = m_debugPtr->QueryInterface(__uuidof(ID3D11InfoQueue), (void**) & infoQueue);
-//
-//#ifdef _DEBUG
-//	infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
-//	infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
+	//	ID3D11InfoQueue* infoQueue = nullptr;
+	//	hr = m_debugPtr->QueryInterface(__uuidof(ID3D11InfoQueue), (void**) & infoQueue);
+	//
+	//#ifdef _DEBUG
+	//	infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
+	//	infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
 #endif
 
 
@@ -190,7 +190,7 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	hr = createDepthStencil();
 	if (!SUCCEEDED(hr)) return hr;
-	
+
 	D3D11_TEXTURE2D_DESC textureDesc = { 0 };
 	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	textureDesc.Width = m_settings.width;
@@ -324,7 +324,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	/////////////////////////////////////////////////
 
 	initRenderQuad();
-	
+
 
 	// ImGui initialization
 	IMGUI_CHECKVERSION();
@@ -334,7 +334,7 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	ImGui::StyleColorsDark();
 
-	io.Fonts->AddFontFromFileTTF("../res/fonts/Ruda-Bold.ttf", 18.0f);
+	io.Fonts->AddFontFromFileTTF("../res/fonts/Ruda-Bold.ttf", 14.0f);
 
 	ImGuiStyle* style = &ImGui::GetStyle();
 	style->FrameRounding = 4.0f;
@@ -413,9 +413,9 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_effect->GetVertexShaderBytecode(&shaderByteCode, &byteCodeLength);
 
 	hr = m_devicePtr->CreateInputLayout(VertexType::InputElements,
-			VertexType::InputElementCount,
-			shaderByteCode, byteCodeLength,
-			m_inputLayout.ReleaseAndGetAddressOf());
+		VertexType::InputElementCount,
+		shaderByteCode, byteCodeLength,
+		m_inputLayout.ReleaseAndGetAddressOf());
 
 	m_batch = std::make_unique<PrimitiveBatch<VertexType>>(this->m_dContextPtr.Get());
 
@@ -682,7 +682,7 @@ void Renderer::blurPass()
 {
 	UINT offset = 0;
 	int vertexCount = 6;
-	
+
 
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
 	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
@@ -801,9 +801,9 @@ void Renderer::zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMA
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
-				
+
 			AnimatedMeshComponent* animMeshComponent = nullptr;
-			if(component.second->getType() == ComponentType::ANIM_MESH)
+			if (component.second->getType() == ComponentType::ANIM_MESH)
 				animMeshComponent = static_cast<AnimatedMeshComponent*>(component.second);
 
 
@@ -854,7 +854,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		XMFLOAT3 min, max;
 		bool draw = true;
 		Entity* parentEntity;
-		
+
 		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
 			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
 		else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
@@ -896,7 +896,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		if (draw && meshComp->isVisible())
 		{
 			m_drawn++;
-			
+
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_switchCamera ? m_testCamera.getProjectionMatrix() : m_camera->getProjectionMatrix());
@@ -912,7 +912,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 			{
 				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 			}
-			
+
 			int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
 
 			for (int mat = 0; mat < materialCount; mat++)
@@ -924,26 +924,26 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 					m_compiledShaders[meshShaderEnum]->setShaders();
 					m_currentSetShaderProg = meshShaderEnum;
 				}
-				
+
 				Material* meshMatPtr = component.second->getMaterialPtr(mat);
 				if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
 				{
 					meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
 					m_currentSetMaterialId = meshMatPtr->getMaterialId();
-					
-				MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
-				currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
-				currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
-				currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
-				currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
-				currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
+
+					MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+					currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+					currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+					currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+					currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+					currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
 
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
 				m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 
 				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
-				
+
 				m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
 			}
 		}
@@ -1022,7 +1022,7 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 void Renderer::resizeBackbuff(int x, int y)
 {
 	//m_swapChainPtr.
-	
+
 	/*ID3D11Texture2D* swapChainBufferPtr;
 	HRESULT hr = m_swapChainPtr->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&swapChainBufferPtr);
 	int succInt = swapChainBufferPtr->Release();
@@ -1038,6 +1038,8 @@ void Renderer::rasterizerSetup()
 	HRESULT hr = 0;
 	D3D11_RASTERIZER_DESC rasterizerDesc;
 	ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
+
+	rasterizerDesc.MultisampleEnable = true;
 
 	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
@@ -1083,6 +1085,16 @@ void Renderer::update(const float& dt)
 	static float tempSunDirectionY = -1.0f;
 	static float tempSunDirectionZ = 1.0f;
 
+	enum TimeState
+	{
+		CUSTOM,
+		DAY,
+		NIGHT,
+		SUNSET,
+	};
+
+	TimeState currentTimeState = TimeState::DAY;
+
 	if (DEBUGMODE)
 	{
 		ImGui::SetNextWindowPos(ImVec2(1370.0f, 0.0f));
@@ -1097,14 +1109,13 @@ void Renderer::update(const float& dt)
 		ImGui::SetNextWindowSize(ImVec2(550.0f, 1020.0f));
 		ImGui::Begin("Global Shader Settings");
 
-		ImGui::Text("");
 		ImGui::Text("Debug Mode");
 		ImGui::Text("Index: %d", m_debugViewMode);
 		ImGui::Text(DebugModeNames[m_debugViewMode].c_str());
 
-		ImGui::Text("");
+		//ImGui::Text("");
 		ImGui::Text("Clouds");
-		ImGui::InputFloat("Height Position", (float*)&cloudConstBufferTemp.cloudBedHeightPosition);
+		//ImGui::InputFloat("Height Position", (float*)&cloudConstBufferTemp.cloudBedHeightPosition);
 		ImGui::SliderFloat("Displacement Factor", (float*)&cloudConstBufferTemp.cloudDisplacementFactor, 0.01f, 200.0f);
 		ImGui::SliderFloat("Tessellation Factor", (float*)&cloudConstBufferTemp.cloudTessellationFactor, 0.01f, 14.99f);
 		ImGui::SliderFloat("Worley Noise Scale", (float*)&cloudConstBufferTemp.worleyScale, 0.0f, 0.1f);
@@ -1114,12 +1125,13 @@ void Renderer::update(const float& dt)
 		ImGui::SliderFloat("Z", (float*)&cloudConstBufferTemp.panSpeed.z, -1.0f, 1.0f);
 		ImGui::SliderFloat("Tiling", (float*)&cloudConstBufferTemp.tile, 0.0f, 20.0f);
 		ImGui::SliderFloat("Disp. Power", (float*)&cloudConstBufferTemp.dispPower, 0.0f, 2.0f);
+		ImGui::SliderFloat("Pre-displacement", (float*)&cloudConstBufferTemp.preDisplacement, 0.0f, -100.0f);
 		ImGui::SliderFloat("Occlusion Factor", (float*)&cloudConstBufferTemp.occlusionFactor, 0.0f, 10.0f);
 		ImGui::SliderFloat("Backlight Factor", (float*)&cloudConstBufferTemp.backlightFactor, 0.0f, 10.0f);
 		ImGui::SliderFloat("Backlight Strength", (float*)&cloudConstBufferTemp.backlightStrength, 0.0f, 10.0f);
 		ImGui::ColorEdit3("Backlight Color", (float*)&cloudConstBufferTemp.backlightColor);
 
-		ImGui::Text("");
+		//ImGui::Text("");
 		ImGui::Text("Lighting");
 		ImGui::Text("Directional Light");
 		ImGui::SliderFloat("Intensity", (float*)&lightBufferTemp.skyLight.brightness, 0.0f, 100.0f);
@@ -1130,22 +1142,66 @@ void Renderer::update(const float& dt)
 		ImGui::Text("Misc.");
 		ImGui::SliderFloat("Environment Map Strength", (float*)&m_globalConstBufferTemp.environmentMapBrightness, 0.0f, 10.0f);
 
-		ImGui::Text("");
+		//ImGui::Text("");
 		ImGui::Text("Atmospheric Fog Settings");
 		ImGui::ColorEdit3("Color", (float*)&fogConstBufferTemp.FogColor);
-		ImGui::SliderFloat("Start depth", (float*)&fogConstBufferTemp.FogStartDepth, 0.0f, 100.0f);
-		ImGui::SliderFloat("Start depth (Skybox)", (float*)&fogConstBufferTemp.FogStartDepthSkybox, 0.0f, 100.0f);
+		ImGui::SliderFloat("Start depth", (float*)&fogConstBufferTemp.FogStartDepth, 0.0f, 1000.0f);
+		ImGui::SliderFloat("Start depth (Skybox)", (float*)&fogConstBufferTemp.FogStartDepthSkybox, 0.0f, 1000.0f);
 		ImGui::ColorEdit3("Highlight color", (float*)&fogConstBufferTemp.FogHighlightColor);
-		ImGui::SliderFloat("Global Density", (float*)&fogConstBufferTemp.FogGlobalDensity, 0.0f, 0.5f);
-		ImGui::SliderFloat("Height falloff", (float*)&fogConstBufferTemp.FogHeightFalloff, 0.0f, 100.0f);
+		ImGui::SliderFloat("Global Density", (float*)&fogConstBufferTemp.FogGlobalDensity, 0.0f, 0.1f);
+		ImGui::SliderFloat("Height falloff", (float*)&fogConstBufferTemp.FogHeightFalloff, 0.0f, 2.0f);
 		ImGui::Text("Cloud Fog");
-		ImGui::SliderFloat("Start", (float*)&fogConstBufferTemp.cloudFogHeightStart, -100.0f, 100.0f);
-		ImGui::SliderFloat("End", (float*)&fogConstBufferTemp.cloudFogHeightEnd, -100.0f, 100.0f);
+		ImGui::SliderFloat("Start", (float*)&fogConstBufferTemp.cloudFogHeightStart, -200.0f, fogConstBufferTemp.cloudFogHeightEnd - 1.0f);
+		ImGui::SliderFloat("End", (float*)&fogConstBufferTemp.cloudFogHeightEnd, fogConstBufferTemp.cloudFogHeightStart + 1.0f, fogConstBufferTemp.cloudFogHeightStart + 200.0f);
 		ImGui::SliderFloat("Strength", (float*)&fogConstBufferTemp.cloudFogStrength, 0.0f, 1.0f);
 		ImGui::ColorEdit3("Cloud Fog Color", (float*)&fogConstBufferTemp.cloudFogColor);
 
 		ImGui::End();
 	}
+
+	switch (currentTimeState)
+	{
+	case DAY:
+		//cloudConstBufferTemp.cloudDisplacementFactor = ;
+		//cloudConstBufferTemp.worleyScale = ;
+		//cloudConstBufferTemp.panSpeed.x = ;
+		//cloudConstBufferTemp.panSpeed.y = ;
+		//cloudConstBufferTemp.panSpeed.z = ;
+		//cloudConstBufferTemp.tile = ;
+		//cloudConstBufferTemp.dispPower = ;
+		//cloudConstBufferTemp.preDisplacement = ;
+		//cloudConstBufferTemp.occlusionFactor = ;
+		//cloudConstBufferTemp.backlightFactor = ;
+		//cloudConstBufferTemp.backlightStrength = ;
+		//cloudConstBufferTemp.backlightColor = ;
+
+		//lightBufferTemp.skyLight.direction = ;
+		break;
+	case NIGHT:
+
+		break;
+	case SUNSET:
+
+		break;
+	default:
+		break;
+	}
+
+	struct cloudConstBuffer
+	{
+		float cloudBedHeightPosition = 0.0f;
+		float cloudDisplacementFactor = 100.0f;
+		float cloudTessellationFactor = 14.99f;
+		float worleyScale = 0.02f;
+		Vector3 panSpeed = { 0.0f, -0.055f, 0.0f };
+		float tile = 1.0f;
+		float dispPower = 0.1f;
+		float occlusionFactor = 1.0f;
+		float backlightFactor = 5.0f;
+		float backlightStrength = 1.0f;
+		Vector3 backlightColor = { 1.0f, 0.156f, 0.024f };
+		float preDisplacement = -15.0f;
+	};
 
 
 	// Misc updates
@@ -1175,6 +1231,7 @@ void Renderer::render()
 {
 	//m_deferredContext->ExecuteCommandList();
 	m_dContextPtr->ExecuteCommandList(ResourceHandler::get().m_commandList, TRUE);
+
 
 	//Update camera position for pixel shader buffer
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
@@ -1224,16 +1281,16 @@ void Renderer::render()
 
 	//Run the shadow pass before everything else
 	m_dContextPtr->VSSetConstantBuffers(3, 1, m_shadowConstantBuffer.GetAddressOf());
-	
+
 	m_shadowMap->setLightDir(Engine::get().getSkyLightDir());
 	renderShadowPass(&frust, &wvp, &V, &P);
-	
-	
+
+
 	//Set to null, otherwise we get error saying it's still bound to input.
 	ID3D11RenderTargetView* nullRenderTargets[1] = { 0 };
 	m_dContextPtr->OMSetRenderTargets(1, nullRenderTargets, nullptr);
 
-	
+
 
 	//Run ordinary pass
 	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
@@ -1246,7 +1303,7 @@ void Renderer::render()
 	//Run ZPreePass
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
-	if(USE_Z_PRE_PASS)
+	if (USE_Z_PRE_PASS)
 	{
 		this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStateCompLessPtr.Get(), NULL);
 		ID3D11RenderTargetView* nullRenderTargetsTwo[2] = { 0 };
@@ -1357,7 +1414,7 @@ void Renderer::inputUpdate(InputData& inputData)
 			break;
 		case NEXTDEBUGVIEWMODE:
 			if (m_debugViewMode < debugViewModeCount - 1)
-			m_debugViewMode++;
+				m_debugViewMode++;
 			break;
 		default:
 			break;

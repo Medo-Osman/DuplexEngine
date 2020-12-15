@@ -146,6 +146,9 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isT
 			else // Load error texture
 			{
 				path = m_TEXTURES_PATH + m_ERROR_TEXTURE_NAME;
+
+				m_textureCache[m_ERROR_TEXTURE_NAME] = new TextureResource();
+
 				hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &m_textureCache[m_ERROR_TEXTURE_NAME]->view);
 				if (SUCCEEDED(hr))
 					return m_textureCache[m_ERROR_TEXTURE_NAME];
@@ -159,6 +162,8 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isT
 		}
 		else
 		{
+			m_textureCache[texturePath] = new TextureResource();
+
 			std::wstring wideString = texturePath;
 			m_textureCache[texturePath]->view = srv;
 			m_textureCache[texturePath]->m_doReferenceCount = referenceBasedDelete;

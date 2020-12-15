@@ -2,9 +2,9 @@
 
 #define MAX_LIGHTS 8
 
-static const float SHADOW_MAP_SIZE = 4096.f;
+static const float SHADOW_MAP_SIZE = 8192.f;
 static const float SHADOW_MAP_DELTA = 1.f / SHADOW_MAP_SIZE;
-static const float RANGE = 50.f;
+static const float RANGE = 100.f;
 
 static const float PI = 3.14159265359;
 
@@ -98,7 +98,7 @@ float3 ApplyFog(float3 originalColor, float eyePosY, float3 eyeToPixel)
 	float pixelDist = length(eyeToPixel);
 	float3 eyeToPixelNorm = eyeToPixel / pixelDist;
 	// Find the fog staring distance to pixel distance
-	float fogDist = max(pixelDist - FogStartDepthSkybox, 0.0);
+	float fogDist = max(pixelDist - FogStartDepth, 0.0);
 	// Distance based fog intensity
 	float fogHeightDensityAtViewer = exp(-FogHeightFalloff * eyePosY);
 	float fogDistInt = fogDist * fogHeightDensityAtViewer;
@@ -236,6 +236,8 @@ float4 main(ps_in input) : SV_TARGET
 	//N = normalize(mul(N, TBN));
 	
 	float NdotLInverted = float3(0, 0, 0);
+	
+	float tempFloat = 0;
 	           
     // Reflectance equation
 	float3 Lo = float3(0.0, 0.0, 0.0);
@@ -270,6 +272,7 @@ float4 main(ps_in input) : SV_TARGET
 		Lo += (kD * albedo / PI + specular) * radiance * NdotL * shadowFactor;
 	
 		//Lo = Lo + shadowFactor * saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
+		tempFloat = shadowFactor;
 	}
 	
 	float3 ambient = float3(0.0, 0.0, 0.0);
@@ -313,13 +316,14 @@ float4 main(ps_in input) : SV_TARGET
 	color = pow(color, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
 	
 	// Atmospheric fog
-	//float3 eyeToPixel = input.worldPos.xyz - cameraPosition.xyz;
-	//color = ApplyFog(color, cameraPosition.y, eyeToPixel);
+	float3 eyeToPixel = input.worldPos.xyz - cameraPosition.xyz;
+	color = ApplyFog(color, cameraPosition.y, eyeToPixel);
 	
-	//float yPos = input.worldPos.y;
-	//float yRatio = 1 - remapToRange(yPos, cloudFogHeightStart, cloudFogHeightEnd, 0, 1);
+	float yPos = input.worldPos.y;
+	float yRatio = 1 - remapToRange(yPos, cloudFogHeightStart, cloudFogHeightEnd, 0, 1);
     
-	//color = lerp(color, cloudFogColor, clamp(yRatio, 0, 1) * cloudFogStrength);
+	color = lerp(color, cloudFogColor, clamp(yRatio, 0, 1) * cloudFogStrength);
 	
 	return float4(color, 1.0);
+
 }
