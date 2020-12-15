@@ -2329,11 +2329,11 @@ Entity* Scene::addTrampoline(Vector3 position)
 	trampoline->setPosition(position);
 	trampoline->setScale(0.5f, 0.5f, 0.5f);
 	addComponent(trampoline, "mesh1", //Dun edit diz them nems plz.
-		new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+		new MeshComponent("Trampolin__Bot.lrm", Material({ L"T_TrampolinBot_P_D.png" })));
 	addComponent(trampoline, "mesh2",
-		new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
+		new MeshComponent("Trampolin__Spring.lrm", Material({ L"T_TrampolinBot_P_D.png" })));
 	addComponent(trampoline, "mesh3",
-		new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
+		new MeshComponent("Trampolin__Top.lrm", Material({ L"T_Top_P_D.png" })));
 
 
 	createNewPhysicsComponent(trampoline, false);
@@ -2368,12 +2368,12 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 
 		if ((PickupType)msg.intEnum == PickupType::CANNON)
 		{
-			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", Material({ L"DarkGrayTexture.png" }));
+			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", Material({ L"T_CanonPipe_P_D.png" }));
 			pipe->setPosition(Vector3(0, 1, 0));
 
 			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
 			cannon->setScale(0.5f, 0.5f, 0.5f);
-			addComponent(cannon, "mesh1", new MeshComponent("Canon_Base.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(cannon, "mesh1", new MeshComponent("Canon_Base.lrm", Material({ L"T_CanonBase_P_D.png" })));
 			addComponent(cannon, "mesh2", pipe);
 			cannon->setPosition(m_player->getPlayerEntity()->getTranslation());
 			//cannon->setRotationQuat(m_input);
