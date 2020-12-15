@@ -47,7 +47,7 @@ private:
 
 
 	Microsoft::WRL::ComPtr <ID3D11Texture2D> m_randomTexture = NULL;
-	XMFLOAT4* m_randomColors;
+	XMVECTOR* m_randomColors;
 	Vector4 m_offsetVectors[14];
 	Vector4 m_frustumFarCorners[4];
 
@@ -56,6 +56,8 @@ private:
 	// SSAO Buffer
 	SSAO_BUFFER m_ssaoData;
 	Buffer<SSAO_BUFFER> m_ssaoBuffer;
+	CS_BLUR_CBUFFER m_ssaoBlurData;
+	float m_ssaoSigma = 2.5f;
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_SSAOSamplerStateNRM = NULL;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_SSAOSamplerStateRAND = NULL;
@@ -98,7 +100,7 @@ private:
 	Buffer<TextureNormalVertex> m_renderQuadBuffer;
 
 	CS_BLUR_CBUFFER m_blurData;
-	float m_weightSigma = 5.f;
+	float m_bloomSigma = 5.f;
 
 	
 
@@ -165,7 +167,7 @@ private:
 		return ((float)(rand()) / (float)RAND_MAX);
 	}
 	HRESULT initializeBloomFilter();
-	void calculateBloomWeights();
+	void calculateBlurWeights(CS_BLUR_CBUFFER& bufferData, int radius = BLUR_RADIUS, float sigma = 5.f);
 	void downSamplePass();
 	void blurPass();
 	void ssaoBlurPass();

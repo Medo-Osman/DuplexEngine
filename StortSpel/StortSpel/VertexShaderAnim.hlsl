@@ -18,7 +18,8 @@ struct vs_out
     float3 vNormal : VNORMAL;
     float depth : DEPTH;
 	float3 tangent : TANGENT;
-	float3 bitangent : BITANGENT;
+    float3 bitangent : BITANGENT;
+    float4 ssaoPos : SSAOPOS;
 };
 
 cbuffer perModel : register(b0)
@@ -66,6 +67,7 @@ vs_out main(vs_in input, in uint vID : SV_VertexID)
 	output.uv = input.uv;
     output.pos = mul(localPosition, wvpMatrix);
     output.depth = 1 - output.pos.z;
+    output.ssaoPos = mul(localPosition, wvpMatrix);
 
 	//output.wsPos = mul(localPosition, worldMatrix);
     //output.wsTangent = mul(input.tangent, (float3x3) worldMatrix);

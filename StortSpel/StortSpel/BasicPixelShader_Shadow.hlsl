@@ -142,9 +142,10 @@ lightComputeResult computeLightFactor(ps_in input)
     
    
     // SSAO
-    
-    float2 ssaoUV = input.ssaoPos.xy /= input.ssaoPos.w;
-    float ambientFactor = ambientOcclusionMap.SampleLevel(sampState, ssaoUV, 0.0f).r;
+    input.ssaoPos /= input.ssaoPos.w;
+    input.ssaoPos.x = (1.f + input.ssaoPos.x) * 0.5f;
+    input.ssaoPos.y = (1.0f - input.ssaoPos.y) * 0.5f;
+    float ambientFactor = ambientOcclusionMap.SampleLevel(sampState, input.ssaoPos.xy, 0.0f).r;
     
     //Loop through all pointlights
     for (int i = 0; i < nrOfPointLights; i++)
@@ -180,9 +181,11 @@ lightComputeResult computeLightFactor(ps_in input)
     
     finalColor = finalColor + shadowFactor*saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
     
-    result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel)) + (float3(1, 0, 0) * (-ambientFactor + 1) );
-    
-    
+    result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel * ambientFactor));
+    //result.lightColor = diffuse * (finalColor * ambientLightLevel * ambientFactor);
+    //litColor = texColor * (ambient + diffuse);
+    //result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel)));
+    //result.lightColor = (finalColor * diffuse + (float3(1, 0, 0) * (-ambientFactor + 1)));
     
     return result;
 }

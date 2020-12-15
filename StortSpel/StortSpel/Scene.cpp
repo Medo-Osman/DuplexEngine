@@ -679,6 +679,15 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		barrelComponentTrigger->initTrigger(sceneObject->m_sceneID, barrelDropTrigger, { 1.f,1.f,1.f });
 	}
 
+	Entity* ball = sceneObject->addEntity("ball");
+	if (ball)
+	{
+		sceneObject->addComponent(ball, "mesh",
+			new MeshComponent("Sphere_2m_Sphere.lrm", Material({ L"DarkGrayTexture.png" })));
+
+		ball->setPosition(0.f, 7.f, 0.f);
+	}
+
 	/*Entity* stressObject = sceneObject->addEntity("stressObject");
 	if (stressObject)
 	{
@@ -708,8 +717,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	{
 		sceneObject->addComponent(test, "mesh",
 			new MeshComponent("GlowCube.lrm",
-				EMISSIVE,
-				Material({ L"DarkGrayTexture.png", L"GlowTexture.png" })));
+				Material({ L"DarkGrayTexture.png" })));
 
 		test->setScale({ 5, 5, 5 });
 		test->setPosition({ 0, 10, -10 });

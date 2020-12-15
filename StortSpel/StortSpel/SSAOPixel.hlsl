@@ -32,8 +32,8 @@ float occlusionFunction(float distZ)
 Texture2D normalsNDepthTexture : register(t0);
 Texture2D randomTexture : register(t1);
 
-SamplerState normalsNDepthSamplerState : register(s2);
-SamplerState randomVectorSamplerState : register(s3);
+SamplerState randomVectorSamplerState : register(s2);
+SamplerState normalsNDepthSamplerState : register(s3);
 
 float4 main(vs_out input) : SV_TARGET
 {
@@ -77,5 +77,5 @@ float4 main(vs_out input) : SV_TARGET
     
     float access = 1.0f - occlusionSum;
     
-    return saturate(pow(access, 4.0f));
+    return saturate(access);
 }
