@@ -95,7 +95,8 @@ struct ps_in
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
 	float4 worldPos : POSITION;
-	float4 shadowPos : SPOS;
+    float4 shadowPos : SPOS;
+    float4 ssaoPos : SSAOPOS;
 };
 
 struct ps_out
@@ -113,6 +114,7 @@ Texture2D emissiveTexture	: TEXTURE : register(t1);
 Texture2D normalTexture		: TEXTURE : register(t2);
 Texture2D ORMtexture		: TEXTURE : register(t3);
 Texture2D shadowMap			: TEXTURE : register(t7);
+Texture2D ssaoMap			: TEXTURE : register(t8);
 
 SamplerState sampState		: SAMPLER : register(s0);
 SamplerComparisonState shadowSampState : SAMPLER1 : register(s1);
@@ -240,6 +242,12 @@ ps_out main(ps_in input) : SV_TARGET
 	float roughness = materialRoughness;
 	float ao = 1.0f;
 	
+	// SSAO
+    input.ssaoPos /= input.ssaoPos.w;
+    input.ssaoPos.x = (1.f + input.ssaoPos.x) * 0.5f;
+    input.ssaoPos.y = (1.0f - input.ssaoPos.y) * 0.5f;
+    float ambientFactor = ssaoMap.SampleLevel(sampState, input.ssaoPos.xy, 0.0f).r;
+	
 	if (materialTextured)
 	{
 		albedo = pow(albedoTexture.Sample(sampState, input.uv).rgb, 2.2f);
@@ -355,8 +363,12 @@ ps_out main(ps_in input) : SV_TARGET
 	float2 brdf = brdfLUT.Sample(sampState, float2(max(dot(N, V), 0.0f), roughness)).rg;
 	float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
   
-	ambient = (kD * diffuse + specular) * ao;
+    ambient = (kD * diffuse + specular) * ao * ambientFactor;
 	
+    //if (ambientFactor < 0.5f)
+    //{
+    //    ambient = float3(0, 0, 0);
+    //}
 	// Ambient from IBL
 	//float3 F = fresnelSchlick(dot(N, V), F0);
 	//float kD = (1.0 - F) * (1.0 - metallic);
@@ -368,7 +380,7 @@ ps_out main(ps_in input) : SV_TARGET
 	//ambient = float3(0.03, 0.03, 0.03) * albedo * ao;
 	
 	// Combine ambience and specular
-	float3 color = ambient + Lo;
+        float3 color = ambient + Lo;
 
 	// HDR tonemapping
 	color = color / (color + float3(1.0, 1.0, 1.0));

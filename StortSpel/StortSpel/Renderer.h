@@ -61,7 +61,7 @@ private:
 	SSAO_BUFFER m_ssaoData;
 	Buffer<SSAO_BUFFER> m_ssaoBuffer;
 	CS_BLUR_CBUFFER m_ssaoBlurData;
-	float m_ssaoSigma = 2.5f;
+	float m_ssaoSigma = 5.f;
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_SSAOSamplerStateNRM = NULL;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_SSAOSamplerStateRAND = NULL;
@@ -162,7 +162,7 @@ private:
 	HRESULT buildRandomVectorTexture();
 	void buildOffsetVectors();
 	void buildFrustumFarCorners(float fovY, float farZ);
-	void computeSSAO();
+	void computeSSAOPass();
 
 	static float randomFloat(float a, float b)
 	{

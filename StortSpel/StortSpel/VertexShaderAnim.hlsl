@@ -66,12 +66,12 @@ vs_out main(vs_in input, in uint vID : SV_VertexID)
 
     
     //output.normal = mul(input.normal, (float3x3) inverseTransposeWorldMatrix);
-	output.normal = blendedNormal;
-    float4 worldPos = mul(float4(input.pos, 1), worldMatrix);
+    output.normal = normalize(mul(float4(blendedNormal, 0), worldMatrix));
+    float4 worldPos = mul(localPosition, worldMatrix);
     float4 vPos = mul(worldPos, viewMatrix);
     output.vNormal = normalize(mul(float4(output.normal, 0), viewMatrix));
-	output.tangent = blendedTangent;
-	output.bitangent = blendedBitangent;
+    output.tangent = normalize(mul(float4(blendedTangent, 0), worldMatrix));
+    output.bitangent = normalize(mul(float4(blendedBitangent, 0), worldMatrix));
 	output.uv = input.uv;
     output.pos = mul(localPosition, wvpMatrix);
 	

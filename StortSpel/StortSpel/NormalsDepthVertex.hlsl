@@ -10,7 +10,10 @@ struct vs_in
 struct vs_out
 {
     float4 pos : SV_POSITION;
+    float2 uv : TEXCOORD;
     float3 vNormal : VNORMAL;
+    float3 vTangent : TANGENT;
+    float3 vBitangent : BITANGENT;
     float3 vPos : POSITION;
 };
 
@@ -40,7 +43,10 @@ vs_out main(vs_in input)
     vs_out output;
     
     output.pos = mul(float4(input.pos, 1), wvpMatrix);
+    output.uv = input.uv;
     output.vNormal = normalize(mul(float4(input.normal, 0), worldInverseTransposeView));
+    output.vTangent = normalize(mul(float4(input.tangent, 0), worldInverseTransposeView));
+    output.vBitangent = normalize(mul(float4(input.bitangent, 0), worldInverseTransposeView));
     //float3 worldNormal = normalize(mul(float4(input.normal, 0), worldMatrix));
     //output.vNormal = normalize(mul(float4(worldNormal, 0), viewMatrix));
     output.vPos = mul(float4(input.pos, 1), worldMatrix);

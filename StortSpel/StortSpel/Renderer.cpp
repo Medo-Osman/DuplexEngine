@@ -685,7 +685,7 @@ void Renderer::buildFrustumFarCorners(float fovY, float farZ)
 	m_frustumFarCorners[3] = Vector4(+halfWidth, -halfHeight, farZ, 0);
 }
 
-void Renderer::computeSSAO()
+void Renderer::computeSSAOPass()
 {
 	UINT offset = 0;
 	int vertexCount = 6;
@@ -940,13 +940,6 @@ void Renderer::blurPass()
 	m_dContextPtr->PSSetShaderResources(1, 1, m_downSampledShaderResourceView.GetAddressOf());
 	m_dContextPtr->PSSetShaderResources(2, 1, m_randomVectorsSRV.GetAddressOf()); // TEMPORARY
 
-	ImGui::Begin("someWindow");
-	ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(512, 288));
-	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(1024, 576));
-	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(256, 256));
-	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(128, 128));
-
-	ImGui::End();
 
 	//int dimension = 256;
 	//for (int i = 0; i < dimension; i++)
@@ -1008,6 +1001,14 @@ void Renderer::ssaoBlurPass()
 
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
 	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
+
+	ImGui::Begin("someWindow");
+	ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(512, 288));
+	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(1024, 576));
+	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(256, 256));
+	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(128, 128));
+
+	ImGui::End();
 }
 
 void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
@@ -1016,46 +1017,51 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 
 	m_dContextPtr->OMSetRenderTargets(1, m_normalsNDepthRenderTargetViewPtr.GetAddressOf(), m_NormalDepthStencilViewPtr.Get());
 	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_AOclearColor);
+	// Get Entity map from Engine
+	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
-		// Get Entity map from Engine
-		std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+		bool isAnim = false;
 		XMFLOAT3 min, max;
 		bool draw = true;
 		Entity* parentEntity;
 
 		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
 			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+		else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
+			parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
 		else
 			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
 
-		if (m_frustumCullingOn && parentEntity->m_canCull)
+		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
 		{
 			//Culling
-			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), *V);
+			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
+			XMVECTOR pos = parentEntity->getTranslation();
+			pos += component.second->getTranslation();
+			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
 			XMFLOAT3 posFloat3;
 			XMStoreFloat3(&posFloat3, pos);
+
 
 			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
 				component.second->getMeshResourcePtr()->getMinMax(min, max);
 
-				XMFLOAT3 ext = (max - min);
-				ext = ext * parentEntity->getScaling();
-				XMFLOAT4 rot = parentEntity->getRotation();
+				XMFLOAT3 ext = (max - min) / 2;
+				ext = ext * scale;
+				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
 				BoundingOrientedBox box(posFloat3, ext, rot);
-				ContainmentType contType = frust->Contains(box);
 
+				ContainmentType contType = frust->Contains(box);
 				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
 			}
 			else
 			{
 				draw = true;
 			}
-
-
 		}
 
 		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
@@ -1082,27 +1088,43 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 			m_ssaoBuffer.updateBuffer(m_dContextPtr.Get(), &m_ssaoData);
 
 			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
-			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH;
+			ShaderProgramsEnum NormalShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH;
 
 			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
 			{
 				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
-				meshShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH_ANIM;
+				NormalShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH_ANIM;
 			}
 
 			int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
 
 			for (int mat = 0; mat < materialCount; mat++)
 			{
-				if (m_currentSetShaderProg != meshShaderEnum)
+				ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum(mat);
+				if (meshShaderEnum != ShaderProgramsEnum::SKYBOX)
 				{
-					m_compiledShaders[meshShaderEnum]->setShaders();
-					m_currentSetShaderProg = meshShaderEnum;
+					if (m_currentSetShaderProg != NormalShaderEnum)
+					{
+						m_compiledShaders[NormalShaderEnum]->setShaders();
+						m_currentSetShaderProg = NormalShaderEnum;
+					}
+
+					Material* meshMatPtr = component.second->getMaterialPtr(mat);
+					if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+					{
+						meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
+						m_currentSetMaterialId = meshMatPtr->getMaterialId();
+
+						MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+						currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+
+						m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+					}
+
+					std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
+
+					m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
 				}
-
-				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
-
-				m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
 			}
 		}
 	}
@@ -1317,12 +1339,12 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 					meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
 					m_currentSetMaterialId = meshMatPtr->getMaterialId();
 					
-				MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
-				currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
-				currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
-				currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
-				currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
-				currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
+					MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+					currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+					currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+					currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+					currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+					currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
 
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
@@ -1426,7 +1448,7 @@ void Renderer::rasterizerSetup()
 	ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 
 	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
-	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
 
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
@@ -1587,30 +1609,26 @@ void Renderer::render()
 	ID3D11RenderTargetView* nullRenderTargets[1] = { 0 };
 	m_dContextPtr->OMSetRenderTargets(1, nullRenderTargets, nullptr);
 
-	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
-	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
-
-
-	// Normals & Depth pass
-	normalsNDepthPass(&frust, &wvp, &V, &P);
-
-	// SSAO
-	computeSSAO();
-
-	// SSAO Blur
-	ssaoBlurPass();
-	
 	//Run ZPreePass
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
-	if(USE_Z_PRE_PASS)
+	if (USE_Z_PRE_PASS)
 	{
 		this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStateCompLessPtr.Get(), NULL);
 		ID3D11RenderTargetView* nullRenderTargetsTwo[2] = { 0 };
 		m_dContextPtr->OMSetRenderTargets(2, nullRenderTargetsTwo, m_depthStencilViewPtr.Get());
 		this->zPrePass(&frust, &wvp, &V, &P);
 	}
+
+	// Normals & Depth pass
+	normalsNDepthPass(&frust, &wvp, &V, &P);
+
+	// SSAO
+	computeSSAOPass();
+
+	// SSAO Blur
+	ssaoBlurPass();
 
 	//Run ordinary pass
 	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);

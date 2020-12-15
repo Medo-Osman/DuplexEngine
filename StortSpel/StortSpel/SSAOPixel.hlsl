@@ -77,5 +77,5 @@ float4 main(vs_out input) : SV_TARGET
     
     float access = 1.0f - occlusionSum;
     
-    return saturate(access);
+    return saturate(pow(access, 4.f));
 }

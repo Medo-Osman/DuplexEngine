@@ -32,6 +32,9 @@ Material::Material(std::wstring materialName, bool isPBR)
 
 	if (isPBR)
 	{
+		/*this->m_textureArray.push_back(ResourceHandler::get().loadTexture(L"skybox_bluesky_2.dds", true, false)->view);
+		this->m_textureArray.push_back(ResourceHandler::get().loadTexture(L"skybox_bluesky_2.dds", true, false)->view);
+		this->m_textureArray.push_back(ResourceHandler::get().loadTexture(L"ibl_brdf_lut.png", false, false)->view);*/
 		addTexture(L"skybox_bluesky_2.dds", true);
 		addTexture(L"skybox_bluesky_2.dds", true);
 		addTexture(L"ibl_brdf_lut.png");
