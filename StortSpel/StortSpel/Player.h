@@ -88,6 +88,7 @@ private:
     bool m_lastJumpPressed = false;
     float m_jumpStartY = 0.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
+    bool notAlloedToDash = false;
     int m_jumps;
 
     //FALLING / GRAVITY CONFIG

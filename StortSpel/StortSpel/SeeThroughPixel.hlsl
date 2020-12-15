@@ -13,6 +13,5 @@ SamplerState sampState : SAMPLER : register(s0);
 
 float4 main(ps_in input) : SV_TARGET
 {
-    float4 color = diffuseTexture.Sample(sampState, input.uv);
-    return color;
+	return diffuseTexture.Sample(sampState, input.uv);;
 }
