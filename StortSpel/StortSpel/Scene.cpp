@@ -1597,7 +1597,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		sceneObject->m_boss->Attach(sceneObject);
 		sceneObject->m_boss->initialize(bossEnt, true, 8);
 		sceneObject->m_boss->setNrOfMaxStars(100);
-		sceneObject->m_endBossAtPecentNrOfStarts = 0; // if this is 0 the end secene will be triggered
+		sceneObject->m_endBossAtPercentNrOfStars = 50; // if this is 0 the end secene will be triggered
 
 		//// Init grid structure
 		BossStructures::PlatformArray* platformArray = sceneObject->m_boss->platformArray;
@@ -1764,7 +1764,7 @@ void Scene::loadBossTestPhaseTwo(Scene* sceneObject, bool* finished)
 		sceneObject->m_boss->Attach(sceneObject);
 		sceneObject->m_boss->initialize(bossEnt, true, 6);
 		sceneObject->m_boss->setNrOfMaxStars(100);
-		sceneObject->m_endBossAtPecentNrOfStarts = 0; // if this is 0 the end secene will be triggered
+		sceneObject->m_endBossAtPercentNrOfStars = 0; // if this is 0 the end secene will be triggered
 
 		//// Init grid structure
 		BossStructures::PlatformArray* platformArray = sceneObject->m_boss->platformArray;
@@ -2281,14 +2281,20 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 
 
 
-			if (c <= m_endBossAtPecentNrOfStarts * 0.01)
+			if (c <= m_endBossAtPercentNrOfStars * 0.01)
 			{
 				m_bossMusicComp->setVolume(0.02f);
 				removeBoss();
-				if (m_endBossAtPecentNrOfStarts != 0)
-					createPortal();
-				else
+				if (m_endBossAtPercentNrOfStars != 0)
+				{
 					createEndScenePortal();
+				}
+				if (m_endBossAtPercentNrOfStars == 50)
+				{
+					createPortal(ScenesEnum::LOBBY, Vector3(30.f, 3.f, 21.25f),Vector3(0, XMConvertToRadians(90), 0));
+				}
+
+			
 			}
 
 	}
@@ -2336,7 +2342,14 @@ Entity* Scene::addTrampoline(Vector3 position)
 		new MeshComponent("Trampolin2__Spring.lrm", PBRTEST, Material( L"trampoline", true)));
 	addComponent(trampoline, "mesh3",
 		new MeshComponent("Trampolin2__Top.lrm", PBRTEST, Material( L"trampoline", true ))); //DarkGrayTexture.png
-
+/*
+	addComponent(trampoline, "mesh1", //Dun edit diz them nems plz.
+		new MeshComponent("Trampolin__Bot.lrm", Material({ L"T_TrampolinBot_P_D.png" })));
+	addComponent(trampoline, "mesh2",
+		new MeshComponent("Trampolin__Spring.lrm", Material({ L"T_TrampolinBot_P_D.png" })));
+	addComponent(trampoline, "mesh3",
+		new MeshComponent("Trampolin__Top.lrm", Material({ L"T_Top_P_D.png" })));
+*/
 
 	createNewPhysicsComponent(trampoline, false);
 	TriggerComponent* triggerComponent = new TriggerComponent();
@@ -2370,12 +2383,12 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 
 		if ((PickupType)msg.intEnum == PickupType::CANNON)
 		{
-			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", Material({ L"DarkGrayTexture.png" }));
+			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", Material({ L"T_CanonPipe_P_D.png" }));
 			pipe->setPosition(Vector3(0, 1, 0));
 
 			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
 			cannon->setScale(0.5f, 0.5f, 0.5f);
-			addComponent(cannon, "mesh1", new MeshComponent("Canon_Base.lrm", Material({ L"DarkGrayTexture.png" })));
+			addComponent(cannon, "mesh1", new MeshComponent("Canon_Base.lrm", Material({ L"T_CanonBase_P_D.png" })));
 			addComponent(cannon, "mesh2", pipe);
 			cannon->setPosition(m_player->getPlayerEntity()->getTranslation());
 			//cannon->setRotationQuat(m_input);
@@ -2773,8 +2786,8 @@ void Scene::removeBoss()
 	UINT id = m_boss->addAction(new MoveToAction(m_boss->m_bossEntity, m_boss, Vector3(0, 10000, 0), 100000));
 	GUIHandler::get().setVisible(m_bossHP_barGuiIndex, false);
 	GUIHandler::get().setVisible(m_bossHP_barBackgroundGuiIndex, false);
-	GUIHandler::get().removeElement(m_bossHP_barGuiIndex);
-	GUIHandler::get().removeElement(m_bossHP_barBackgroundGuiIndex);
+	/*GUIHandler::get().removeElement(m_bossHP_barGuiIndex);
+	GUIHandler::get().removeElement(m_bossHP_barBackgroundGuiIndex);*/
 }
 
 void Scene::createPortal()
@@ -2811,6 +2824,43 @@ void Scene::createPortal()
 		tc->initTrigger(m_sceneID, goalTrigger, XMFLOAT3(2.5f, 2.5f, 2.5f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
 		tc->setIntData((int)ScenesEnum::ARENA);
+	}
+}
+
+void Scene::createPortal(ScenesEnum targetScene, Vector3 position, Vector3 rotation)
+{
+	float a = 2.5f * 4;
+	a = a + 10 + 1.25f; 
+	Entity* goalTriggerFrame = addEntity("triggerFrame");
+	if (goalTriggerFrame)
+	{
+		goalTriggerFrame->setPosition(position);
+		goalTriggerFrame->setRotation(rotation);
+		addComponent(goalTriggerFrame, "mesh",
+			new MeshComponent("Portal_pCube41.lrm", Material({ L"DarkGrayTexture.png" })));
+	}
+
+	Entity* goalTrigger = addEntity("trigger");
+	if (goalTrigger)
+	{
+		goalTrigger->setPosition(position + Vector3(0, 1.5f, 0));
+		goalTrigger->setRotation(Vector3(rotation));
+
+		Material emissiveMat({ L"DarkGrayTexture.png", L"PortalEmissive.jpg" });
+		emissiveMat.setEmissiveStrength(30);
+		addComponent(goalTrigger, "mesh",
+			new MeshComponent("portalMagic_pCylinder8.lrm",
+				EMISSIVE, emissiveMat));
+
+
+		addComponent(goalTrigger, "trigger",
+			new TriggerComponent());
+		addComponent(goalTrigger, "3Dsound", new AudioComponent(L"PortalSound.wav", true, 1.f, 0.f, true, goalTrigger));
+
+		TriggerComponent* tc = static_cast<TriggerComponent*>(goalTrigger->getComponent("trigger"));
+		tc->initTrigger(m_sceneID, goalTrigger, XMFLOAT3(2.5f, 2.5f, 2.5f));
+		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
+		tc->setIntData((int)targetScene);
 	}
 }
 

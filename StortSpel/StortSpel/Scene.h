@@ -86,10 +86,11 @@ private:
 	int m_bossHP_barGuiIndex = 0;
 	int m_bossHP_barBackgroundGuiIndex = 0;
 	int m_bossPromptTextIndex = 0;
-	int m_endBossAtPecentNrOfStarts = 0;
+	int m_endBossAtPercentNrOfStars = 0;
 	int m_nrOfRespawnBoxes = 0;
 	void removeBoss();
 	void createPortal();
+	void createPortal(ScenesEnum targetScene, Vector3 position, Vector3 rotation);
 	void createEndScenePortal();
 	void createRespawnBox(Vector3 position, Vector3 scale, bool boxVisible = true);
 
