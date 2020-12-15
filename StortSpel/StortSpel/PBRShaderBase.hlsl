@@ -61,6 +61,7 @@ cbuffer MaterialBuffer : register(b3)
 	float materialMetallic;
 	int materialTextured;
     float materialEmissiveStrength;
+	float3 materialBaseColor;
 }
 
 cbuffer globalConstBuffer : register(b4)
@@ -233,7 +234,7 @@ ps_out main(ps_in input) : SV_TARGET
 	float3 N = normalize(input.normal);
 	float3 V = normalize(cameraPosition - input.worldPos);
 	
-	float3 albedo = float3(0.8, 0.8, 0.8);
+	float3 albedo = materialBaseColor;
 	float3 metallic = materialMetallic;
 	float roughness = materialRoughness;
 	float ao = 1.0f;

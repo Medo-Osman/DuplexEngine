@@ -713,29 +713,113 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 
 	sceneObject->addCloudBedMesh(Vector3(0, 0, 0), "cloudPlane.lrm");
 
-	Entity* floor = sceneObject->addEntity("Floor");
-	if (floor)
+	//Entity* MetalBall = sceneObject->addEntity("MetalBall");
+	//if (MetalBall)
+	//{
+	//	Material MetalBallMaterial;
+
+	//	//Texture2D albedoTexture : TEXTURE: register(t0);
+	//	//Texture2D emissiveTexture : TEXTURE: register(t1);
+	//	//Texture2D normalTexture : TEXTURE: register(t2);
+	//	//Texture2D ORMtexture : TEXTURE: register(t3);
+
+	//	MetalBallMaterial.addTexture(L"T_Missing_D.dds", true);
+	//	MetalBallMaterial.addTexture(L"T_Missing_E.dds", true);
+	//	MetalBallMaterial.addTexture(L"T_Missing_N.dds", true);
+	//	MetalBallMaterial.addTexture(L"T_Missing_ORM.png");
+
+	//	MetalBallMaterial.addTexture(L"sunset_skybox1_IR_2.dds");
+	//	MetalBallMaterial.addTexture(L"sunset_skybox1.dds");
+	//	MetalBallMaterial.addTexture(L"ibl_brdf_lut.png");
+
+	//	MetalBallMaterial.setTextured(false);
+	//	MetalBallMaterial.setBaseColor({ 0.8f, 0.8f, 0.8f });
+	//	MetalBallMaterial.setRoughness(1.0f);
+	//	MetalBallMaterial.setMetallic(1.0f);
+
+	//	sceneObject->addComponent(MetalBall, "mesh", new MeshComponent("highPolySphere_Sphere.lrm", ShaderProgramsEnum::PBRTEST, MetalBallMaterial));
+	//	MetalBall->scale({ 1.0, 1.0, 1.0 });
+	//	MetalBall->translate({ 0, 2, 5 });
+	//	MetalBall->rotate({ (-1.5708), 0.f, 0.f });
+	//	sceneObject->createNewPhysicsComponent(MetalBall, false, "", PxGeometryType::eSPHERE, "earth", false);
+	//}
+
+	int xCounter = 0;
+	int yCounter = 0;
+
+	Entity* entity;
+	for (size_t i = 0; i < 25; i++)
 	{
-		Material floorMaterial;
+		std::string currentSphereName = ("PBRSphere" + std::to_string(i));
+		sceneObject->m_entities[currentSphereName] = sceneObject->addEntity(currentSphereName);
+		if (sceneObject->m_entities[currentSphereName])
+		{
+			entity = sceneObject->m_entities[currentSphereName];
+			Material PBRMatUntextured;
 
-		floorMaterial.addTexture(SkyboxIR, true);
-		floorMaterial.addTexture(SkyboxMain, true);
-		floorMaterial.addTexture(L"ibl_brdf_lut.png");
+			PBRMatUntextured.addTexture(L"T_Missing_D.dds", true);
+			PBRMatUntextured.addTexture(L"T_Missing_E.dds", true);
+			PBRMatUntextured.addTexture(L"T_Missing_N.dds", true);
+			PBRMatUntextured.addTexture(L"T_Missing_ORM.png");
 
-		floorMaterial.addTexture(L"T_SkywayPathBricks_P_D.png");
-		floorMaterial.addTexture(L"T_Missing_E.png");
-		floorMaterial.addTexture(L"T_SkywayPathBricks_P_N.png");
-		floorMaterial.addTexture(L"T_SkywayPathBricks_P_ORM.png");
+			PBRMatUntextured.addTexture(L"Skyway_Day_IR.dds");
+			PBRMatUntextured.addTexture(L"Skyway_Day.dds");
+			PBRMatUntextured.addTexture(L"ibl_brdf_lut.png");
 
-		floorMaterial.setTextured(true);
-		floorMaterial.setUVScale(8000.f);
+			xCounter++;
 
-		sceneObject->addComponent(floor, "mesh", new MeshComponent("floorUVMapped_Cube.lrm", ShaderProgramsEnum::PBRTEST, floorMaterial));
-		floor->scale({ 1000, 1000, 1000 });
-		floor->translate({ 0, -2, 0 });
-		//floor->rotate({ (0.707), 0.f, 0.f });
-		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
+			if (i % 5 == 0)
+			{
+				yCounter++;
+				xCounter = 0;
+			}
+			//PBRMatUntextured.setBaseColor({ 0.8, 0.52, 0.07 });
+			PBRMatUntextured.setMetallic(yCounter * 0.2f - 0.2f);
+			PBRMatUntextured.setRoughness(xCounter * 0.18 + 0.1);
+			PBRMatUntextured.setTextured(0);
+
+			sceneObject->addComponent(entity, "mesh", new MeshComponent("notHighPolySphere_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMatUntextured));
+
+			float moveDistance = 2.f;
+			entity->translate({ moveDistance * xCounter - 5.0f, moveDistance * yCounter - 3.f, 0.f });
+			entity->rotate({ -1.5708, 0.f, 0.f });
+		}
 	}
+
+	XMVECTOR pointLightPositions[4] =
+	{
+		{ 0.f - 5.0f, 5.f, 10.f},
+		{ 20.f - 5.0f, 5.f, 10.f},
+		{ 0.f - 5.0f, 25.f, 10.f},
+		{ 20.f - 5.0f, 25.f, 10.f},
+	};
+
+	float lightIntensity = 500.f;
+
+	float pointLightIntensities[4] =
+	{
+		lightIntensity,
+		lightIntensity,
+		lightIntensity,
+		lightIntensity,
+	};
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		std::string currentPointLightName = ("PointLight" + std::to_string(i));
+		sceneObject->m_entities[currentPointLightName] = sceneObject->addEntity(currentPointLightName);
+		if (sceneObject->m_entities[currentPointLightName])
+		{
+			entity = sceneObject->m_entities[currentPointLightName];
+			std::string currentPointLightComponentName = ("PointLightTestPointLight" + std::to_string(i));
+			sceneObject->addComponent(sceneObject->m_entities[currentPointLightName], currentPointLightComponentName, new LightComponent());
+			sceneObject->addComponent(sceneObject->m_entities[currentPointLightName], "mesh", new MeshComponent("testCube_pCube1.lrm", Material({ L"DarkGrayTexture.png" })));
+			dynamic_cast<LightComponent*>(sceneObject->m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setColor(XMFLOAT3(1, 1, 1));
+			dynamic_cast<LightComponent*>(sceneObject->m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setIntensity(pointLightIntensities[i]);
+			entity->translate(pointLightPositions[i]);
+		}
+	}
+
 
 	delete[] levelData;
 	*finished = true; //Inform the main thread that the loading is complete.

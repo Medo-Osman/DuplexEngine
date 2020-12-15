@@ -18,7 +18,7 @@ struct MATERIAL_CONST_BUFFER
 	float metallic			= 0.f;
 	int textured			= 1;
 	float emissiveStrength	= 0.f; // 0 to 100
-	XMFLOAT3 pad;
+	Vector3 baseColor		= { 0.8f, 0.8f, 0.8f };
 };
 
 class Material
@@ -46,6 +46,7 @@ public:
 	void swapTexture(const WCHAR* fileName, int index, bool isCubeMap = false);
 
 	void setUVScale(float scale);
+	void setBaseColor(Vector3 color);
 	void setRoughness(float roughness);
 	void setMetallic(float metallic);
 	void setTextured(int textured);

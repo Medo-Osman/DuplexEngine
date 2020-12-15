@@ -158,6 +158,18 @@ void Material::setUVScale(float scale)
 	this->m_materialConstData.UVScale = scale;
 }
 
+void Material::setBaseColor(Vector3 color)
+{
+	if (m_isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		m_isDefault = false;
+	}
+
+	this->m_materialConstData.baseColor = color;
+}
+
 void Material::setRoughness(float roughness)
 {
 	if (m_isDefault)

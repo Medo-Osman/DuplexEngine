@@ -937,6 +937,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 					currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
 					currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
 					currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
+					currentMaterialConstantBufferData.baseColor = meshMatPtr->getMaterialParameters().baseColor;
 
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
