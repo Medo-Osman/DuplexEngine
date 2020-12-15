@@ -357,7 +357,8 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	Vector3 offset = Vector3(0.f, -0.9f, 0.f);
 	pickupPtr->setPosition(position + offset);
 	addComponent(pickupPtr, "itemBox", new MeshComponent("PickupStuffs_ItemBox.lrm", ShaderProgramsEnum::RAINBOW));
-	addComponent(pickupPtr, "speedItem", new MeshComponent(pickupName, ShaderProgramsEnum::EMISSIVE, Material({ textureName, textureName })));
+	//addComponent(pickupPtr, "speedItem", new MeshComponent(pickupName, ShaderProgramsEnum::EMISSIVE, Material({ textureName, textureName })));
+	addComponent(pickupPtr, "speedItem", new MeshComponent(pickupName, ShaderProgramsEnum::DEFAULT, Material({ textureName })));
 	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, tier, 1));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
