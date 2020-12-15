@@ -148,9 +148,10 @@ private:
 	unsigned int long m_currentSetMaterialId = 1000;
 
 	// Blendstate
-	ID3D11BlendState* g_pBlendStateNoBlend = NULL;
-	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	UINT sampleMask = 0xffffffff;
+	ID3D11BlendState* m_blendStateNoBlendPtr = NULL;
+	ID3D11BlendState* m_blendStateWithBlendPtr = NULL;
+	const float m_blendFactor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	const UINT m_sampleMask = 0xffffffff;
 
 	//Functions
 	HRESULT createDeviceAndSwapChain();

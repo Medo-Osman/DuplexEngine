@@ -89,7 +89,7 @@ void Renderer::release()
 {
 	delete m_shadowMap;
 	skyboxDSSPtr->Release();
-	g_pBlendStateNoBlend->Release();
+	m_blendStateNoBlendPtr->Release();
 
 	for (std::pair<ShaderProgramsEnum, ShaderProgram*> element : m_compiledShaders)
 	{
@@ -317,9 +317,26 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	D3D11_BLEND_DESC BlendState;
 	ZeroMemory(&BlendState, sizeof(D3D11_BLEND_DESC));
+	BlendState.AlphaToCoverageEnable = FALSE;
+	BlendState.IndependentBlendEnable = FALSE;
 	BlendState.RenderTarget[0].BlendEnable = FALSE;
+	BlendState.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	BlendState.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+	BlendState.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	BlendState.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	BlendState.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	BlendState.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	BlendState.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	m_devicePtr->CreateBlendState(&BlendState, &g_pBlendStateNoBlend);
+
+	m_devicePtr->CreateBlendState(&BlendState, &m_blendStateNoBlendPtr);
+
+	BlendState.RenderTarget[0].BlendEnable = TRUE;
+	BlendState.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	BlendState.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	BlendState.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	BlendState.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+
+	m_devicePtr->CreateBlendState(&BlendState, &m_blendStateWithBlendPtr);
 
 	//Setup samplerstate
 	D3D11_SAMPLER_DESC samplerStateDesc;
@@ -1253,8 +1270,6 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 {
 	m_drawn = 0;
 
-	m_dContextPtr->PSSetShaderResources(8, 1, m_SSAOShaderResourceViewPtr.GetAddressOf());
-
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
 		// Get Entity map from Engine
@@ -1349,6 +1364,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
 				m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
+				m_dContextPtr->PSSetShaderResources(8, 1, m_SSAOShaderResourceViewPtr.GetAddressOf());
 
 				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
 				
@@ -1549,7 +1565,7 @@ void Renderer::render()
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
 
-	m_dContextPtr->OMSetBlendState(g_pBlendStateNoBlend, blendFactor, sampleMask);
+	m_dContextPtr->OMSetBlendState(m_blendStateNoBlendPtr, m_blendFactor, m_sampleMask);
 
 	m_dContextPtr->ClearRenderTargetView(m_geometryRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_finalRenderTargetViewPtr.Get(), m_clearColor);
@@ -1634,7 +1650,9 @@ void Renderer::render()
 	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
 	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 
+	m_dContextPtr->OMSetBlendState(m_blendStateWithBlendPtr, m_blendFactor, m_sampleMask);
 	renderScene(&frust, &wvp, &V, &P);
+	m_dContextPtr->OMSetBlendState(m_blendStateNoBlendPtr, m_blendFactor, m_sampleMask);
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
 	m_dContextPtr->PSSetShaderResources(0, 1, srv);
