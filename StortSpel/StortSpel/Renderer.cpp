@@ -906,7 +906,7 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
 
-		if (component.second->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
+		if (component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_PBR && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
 		{
 			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
 			m_compiledShaders[meshShaderEnum]->setShaders();

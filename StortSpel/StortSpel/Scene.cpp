@@ -134,19 +134,19 @@ void Scene::loadMainMenu(Scene* sceneObject, bool* finished)
 	}*/
 
 
+	sceneObject->createSkybox(L"Skybox_Texture.dds");
+	//Entity* skybox = sceneObject->addEntity("SkyBox");
+	//skybox->m_canCull = false;
+	//if (skybox)
+	//{
+	//	Material skyboxMat;
+	//	skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+	//	sceneObject->addComponent(skybox, "cube",
+	//		new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 
-	Entity* skybox = sceneObject->addEntity("SkyBox");
-	skybox->m_canCull = false;
-	if (skybox)
-	{
-		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		sceneObject->addComponent(skybox, "cube",
-			new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-
-		//Disable shadow casting
-		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
-	}
+	//	//Disable shadow casting
+	//	dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	//}
 
 	sceneObject->createParisWheel(Vector3(30.f, 7.f, 0.f), 90.f, 30.f, 4);
 
@@ -226,7 +226,7 @@ void Scene::addCheckpoint(const Vector3& position, float rotation)
 {
 	Entity* checkPoint = addEntity("checkpoint"+std::to_string(m_nrOfCheckpoints++));
 
-	MeshComponent* mesh(new MeshComponent("Flag_pPlane2.lrm", Material({ L"Flag_Albedo.png" })));
+	MeshComponent* mesh(new MeshComponent("Flag_pPlane2.lrm", PBRTEST, Material( L"Flag", true )));
 	mesh->setPosition(0, -2.25f, 0);
 	mesh->setRotation(0, XMConvertToRadians(rotation), 0);
 
@@ -300,7 +300,7 @@ void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 tr
 	if (pushWall)
 	{
 		addComponent(pushWall, "mesh",
-			new MeshComponent(meshFile));
+			new MeshComponent(meshFile, TEMP_TEST));
 		//pushWall->setScale(Vector3(10, 5, 1));
 		//pushWall->setScale(Vector3(1, 1, 1));
 		pushWall->rotate(meshRotation);
@@ -488,20 +488,19 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 			new SweepingComponent(sign, Vector3(0.f, 5.f, 10.f), Vector3(0.f, 5.5f, 10.f), 5.f));
 	}
 
+	sceneObject->createSkybox(L"Skybox_Texture.dds");
+	//Entity* skybox = sceneObject->addEntity("SkyBox");
 
-	Entity* skybox = sceneObject->addEntity("SkyBox");
-
-	skybox->m_canCull = false;
-	if (skybox)
-	{
-		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		sceneObject->addComponent(skybox, "cube",
-			new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-				//Disable shadow casting
-		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
-
-	}
+	//skybox->m_canCull = false;
+	//if (skybox)
+	//{
+	//	Material skyboxMat;
+	//	skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+	//	sceneObject->addComponent(skybox, "cube",
+	//		new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+	//			//Disable shadow casting
+	//	dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	//}
 
 	sceneObject->createParisWheel(Vector3(30, 7, 0), 90, 30, 4);
 
@@ -1100,16 +1099,17 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	Entity* skybox = sceneObject->addEntity("SkyBox");
-	skybox->m_canCull = false;
-	if (skybox)
-	{
-		Material skyboxMat;
-		skyboxMat.addTexture(L"skybox_bluesky.dds", true);
-		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-		//Disable shadow casting
-		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
-	}
+	sceneObject->createSkybox(L"skybox_bluesky.dds");
+	//Entity* skybox = sceneObject->addEntity("SkyBox");
+	//skybox->m_canCull = false;
+	//if (skybox)
+	//{
+	//	Material skyboxMat;
+	//	skyboxMat.addTexture(L"skybox_bluesky.dds", true);
+	//	sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+	//	//Disable shadow casting
+	//	dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	//}
 
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -1315,14 +1315,15 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 		tc->setIntData((int)ScenesEnum::LOBBY);
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	Entity* skybox = sceneObject->addEntity("SkyBox");
+	sceneObject->createSkybox(L"skybox_bluesky.dds");
+	/*Entity* skybox = sceneObject->addEntity("SkyBox");
 	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
 		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-	}
+	}*/
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Light
@@ -1352,7 +1353,7 @@ void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpe
 	if (ParisWheel)
 	{
 		addComponent(ParisWheel, "mesh",
-			new MeshComponent("ParisWheel.lrm", Material({ L"DarkGrayTexture.png" })));
+			new MeshComponent("ParisWheel.lrm", Material( L"DarkGrayTexture" )));
 			//new MeshComponent("ParisWheel.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 		ParisWheel->setPosition(position);
 		ParisWheel->setRotation(0, XMConvertToRadians(rotation), 0);
@@ -1374,7 +1375,7 @@ void Scene::createParisWheel(Vector3 position, float rotation, float rotationSpe
 		if (ParisWheelPlatform)
 		{
 			addComponent(ParisWheelPlatform, "mesh",
-				new MeshComponent("ParisWheelPlatform.lrm", Material({ L"DarkGrayTexture.png" })));
+				new MeshComponent("ParisWheelPlatform.lrm", Material( L"DarkGrayTexture" )));
 				//new MeshComponent("ParisWheelPlatform.lrm", ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 
 			ParisWheelPlatform->setRotation(0, XMConvertToRadians(rotation), 0);
@@ -1418,7 +1419,7 @@ void Scene::createStaticPlatform(Vector3 position, Vector3 rotation, Vector3 sca
 	if (staticPlatform)
 	{
 		addComponent(staticPlatform, "mesh",
-			new MeshComponent(meshPath.c_str(), Material({ L"DarkGrayTexture.png" })));
+			new MeshComponent(meshPath.c_str(), PBRTEST, Material( L"DarkGrayTexture", true)));
 		//	new MeshComponent(meshPath.c_str(), ShaderProgramsEnum::OBJECTSPACEGRID, ObjectSpaceGrid));
 
 
@@ -1515,14 +1516,15 @@ void Scene::loadMaterialTest(Scene* sceneObject, bool* finished)
 		}
 	}
 
-	Entity* skybox = sceneObject->addEntity("SkyBox");
+	sceneObject->createSkybox(L"Skybox_Texture3.dds");
+	/*Entity* skybox = sceneObject->addEntity("SkyBox");
 	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
 		skyboxMat.addTexture(L"Skybox_Texture3.dds", true);
 		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-	}
+	}*/
 
 	XMVECTOR pointLightPositions[4] =
 	{
@@ -1622,14 +1624,14 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 					emissiveMat.setEmissiveStrength(40);
 					sceneObject->addComponent(platform, "mesh", new MeshComponent("BossPlatform.lrm", 
 						{
-							EMISSIVE,
-							DEFAULT,
-							DEFAULT
+							PBRTEST, // TODO: this was emmisive
+							PBRTEST,
+							PBRTEST
 						},
 						{
 							emissiveMat,
-							Material({ L"DarkGrayTexture.png" }),
-							Material({ L"DarkGrayTexture.png" })
+							Material( L"FlatStoneStylized", true ),
+							Material( L"FlatStoneStylized", true )
 						}));
 
 					sceneObject->createNewPhysicsComponent(platform);
@@ -1661,11 +1663,11 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 
 			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("BossModel_polySurface188.lrm", 
 				{
-					DEFAULT,
+					PBRTEST,
 					EMISSIVE
 				},
 				{
-					Material({ L"Boss_Albedo.png" }),
+					Material(L"BossAlbedo", true),
 					emissiveMat
 				}));
 
@@ -1706,24 +1708,24 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	Entity* walls = sceneObject->addEntity("Walls");
 	if (walls)
 	{
-		sceneObject->addComponent(walls, "mesh", new MeshComponent("BossWalls_polySurface54.lrm", 
-													 Material ({ L"DarkGrayTexture.png" })));
+		sceneObject->addComponent(walls, "mesh", new MeshComponent("BossWalls_polySurface54.lrm", PBRTEST,
+													 Material (L"DarkGrayTexture", true)));
 		walls->setPosition(22.5, -35, 22.5);
 		walls->setScaleUniform(0.5);
 	}
 
 
-
-	Entity* skybox = sceneObject->addEntity("SkyBox");
-	skybox->m_canCull = false;
-	if (skybox)
-	{
-		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-		//Disable shadow casting
-		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
-	}
+	sceneObject->createSkybox(L"skybox_bluesky_2.dds");
+	//Entity* skybox = sceneObject->addEntity("SkyBox");
+	//skybox->m_canCull = false;
+	//if (skybox)
+	//{
+	//	Material skyboxMat;
+	//	skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+	//	sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+	//	//Disable shadow casting
+	//	dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	//}
 
 	*finished = true;
 }
@@ -1880,17 +1882,17 @@ void Scene::loadBossTestPhaseTwo(Scene* sceneObject, bool* finished)
 	}
 
 
-
-	Entity* skybox = sceneObject->addEntity("SkyBox");
-	skybox->m_canCull = false;
-	if (skybox)
-	{
-		Material skyboxMat;
-		skyboxMat.addTexture(L"Skybox_Texture.dds", true);
-		sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
-		//Disable shadow casting
-		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
-	}
+	sceneObject->createSkybox(L"Skybox_Texture.dds");
+	//Entity* skybox = sceneObject->addEntity("SkyBox");
+	//skybox->m_canCull = false;
+	//if (skybox)
+	//{
+	//	Material skyboxMat;
+	//	skyboxMat.addTexture(L"Skybox_Texture.dds", true);
+	//	sceneObject->addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
+	//	//Disable shadow casting
+	//	dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+	//}
 
 	*finished = true;
 
@@ -2329,11 +2331,11 @@ Entity* Scene::addTrampoline(Vector3 position)
 	trampoline->setPosition(position);
 	trampoline->setScale(0.5f, 0.5f, 0.5f);
 	addComponent(trampoline, "mesh1", //Dun edit diz them nems plz.
-		new MeshComponent("Trampolin__Bot.lrm", Material({ L"DarkGrayTexture.png" })));
+		new MeshComponent("Trampolin2__Bot.lrm", PBRTEST, Material( L"trampoline", true)));
 	addComponent(trampoline, "mesh2",
-		new MeshComponent("Trampolin__Spring.lrm", Material({ L"DarkGrayTexture.png" })));
+		new MeshComponent("Trampolin2__Spring.lrm", PBRTEST, Material( L"trampoline", true)));
 	addComponent(trampoline, "mesh3",
-		new MeshComponent("Trampolin__Top.lrm", Material({ L"DarkGrayTexture.png" })));
+		new MeshComponent("Trampolin2__Top.lrm", PBRTEST, Material( L"trampoline", true ))); //DarkGrayTexture.png
 
 
 	createNewPhysicsComponent(trampoline, false);
@@ -2474,7 +2476,7 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 	if (hammerFrame)
 	{
 		addComponent(hammerFrame, "mesh",
-			new MeshComponent("Hammer_Frame_pCube7.lrm", Material({ L"DarkGrayTexture.png" })));
+			new MeshComponent("Hammer_Frame_pCube7.lrm", PBRTEST, Material( L"FlatStoneStylized", true )));
 		
 		hammerFrame->setPosition(position.x, position.y + 2.72f, position.z);
 		hammerFrame->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
@@ -2488,7 +2490,7 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 	if (hammer)
 	{
 		addComponent(hammer, "mesh",
-			new MeshComponent("Hammer_pCylinder3.lrm", Material({ L"DarkGrayTexture.png" })));
+			new MeshComponent("Hammer_pCylinder3.lrm", PBRTEST, Material(L"FlatStoneStylized", true)));
 
 
 		hammer->setPosition({ position.x, position.y + 3.5f + 2.72f, position.z });
@@ -2514,6 +2516,8 @@ void Scene::createSkybox(std::wstring textureName)
 		addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
+		
+		Material::setCurrentSkybox(textureName);
 	}
 }
 

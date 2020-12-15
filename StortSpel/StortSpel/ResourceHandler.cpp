@@ -141,6 +141,7 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isC
 				return m_textureCache[m_ERROR_TEXTURE_NAME.c_str()];
 			else // Load error texture
 			{
+				//m_textureCache[m_ERROR_TEXTURE_NAME] = new TextureResource();
 				path = m_TEXTURES_PATH + m_ERROR_TEXTURE_NAME;
 				hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &m_textureCache[m_ERROR_TEXTURE_NAME]->view);
 				if (SUCCEEDED(hr))

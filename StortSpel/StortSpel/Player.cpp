@@ -1203,10 +1203,10 @@ void Player::serverPlayerAnimationChange(PlayerState currentState, float current
 			idleAnimation();
 			break;
 		case PlayerState::JUMPING:
-
+			startJump_First();
 			break;
 		case PlayerState::FALLING:
-
+			startJump_Second();
 			break;
 		case PlayerState::DASH:
 			dashAnimation();
