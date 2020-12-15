@@ -25,6 +25,11 @@ public:
 				m_active = true;
 	}
 
+	const bool& isActive()
+	{
+		return m_active;
+	}
+
 	Particle* getParticlePointer()
 	{
 		return m_particle;

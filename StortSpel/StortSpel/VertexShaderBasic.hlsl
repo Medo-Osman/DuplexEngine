@@ -52,8 +52,8 @@ vs_out main(vs_in input)
     output.uv = input.uv;
     output.normal = normalize(mul(float4(input.normal, 0), worldMatrix));
     output.vNormal = normalize(mul(float4(output.normal, 0), viewMatrix));
-    output.tangent = input.tangent;
-    output.bitangent = input.bitangent;
+	output.tangent = normalize(mul(float4(input.tangent, 0), worldMatrix));
+	output.bitangent = normalize(mul(float4(input.bitangent, 0), worldMatrix));
     output.worldPos = mul(float4(input.pos, 1), worldMatrix);
     float4 vPos = mul(output.worldPos, viewMatrix);
     output.depth = 1 - output.pos.z;

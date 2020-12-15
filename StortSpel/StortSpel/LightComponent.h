@@ -11,9 +11,8 @@ private:
 	XMFLOAT3 m_color;
 	FLOAT m_intensity = 1.f;
 	LightType m_lightType;
-public:
 
-	LightComponent(Vector3 position = Vector3(), XMFLOAT3 color = XMFLOAT3(1, 1, 1), FLOAT intensity = 1.f)
+	void init(Vector3 position = Vector3(), XMFLOAT3 color = XMFLOAT3(1, 1, 1), FLOAT intensity = 1.f)
 	{
 		m_lightType = LightType::Point;
 
@@ -23,6 +22,25 @@ public:
 		m_intensity = intensity;
 
 		m_type = ComponentType::LIGHT;
+	}
+
+public:
+
+	LightComponent(Vector3 position = Vector3(), XMFLOAT3 color = XMFLOAT3(1, 1, 1), FLOAT intensity = 1.f)
+	{
+		init(position, color, intensity);
+	}
+
+	LightComponent(char* paramData)
+	{
+		// Read data from package
+		int offset = sizeof(LightType);
+
+		Vector3 position = readDataFromChar<Vector3>(paramData, offset);
+		Vector3 color = readDataFromChar<Vector3>(paramData, offset);
+		float intensity = readDataFromChar<float>(paramData, offset);
+
+		init(position, color, intensity);
 	}
 	
 	// Update

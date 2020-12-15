@@ -10,6 +10,7 @@ AudioHandler::AudioHandler()
 
 AudioHandler::~AudioHandler()
 {
+	
 }
 
 void AudioHandler::release()
@@ -30,6 +31,16 @@ void AudioHandler::release()
 		delete sound.second.release();
 	}
 	m_soundInstances.clear();
+
+	//m_referencedSources.clear();
+	if (DEBUGMODE)
+		std::cout << "Clean Audio Handler!" << std::endl;
+	m_isReleased = true;
+}
+
+bool AudioHandler::getAudioChanged()
+{
+	return m_hasAudioChanged;
 }
 
 void AudioHandler::initialize(HWND& handle)
@@ -75,11 +86,28 @@ void AudioHandler::setListenerTransformPtr(Transform* listenerTransform)
 	m_listener.SetOrientation(m_listenerTransformPtr->getForwardVector(), Vector3(0.f, 1.f, 0.f));
 }
 
+void AudioHandler::addReference(int index)
+{
+	m_referencedSources[index]->addRef();
+}
+
+void AudioHandler::removeReference(int index)
+{
+	if (!m_isReleased) //Because release is called before all the components are cleaned up.
+	{
+		AudioResource* res = m_referencedSources[index];
+		m_referencedSources[index]->deleteRef();
+		m_referencedSources.erase(index);
+	}
+}
+
 int AudioHandler::addSoundInstance(const WCHAR* name, bool isLooping, float volume, float pitch, bool isPositional, Vector3 emitterPosition)
 {
-	SoundEffect* soundEffect = ResourceHandler::get().loadSound(name, m_audioEngine.get());
+	AudioResource* resource = ResourceHandler::get().loadSound(name, m_audioEngine.get());
+	SoundEffect* soundEffect = resource->audio;
 	SOUND_EFFECT_INSTANCE_FLAGS soundflags = SoundEffectInstance_Default;
-	int index = (int)m_idNum++;
+		int index = (int)m_idNum++;
+
 
 	if (isPositional)
 	{
@@ -104,6 +132,8 @@ int AudioHandler::addSoundInstance(const WCHAR* name, bool isLooping, float volu
 		if (isPositional)
 			m_soundInstances[index]->Apply3D(m_listener, m_emitter, false);
 	}
+
+	m_referencedSources[index] = resource;
 	return index;
 }
 
@@ -159,8 +189,34 @@ void AudioHandler::setEmitterPosition(int index, Vector3 position, bool isLoopin
 		m_loopingSoundInstances[index]->Apply3D(m_listener, m_emitter, false);
 }
 
+int AudioHandler::increaseVolume()
+{	
+	if (m_volumeAmount < MAX_VOLUME)
+	{
+		m_hasAudioChanged = true;
+		m_volumeAmount += 1;
+		return m_volumeAmount;
+	}
+}
+
+int AudioHandler::decreaseVolume()
+{
+	if (m_volumeAmount > 0)
+	{
+		m_hasAudioChanged = true;
+		m_volumeAmount -= 1;
+		return m_volumeAmount;
+	}
+}
+
+int AudioHandler::getVolumeAmount()
+{
+	return m_volumeAmount;
+}
+
 void AudioHandler::update(float dt)
 {
+	
 	if (m_listenerTransformPtr)
 	{
 		m_listener.SetPosition(m_listenerTransformPtr->getTranslation());
@@ -181,6 +237,7 @@ void AudioHandler::update(float dt)
 		}
 		m_retryAudio = false;
 	}
+	
 	else if (!m_audioEngine->Update())
 	{
 		if (m_audioEngine->IsCriticalError())
@@ -188,6 +245,14 @@ void AudioHandler::update(float dt)
 			ErrorLogger::get().logError("AudioError: Audio device was lost.");
 			m_retryAudio = true;
 		}
+	}
+	for (auto& soundsInstance : m_soundInstances)
+	{
+		soundsInstance.second->SetVolume(m_volumeAmount / 10.f);
+	}
+	for (auto& loopingSounds : m_loopingSoundInstances)
+	{
+		loopingSounds.second->SetVolume(m_volumeAmount / 10.f);
 	}
 }
 

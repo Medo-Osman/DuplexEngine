@@ -3,6 +3,7 @@
 
 ResourceHandler::~ResourceHandler()
 {
+	m_unloaded = true;
 }
 
 void ResourceHandler::isResourceHandlerReady()
@@ -16,17 +17,104 @@ void ResourceHandler::isResourceHandlerReady()
 	}
 }
 
-ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath, bool isCubeMap)
+void ResourceHandler::checkResources()
 {
+	/*
+	//=========================================== Meshes
+	std::vector<std::string> idsForMeshesToRemove;
+	for (auto meshStruct : m_meshCache)
+	{
+		if (meshStruct.second->getRefCount() == 0)
+		{
+			idsForMeshesToRemove.push_back(meshStruct.first);
+		}
+
+	}
+
+	for (int i = 0; i < idsForMeshesToRemove.size(); i++)
+	{
+		//std::cout << "Removing mesh: " << m_meshCache[idsForMeshesToRemove[i]]->debugName << std::endl;
+		delete m_meshCache[idsForMeshesToRemove[i]];
+		m_meshCache.erase(idsForMeshesToRemove[i]);
+	}
+
+	idsForMeshesToRemove.clear();
+	//===========================================
+
+	//=========================================== Textures
+	std::vector<std::wstring> textureIdsToRemove;
+	for (auto textureStruct : m_textureCache)
+	{
+		if (textureStruct.second->getRefCount() == 0 && textureStruct.second->m_doReferenceCount)
+		{
+			textureIdsToRemove.push_back(std::wstring(textureStruct.first.begin(), textureStruct.first.end()));
+
+		}
+
+	}
+
+	for (int i = 0; i < textureIdsToRemove.size(); i++)
+	{
+		std::string name = m_textureCache[textureIdsToRemove[i]]->debugName;
+		//std::cout << "Deleting texture " << name << ", " << m_textureCache[textureIdsToRemove[i]]->getRefCount() << std::endl;
+		//m_textureCache[textureIdsToRemove[i]]->Release();
+		delete m_textureCache[textureIdsToRemove[i]];
+		m_textureCache.erase(textureIdsToRemove[i]);
+	}
+
+	//=========================================== 
+
+	//=========================================== Audio
+	std::vector<std::wstring> audioIdsToRemove;
+	for (auto audioStruct : m_soundCache)
+	{
+		if (audioStruct.second->getRefCount() == 0)
+		{
+			audioIdsToRemove.push_back(audioStruct.first);
+		}
+	}
+
+	for (int i = 0; i < audioIdsToRemove.size(); i++)
+	{
+		delete m_soundCache[audioIdsToRemove[i]];
+		m_soundCache.erase(audioIdsToRemove[i]);
+	}
+	//=========================================== 
+
+	if (DEBUGMODE)
+	{
+		std::cout << std::endl;
+		std::cout << "mesh: " << m_meshCache.size() << std::endl;
+		std::cout << "texture: " << m_textureCache.size() << std::endl;
+		std::cout << "audio: " << m_soundCache.size() << std::endl;
+	}
+
+
+	//for (auto& m : m_textureCache)
+		//if (m.second->m_doReferenceCount)
+			//std::cout << m.second->debugName << ", " << m.second->getRefCount() << ", " << m.second->view << std::endl;
+	*/
+}
+
+TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isCubeMap, bool referenceBasedDelete)
+{
+	std::wstring wideString = texturePath;
+	std::string string = std::string(wideString.begin(), wideString.end());
+
+
 	if (m_textureCache.count(texturePath))
+	{
 		return m_textureCache[texturePath];
+	}
 	else
 	{
 		isResourceHandlerReady();
 
+		std::lock_guard<std::mutex> lock(m_lock);
 		HRESULT hr;
 		ID3D11ShaderResourceView* srv = nullptr;
 		std::wstring path = m_TEXTURES_PATH + texturePath;
+		m_textureCache[texturePath] = new TextureResource();
 
 		size_t i = path.rfind('.', path.length());
 		std::wstring fileExtension = path.substr(i + 1, path.length() - i);
@@ -35,7 +123,8 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath,
 			if (isCubeMap == true)
 			{
 				//hr = CreateDDSTextureFromFileEx(m_devicePtr, path.c_str(), 0, D3D11_USAGE_IMMUTABLE, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
-				hr = CreateDDSTextureFromFileEx(m_devicePtr, m_dContextPtr, path.c_str(), 5, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
+				hr = CreateDDSTextureFromFileEx(m_devicePtr, m_deferredDContextPtr, path.c_str(), 5, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
+				m_deferredDContextPtr->FinishCommandList(TRUE, &m_commandList);
 			}
 			else
 			{
@@ -53,7 +142,7 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath,
 			else // Load error texture
 			{
 				path = m_TEXTURES_PATH + m_ERROR_TEXTURE_NAME;
-				hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &m_textureCache[m_ERROR_TEXTURE_NAME]);
+				hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &m_textureCache[m_ERROR_TEXTURE_NAME]->view);
 				if (SUCCEEDED(hr))
 					return m_textureCache[m_ERROR_TEXTURE_NAME];
 				else
@@ -66,14 +155,17 @@ ID3D11ShaderResourceView* ResourceHandler::loadTexture(const WCHAR* texturePath,
 		}
 		else
 		{
-			m_textureCache[texturePath] = srv;
-			return srv;
+			std::wstring wideString = texturePath;
+			m_textureCache[texturePath]->view = srv;
+			m_textureCache[texturePath]->m_doReferenceCount = referenceBasedDelete;
+			m_textureCache[texturePath]->debugName = std::string(wideString.begin(), wideString.end());
+			return m_textureCache[texturePath];
 		}
 	}
-	return nullptr;
+	//return nullptr;
 }
 
-ID3D11ShaderResourceView* ResourceHandler::loadErrorTexture()
+TextureResource* ResourceHandler::loadErrorTexture()
 {
 	return loadTexture(m_ERROR_TEXTURE_NAME.c_str());
 }
@@ -205,12 +297,15 @@ MeshResource* ResourceHandler::loadLRMMesh(const char* path)
 
 	m_meshCache[path]->setMinMax(min, max);
 	m_meshCache[path]->storeVertexArray(vertexArray2, vertexCount);
+	m_meshCache[path]->storeIndexArray(indexArray, indexCount);
+	m_meshCache[path]->storeFilePath(path);
 
 	delete[] vertexArray;
 	delete[] indexArray;
 	if(materialOffsets != nullptr)
 		delete[] materialOffsets;
 
+	m_meshCache[path]->debugName = path;
 	//Return the pointer of the new entry
 	return m_meshCache[path];
 }
@@ -244,7 +339,9 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 		fileStream.clear();
 		fileStream.close();
 
-		return loadLRMMesh(m_ERROR_MODEL_NAME.c_str()); // recursively load the error model instead, this'll be weird because it needs another input layout, but whatever
+		assert(false);
+
+		//return loadLRMMesh(m_ERROR_MODEL_NAME.c_str()); // recursively load the error model instead, this'll be weird because it needs another input layout, but whatever
 	}
 
 	// .lrm has 14 floats per vertex
@@ -324,6 +421,29 @@ MeshResource* ResourceHandler::loadLRSMMesh(const char* path)
 
 	//Create a new entry in the meshcache
 	m_meshCache[path] = thisSkelRes;
+
+	LRM_VERTEX* vertexArray2 = (LRSM_VERTEX*)vertexArray;
+	XMFLOAT3 min = { 99999, 99999, 99999 }, max = { -99999, -99999, -99999 };
+	for (int i = 0; i < vertexCount; i++)
+	{
+		XMFLOAT3 currentPos = vertexArray2[i].pos;
+		if (currentPos.x >= max.x)
+			max.x = currentPos.x;
+		if (currentPos.y >= max.y)
+			max.y = currentPos.y;
+		if (currentPos.z >= max.z)
+			max.z = currentPos.z;
+
+		if (currentPos.x <= min.x)
+			min.x = currentPos.x;
+		if (currentPos.y <= min.y)
+			min.y = currentPos.y;
+		if (currentPos.z <= min.z)
+			min.z = currentPos.z;
+	}
+
+	m_meshCache[path]->setMinMax(min, max);
+	m_meshCache[path]->storeVertexArray(vertexArray2, vertexCount);
 
 	delete[] vertexArray;
 	delete[] indexArray;
@@ -419,7 +539,6 @@ AnimationResource* ResourceHandler::loadAnimation(std::string path)
 			
 			offset += sizeof(JOINT_TRANSFORM);
 		}
-
 	}
 
 	m_animationCache[path] = animation;
@@ -432,14 +551,17 @@ AnimationResource* ResourceHandler::loadAnimation(std::string path)
 	return animation;
 }
 
-SoundEffect* ResourceHandler::loadSound(std::wstring soundPath, AudioEngine* audioEngine)
+AudioResource* ResourceHandler::loadSound(std::wstring soundPath, AudioEngine* audioEngine)
 {
 	if (!m_soundCache.count(soundPath))
 	{
 		std::wstring path = m_SOUNDS_PATH + soundPath;
 		try
 		{
-			m_soundCache[soundPath] = new SoundEffect(audioEngine, path.c_str());
+			SoundEffect* audio = new SoundEffect(audioEngine, path.c_str());
+			m_soundCache[soundPath] = new AudioResource;
+			m_soundCache[soundPath]->audio = audio;
+			m_soundCache[soundPath]->debugName = std::string(soundPath.begin(), soundPath.end());
 		}
 		catch (std::exception e) // Error, could not load sound file
 		{
@@ -452,7 +574,10 @@ SoundEffect* ResourceHandler::loadSound(std::wstring soundPath, AudioEngine* aud
 				path = m_SOUNDS_PATH + m_ERROR_SOUND_NAME;
 				try
 				{
-					m_soundCache[m_ERROR_SOUND_NAME] = new SoundEffect(audioEngine, path.c_str());
+					SoundEffect* audio = new SoundEffect(audioEngine, path.c_str());
+					m_soundCache[m_ERROR_SOUND_NAME] = new AudioResource;
+					m_soundCache[m_ERROR_SOUND_NAME]->audio = audio;
+					m_soundCache[m_ERROR_SOUND_NAME]->debugName = std::string(m_ERROR_SOUND_NAME.begin(), m_ERROR_SOUND_NAME.end());
 				}
 				catch (std::exception e) // Fatal Error, error sound file does not exist
 				{
@@ -466,19 +591,20 @@ SoundEffect* ResourceHandler::loadSound(std::wstring soundPath, AudioEngine* aud
 	return m_soundCache[soundPath];
 }
 
-void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
+void ResourceHandler::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr, ID3D11DeviceContext* deferredDContextPtr)
 {
 	m_devicePtr = devicePtr;
 	m_dContextPtr = dContextPtr;
+	m_deferredDContextPtr = deferredDContextPtr;
 
 	DeviceAndContextPtrsAreSet = true;
 }
 
 void ResourceHandler::Destroy()
 {
-	for (std::pair<std::wstring, ID3D11ShaderResourceView*> element : m_textureCache)
-		element.second->Release();
-		//delete element.second;
+	for (std::pair<std::wstring, TextureResource*> element : m_textureCache)
+		delete element.second;
+		//element.second->Release();
 	
 	
 	/*for (auto it = m_meshCache.cbegin(); it != m_meshCache.cend();)
@@ -486,21 +612,21 @@ void ResourceHandler::Destroy()
 		m_meshCache.erase(it++);
 	}*/
 
-	for (std::pair<std::string, MeshResource*> element : m_meshCache)
+	/*for (std::pair<std::string, MeshResource*> element : m_meshCache)
 	{
 		delete element.second;
-	}
+	}*/
 	for (std::pair<std::string, AnimationResource*> element : m_animationCache)
 	{
 		delete element.second;
 	}
-	for (std::pair<std::wstring, SoundEffect*> element : m_soundCache)
+	/*for (std::pair<std::wstring, AudioResource*> element : m_soundCache)
 	{
 		delete element.second;
-	}
+	}*/
 
-	m_textureCache.clear();
-	m_meshCache.clear();
+	//m_textureCache.clear();
+	//m_meshCache.clear();
 	m_animationCache.clear();
-	m_soundCache.clear();
+	//m_soundCache.clear();
 }

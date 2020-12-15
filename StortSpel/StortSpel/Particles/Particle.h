@@ -15,6 +15,7 @@ enum class ParticleEffect
 	RAININGDOG,
 	SCOREPICKUP,
 	PLAYERLINES,
+	LINEARRAY,
 };
 
 class Particle
@@ -296,7 +297,7 @@ public:
 	{
 		HRESULT hr;
 		ResourceHandler* resourceHandler = &ResourceHandler::get();
-		this->m_resourceViewTexture = resourceHandler->loadTexture(m_textureName.c_str());
+		this->m_resourceViewTexture = resourceHandler->loadTexture(m_textureName.c_str())->view;
 		this->m_camera = camera;
 		m_transform = transform;
 		m_device = device;

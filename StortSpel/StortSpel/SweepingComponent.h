@@ -13,8 +13,16 @@ private:
 	int swap = false;
 	PhysicsComponent* m_physicsComponent = nullptr;
 
+	//SingleSweep update
 	bool m_isMoving;
 	bool m_singleSweeps;
+
+	//TimedInterval update - used together with singleSweep
+	bool m_timedInterval;
+	bool m_startsAtEnd;
+	float m_waitTime;
+	bool m_stopAtSweep;
+
 
 	float ParametricBlend(float t)
 	{
@@ -22,8 +30,7 @@ private:
 		return sqt / (2.0f * (sqt - t) + 1.0f);
 	}
 
-public:
-	SweepingComponent(Transform* transform, Vector3 startPos, Vector3 endPos, float travelTime, bool singleSweeps = false)
+	void init(Transform* transform, Vector3 startPos, Vector3 endPos, float travelTime, bool singleSweeps, bool timedInterval = false, float waitTime = 2.f, bool startsAtEndPos = false)
 	{
 		m_type = ComponentType::SWEEPING;
 		this->m_transform = transform;
@@ -31,7 +38,54 @@ public:
 		this->m_endPos = endPos;
 		this->m_travelTime = travelTime;
 		this->m_singleSweeps = singleSweeps;
+		this->m_timedInterval = timedInterval;
+		this->m_waitTime = waitTime;
+		this->m_startsAtEnd = startsAtEndPos;
+		this->m_stopAtSweep = (singleSweeps && timedInterval);
+	}
 
+public:
+	SweepingComponent(Transform* transform, Vector3 startPos, Vector3 endPos, float travelTime, bool singleSweeps = false, bool timedInterval = false, float waitTime = 2.f, bool startsAtEndPos = false)
+	{
+		init(transform, startPos, endPos, travelTime, singleSweeps, timedInterval, waitTime, startsAtEndPos);
+	}
+
+	SweepingComponent(char* paramData, Transform* transform, bool isSweeping2 = false)
+	{
+		// Read data from package
+		int offset = 0;
+		Vector3 startPos, endPos;
+		bool singleSweeps, timeInterval, startAtEndPos;
+		float travelTime, waitTime;
+
+		if (isSweeping2)
+		{
+			startPos = readDataFromChar<Vector3>(paramData, offset);
+			Vector3 movementDirection = readDataFromChar<Vector3>(paramData, offset);
+			flipX(movementDirection);
+			float travelDist = readDataFromChar<float>(paramData, offset);
+			travelTime = readDataFromChar<float>(paramData, offset);
+			singleSweeps = readDataFromChar<bool>(paramData, offset);
+			timeInterval = readDataFromChar<bool>(paramData, offset);
+			waitTime = readDataFromChar<float>(paramData, offset);
+			startAtEndPos = readDataFromChar<bool>(paramData, offset);
+
+			endPos = startPos + (movementDirection * travelDist);
+		}
+		else
+		{
+			startPos = readDataFromChar<Vector3>(paramData, offset);
+			endPos = readDataFromChar<Vector3>(paramData, offset);
+			flipX(endPos);
+			travelTime = readDataFromChar<float>(paramData, offset);
+			singleSweeps = readDataFromChar<bool>(paramData, offset);
+			timeInterval = readDataFromChar<bool>(paramData, offset);
+			waitTime = readDataFromChar<float>(paramData, offset);
+			startAtEndPos = readDataFromChar<bool>(paramData, offset);
+		}
+		
+
+		init(transform, startPos, endPos, travelTime, singleSweeps, timeInterval, waitTime, startAtEndPos);
 	}
 
 	void activate()
@@ -39,23 +93,42 @@ public:
 		m_isMoving = true;
 	}
 
-	void setComponentMapPointer(std::unordered_map<std::string, Component*>* componentMap)
+	virtual void onSceneLoad() override
 	{
-		Component::setComponentMapPointer(componentMap);
+		Vector3 startPos;
+		bool usesInterValAndStartAtEnd = (m_timedInterval && m_startsAtEnd);
 		m_physicsComponent = dynamic_cast<PhysicsComponent*>(this->findSiblingComponentOfType(ComponentType::PHYSICS));
+
+		usesInterValAndStartAtEnd ? startPos = m_endPos : startPos = m_startPos;
+		swap = usesInterValAndStartAtEnd;
+		
 		if (m_physicsComponent)
 		{
 			m_physicsComponent->setSlide(false);
-			m_transform->setPosition(m_startPos);
-			m_physicsComponent ? m_physicsComponent->kinematicMove(m_startPos, m_transform->getRotation()) :
-				m_transform->setPosition(m_startPos);
+			m_physicsComponent->makeKinematic();
 		}
+
+		m_physicsComponent ? m_physicsComponent->kinematicMove(startPos, m_transform->getRotation()) :
+			m_transform->setPosition(startPos);
+		
 	}
 
 	~SweepingComponent() {}
 	virtual void update(float dt) override
 	{
-		if (m_singleSweeps && !m_isMoving) return;
+		if (m_singleSweeps && !m_isMoving) 
+		{
+			if (m_timedInterval)
+			{
+				m_time += dt;
+				if (m_time >= m_waitTime)
+				{
+					m_isMoving = true;
+					m_time = 0;
+				}
+			}
+			return;
+		}
 		m_time += dt;
 
 		
@@ -82,7 +155,13 @@ public:
 			m_time = 0;
 
 			if (swap == false)
+			{
+				if (m_stopAtSweep)
+				{
+					m_isMoving = false;
+				}
 				swap = true;
+			}
 			else //Back at start
 			{
 				swap = false;

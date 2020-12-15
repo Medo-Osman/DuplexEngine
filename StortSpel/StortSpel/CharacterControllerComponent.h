@@ -12,6 +12,8 @@ private:
 	Transform* m_transform;
 
 	PxController* m_controller;
+	float m_originalRadius;
+	float m_originalHeight;
 	bool canUseController() const
 	{
 		bool canUse = true;
@@ -45,10 +47,21 @@ public:
 
 	void initController(Transform* transform, const float& height, const float &radius, std::string material = "default")
 	{
+		m_originalHeight = height;
+		m_originalRadius = radius;
 		m_transform = transform;
 		m_controller = m_physicsPtr->addCapsuleController(m_transform->getTranslation(), height, radius, material, this);
 	}
 
+	const float& getOriginalRadius()
+	{
+		return m_originalRadius;
+	}
+
+	const float& getOriginalHeight()
+	{
+		return m_originalHeight;
+	}
 	void move(const XMFLOAT3 &moveTowards, const float &dt)
 	{
 		if (!canUseController())
@@ -70,6 +83,14 @@ public:
 		if (!canUseController())
 			return {0.f, 0.f, 0.f};
 		PxExtendedVec3 footPos = m_controller->getFootPosition();
+		return XMFLOAT3((float)footPos.x, (float)footPos.y, (float)footPos.z);
+	}
+
+	Vector3 getCenterPosition() const
+	{
+		if (!canUseController())
+			return { 0.f, 0.f, 0.f };
+		PxExtendedVec3 footPos = m_controller->getPosition();
 		return XMFLOAT3((float)footPos.x, (float)footPos.y, (float)footPos.z);
 	}
 
@@ -97,7 +118,17 @@ public:
 		//m_transform->setPosition(XMFLOAT3(position.x, position.y, position.z ));
 	}
 	
-	bool checkGround(const Vector3 &origin, const Vector3 &unitDirection, const float &distance) const
+	bool checkGround() const
+	{
+		return m_physicsPtr->sphereIntersectionTest(m_controller->getPosition() + PxExtendedVec3(0.0, ((m_originalHeight / 2.0) + 0.2) * -1.0, 0.0), m_originalRadius);
+	}
+
+	bool checkRoof() const
+	{
+		return m_physicsPtr->sphereIntersectionTest(m_controller->getPosition() + PxExtendedVec3(0.0, (m_originalHeight - 0.2), 0.0), m_originalRadius);
+	}
+
+	bool castRay(const Vector3& origin, const Vector3& unitDirection, const float& distance) const
 	{
 		return m_physicsPtr->castRay(origin, unitDirection, distance);
 	}

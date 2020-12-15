@@ -14,18 +14,19 @@ Camera::Camera()
 }
 Camera::~Camera() {}
 
-void Camera::initialize(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
+void Camera::initialize(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
 {
 	ApplicationLayer::getInstance().m_input.Attach(this);
 	setProjectionMatrix(fov, aspectRatio, nearZ, farZ);
 }
 
-void Camera::setProjectionMatrix(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
+void Camera::setProjectionMatrix(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
 {
 	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH((fov / 360.f) * DirectX::XM_2PI,
 		aspectRatio, nearZ, farZ);
+	BoundingFrustum::CreateFromMatrix(m_frustum, m_projectionMatrix);
 }
-void Camera::setPosition(const XMVECTOR& pos)
+void Camera::setPosition(const Vector3& pos)
 {
 	m_position = pos;
 	this->updateViewMatrix();
@@ -45,9 +46,42 @@ void Camera::setRotation(const XMVECTOR& rot)
 	m_rotation = rot;
 	this->updateViewMatrix();
 }
+
 Transform* Camera::getTransform()
 {
 	return &m_transform;
+}
+void Camera::increaseSensitivity()
+{
+	
+	m_sensitivity += 0.01f;
+}
+void Camera::decreaseSensitivity()
+{
+	if (m_sensitivity > 0)
+	{
+		m_sensitivity -= 0.01f;
+	}
+}
+void Camera::increaseFov()
+{
+	if (fovAmount < 110.0f)
+	{
+		fovAmount += 1.0f;
+	}
+}
+void Camera::decreaseFov()
+{
+	if (fovAmount > 60.0f)
+	{
+		fovAmount -= 1.0f;
+	}
+	
+}
+float Camera::getSensitivity()
+{
+	
+	return m_sensitivity * 100;
 }
 const XMVECTOR& Camera::getRotation() const
 {
@@ -71,7 +105,7 @@ const XMMATRIX& Camera::getProjectionMatrix() const
 
 void Camera::inputUpdate(InputData& inputData)
 {
-	for (std::vector<int>::size_type i = 0; i < inputData.rangeData.size(); i++)
+	for (size_t i = 0; i < inputData.rangeData.size(); i++)
 	{
 		if (inputData.rangeData[i].rangeFlag == Range::RAW)
 		{
@@ -88,7 +122,7 @@ void Camera::inputUpdate(InputData& inputData)
 			// Set Pitch
 			XMFLOAT3 rotationF3;
 			XMStoreFloat3(&rotationF3, m_rotation);
-			rotationF3.x += mouseDelta.y * 0.02f;
+			rotationF3.x += mouseDelta.y * m_sensitivity;
 
 			// Limit pitch to straight up or straight down with a little fudge-factor to avoid gimbal lock
 			float limit = XM_PI / 2.0f - 0.01f;
@@ -96,7 +130,7 @@ void Camera::inputUpdate(InputData& inputData)
 			rotationF3.x = min(limit, rotationF3.x);
 
 			// Set Yaw
-			rotationF3.y += mouseDelta.x * 0.02f;
+			rotationF3.y += mouseDelta.x * m_sensitivity;
 
 			// Keep longitude in sane range by wrapping
 			if (rotationF3.x > XM_PI)
@@ -110,53 +144,105 @@ void Camera::inputUpdate(InputData& inputData)
 	}
 }
 
-void Camera::update(const float &dt)
+void Camera::update(const float& dt)
 {
+	if (m_isPlayerCamera)
+	{
+		Player* ply = Engine::get().getPlayerPtr();
+		m_position = ply->getPlayerEntity()->getTranslation() + ply->getCameraOffset() + Vector3(0, 0.5f, -1.f);
+		m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
+		if (ply->getRespawnNextFrame()) // Reset camera rotation after respawn
+		{
+			m_rotation = XMQuaternionRotationRollPitchYaw(0.f, 0.f, 0.f);
+			m_transform.setRotationQuat(m_rotation);
+		}
 
-	//if (m_newIncrements)
-	//{
-	//	this->m_rotation += m_incrementRotation * dt * 2;
-	//	m_transform.rotate(m_rotation);
-	//	m_newIncrements = false;
-	//}
+		//endscene fixed camera position
+		if (endSceneCamera)
+		{
+			frustumCullingOn = false;
+			this->updateViewMatrixEndScene();
+		}
+		else
+		{
+			frustumCullingOn = true;
+			this->updateViewMatrix();
+		}
+	}
 	
-	m_position = Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation() + Vector3(0, 2, -5);
-	m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
-	
-	this->updateViewMatrix();
+
+
 }
-
-
 
 BoundingFrustum Camera::getFrustum()
 {
-	BoundingFrustum frust;
-	BoundingFrustum::CreateFromMatrix(frust, m_projectionMatrix);
-	return frust;
+	return m_frustum;
 }
-
 
 //Private
 void Camera::updateViewMatrix()
 {
+	Player* ply = Engine::get().getPlayerPtr();
+	Vector3 hitPos;
+
 	float currentRotationAngleY = XMVectorGetY(m_rotation);
 	float currentRotationAngleX = XMVectorGetX(m_rotation);
-	
+
 	XMVECTOR currentRotation = XMQuaternionRotationRollPitchYaw(currentRotationAngleX, currentRotationAngleY, 0);
 
-	XMVECTOR playerPos = Vector3(dynamic_cast<CharacterControllerComponent*>(Engine::get().getPlayerPtr()->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + Vector3(0, 0.5, 0);//->getTranslation();
+	if (m_isPlayerCamera)
+	{
+		XMVECTOR playerPos = Vector3(dynamic_cast<CharacterControllerComponent*>(ply->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + ply->getCameraOffset() + Vector3(0, 0.5, 0);//->getTranslation();
 
-	playerPos += Vector3(0, 1.75f, 0);
-	m_position = playerPos;
-	XMVECTOR offsetVector = Vector3(0, 0, 1) * 5;
-	offsetVector = XMVector3Rotate(offsetVector, currentRotation);
-	m_position -= offsetVector;
+		playerPos += Vector3(0, 0.5f, 0);
+		m_position = playerPos;
+		XMVECTOR offsetVector = Vector3(0, 0, 1) * 2;
+		offsetVector = XMVector3Rotate(offsetVector, currentRotation);
+		m_position -= offsetVector;
 
-	XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
-	XMVECTOR up = XMVector3TransformCoord(this->upVector, cameraRotation);
-	m_viewMatrix = XMMatrixLookAtLH(m_position, playerPos, up);
+		Vector3 fromPlayerToCamera = m_position - playerPos;
+		if (Physics::get().castRay(playerPos, DirectX::XMVector3Normalize(fromPlayerToCamera), 2, hitPos))
+		{
+			m_position = hitPos;
+		}
 
-	// = XMVector3TransformCoord(this->forwardVector, cameraRotation);
+		if (XMVector3Equal(m_position, playerPos))
+		{
+			playerPos.m128_f32[1] += 0.00001f;
+		}
+
+		XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+		XMVECTOR up = XMVector3TransformCoord(this->upVector, cameraRotation);
+		m_viewMatrix = XMMatrixLookAtLH(m_position, playerPos, up);
+	}
+	else
+	{
+		XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+
+		m_viewMatrix = XMMatrixLookAtLH(m_position, XMVector3TransformCoord(forwardVector, cameraRotation), XMVector3TransformCoord(this->upVector, cameraRotation));
+
+	}
+	
+
+
+
+
 	//m_curUp = XMVector3TransformCoord(this->upVector, cameraRotation);
 	//m_curRight = XMVector3TransformCoord(this->rightVector, cameraRotation);
+}
+
+void Camera::updateViewMatrixEndScene()
+{
+
+	float currentRotationAngleY = 0;
+	float currentRotationAngleX = 0;
+
+	XMVECTOR camPos = Vector3(5, 1, 7);
+	m_position = camPos;
+	XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(XMVECTOR{ 0,1,0 });
+	m_rotation = Vector3(0, XMConvertToRadians(0), 0);
+	XMVECTOR up = XMVector3TransformCoord(this->upVector, cameraRotation);
+	m_viewMatrix = XMMatrixLookAtLH(m_position, Vector3(5, 1, 0), up);
+
+
 }

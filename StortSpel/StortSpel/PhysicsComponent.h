@@ -18,9 +18,17 @@ private:
 	bool m_controllRotation;
 	bool m_kinematic;
 	bool m_slide;
+	bool m_hasMirrored;
+	//bool m_hasEntRot;
 
-	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, LRM_VERTEX vertexArray[], const int vertexCount)
+	Vector3 m_scale = {1.f, 1.f, 1.f}; 
+	Vector3 m_centerOffset = {0.f, 0.f, 0.f};
+	Vector3 m_meshOffset = {0.f, 0.f, 0.f};
+
+	physx::PxGeometry* createPrimitiveGeometry(physx::PxGeometryType::Enum geometryType, XMFLOAT3 min, XMFLOAT3 max, MeshResource* meshResource)
 	{
+		PxTriangleMesh* tringMesh;
+		PositionVertex* vertexArray;
 		PxGeometry* createdGeometry = nullptr;
 		XMFLOAT3 vec = XMFLOAT3((max.x - min.x) / 2, (max.y - min.y) / 2, (max.z - min.z) / 2);
 		switch (geometryType)
@@ -34,9 +42,11 @@ private:
 			XMFLOAT3 center = { (max.x + min.x) * 0.5f, (max.y + min.y) * 0.5f, (max.z + min.z) * 0.5f };
 			float radius;
 			radius = 0;
-			for (int i = 0; i < vertexCount; i++)
+			vertexArray = meshResource->getVertexArray();
+
+			for (int i = 0; i < meshResource->getVertexArraySize(); i++)
 			{
-				XMFLOAT3 position = vertexArray[i].pos;
+				XMFLOAT3 position = vertexArray[i].position;
 				float tempDist = sqrt((position.x - center.x) * (position.x - center.x)
 					+ (position.y - center.y) * (position.y - center.y)
 					+ (position.z - center.z) * (position.z - center.z));
@@ -47,7 +57,18 @@ private:
 			createdGeometry = new physx::PxSphereGeometry(radius);
 			break;
 		case physx::PxGeometryType::eBOX:
+			if (max.y == min.y)
+				max.y += 0.1f;
+			if (max.x == min.x)
+				max.x += 0.1f;
+			if (max.z == min.z)
+				max.z += 0.1f;
+
 			createdGeometry = new physx::PxBoxGeometry((max.x - min.x) / 2, (max.y - min.y) / 2, (max.z - min.z) / 2);
+			break;
+		case physx::PxGeometryType::eTRIANGLEMESH:
+			tringMesh = m_physicsPtr->getTriangleMeshe(meshResource->getFilePath(), meshResource->getVertexArraySize(), meshResource->getVertexArray(), meshResource->getIndexArraySize(), meshResource->getIndexArray(), m_centerOffset);
+			createdGeometry = new physx::PxTriangleMeshGeometry(tringMesh, PxMeshScale(PxVec3(m_scale.x, m_scale.y, m_scale.z)), PxMeshGeometryFlag::eDOUBLE_SIDED);
 			break;
 		default:
 			break;
@@ -107,14 +128,42 @@ public:
 
 	void initActorAndShape(int sceneID, Entity* entity, const MeshComponent* meshComponent, PxGeometryType::Enum geometryType, bool dynamic = false, std::string physicsMaterialName = "default", bool unique = false)
 	{
+		bool loaded = false;
+		bool forceMakeKinematic = geometryType == PxGeometryType::eTRIANGLEMESH && dynamic;
 		m_dynamic = dynamic;
 		m_transform = entity;
 		XMFLOAT3 scale = entity->getScaling() * meshComponent->getScaling();
+		m_scale = scale;
 		std::string name = meshComponent->getFilePath() + std::to_string(geometryType);
-		PxGeometry* geometry;
-		m_actor = m_physicsPtr->createRigidActor(entity->getTranslation(), m_transform->getRotation(), dynamic, this, sceneID);
-		bool addGeom = true;
+		PxGeometry* geometry; 
+		Vector3 boundsCenter;
+		m_meshOffset = meshComponent->getTranslation();
+		if (geometryType == PxGeometryType::eTRIANGLEMESH)
+		{
+			boundsCenter = { 0, 0, 0 };
+		}
+		else
+		{
+			meshComponent->getMeshResourcePtr()->getBoundsCenter(boundsCenter);
+			boundsCenter = boundsCenter * scale;
+		}
 
+		if (!XMQuaternionIsIdentity(entity->getRotation()))
+		{
+			m_meshOffset = XMVector3Rotate(m_meshOffset, entity->getRotation());
+			boundsCenter = XMVector3Rotate(boundsCenter, entity->getRotation());
+		}
+			
+		if (!XMQuaternionIsIdentity(meshComponent->getRotation()))
+		{
+			m_meshOffset = XMVector3Rotate(m_meshOffset, meshComponent->getRotation());
+			boundsCenter = XMVector3Rotate(boundsCenter, meshComponent->getRotation());
+		}
+
+
+		m_actor = m_physicsPtr->createRigidActor((entity->getTranslation() + m_meshOffset + boundsCenter), Quaternion(XMQuaternionMultiply(meshComponent->getRotation(), entity->getRotation())), dynamic, this, sceneID, forceMakeKinematic);
+		bool addGeom = true;
+		m_centerOffset = boundsCenter;
 		if (this->canAddGeometry())
 		{
 			if (!unique)
@@ -129,7 +178,7 @@ public:
 					}
 					else //Create shape and add shape for sharing
 					{
-						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true);
+						geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, true, loaded);
 						m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
 						m_physicsPtr->addShapeForSharing(m_shape, name);
 					}
@@ -139,9 +188,10 @@ public:
 			}
 			if (addGeom)
 			{
-				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false);
+				geometry = addGeometryByModelData(geometryType, meshComponent, physicsMaterialName, false, loaded);
 				m_shape = m_physicsPtr->createAndSetShapeForActor(m_actor, geometry, physicsMaterialName, unique, scale);
-				delete geometry;
+				if(!loaded)
+					delete geometry;
 			}
 
 		}
@@ -248,7 +298,7 @@ public:
 	}
 
 
-	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool saveGeometry)
+	PxGeometry* addGeometryByModelData(PxGeometryType::Enum geometry, const MeshComponent* meshComponent, std::string materialName, bool saveGeometry, bool &outLoaded)
 	{
 		XMFLOAT3 min, max;
 		PxGeometry* bb = nullptr;
@@ -259,10 +309,12 @@ public:
 
 		if (!bb)
 		{
-			bb = createPrimitiveGeometry(geometry, min, max, meshComponent->getMeshResourcePtr()->getVertexArray(), meshComponent->getMeshResourcePtr()->getVertexBuffer().getSize());
-			if(saveGeometry)
+			bb = createPrimitiveGeometry(geometry, min, max, meshComponent->getMeshResourcePtr());
+			if (saveGeometry)
 				m_physicsPtr->addGeometry(name, bb);
 		}
+		else
+			outLoaded = true;
 		
 		return bb;
 	}
@@ -310,9 +362,22 @@ public:
 	// Update
 	void update(float dt) override 
 	{
-		m_transform->setPosition(this->getActorPosition());
-		if(m_controllRotation)
-			m_transform->setRotationQuat(this->getActorQuaternion());
+		//IF we check if it is static, We don't mirror the transform in the first place.
+		if (m_dynamic || !m_hasMirrored)
+		{
+			/*Vector3 theMeshOffset;
+			if (m_hasEntRot)
+				theMeshOffset = XMVector3Rotate(m_meshOffset, m_transform->getRotation());
+			else
+				theMeshOffset = m_meshOffset;*/
+
+			m_transform->setPosition(this->getActorPosition() - m_centerOffset - m_meshOffset);
+			if (m_controllRotation)
+				m_transform->setRotationQuat(this->getActorQuaternion());
+
+			m_hasMirrored = true;
+		}
+
 	}
 
 	XMFLOAT3 getActorPosition()
@@ -321,6 +386,11 @@ public:
 			return XMFLOAT3(m_actor->getGlobalPose().p.x, m_actor->getGlobalPose().p.y, m_actor->getGlobalPose().p.z);
 		else
 			return XMFLOAT3(0, 0, 0);
+	}
+
+	Vector3 getCenterOffset()
+	{
+		return m_centerOffset;
 	}
 
 	XMFLOAT4 getActorQuaternion()

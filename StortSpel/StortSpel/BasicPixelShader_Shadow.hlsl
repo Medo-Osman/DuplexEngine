@@ -2,7 +2,7 @@
 
 static const float SHADOW_MAP_SIZE = 4096.f;
 static const float SHADOW_MAP_DELTA = 1.f / SHADOW_MAP_SIZE;
-static const float RANGE = 90.f;
+static const float RANGE = 50.f;
 
 struct pointLight
 {
@@ -85,7 +85,7 @@ struct ps_out
 Texture2D diffuseTexture : TEXTURE : register(t0);
 SamplerState sampState : SAMPLER : register(s0);
 SamplerComparisonState shadowSampState : SAMPLER1 : register(s1);
-Texture2D shadowMap : TEXTURE : register(t2);
+Texture2D shadowMap : TEXTURE : register(t7);
 
 Texture2D ambientOcclusionMap : TEXTURE : register(t8);
 
@@ -112,7 +112,7 @@ float computeShadowFactor(float4 shadowPosH)
     float percentLit = 0.0f;
     
     //PCF sampling for shadow map
-    const int sampleRange = 2;
+    const int sampleRange = 3;
     [unroll]
     for (int x = -sampleRange; x <= sampleRange; x++)
     {
@@ -179,7 +179,7 @@ lightComputeResult computeLightFactor(ps_in input)
     if (length(cameraPosition - input.worldPos) > RANGE)
         shadowFactor = 1.f;
     
-    finalColor = finalColor + shadowFactor*saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
+    finalColor = finalColor + shadowFactor*saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness * 0.2f;
     
     result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel * ambientFactor));
     //result.lightColor = diffuse * (finalColor * ambientLightLevel * ambientFactor);

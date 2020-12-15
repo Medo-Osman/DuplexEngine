@@ -44,6 +44,7 @@ private: // Cache
 public:
 	Transform();
 	virtual ~Transform();
+	void resetTransform();
 
 public:
 	/* Generate object transformation matrix. */

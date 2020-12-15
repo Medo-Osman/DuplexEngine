@@ -22,13 +22,13 @@ private:
 	HWND m_window;
 	Engine* m_enginePtr;
 	SceneManager m_scenemanager;
-
+	
 	Timer m_timer;
 	float m_dt;
 	float m_gameTime = 0;
 	FILE* m_consoleFile;
+	bool m_shouldSleep = false;
 
-	int m_width, m_height;
 
 	void createWin32Window(const HINSTANCE hInstance, const wchar_t* windowTitle, HWND& _d3d11Window);
 
@@ -36,6 +36,7 @@ private:
 
 	
 public:
+	int m_width, m_height;
 	static ApplicationLayer& getInstance()
 	{
 		static ApplicationLayer instance;
@@ -53,6 +54,11 @@ public:
 	const float& getGameTime()
 	{
 		return m_gameTime;
+	}
+
+	Vector2 getWindowSize()
+	{
+		return Vector2(m_width, m_height);
 	}
 
 };

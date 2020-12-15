@@ -60,6 +60,7 @@
 //#include "ResourceHandler.h"
 #include "ErrorLogger.h"
 #include "Buffer.h"
+#include "DataHelper.h"
 //#include "Engine.h"
 //#include "Renderer.h"
 
@@ -92,8 +93,6 @@ using namespace SimpleMath;
 //Defines
 #define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = nullptr; } }
 #define SAFE_DELETE(a) if( (a) != NULL ) delete (a); (a) = NULL;
-
-
 enum class TriggerType
 {
 	UNDEFINED,
@@ -103,6 +102,7 @@ enum class TriggerType
 	PROJECTILE,
 	TRAP,
 	BARREL,
+	RESPAWN,
 };
 
 enum class EventType
@@ -110,3 +110,5 @@ enum class EventType
 	SWAPSCENE,
 	BOSS_PROJECTILE_HIT,
 };
+
+const bool DEBUGMODE = true;

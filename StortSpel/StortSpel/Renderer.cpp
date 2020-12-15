@@ -2,6 +2,10 @@
 //#include "MeshComponent.h"
 #include"Renderer.h"
 #include"ParticleComponent.h"
+#include<memory>
+
+
+const bool Renderer::USE_Z_PRE_PASS = true;
 
 Renderer::Renderer()
 {
@@ -11,9 +15,74 @@ Renderer::Renderer()
 	m_shadowMap = nullptr;
 }
 
+void Renderer::drawBoundingVolumes()
+{
+	//m_dContextPtr->OMSetBlendState(m_states->Opaque(), nullptr, 0xFFFFFFFF);
+	//m_dContextPtr->OMSetDepthStencilState(m_states->DepthNone(), 0);
+//	m_dContextPtr->RSSetState(m_states->CullNone());
+
+	//m_dContextPtr->IASetInputLayout(m_inputLayout.Get());
+
+	//m_batch->Begin();
+
+	//this->m_effect->SetView(m_switchCamera ? m_testCamera.getViewMatrix() : m_camera->getViewMatrix());
+	//this->m_effect->SetProjection(m_switchCamera ? m_testCamera.getProjectionMatrix() : m_camera->getProjectionMatrix());
+	//this->m_effect->Apply(m_dContextPtr.Get());
+
+
+	//for (int i = 0; i < (int)m_boundingVolumes.size(); i++)
+	//{
+	//	BoundingVolumeHolder bvh = m_boundingVolumes[i];
+	//	switch (bvh.getBoundingVolumeType())
+	//	{
+	//	case BoundingVolumeTypes::FRUSTUM:
+	//		DX::Draw(m_batch.get(), *(BoundingFrustum*)bvh.getBoundingVolumePtr(), Colors::Red);
+	//		break;
+	//	case BoundingVolumeTypes::BOX:
+	//		DX::Draw(m_batch.get(), *(BoundingBox*)bvh.getBoundingVolumePtr(), Colors::Blue);
+	//		break;
+	//	case BoundingVolumeTypes::ORIENTEDBOX:
+	//	{
+	//		BoundingOrientedBox b = *(BoundingOrientedBox*)bvh.getBoundingVolumePtr();
+	//		DX::Draw(m_batch.get(), b, Colors::Cyan);
+	//		break;
+	//	}
+	//	case BoundingVolumeTypes::SPHERE:
+	//		DX::Draw(m_batch.get(), *(DirectX::BoundingSphere*)bvh.getBoundingVolumePtr(), Colors::Blue);
+	//		break;
+	//	default:
+	//		break;
+	//	}
+
+	//	delete bvh.getBoundingVolumePtr();
+	//}
+
+	//m_batch->End();
+
+	//m_boundingVolumes.clear();
+
+	//this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
+	//m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+
+	//m_compiledShaders[ShaderProgramsEnum::PBRTEST]->setShaders();
+	//m_currentSetShaderProg = ShaderProgramsEnum::PBRTEST;
+
+}
+
 void Renderer::setPointLightRenderStruct(lightBufferStruct& buffer)
 {
 	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &buffer);
+}
+
+void Renderer::setFullScreen(BOOL val)
+{
+	m_swapChainPtr->SetFullscreenState(val, NULL);
+	m_isFullscreen = val;
+}
+
+bool Renderer::isFullscreen()
+{
+	return m_isFullscreen;
 }
 
 void Renderer::release()
@@ -28,6 +97,11 @@ void Renderer::release()
 	}
 	
 	Particle::cleanStaticDataForParticles();
+
+	m_states.reset();
+	m_effect.reset();
+	m_batch.reset();
+	m_inputLayout.Reset();
 }
 
 Renderer::~Renderer()
@@ -263,6 +337,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_psSamplerState);
 	assert(SUCCEEDED(hr) && "Failed to create SampleState");
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
+	m_dContextPtr->DSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 
 	// SSAO Random sampler
 	
@@ -302,28 +377,46 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
-	m_skyboxConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skyboxMVP(), 1);
+	m_dContextPtr->HSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+	m_dContextPtr->DSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
+
+	skyboxMVP skyboxMVP;
+	m_skyboxConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skyboxMVP, 1);
 	m_dContextPtr->VSSetConstantBuffers(1, 1, m_skyboxConstantBuffer.GetAddressOf());
-	m_skelAnimationConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skeletonAnimationCBuffer(), 1);
+	skeletonAnimationCBuffer skeletonAnimationCBuffer;
+	m_skelAnimationConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &skeletonAnimationCBuffer, 1);
 	m_dContextPtr->VSSetConstantBuffers(2, 1, m_skelAnimationConstantBuffer.GetAddressOf());
+
+	globalConstBuffer globalConstBuffer;
+	m_globalConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &globalConstBuffer, 1);
+	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
+	m_dContextPtr->DSSetConstantBuffers(1, 1, m_globalConstBuffer.GetAddressOf());
 
 	lightBufferStruct initalLightData; //Not sure why, but it refuses to take &lightBufferStruct() as argument on line below
 	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);
 	m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
 
-	m_shadowConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &shadowBuffer(), 1);
+	shadowBuffer shadowBuffer;
+	m_shadowConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &shadowBuffer, 1);
 
-	m_cameraBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cameraBufferStruct(), 1);
+	cameraBufferStruct cameraBufferStruct;
+	m_cameraBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cameraBufferStruct, 1);
 	m_dContextPtr->PSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
 
 	m_dContextPtr->PSSetConstantBuffers(2, 1, m_perObjectConstantBuffer.GetAddressOf());
 
-	m_currentMaterialConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &MATERIAL_CONST_BUFFER(), 1);
+	MATERIAL_CONST_BUFFER MATERIAL_CONST_BUFFER;
+	m_currentMaterialConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &MATERIAL_CONST_BUFFER, 1);
 	m_dContextPtr->PSSetConstantBuffers(3, 1, m_currentMaterialConstantBuffer.GetAddressOf());
 
+	atmosphericFogConstBuffer atmosphericFogConstBuffer;
+	m_atmosphericFogConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &atmosphericFogConstBuffer, 1);
+	m_dContextPtr->PSSetConstantBuffers(5, 1, m_atmosphericFogConstBuffer.GetAddressOf());
+
 	Engine::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
-	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get());
+	ResourceHandler::get().setDeviceAndContextPtrs(m_devicePtr.Get(), m_dContextPtr.Get(), m_deferredContext.Get());
 	m_camera = Engine::get().getCameraPtr();
+	m_camera->setIsPlayerCamera(true);
 
 
 	/////////////////////////////////////////////////
@@ -356,6 +449,27 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_shadowMap->initialize((UINT)4096, (UINT)4096, m_devicePtr.Get(), Engine::get().getSkyLightDir());
 	m_shadowMap->createRasterState();
 
+	//RenderBatch/Effect
+	m_states = std::make_unique<CommonStates>(this->m_devicePtr.Get());
+	m_effect = std::make_unique<BasicEffect>(this->m_devicePtr.Get());
+	m_effect->SetVertexColorEnabled(true);
+
+	void const* shaderByteCode;
+	size_t byteCodeLength;
+
+	m_effect->GetVertexShaderBytecode(&shaderByteCode, &byteCodeLength);
+
+	hr = m_devicePtr->CreateInputLayout(VertexType::InputElements,
+			VertexType::InputElementCount,
+			shaderByteCode, byteCodeLength,
+			m_inputLayout.ReleaseAndGetAddressOf());
+
+	m_batch = std::make_unique<PrimitiveBatch<VertexType>>(this->m_dContextPtr.Get());
+
+
+	m_testCamera.initialize(m_testCamera.fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
+	m_testCamera.setPosition(Vector3(0, 5, 0));
+	m_testCamera.setRotation(Vector4(0.7071068f, 0.f, 0.f, 0.7071068f));
 	return hr;
 }
 
@@ -369,6 +483,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.BufferCount = 2;
 	sChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sChainDesc.Windowed = true; //Windowed or fullscreen
+	//sChainDesc.Windowed = false; //Windowed or fullscreen
 	sChainDesc.BufferDesc.Height = m_settings.height; //Size of buffer in pixels, height
 	sChainDesc.BufferDesc.Width = m_settings.width; //Size of window in pixels, width
 	sChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; //DXGI Format, 8 bits for Red, green, etc
@@ -398,7 +513,9 @@ HRESULT Renderer::createDeviceAndSwapChain()
 		&m_fLevel, //Feature Level
 		m_dContextPtr.GetAddressOf() //Device COntext Pointer
 	);
+	assert(SUCCEEDED(hr));
 
+	hr = m_devicePtr->CreateDeferredContext(0, m_deferredContext.GetAddressOf());
 	assert(SUCCEEDED(hr));
 
 	return hr;
@@ -449,11 +566,15 @@ HRESULT Renderer::createDepthStencil()
 	//Depth stencil state desc
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
-	depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL; //Function to determin if pixel should be drawn. LESS_EQUAL means if z value is less or equal then overwrite.
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS; //Function to determin if pixel should be drawn. LESS_EQUAL means if z value is less or equal then overwrite.
 	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL; //Stencil active with MAKS_ALL
 	depthStencilDesc.DepthEnable = true; //Enable depth test
 
+	hr = m_devicePtr->CreateDepthStencilState(&depthStencilDesc, m_depthStencilStateCompLessPtr.GetAddressOf());
+
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL; //Function to determin if pixel should be drawn. LESS_EQUAL means if z value is less or equal then overwrite.
 	hr = m_devicePtr->CreateDepthStencilState(&depthStencilDesc, m_depthStencilStatePtr.GetAddressOf());
+
 
 	return hr;
 }
@@ -1002,9 +1123,112 @@ void Renderer::initRenderQuad()
 
 }
 
-void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
+void Renderer::zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
 {
 
+	for (auto& component : *Engine::get().getMeshComponentMap())
+	{
+		bool isAnim = false;
+		// Get Entity map from Engine
+		std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+		XMFLOAT3 min, max;
+		bool draw = true;
+		Entity* parentEntity;
+
+		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+		else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
+			parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
+		else
+			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
+
+
+		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
+		{
+			//Culling
+			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
+			XMVECTOR pos = parentEntity->getTranslation();
+			pos += component.second->getTranslation();
+			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
+			XMFLOAT3 posFloat3;
+			XMStoreFloat3(&posFloat3, pos);
+
+
+			if (frust->Contains(pos) != ContainmentType::CONTAINS)
+			{
+				component.second->getMeshResourcePtr()->getMinMax(min, max);
+
+				XMFLOAT3 ext = (max - min) / 2;
+				ext = ext * scale;
+				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
+				BoundingOrientedBox box(posFloat3, ext, rot);
+
+				ContainmentType contType = frust->Contains(box);
+				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+			}
+			else
+			{
+				draw = true;
+			}
+		}
+
+		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
+		if (draw && meshComp->isVisible())
+		{
+			m_drawn++;
+
+			perObjectMVP constantBufferPerObjectStruct;
+			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
+			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
+			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
+			constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(component.second->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+
+			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+				
+			AnimatedMeshComponent* animMeshComponent = nullptr;
+			if(component.second->getType() == ComponentType::ANIM_MESH)
+				animMeshComponent = static_cast<AnimatedMeshComponent*>(component.second);
+
+
+			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
+			{
+				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+				isAnim = true;
+			}
+
+			int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
+
+			for (int mat = 0; mat < materialCount; mat++)
+			{
+				ShaderProgramsEnum meshShaderEnum = isAnim ? ShaderProgramsEnum::Z_PRE_PASS_ANIM : ShaderProgramsEnum::Z_PRE_PASS;
+				ShaderProgramsEnum shaderProgEnum = component.second->getShaderProgEnum(mat);
+				if (shaderProgEnum == ShaderProgramsEnum::SKYBOX || shaderProgEnum == ShaderProgramsEnum::CLOUD || shaderProgEnum == ShaderProgramsEnum::LUCY_FACE)
+					continue;
+
+				if (m_currentSetShaderProg != meshShaderEnum)
+				{
+					m_compiledShaders[meshShaderEnum]->setShaders();
+					m_currentSetShaderProg = meshShaderEnum;
+				}
+
+				Material* meshMatPtr = component.second->getMaterialPtr(mat);
+				if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+				{
+					meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
+					m_currentSetMaterialId = meshMatPtr->getMaterialId();
+
+					std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
+
+					m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
+				}
+			}
+		}
+	}
+}
+
+void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
+{
 	m_drawn = 0;
 
 	m_dContextPtr->PSSetShaderResources(8, 1, m_SSAOShaderResourceViewPtr.GetAddressOf());
@@ -1019,35 +1243,39 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		
 		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
 			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+		else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
+			parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
 		else
 			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
 
-		if (m_frustumCullingOn && parentEntity->m_canCull)
+		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
 		{
 			//Culling
-			XMVECTOR pos = XMVector3Transform(parentEntity->getTranslation(), *V);
+			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
+			XMVECTOR pos = parentEntity->getTranslation();
+			pos += component.second->getTranslation();
+			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
 			XMFLOAT3 posFloat3;
 			XMStoreFloat3(&posFloat3, pos);
+
 
 			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
 				component.second->getMeshResourcePtr()->getMinMax(min, max);
 
-				XMFLOAT3 ext = (max - min);
-				ext = ext * parentEntity->getScaling();
-				XMFLOAT4 rot = parentEntity->getRotation();
+				XMFLOAT3 ext = (max - min) / 2;
+				ext = ext * scale;
+				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
 				BoundingOrientedBox box(posFloat3, ext, rot);
-				ContainmentType contType = frust->Contains(box);
 
+				ContainmentType contType = frust->Contains(box);
 				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
 			}
 			else
 			{
 				draw = true;
 			}
-			
-
 		}
 
 		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
@@ -1057,9 +1285,9 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 			
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
-			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
-			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
-			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_switchCamera ? m_testCamera.getProjectionMatrix() : m_camera->getProjectionMatrix());
+			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_switchCamera ? m_testCamera.getViewMatrix() : m_camera->getViewMatrix());
+			constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(component.second->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
@@ -1076,6 +1304,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 			for (int mat = 0; mat < materialCount; mat++)
 			{
 				ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum(mat);
+
 				if (m_currentSetShaderProg != meshShaderEnum)
 				{
 					m_compiledShaders[meshShaderEnum]->setShaders();
@@ -1087,7 +1316,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 				{
 					meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
 					m_currentSetMaterialId = meshMatPtr->getMaterialId();
-
+					
 				MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
 				currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
 				currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
@@ -1097,7 +1326,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
-				m_dContextPtr->PSSetShaderResources(2, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
+				m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 
 				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
 				
@@ -1105,6 +1334,9 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 			}
 		}
 	}
+
+	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+	m_dContextPtr->PSSetShaderResources(7, 1, nullSRV);
 }
 
 void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
@@ -1125,7 +1357,7 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
 
-		if (component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
+		if (component.second->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
 		{
 			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
 			m_compiledShaders[meshShaderEnum]->setShaders();
@@ -1144,32 +1376,47 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 		Entity* parentEntity;
 		parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
 
-		MeshComponent* comp = dynamic_cast<MeshComponent*>(component.second);
-		if (comp->castsShadow())
+		//MeshComponent* comp = dynamic_cast<MeshComponent*>(component.second);
+		if (component.second->isVisible() && component.second->castsShadow())
 		{
-
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);//XMMatrixTranspose(m_camera->getProjectionMatrix());
 			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_shadowMap->m_lightViewMatrix);//XMMatrixTranspose(m_camera->getViewMatrix());
-			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(component.second->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
-			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
 
+			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
 			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
 			{
 				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 			}
-
+			//if (component.second->getType() == ComponentType::ANIM_MESH)  
+			//{
+			//	AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
+			//	assert(animMeshComponent);
+			//	m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());// ? does this need to be optimised or is it fine to do this for every mesh?
+			//}
 
 			m_dContextPtr->DrawIndexed(component.second->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 		}
-			
 	}
+}
 
+void Renderer::resizeBackbuff(int x, int y)
+{
+	//m_swapChainPtr.
+	
+	/*ID3D11Texture2D* swapChainBufferPtr;
+	HRESULT hr = m_swapChainPtr->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&swapChainBufferPtr);
+	int succInt = swapChainBufferPtr->Release();
 
+	m_dContextPtr->ClearState();
+	HRESULT succ = m_swapChainPtr->ResizeBuffers(0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, 0);
+	assert(SUCCEEDED(succ));*/
+	//m_swapChainPtr->SetFullscreenState(TRUE, nullptr);
 }
 
 void Renderer::rasterizerSetup()
@@ -1184,15 +1431,82 @@ void Renderer::rasterizerSetup()
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
 
-	
+
+
+	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+
+	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_particleRasterizerStatePtr.GetAddressOf());
+	assert(SUCCEEDED(hr) && "Error creating particleRasterizerState");
 }
 
 void Renderer::update(const float& dt)
 {
-	if (ImGui::Button("Toggle FrustumCulling"))
+	if (DEBUGMODE)
 	{
-		m_frustumCullingOn = !m_frustumCullingOn;
+		if (ImGui::Button("Toggle FrustumCulling"))
+		{
+			m_camera->frustumCullingOn = !m_camera->frustumCullingOn;
+		}
+
+		if (ImGui::Button("Switch Camera"))
+		{
+			m_switchCamera = !m_switchCamera;
+		}
+
 	}
+
+
+	// Constant buffer updates and settings
+	static globalConstBuffer globalConstBufferTemp;
+	static atmosphericFogConstBuffer fogConstBufferTemp;
+	static lightBufferStruct lightBufferTemp;
+
+	static float tempSunDirectionX = 0.0f;
+	static float tempSunDirectionY = -1.0f;
+	static float tempSunDirectionZ = 1.0f;
+
+	if (DEBUGMODE)
+	{
+		ImGui::SetNextWindowPos(ImVec2(1300.0f, 200.0f));
+		ImGui::SetNextWindowSize(ImVec2(550.0f, 500.0f));
+		ImGui::Begin("Global Shader Settings");
+
+		ImGui::Text("");
+		ImGui::Text("Directional Light");
+		ImGui::SliderFloat("Intensity", (float*)&lightBufferTemp.skyLight.brightness, 0.0f, 100.0f);
+		ImGui::SliderFloat("Sun direction X", (float*)&tempSunDirectionX, -1.0f, 1.0f);
+		ImGui::SliderFloat("Sun direction Y", (float*)&tempSunDirectionY, -1.0f, 1.0f);
+		ImGui::SliderFloat("Sun direction Z", (float*)&tempSunDirectionZ, -1.0f, 1.0f);
+		ImGui::ColorEdit3("Color:", (float*)&lightBufferTemp.skyLight.color);
+
+		ImGui::Text("");
+		ImGui::Text("Atmospheric Fog Settings");
+		ImGui::ColorEdit3("Color", (float*)&fogConstBufferTemp.FogColor);
+		ImGui::SliderFloat("Start depth", (float*)&fogConstBufferTemp.FogStartDepth, 0.0f, 100.0f);
+		ImGui::SliderFloat("Start depth (Skybox)", (float*)&fogConstBufferTemp.FogStartDepthSkybox, 0.0f, 100.0f);
+		ImGui::ColorEdit3("Highlight color", (float*)&fogConstBufferTemp.FogHighlightColor);
+		ImGui::SliderFloat("Global Density", (float*)&fogConstBufferTemp.FogGlobalDensity, 0.0f, 0.5f);
+		ImGui::SliderFloat("Height falloff", (float*)&fogConstBufferTemp.FogHeightFalloff, 0.0f, 100.0f);
+		ImGui::Text("Cloud Fog");
+		ImGui::SliderFloat("Start", (float*)&fogConstBufferTemp.cloudFogHeightStart, -100.0f, 100.0f);
+		ImGui::SliderFloat("End", (float*)&fogConstBufferTemp.cloudFogHeightEnd, -100.0f, 100.0f);
+		ImGui::SliderFloat("Strength", (float*)&fogConstBufferTemp.cloudFogStrength, 0.0f, 1.0f);
+		ImGui::ColorEdit3("Cloud Fog Color", (float*)&fogConstBufferTemp.cloudFogColor);
+
+		ImGui::End();
+	}
+
+
+	// Misc updates
+	lightBufferTemp.skyLight.direction = { tempSunDirectionX, tempSunDirectionY, tempSunDirectionZ };
+	fogConstBufferTemp.FogSunDir = lightBufferTemp.skyLight.direction;
+	globalConstBufferTemp.time += dt;
+
+	m_globalConstBuffer.updateBuffer(m_dContextPtr.Get(), &globalConstBufferTemp);
+	m_atmosphericFogConstBuffer.updateBuffer(m_dContextPtr.Get(), &fogConstBufferTemp);
+	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &lightBufferTemp);
+
+	Engine::get().setSkyLightDir({ tempSunDirectionX, tempSunDirectionY, tempSunDirectionZ, 0 });
 }
 
 void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
@@ -1206,7 +1520,9 @@ void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* h
 
 void Renderer::render()
 {
-	
+	//m_deferredContext->ExecuteCommandList();
+	m_dContextPtr->ExecuteCommandList(ResourceHandler::get().m_commandList, TRUE);
+
 	//Update camera position for pixel shader buffer
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
@@ -1249,12 +1565,16 @@ void Renderer::render()
 	// Mesh WVP buffer, needs to be set every frame bacause of SpriteBatch(GUIHandler)
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 
+
 	//Calculate the frumstum required
-	BoundingFrustum frust;
+	BoundingFrustum frust = m_camera->getFrustum();
+	frust.Origin = Vector3(m_camera->getPosition());
+	frust.Orientation = m_camera->getFloat4Rotation();
 	XMMATRIX world, wvp;
-	world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition());
-	wvp = world * V * P;
-	BoundingFrustum::CreateFromMatrix(frust, wvp);
+	//world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition());
+	//world = XMMatrixScalingFromVector({1, 1, 1 }) * XMMatrixRotationQuaternion(XMQuaternionRotationRollPitchYawFromVector(m_camera->getRotation())) * XMMatrixTranslationFromVector(m_camera->getPosition());
+	//wvp = world * P;
+
 
 	//Run the shadow pass before everything else
 	m_dContextPtr->VSSetConstantBuffers(3, 1, m_shadowConstantBuffer.GetAddressOf());
@@ -1279,8 +1599,21 @@ void Renderer::render()
 
 	// SSAO Blur
 	ssaoBlurPass();
+	
+	//Run ZPreePass
+	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
+	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
+	if(USE_Z_PRE_PASS)
+	{
+		this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStateCompLessPtr.Get(), NULL);
+		ID3D11RenderTargetView* nullRenderTargetsTwo[2] = { 0 };
+		m_dContextPtr->OMSetRenderTargets(2, nullRenderTargetsTwo, m_depthStencilViewPtr.Get());
+		this->zPrePass(&frust, &wvp, &V, &P);
+	}
 
 	//Run ordinary pass
+	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
 	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 
 	renderScene(&frust, &wvp, &V, &P);
@@ -1290,6 +1623,7 @@ void Renderer::render()
 
 
 	//Particles
+	m_dContextPtr->RSSetState(m_particleRasterizerStatePtr.Get());
 	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
 	//Draw all particles here
 	//this->particle.draw(this->m_dContextPtr.Get());
@@ -1304,18 +1638,22 @@ void Renderer::render()
 			static_cast<ParticleComponent*>(vec[i])->draw(m_dContextPtr.Get());
 		}
 	}
+	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
 	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
 
-	ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
-	ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
-	ImGui::End();
+	if (DEBUGMODE)
+	{
+		ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+		ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
+		ImGui::End();
+	}
 
 	// Bloom Filter
 	downSamplePass();
 	blurPass();
 
-	
+	drawBoundingVolumes();
 
 	// GUI
 	GUIHandler::get().render();
@@ -1324,7 +1662,8 @@ void Renderer::render()
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-	m_swapChainPtr->Present(1, 0);
+
+	m_swapChainPtr->Present(0, 0);
 }
 
 ID3D11Device* Renderer::getDevice()
@@ -1335,6 +1674,11 @@ ID3D11Device* Renderer::getDevice()
 ID3D11DeviceContext* Renderer::getDContext()
 {
 	return m_dContextPtr.Get();
+}
+
+ID3D11DeviceContext* Renderer::getDeferredDContext()
+{
+	return m_deferredContext.Get();
 }
 
 ID3D11DepthStencilView* Renderer::getDepthStencilView()

@@ -22,6 +22,14 @@ private:
 
 	float m_frameRate = 0;
 
+
+	PerformanceTester() {
+		m_internalTimer.start();
+	};
+
+	std::vector<float> fps;
+
+public:
 	float checkRam()
 	{
 		HANDLE hProcess = GetCurrentProcess();
@@ -70,16 +78,10 @@ private:
 		return vram;
 	}
 
-	PerformanceTester() {
-		m_internalTimer.start();
-	};
-
-	std::vector<float> fps;
-
-public:
 	static PerformanceTester& get()
 	{
 		static PerformanceTester instance;
+	
 		return instance;
 	}
 
@@ -98,7 +100,7 @@ public:
 		float vram = checkVram();
 		float ram = checkRam();
 		
-		ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
+		ImGui::SetNextWindowPos(ImVec2(500.f, 0.f));
 		ImGui::SetNextWindowSize(ImVec2(250.f, 60.f));
 
 		double time = m_internalTimer.timeElapsed();

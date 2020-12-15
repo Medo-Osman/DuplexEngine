@@ -417,3 +417,15 @@ FodyWeavers.xsd
 
 
 StortSpel/res/models/highPolyTestSpider_highPolyTestSpider1.lrm
+/StortSpel/res/textures/uncheckedBoxHover.png
+/StortSpel/res/textures/uncheckedBox.png
+/StortSpel/res/textures/tutorialBtnHover.png
+/StortSpel/res/textures/tutorialBtn.png
+/StortSpel/res/textures/rightBtnHover.png
+/StortSpel/res/textures/rightBtn.png
+/StortSpel/res/textures/mainmenuBtnHover.png
+/StortSpel/res/textures/mainmenuBtn.png
+/StortSpel/res/textures/leftBtnHover.png
+/StortSpel/res/textures/leftBtn.png
+/StortSpel/res/textures/checkedBoxHover.png
+/StortSpel/res/textures/checkedBox.png

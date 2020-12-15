@@ -21,6 +21,26 @@ __declspec(align(16)) struct cbVSWVPMatrix
     }
 };
 
+
+__declspec(align(16)) struct LineData
+{
+    XMFLOAT3 position;
+    float pad;
+    XMFLOAT3 direction;
+    float paddy;
+
+    void* operator new(size_t i)
+    {
+        return _mm_malloc(i, 16);
+    }
+
+    void operator delete(void* p)
+    {
+        _mm_free(p);
+    }
+};
+
+
 struct perObjectMVP
 {
     XMMATRIX world; //model
@@ -73,6 +93,31 @@ struct CS_BLUR_CBUFFER
     int radius;
     int direction;
     XMFLOAT2 pad;
+};
+
+struct globalConstBuffer
+{
+    Vector3 playerPosition = { 0.0f, 0.0f, 0.0f };
+    float environmentMapBrightness = 1.0f;
+    float time = 1.0f;
+    Vector3 padding;
+};
+
+struct atmosphericFogConstBuffer
+{
+    Vector3 FogColor = { 1.0f, 1.0f, 1.0f };
+    float FogStartDepth = 70.0;
+    Vector3 FogHighlightColor = { 1.0f, 1.0f, 1.0f };
+    float FogGlobalDensity = 0.2f;
+    Vector3 FogSunDir = { 1.0f, 0.0f, 0.0f };
+    float FogHeightFalloff = 2.0f;
+    float FogStartDepthSkybox = 14.0;
+
+    float cloudFogHeightStart = -5.0f;
+    float cloudFogHeightEnd = 10.0f;
+    float cloudFogStrength = 0.7f;
+    Vector3 cloudFogColor = { 1.0f, 1.0f, 1.0f };
+    float padding;
 };
 
 struct SSAO_BUFFER

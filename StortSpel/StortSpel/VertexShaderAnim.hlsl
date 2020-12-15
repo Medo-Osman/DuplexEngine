@@ -18,7 +18,9 @@ struct vs_out
     float3 vNormal : VNORMAL;
     float depth : DEPTH;
 	float3 tangent : TANGENT;
-    float3 bitangent : BITANGENT;
+	float3 bitangent : BITANGENT;
+	float4 worldPos : POSITION;
+	float4 shadowPos : SPOS;
     float4 ssaoPos : SSAOPOS;
 };
 
@@ -35,6 +37,12 @@ cbuffer anim : register(b2)
     float4x4 g_boneMatrixPallet[30]; //Final transfroms for bones
 }
 
+cbuffer shadowMap : register(b3)
+{
+	float4x4 lightViewMatrix;
+	float4x4 lightProjMatrix;
+	float4x4 shadowMatrix;
+};
 
 vs_out main(vs_in input, in uint vID : SV_VertexID)
 {
@@ -66,6 +74,12 @@ vs_out main(vs_in input, in uint vID : SV_VertexID)
 	output.bitangent = blendedBitangent;
 	output.uv = input.uv;
     output.pos = mul(localPosition, wvpMatrix);
+	
+	output.worldPos = mul(localPosition, worldMatrix);
+	
+	output.shadowPos = mul(localPosition, worldMatrix);
+	output.shadowPos = mul(output.shadowPos, lightViewMatrix);
+	output.shadowPos = mul(output.shadowPos, lightProjMatrix);
     output.depth = 1 - output.pos.z;
     output.ssaoPos = mul(localPosition, wvpMatrix);
 
@@ -75,5 +89,5 @@ vs_out main(vs_in input, in uint vID : SV_VertexID)
     //output.hsShadowPos = mul(localPosition, shadowTransform);
 
     
-		return output;
+	return output;
 	}
