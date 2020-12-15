@@ -1019,13 +1019,12 @@ void Renderer::ssaoBlurPass()
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
 	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
 
-	ImGui::Begin("someWindow");
-	ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(512, 288));
+	//ImGui::Begin("someWindow");
+	//ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(512, 288));
 	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(1024, 576));
 	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(256, 256));
 	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(128, 128));
-
-	ImGui::End();
+	//ImGui::End();
 }
 
 void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
