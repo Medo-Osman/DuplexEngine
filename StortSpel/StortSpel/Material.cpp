@@ -43,15 +43,15 @@ Material::Material(std::wstring materialName, bool isPBR)
 	}
 	m_materialId = m_MaterialCache[materialName].MaterialID;
 
-	if (isPBR)
-	{
-		//addTexture(m_currentSkyboxTex.c_str(), true);
-		//addTexture(m_currentSkyboxTex.c_str(), true);
-		addTexture(L"skybox_bluesky_2.dds", true);
-		addTexture(L"skybox_bluesky_2.dds", true);
-		addTexture(L"ibl_brdf_lut.png");
-	}
-	i += 3;
+	//if (isPBR)
+	//{
+	//	//addTexture(m_currentSkyboxTex.c_str(), true);
+	//	//addTexture(m_currentSkyboxTex.c_str(), true);
+	//	addTexture(L"skybox_bluesky_2.dds", true);
+	//	addTexture(L"skybox_bluesky_2.dds", true);
+	//	addTexture(L"ibl_brdf_lut.png");
+	//}
+	//i += 3;
 
 	if (m_MaterialCache[materialName].fileNames.empty())
 	{
@@ -128,6 +128,13 @@ void Material::setMaterial(bool shaderNeedsResource[5], bool shaderNeedsCBuffer[
 
 	if (shaderNeedsResource[ShaderType::Pixel])
 		dContextPtr->PSSetShaderResources(0, (UINT)this->m_textureArray.size(), &this->m_textureArray[0]);
+
+	if (m_isPRB /*&& !pbrIsSet*/)
+	{
+		dContextPtr->PSSetShaderResources(4, (UINT)3, &pbrTextures[0]);
+		pbrIsSet = true;
+	}
+
 	//TODO: check what is already set and if it should be overwritten, maybe might already be in the drivers
 }
 
@@ -148,7 +155,7 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, true);
 	//std::cout << "\tMaterial loaded in: " << loadedTexResource->debugName << std::endl;
 	//loadedTexResource->addRef();
-
+	
 	this->m_textureArray.push_back(loadedTexResource->view);
 	this->m_referencedResources.push_back(loadedTexResource);
 }
@@ -259,9 +266,27 @@ std::wstring Material::getCurrentSkybox()
 	return m_currentSkyboxTex;
 }
 
-void Material::setCurrentSkybox(std::wstring newSkyboxTex)
+void Material::setCurrentSkybox(std::wstring newSkyboxTex, std::wstring newIRTex)
 {
 	m_currentSkyboxTex = newSkyboxTex;
+	pbrIsSet = false;
+
+	if (newIRTex.empty())
+		newIRTex = newSkyboxTex;
+
+	TextureResource* t, *t1,* t2;
+	t  = ResourceHandler::get().loadTexture(newSkyboxTex, true, false);
+	t1 = ResourceHandler::get().loadTexture(newIRTex, true, false);
+	t2 = ResourceHandler::get().loadTexture(L"ibl_brdf_lut.png", true, false);
+	pbrTextures[0] = t->view;
+	pbrTextures[1] = t1->view;
+	pbrTextures[2] = t2->view;
+	//std::cout << "\tMaterial loaded in: " << loadedTexResource->debugName << std::endl;
+	//loadedTexResource->addRef();
+
+	/*this->m_referencedResources.push_back(t);
+	this->m_referencedResources.push_back(t1);
+	this->m_referencedResources.push_back(t2);*/
 }
 
 //void Material::readMaterials()

@@ -33,7 +33,8 @@ private:
 
 	bool m_isPRB;
 	inline static std::wstring m_currentSkyboxTex = L"";
-	inline static ID3D11ShaderResourceView* pbrStuff[3];
+	inline static ID3D11ShaderResourceView* pbrTextures[3];
+	inline static bool pbrIsSet = false;
 
 public:
 
@@ -61,7 +62,7 @@ public:
 	MATERIAL_CONST_BUFFER getMaterialParameters();
 
 	static std::wstring getCurrentSkybox();
-	static void setCurrentSkybox(std::wstring newSkyboxTex);
+	static void setCurrentSkybox(std::wstring newSkyboxTex, std::wstring newIRTex = L"");
 
 	static void readMaterials();
 };

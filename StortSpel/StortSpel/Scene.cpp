@@ -357,7 +357,7 @@ void Scene::addPickup(const Vector3& position, const int tier, std::string name)
 	Vector3 offset = Vector3(0.f, -0.9f, 0.f);
 	pickupPtr->setPosition(position + offset);
 	addComponent(pickupPtr, "itemBox", new MeshComponent("PickupStuffs_ItemBox.lrm", ShaderProgramsEnum::RAINBOW));
-	addComponent(pickupPtr, "speedItem", new MeshComponent(pickupName, ShaderProgramsEnum::DEFAULT, Material({ textureName })));
+	addComponent(pickupPtr, "speedItem", new MeshComponent(pickupName, ShaderProgramsEnum::EMISSIVE, Material({ textureName, textureName })));
 	addComponent(pickupPtr, "pickup", new PickupComponent((PickupType)pickupEnum, tier, 1));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 1, 1, 1 });
 	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
@@ -2518,19 +2518,22 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 	}
 }
 
-void Scene::createSkybox(std::wstring textureName)
+void Scene::createSkybox(std::wstring skyboxTexName, std::wstring specificEnviromentMap, std::wstring iradienceTexName)
 {
+	if (specificEnviromentMap.empty())
+		specificEnviromentMap = skyboxTexName;
+	
 	Entity* skybox = addEntity("SkyBox");
 	skybox->m_canCull = false;
 	if (skybox)
 	{
 		Material skyboxMat;
-		skyboxMat.addTexture(textureName.c_str(), true);
+		skyboxMat.addTexture(skyboxTexName.c_str(), true);
 		addComponent(skybox, "cube", new MeshComponent("skyboxCube.lrm", ShaderProgramsEnum::SKYBOX, skyboxMat));
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 		
-		Material::setCurrentSkybox(textureName);
+		Material::setCurrentSkybox(specificEnviromentMap, iradienceTexName);
 	}
 }
 
