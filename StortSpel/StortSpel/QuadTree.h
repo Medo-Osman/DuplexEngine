@@ -241,11 +241,14 @@ public:
 	}
 	void partition(std::unordered_map<std::string, Entity*>& entityMap)
 	{
+		if (!USE_QUADTREE) return;
+
 		std::vector<Entity*> tempEntityVec; 
 		Vector3 min = XMVectorSet(99999, 99999, 99999, 1), max = XMVectorSet(-99999, -99999, -99999, 1);
 		//Calculate min/max and set them
 		for (auto& entityItterator : entityMap) {
 			Entity* entity = entityItterator.second;
+
 
 			PhysicsComponent* physComp = dynamic_cast<PhysicsComponent*>(entity->getComponent("physics"));
 			if (physComp && physComp->isStatic()) //We only wanna keep static s****.

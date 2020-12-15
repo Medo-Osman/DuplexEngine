@@ -63,9 +63,6 @@ void Renderer::drawBoundingVolumes()
 	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 
-	m_compiledShaders[ShaderProgramsEnum::PBRTEST]->setShaders();
-	m_currentSetShaderProg = ShaderProgramsEnum::PBRTEST;
-
 	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
 	m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
 	m_dContextPtr->PSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
@@ -75,6 +72,37 @@ void Renderer::drawBoundingVolumes()
 
 }
 
+
+bool preformCullOnMeshComponent(BoundingFrustum* frust ,MeshComponent* meshComponent, Entity* parentEntity)
+{
+	bool draw = true;
+	XMFLOAT3 min, max;
+	Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
+	XMVECTOR pos = parentEntity->getTranslation();
+	pos += meshComponent->getTranslation();
+	pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
+	XMFLOAT3 posFloat3;
+	XMStoreFloat3(&posFloat3, pos);
+
+	if (frust->Contains(pos) != ContainmentType::CONTAINS)
+	{
+		meshComponent->getMeshResourcePtr()->getMinMax(min, max);
+		XMFLOAT3 ext = (max - min) / 2;
+		ext = ext * scale;
+		XMFLOAT4 rot = parentEntity->getRotation() * meshComponent->getRotation();
+		BoundingOrientedBox box(posFloat3, ext, rot);
+
+		ContainmentType contType = frust->Contains(box);
+		draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+	}
+	else
+	{
+		draw = true;
+	}
+
+
+	return draw;
+}
 
 void Renderer::renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
 {
@@ -103,43 +131,13 @@ void Renderer::renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 			else
 				parentEntity = (*Engine::get().getEntityMap())[meshComponent->getParentEntityIdentifier()];
 
+
 			// >>>>>>>>>>>>>>>>>>>>> Step 2: Cull all meshes not seen
 			bool meshIsInsideFrustrum = true;
-			if (m_camera->frustumCullingOn && parentEntity->m_canCull)
+			if (m_camera->frustumCullingOn && parentEntity->m_canCull && USE_FRUSTUM_CULLING)
 			{
-				// ----------------- Step 2.1: Get position & scaling of mesh
-				Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
-				XMVECTOR pos =  parentEntity->getTranslation();
-						 pos += meshComponent->getTranslation();
-						 pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
-						 pos =  XMVector3Transform(pos, *V);
-				XMFLOAT3 posFloat3;
-				XMStoreFloat3(&posFloat3, pos);
-
-				// ----------------- Step 2.2: Check if the center of the mesh is outside the frustrum
-				if (frust->Contains(pos) != ContainmentType::CONTAINS)
-				{
-					// ------------- Step 2.21: Get the extents of the mesh
-					XMFLOAT3 min, max;
-					meshComponent->getMeshResourcePtr()->getMinMax(min, max);
-					XMFLOAT3 ext = (max - min);
-					ext = ext * scale;
-					XMFLOAT4 rot = parentEntity->getRotation();
-
-					// ------------- Step 2.22: Create a box around the mes using the extents
-					BoundingOrientedBox box(posFloat3, ext, rot);
-					ContainmentType contType = frust->Contains(box);
-
-					// ------------- Step 2.23: Check if the box is inside/outside the frustrum
-					meshIsInsideFrustrum = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
-				}
-				// ----------------- Step 2.3: Check if the mesh is inside the frustrum
-				else
-				{
-					meshIsInsideFrustrum = true;
-				}
+				meshIsInsideFrustrum = preformCullOnMeshComponent(frust, meshComponent, parentEntity);
 			}
-			meshIsInsideFrustrum = true;
 
 			// >>>>>>>>>>>>>>>>>>>>> Step 3: Finalize mesh for drawing
 			if (meshIsInsideFrustrum && meshComponent->isVisible())
@@ -804,6 +802,7 @@ void Renderer::zPrePassRenderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp
 	bool isAnim = false;
 	// Get Entity map from Engine
 	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+	MeshComponent* meshComp = dynamic_cast<MeshComponent*>(meshComponent);
 	XMFLOAT3 min, max;
 	Entity* parentEntity;
 
@@ -817,32 +816,9 @@ void Renderer::zPrePassRenderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp
 
 	if (m_camera->frustumCullingOn && parentEntity->m_canCull && USE_FRUSTUM_CULLING && useFrustumCullingParam)
 	{
-		//Culling
-		Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
-		XMVECTOR pos = parentEntity->getTranslation();
-		pos += meshComponent->getTranslation();
-		pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
-		XMFLOAT3 posFloat3;
-		XMStoreFloat3(&posFloat3, pos);
-		
-		if (frust->Contains(pos) != ContainmentType::CONTAINS)
-		{
-			meshComponent->getMeshResourcePtr()->getMinMax(min, max);
-			XMFLOAT3 ext = (max - min) / 2;
-			ext = ext * scale;
-			XMFLOAT4 rot = parentEntity->getRotation() * meshComponent->getRotation();
-			BoundingOrientedBox box(posFloat3, ext, rot);
-
-			ContainmentType contType = frust->Contains(box);
-			draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
-		}
-		else
-		{
-			draw = true;
-		}
+		draw = preformCullOnMeshComponent(frust, meshComponent, parentEntity);
 	}
 
-	MeshComponent* meshComp = dynamic_cast<MeshComponent*>(meshComponent);
 	if (draw && meshComp->isVisible())
 	{
 
@@ -872,7 +848,7 @@ void Renderer::zPrePassRenderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp
 		{
 			ShaderProgramsEnum meshShaderEnum = isAnim ? ShaderProgramsEnum::Z_PRE_PASS_ANIM : ShaderProgramsEnum::Z_PRE_PASS;
 			ShaderProgramsEnum shaderProgEnum = meshComponent->getShaderProgEnum(mat);
-			if (shaderProgEnum == ShaderProgramsEnum::SKYBOX || shaderProgEnum == ShaderProgramsEnum::CLOUD || shaderProgEnum == ShaderProgramsEnum::LUCY_FACE)
+			if (shaderProgEnum == ShaderProgramsEnum::SKYBOX || shaderProgEnum == ShaderProgramsEnum::CLOUD || shaderProgEnum == ShaderProgramsEnum::LUCY_FACE || shaderProgEnum == ShaderProgramsEnum::RAINBOW)
 				continue;
 
 			if (m_currentSetShaderProg != meshShaderEnum)
@@ -904,6 +880,12 @@ void Renderer::zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMA
 	//	this->zPrePassRenderMeshComponent(frust, wvp, V, P, component.second, true);
 	//}
 
+	for (auto& meshComponent : *Engine::get().getShadowPassDrawCallsPtr())
+	{
+
+		this->zPrePassRenderMeshComponent(frust, wvp, V, P, meshComponent, true);
+		
+	}
 
 	for (auto& meshComponent : meshComponentsFromQuadTree)
 	{
@@ -928,38 +910,15 @@ void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATR
 		parentEntity = (*entityMap)[meshComponent->getParentEntityIdentifier()];
 
 
+
 	if (m_camera->frustumCullingOn && parentEntity->m_canCull && USE_FRUSTUM_CULLING && useFrustumCullingParam)
 	{
-		//Culling
-		Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
-		XMVECTOR pos = parentEntity->getTranslation();
-		pos += meshComponent->getTranslation();
-		pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
-		XMFLOAT3 posFloat3;
-		XMStoreFloat3(&posFloat3, pos);
-
-		if (frust->Contains(pos) != ContainmentType::CONTAINS)
-		{
-			meshComponent->getMeshResourcePtr()->getMinMax(min, max);
-			XMFLOAT3 ext = (max - min) / 2;
-			ext = ext * scale;
-			XMFLOAT4 rot = parentEntity->getRotation() * meshComponent->getRotation();
-			BoundingOrientedBox box(posFloat3, ext, rot);
-
-			ContainmentType contType = frust->Contains(box);
-			draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
-		}
-		else
-		{
-			draw = true;
-		}
+		draw = preformCullOnMeshComponent(frust, meshComponent, parentEntity);
 	}
 
 	MeshComponent* meshComp = dynamic_cast<MeshComponent*>(meshComponent);
 	if (draw && meshComp->isVisible())
 	{
-		
-
 		perObjectMVP constantBufferPerObjectStruct;
 		meshComponent->getMeshResourcePtr()->set(m_dContextPtr.Get());
 		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_switchCamera ? m_testCamera.getProjectionMatrix() : m_camera->getProjectionMatrix());
@@ -981,7 +940,6 @@ void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATR
 		for (int mat = 0; mat < materialCount; mat++)
 		{
 			ShaderProgramsEnum meshShaderEnum = meshComponent->getShaderProgEnum(mat);
-
 			if (m_currentSetShaderProg != meshShaderEnum)
 			{
 				m_compiledShaders[meshShaderEnum]->setShaders();
@@ -994,46 +952,22 @@ void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATR
 				meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
 				m_currentSetMaterialId = meshMatPtr->getMaterialId();
 
-				int materialCount = meshComponent->getMeshResourcePtr()->getMaterialCount();
-				
-				for (int mat = 0; mat < materialCount; mat++)
-				{
-					ShaderProgramsEnum meshShaderEnum = meshComponent->getShaderProgEnum(mat);
-					if (m_currentSetShaderProg != meshShaderEnum)
-					{
-						m_compiledShaders[meshShaderEnum]->setShaders();
-						m_currentSetShaderProg = meshShaderEnum;
-					}
+				MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+				currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+				currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+				currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+				currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+				currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
 
-					Material* meshMatPtr = meshComponent->getMaterialPtr(mat);
-					if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
-					{
-						meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
-						m_currentSetMaterialId = meshMatPtr->getMaterialId();
-
-						MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
-						currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
-						currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
-						currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
-						currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
-						currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
-
-						m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
-					}
-					m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
-
-					std::pair<std::uint32_t, std::uint32_t> offsetAndSize = meshComponent->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
-
-					m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
-				}
+				m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 			}
 			m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 
 			std::pair<std::uint32_t, std::uint32_t> offsetAndSize = meshComponent->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
 
 			m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
-			m_drawn++;
 		}
+			m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 	}
 }
 
@@ -1041,11 +975,12 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 {
 	m_drawn = 0;
 
-	//for (auto& component : *Engine::get().getMeshComponentMap())
-	//{
-	//	renderMeshComponent(frust, wvp, V, P, component.second, true);
-	//}
+	for (auto& meshComponent : *Engine::get().getShadowPassDrawCallsPtr())
+	{
 
+		this->renderMeshComponent(frust, wvp, V, P, meshComponent, true);
+
+	}
 
 	for (auto& meshComponent : meshComponentsFromQuadTree)
 	{
@@ -1371,10 +1306,10 @@ void Renderer::render()
 	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
 	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 
-	renderScene(&frust, &W, &V, &P, meshCompVec);
+	
+	USE_QUADTREE ? renderScene(&frust, &W, &V, &P, meshCompVec) : renderSortedScene(&frust, &W, &V, &P); //If we use quadTree we use render scene otherwise we use sorted scene.
 
 	//renderScene(&frust, &wvp, &V, &P);
-	renderSortedScene(&frust, &W, &V, &P);
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
 	m_dContextPtr->PSSetShaderResources(0, 1, srv);

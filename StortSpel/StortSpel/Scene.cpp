@@ -58,17 +58,16 @@ void Scene::removeMeshFromDrawCallList(MeshComponent* meshComp)
 
 void Scene::removeMeshFromShadowPassDrawCallList(MeshComponent* meshComp)
 {
-	int indexToPop = 0;
+	int indexToPop = -1;
 
-	for (int i = 0; i < m_shadowPassDrawCalls.size(); i++)
+	for (int i = 0; i < m_shadowPassDrawCalls.size() && indexToPop == -1; i++)
 	{
 		if (m_shadowPassDrawCalls.at(i) == meshComp)
 		{
 			indexToPop = i;
-			i = m_shadowPassDrawCalls.size();
+			m_shadowPassDrawCalls.erase(m_shadowPassDrawCalls.begin() + i);
 		}
 	}
-	m_shadowPassDrawCalls.erase(m_shadowPassDrawCalls.begin() + indexToPop);
 }
 
 void Scene::clearDrawCallList()
@@ -272,8 +271,9 @@ void Scene::removeQuadTreeMeshComponentsFromMeshComponentMap(Scene* sceneObject)
 	sceneObject->m_quadTree->getAllMeshComponents(quadTreeMeshComponents);
 	for (int i = 0; i < quadTreeMeshComponents.size(); i++)
 	{
-		sceneObject->removeMeshFromDrawCallList(quadTreeMeshComponents.at(i));
+		sceneObject->removeMeshFromShadowPassDrawCallList(quadTreeMeshComponents.at(i));
 	}
+
 }
 
 void Scene::createQuadTree(Scene* sceneObject)
@@ -2204,13 +2204,15 @@ Entity* Scene::addEntity(std::string identifier)
 
 void Scene::removeEntity(std::string identifier)
 {
-	
+
 	std::vector<Component*> meshCompVec;
 	m_entities[identifier]->getComponentsOfType(meshCompVec,ComponentType::MESH);
 	for (auto meshComponent : meshCompVec)
 	{
 		MeshComponent* meshComp = static_cast<MeshComponent*>(meshComponent);
-		removeMeshFromDrawCallList(meshComp);
+		if(!USE_QUADTREE)
+			removeMeshFromDrawCallList(meshComp);
+
 		removeMeshFromShadowPassDrawCallList(meshComp);
 		m_entities[identifier]->removeComponent(meshComponent);
 	}
@@ -2244,7 +2246,9 @@ bool Scene::addComponent(Entity* entity, std::string componentIdentifier, Compon
 void Scene::addMeshComponent(MeshComponent* component)
 {
 	//component->setRenderId(++m_meshCount);
-	addMeshToDrawCallList(component);
+	if(!USE_QUADTREE)
+		addMeshToDrawCallList(component);
+
 	m_shadowPassDrawCalls.push_back(component);
 }
 
