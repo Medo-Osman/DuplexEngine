@@ -2480,7 +2480,7 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 	if (hammerFrame)
 	{
 		addComponent(hammerFrame, "mesh",
-			new MeshComponent("Hammer_Frame_pCube7.lrm", Material({ L"DarkGrayTexture.png" })));
+			new MeshComponent("Hammer_Frame_pCube7.lrm", PBRTEST, Material(L"HammerFrame", true)));
 		
 		hammerFrame->setPosition(position.x, position.y + 2.72f, position.z);
 		hammerFrame->setRotation(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
@@ -2494,7 +2494,7 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 	if (hammer)
 	{
 		addComponent(hammer, "mesh",
-			new MeshComponent("Hammer_pCylinder3.lrm", Material({ L"DarkGrayTexture.png" })));
+			new MeshComponent("Hammer_pCylinder3.lrm", PBRTEST, Material(L"Hammer", true)));
 
 
 		hammer->setPosition({ position.x, position.y + 3.5f + 2.72f, position.z });
