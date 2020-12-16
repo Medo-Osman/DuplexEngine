@@ -854,26 +854,15 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 	//	sceneObject->createNewPhysicsComponent(PearlTest, false, "", PxGeometryType::eSPHERE, "earth", false);
 	//}
 
-	Engine* engine = &Engine::get();
-	
-	switch (engine->getTimeOfDay())
-	{
-	case DAY:
-		sceneObject->createSkybox(L"Skyway_Day_CM.dds", L"Skyway_Day_RF.dds", L"Skyway_Day_IR.dds");
-		break;
-	case NIGHT:
-		sceneObject->createSkybox(L"Skyway_Night_CM.dds", L"Skyway_Night_RF.dds", L"Skyway_Night_IR.dds");
-		break;
-	case SUNSET:
-		sceneObject->createSkybox(L"Skyway_Sunset_CM.dds", L"Skyway_Sunset_RF.dds", L"Skyway_Sunset_IR.dds");
-		break;
-	default:
-		break;
-	}
-
-	sceneObject->createSkybox(L"Skyway_Sunset_CM.dds", L"Skyway_Sunset_RF.dds", L"Skyway_Sunset_IR.dds");
+	//switch (switch_on)
+	//{
+	//default:
+	//	break;
+	//}
 
 	sceneObject->addCloudBedMesh({ 0, 0, 0 }, "cloudPlane_allParts_cloud_plane", 11);
+	sceneObject->createSkybox(L"Skyway_Sunset_CM.dds", L"Skyway_Sunset_RF.dds", L"Skyway_Sunset_IR.dds");
+	//sceneObject->createSkybox(L"Skyway_Day.dds");
 
 	delete[] levelData;
 	*finished = true; //Inform the main thread that the loading is complete.
@@ -3493,24 +3482,6 @@ void Scene::addCloudBedMesh(Vector3 Position, const char* meshName, int nrOfPart
 			addComponent(testCloudBed, partName, cloudMesh);
 			cloudMesh->setCastsShadow(true);
 		}
-
-		testCloudBed->translate(Position);
-	}
-};
-
-void Scene::addCloudBedMesh2(Vector3 Position, const char* meshName)
-{
-	Entity* testCloudBed = addEntity(meshName);
-	if (testCloudBed)
-	{
-		Material cloudMat;
-
-		cloudMat.setIsPBR(true);
-		cloudMat.addTexture(L"worley_2.dds", false, true);
-
-		MeshComponent* cloudMesh = new MeshComponent(meshName, ShaderProgramsEnum::CLOUD, cloudMat);
-		addComponent(testCloudBed, "cloudMesh", cloudMesh);
-		cloudMesh->setCastsShadow(true);
 
 		testCloudBed->translate(Position);
 	}
