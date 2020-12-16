@@ -25,7 +25,7 @@ cbuffer perModel : register(b0)
     float4x4 wvpMatrix;
 };
 
-cbuffer cbPerFrame : register(b4)
+cbuffer cbPerFrame : register(b7)
 {
     float4x4 viewToTexSpace;
     float4x4 worldInverseTransposeView;
