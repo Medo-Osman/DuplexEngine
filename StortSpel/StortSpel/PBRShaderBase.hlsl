@@ -412,6 +412,7 @@ ps_out main(ps_in input) : SV_TARGET
 	//float yRatio = 1 - remapToRange(yPos, cloudFogHeightStart, cloudFogHeightEnd, 0, 1);
     
 	//output.diffuse = lerp(output.diffuse, float4(cloudFogColor, 1.0), clamp(yRatio, 0, 1) * cloudFogStrength);
+	//output.diffuse = float4(fresnelSchlick(dot(N, V), F0), 1);	
 	
     return output;
 }

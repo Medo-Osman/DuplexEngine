@@ -757,14 +757,14 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 			entity = sceneObject->m_entities[currentSphereName];
 			Material PBRMatUntextured;
 
-			PBRMatUntextured.addTexture(L"T_Missing_D.dds");
-			PBRMatUntextured.addTexture(L"T_Missing_E.dds");
-			PBRMatUntextured.addTexture(L"T_Missing_N.dds");
-			PBRMatUntextured.addTexture(L"T_Missing_ORM.png");
+			//PBRMatUntextured.addTexture(L"T_Missing_D.dds");
+			//PBRMatUntextured.addTexture(L"T_Missing_E.dds");
+			//PBRMatUntextured.addTexture(L"T_Missing_N.dds");
+			//PBRMatUntextured.addTexture(L"T_Missing_ORM.png");
 
-			PBRMatUntextured.addTexture(L"sunset_skybox1_IR.dds");
-			PBRMatUntextured.addTexture(L"sunset_skybox1.dds");
-			PBRMatUntextured.addTexture(L"ibl_brdf_lut.png");
+			//PBRMatUntextured.addTexture(L"sunset_skybox1_IR.dds", true);
+			//PBRMatUntextured.addTexture(L"sunset_skybox1.dds", true);
+			//PBRMatUntextured.addTexture(L"ibl_brdf_lut.png");
 
 			xCounter++;
 
@@ -778,13 +778,16 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 			PBRMatUntextured.setRoughness(xCounter * 0.18 + 0.1);
 			PBRMatUntextured.setTextured(0);
 
-			sceneObject->addComponent(entity, "mesh", new MeshComponent("notHighPolySphere_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMatUntextured));
+			//sceneObject->addComponent(entity, "mesh", new MeshComponent("notHighPolySphere_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PBRMatUntextured));
+			sceneObject->addComponent(entity, "mesh", new MeshComponent("notHighPolySphere_Sphere.lrm", ShaderProgramsEnum::PBRTEST, Material(L"Missing", true)));
 
 			float moveDistance = 2.f;
 			entity->translate({ moveDistance * xCounter - 5.0f, moveDistance * yCounter - 3.f, 0.f });
 			entity->rotate({ -1.5708, 0.f, 0.f });
 		}
 	}
+
+
 
 	XMVECTOR pointLightPositions[4] =
 	{
@@ -818,6 +821,37 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 			dynamic_cast<LightComponent*>(sceneObject->m_entities[currentPointLightName]->getComponent(currentPointLightComponentName))->setIntensity(pointLightIntensities[i]);
 			entity->translate(pointLightPositions[i]);
 		}
+	}
+
+	Entity* PearlTest = sceneObject->addEntity("PearlTest");
+	if (PearlTest)
+	{
+		Material PearlTestMat;
+
+		//Texture2D albedoTexture : TEXTURE: register(t0);
+		//Texture2D emissiveTexture : TEXTURE: register(t1);
+		//Texture2D normalTexture : TEXTURE: register(t2);
+		//Texture2D ORMtexture : TEXTURE: register(t3);
+
+		PearlTestMat.addTexture(L"T_Missing_D.dds", true);
+		PearlTestMat.addTexture(L"T_Missing_E.dds", true);
+		PearlTestMat.addTexture(L"T_Missing_N.dds", true);
+		PearlTestMat.addTexture(L"T_Missing_ORM.png");
+
+		PearlTestMat.addTexture(L"sunset_skybox1_IR_2.dds");
+		PearlTestMat.addTexture(L"sunset_skybox1.dds");
+		PearlTestMat.addTexture(L"ibl_brdf_lut.png");
+
+		PearlTestMat.setTextured(false);
+		PearlTestMat.setBaseColor({ 0.8f, 0.8f, 0.8f });
+		PearlTestMat.setRoughness(1.0f);
+		PearlTestMat.setMetallic(1.0f);
+
+		sceneObject->addComponent(PearlTest, "mesh", new MeshComponent("highPolySphere_Sphere.lrm", ShaderProgramsEnum::PBRTEST, PearlTestMat));
+		PearlTest->scale({ 1.0, 1.0, 1.0 });
+		PearlTest->translate({ 0, 2, 5 });
+		PearlTest->rotate({ (-1.5708), 0.f, 0.f });
+		sceneObject->createNewPhysicsComponent(PearlTest, false, "", PxGeometryType::eSPHERE, "earth", false);
 	}
 
 

@@ -663,6 +663,12 @@
     <FxCompile Include="SSAOPixel.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
+    <FxCompile Include="PearlPS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="PearlVS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

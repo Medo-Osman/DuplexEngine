@@ -1784,6 +1784,11 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(1, nullRenderTargets, nullptr);
 
 	//Run ZPreePass
+	if (m_debugViewMode == 1)
+		m_dContextPtr->RSSetState(m_rasterizerStatePtrWireframe.Get());
+	else
+		m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 	if (USE_Z_PRE_PASS)
@@ -1804,21 +1809,13 @@ void Renderer::render()
 	ssaoBlurPass();
 
 	//Run ordinary pass
-	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
-
-	if (m_debugViewMode == 1)
-		m_dContextPtr->RSSetState(m_rasterizerStatePtrWireframe.Get());
-	else
-		m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
-
 	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
 	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 
 	m_dContextPtr->OMSetBlendState(m_blendStateWithBlendPtr, m_blendFactor, m_sampleMask);
-	renderScene(&frust, &wvp, &V, &P);
-	m_dContextPtr->OMSetBlendState(m_blendStateNoBlendPtr, m_blendFactor, m_sampleMask);
 
-	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+	renderScene(&frust, &wvp, &V, &P);
+	m_dContextPtr->OMSetBlendState(m_blendStateNoBlendPtr, m_blendFactor, m_sampleMask);		
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
 	m_dContextPtr->PSSetShaderResources(0, 1, srv);
