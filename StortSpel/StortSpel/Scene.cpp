@@ -1636,7 +1636,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 					static_cast<ShrinkingComponent*>(platform->getComponent("shrink"))->setDone(true);
 
 					Material emissiveMat({ L"DarkGrayTexture.png", L"BlueEmissive.png" });
-					emissiveMat.setEmissiveStrength(40);
+					emissiveMat.setEmissiveStrength(5);
 					sceneObject->addComponent(platform, "mesh", new MeshComponent("BossPlatform.lrm", 
 						{
 							PBRTEST, // TODO: this was emmisive
@@ -1676,7 +1676,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
 
 			Material emissiveMat({ L"DarkGrayTexture.png", L"RedCrystalEmissive.png" });
-			emissiveMat.setEmissiveStrength(20);
+			emissiveMat.setEmissiveStrength(40);
 
 			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("BossModel_polySurface188.lrm", 
 				{
@@ -1843,7 +1843,7 @@ void Scene::loadBossTestPhaseTwo(Scene* sceneObject, bool* finished)
 			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
 
 			Material emissiveMat({ L"DarkGrayTexture.png", L"RedCrystalEmissive.png" });
-			emissiveMat.setEmissiveStrength(20);
+			emissiveMat.setEmissiveStrength(40);
 
 			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("BossModel_polySurface188.lrm",
 				{
@@ -2333,7 +2333,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 		Entity* boss = m_entities.at("projectileSegment0");
 		MeshComponent* bossMeshComponent = (MeshComponent*)(boss->getComponent("mesh"));
 		Material* bossMaterial = bossMeshComponent->getMaterialPtr(1);
-		bossMaterial->setEmissiveStrength(700);
+		bossMaterial->setEmissiveStrength(40);
 		
 		{
 			Entity* bossEnt = static_cast<Entity*>(data.pointer1);
@@ -2349,7 +2349,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 		Entity* boss = m_entities.at("projectileSegment0");
 		MeshComponent* bossMeshComponent = (MeshComponent*)(boss->getComponent("mesh"));
 		Material* bossMaterial = bossMeshComponent->getMaterialPtr(1);
-		bossMaterial->setEmissiveStrength(20);
+		bossMaterial->setEmissiveStrength(5);
 	}
 
 }
@@ -2695,7 +2695,7 @@ void Scene::createLaser(BossStructures::BossActionData data)
 		laserEntity->setPosition(data.origin - Vector3(0, 1.5f, 0));
 		laserEntity->m_canCull = false;
 		Material mat = Material({ L"red.png", L"red.png" });
-		mat.setEmissiveStrength(700.f);
+		mat.setEmissiveStrength(40.f);
 
 		MeshComponent* mComp = new MeshComponent("Boss_Laser.lrm", EMISSIVE, mat);
 		mComp->setCastsShadow(false);
