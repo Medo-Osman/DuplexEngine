@@ -34,7 +34,7 @@ cbuffer anim : register(b2)
     float4x4 g_boneMatrixPallet[30]; //Final transfroms for bones
 }
 
-cbuffer cbPerFrame : register(b4)
+cbuffer cbPerFrame : register(b7)
 {
     float4x4 viewToTexSpace;
     float4x4 worldInverseTransposeView;

@@ -6,7 +6,9 @@ struct ps_in
 	float2 uv : TEXCOORD;
 	float3 normal : NORMAL;
 	float3 tangent : TANGENT;
-    float3 bitangent : BITANGENT;
+	float3 bitangent : BITANGENT;
+	float4 worldPos : POSITION;
+	float4 shadowPos : SPOS;
     float4 ssaoPos : SSAOPOS;
 };
 

@@ -816,8 +816,8 @@ void Renderer::computeSSAOPass()
 	m_compiledShaders[ShaderProgramsEnum::SSAO_MAP]->setShaders();
 	m_currentSetShaderProg = ShaderProgramsEnum::SSAO_MAP;
 
-	m_dContextPtr->VSSetConstantBuffers(4, 1, m_ssaoBuffer.GetAddressOf());
-	m_dContextPtr->PSSetConstantBuffers(4, 1, m_ssaoBuffer.GetAddressOf());
+	m_dContextPtr->VSSetConstantBuffers(7, 1, m_ssaoBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(7, 1, m_ssaoBuffer.GetAddressOf());
 	m_dContextPtr->PSSetShaderResources(0, 1, m_normalsNDepthSRV.GetAddressOf());
 	m_dContextPtr->PSSetShaderResources(1, 1, m_randomVectorsSRV.GetAddressOf());
 
