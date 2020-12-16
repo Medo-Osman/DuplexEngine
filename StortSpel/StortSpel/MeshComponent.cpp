@@ -100,10 +100,10 @@ MeshComponent::MeshComponent(char* paramData)
 
 	m_visible = readDataFromChar<bool>(paramData, offset);
 
-	for (int i = 0; i < m_materials.size(); i++)
+	/*for (int i = 0; i < m_materials.size(); i++)
 	{
 		m_materials[i].addMaterialRefs();
-	}
+	}*/
 }
 
 MeshComponent::~MeshComponent()
