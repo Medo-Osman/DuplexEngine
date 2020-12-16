@@ -115,7 +115,7 @@ private:
     bool m_rollAnimationAnimChanged = false;
 
     //Cannon Config
-    const float CANNON_POWER = 30;
+    const float CANNON_POWER = 50;
 
 
     // Speed Powerup

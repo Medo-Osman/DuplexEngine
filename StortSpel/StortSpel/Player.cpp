@@ -503,12 +503,24 @@ void Player::playerStateLogic(const float& dt)
 
 		break;
 	case PlayerState::CANNON:
+	{
 		m_controller->setPosition(m_cannonEntity->getTranslation() + Vector3(0.f, 0.5f, 0.f));
 		m_velocity.y = 0;
 
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 
-
+		std::vector<Component*> meshVec;
+		std::vector<Component*> animMeshVec;
+		m_playerEntity->getComponentsOfType(meshVec, ComponentType::MESH);
+		m_playerEntity->getComponentsOfType(animMeshVec, ComponentType::ANIM_MESH);
+		for (int i = 0; i < meshVec.size(); i++)
+		{
+			static_cast<MeshComponent*>(meshVec.at(i))->setVisible(false);
+		}		
+		for (int i = 0; i < animMeshVec.size(); i++)
+		{
+			static_cast<AnimatedMeshComponent*>(animMeshVec.at(i))->setVisible(false);
+		}
 		if (m_shouldFire)
 		{
 			m_state = PlayerState::FLYINGBALL;
@@ -555,8 +567,22 @@ void Player::playerStateLogic(const float& dt)
 			return;
 		}
 		break;
+	}
 	case PlayerState::FLYINGBALL:
+	{
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
+		std::vector<Component*> meshVec;
+		std::vector<Component*> animMeshVec;
+		m_playerEntity->getComponentsOfType(meshVec, ComponentType::MESH);
+		m_playerEntity->getComponentsOfType(animMeshVec, ComponentType::ANIM_MESH);
+		for (int i = 0; i < meshVec.size(); i++)
+		{
+			static_cast<MeshComponent*>(meshVec.at(i))->setVisible(true);
+		}
+		for (int i = 0; i < animMeshVec.size(); i++)
+		{
+			static_cast<AnimatedMeshComponent*>(animMeshVec.at(i))->setVisible(true);
+		}
 		m_direction.y -= CANNON_POWER * dt;
 
 		m_controller->move(m_direction * dt, dt);
@@ -577,6 +603,8 @@ void Player::playerStateLogic(const float& dt)
 		}
 		return;
 		break;
+
+	}
 	default:
 		break;
 	}
