@@ -1565,9 +1565,7 @@ void Renderer::update(const float& dt)
 		{
 			m_switchCamera = !m_switchCamera;
 		}
-
 	}
-
 
 	// Constant buffer updates and settings
 	static atmosphericFogConstBuffer fogConstBufferTemp;
@@ -1873,14 +1871,16 @@ void Renderer::render()
 	blurPass();
 
 	drawBoundingVolumes();
-
+	
 	// GUI
 	GUIHandler::get().render();
 
-	// Render ImGui
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
+	if (DEBUGMODE)
+	{
+		// Render ImGui
+		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	}
 
 	m_swapChainPtr->Present(0, 0);
 }

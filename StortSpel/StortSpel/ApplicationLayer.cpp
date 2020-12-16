@@ -180,14 +180,17 @@ void ApplicationLayer::applicationLoop()
 
 			m_dt *= Renderer::get().getGlobalConstBuffer().globalTimeDilation;
 
-			ImGui_ImplDX11_NewFrame();
-			ImGui_ImplWin32_NewFrame();
-			ImGui::NewFrame();
-			
-			ImGui::Begin("Sleep");
-			if (ImGui::Button("16fps"))
-				m_shouldSleep = !m_shouldSleep;
-			ImGui::End();
+			if (DEBUGMODE)
+			{
+				ImGui_ImplDX11_NewFrame();
+				ImGui_ImplWin32_NewFrame();
+				ImGui::NewFrame();
+
+				ImGui::Begin("Sleep");
+				if (ImGui::Button("16fps"))
+					m_shouldSleep = !m_shouldSleep;
+				ImGui::End();
+			}
 
 			m_input.readBuffers(m_dt);
 			m_physics->update(m_dt);
