@@ -710,7 +710,7 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
 	*/
-
+	/*
 	Entity* MetalBall = sceneObject->addEntity("MetalBall");
 	if (MetalBall)
 	{
@@ -741,7 +741,7 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 		MetalBall->rotate({ (-1.5708), 0.f, 0.f });
 		sceneObject->createNewPhysicsComponent(MetalBall, false, "", PxGeometryType::eSPHERE, "earth", false);
 	}
-
+	*/
 
 
 	//int xCounter = 0;
