@@ -30,47 +30,23 @@ void Renderer::drawBoundingVolumes()
 	//this->m_effect->Apply(m_dContextPtr.Get());
 
 
-<<<<<<< Updated upstream
-	//for (int i = 0; i < (int)m_boundingVolumes.size(); i++)
-	//{
-	//	BoundingVolumeHolder bvh = m_boundingVolumes[i];
-	//	switch (bvh.getBoundingVolumeType())
-	//	{
-	//	case BoundingVolumeTypes::FRUSTUM:
-	//		DX::Draw(m_batch.get(), *(BoundingFrustum*)bvh.getBoundingVolumePtr(), Colors::Red);
-	//		break;
-	//	case BoundingVolumeTypes::BOX:
-	//		DX::Draw(m_batch.get(), *(BoundingBox*)bvh.getBoundingVolumePtr(), Colors::Blue);
-	//		break;
-	//	case BoundingVolumeTypes::ORIENTEDBOX:
-	//	{
-	//		BoundingOrientedBox b = *(BoundingOrientedBox*)bvh.getBoundingVolumePtr();
-	//		DX::Draw(m_batch.get(), b, Colors::Cyan);
-	//		break;
-	//	}
-	//	case BoundingVolumeTypes::SPHERE:
-	//		DX::Draw(m_batch.get(), *(DirectX::BoundingSphere*)bvh.getBoundingVolumePtr(), Colors::Blue);
-	//		break;
-	//	default:
-	//		break;
-	//	}
-=======
-		delete bvh.getBoundingVolumePtr();
-	}
 
-	m_batch->End();
+	//	delete bvh.getBoundingVolumePtr();
+	//}
 
-	m_boundingVolumes.clear();
+	//m_batch->End();
 
-	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
-	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+	//m_boundingVolumes.clear();
 
-	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
-	m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
-	m_dContextPtr->PSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
-	m_dContextPtr->PSSetConstantBuffers(2, 1, m_perObjectConstantBuffer.GetAddressOf());
-	m_dContextPtr->PSSetConstantBuffers(3, 1, m_currentMaterialConstantBuffer.GetAddressOf());
-	m_dContextPtr->PSSetConstantBuffers(5, 1, m_atmosphericFogConstBuffer.GetAddressOf());
+	//this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
+	//m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+
+	//m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
+	//m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
+	//m_dContextPtr->PSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
+	//m_dContextPtr->PSSetConstantBuffers(2, 1, m_perObjectConstantBuffer.GetAddressOf());
+	//m_dContextPtr->PSSetConstantBuffers(3, 1, m_currentMaterialConstantBuffer.GetAddressOf());
+	//m_dContextPtr->PSSetConstantBuffers(5, 1, m_atmosphericFogConstBuffer.GetAddressOf());
 
 }
 
@@ -132,7 +108,6 @@ void Renderer::renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 				parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
 			else
 				parentEntity = (*Engine::get().getEntityMap())[meshComponent->getParentEntityIdentifier()];
->>>>>>> Stashed changes
 
 	//	delete bvh.getBoundingVolumePtr();
 	//}
@@ -1241,9 +1216,6 @@ void Renderer::initRenderQuad()
 
 }
 
-<<<<<<< Updated upstream
-void Renderer::zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
-=======
 void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, DrawCallStruct* drawCallStruct, const bool& useFrustumCullingParam)
 {
 
@@ -1325,7 +1297,6 @@ void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V
 }
 
 void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent, const bool& useFrustumCullingParam)
->>>>>>> Stashed changes
 {
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
@@ -1796,13 +1767,7 @@ void Renderer::render()
 	BoundingFrustum frust = m_camera->getFrustum();
 	frust.Origin = Vector3(m_camera->getPosition());
 	frust.Orientation = m_camera->getFloat4Rotation();
-<<<<<<< Updated upstream
-	XMMATRIX world, wvp;
-	//world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition());
-	//world = XMMatrixScalingFromVector({1, 1, 1 }) * XMMatrixRotationQuaternion(XMQuaternionRotationRollPitchYawFromVector(m_camera->getRotation())) * XMMatrixTranslationFromVector(m_camera->getPosition());
-	//wvp = world * P;
 
-=======
 	
 	QuadTree* quadTree = Engine::get().getQuadTreePtr();
 	std::vector<DrawCallStruct*> drawCalls;
@@ -1832,7 +1797,6 @@ void Renderer::render()
 		}
 		
 	}
->>>>>>> Stashed changes
 
 	if(USE_EXPERIMENTAL_SORTING)
 		std::sort(m_drawCallVector.begin(), m_drawCallVector.end());
@@ -1854,15 +1818,6 @@ void Renderer::render()
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
-<<<<<<< Updated upstream
-	if (USE_Z_PRE_PASS)
-	{
-		this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStateCompLessPtr.Get(), NULL);
-		ID3D11RenderTargetView* nullRenderTargetsTwo[2] = { 0 };
-		m_dContextPtr->OMSetRenderTargets(2, nullRenderTargetsTwo, m_depthStencilViewPtr.Get());
-		this->zPrePass(&frust, &wvp, &V, &P);
-	}
-=======
 
 	//if(USE_Z_PRE_PASS)
 	//{
@@ -1871,7 +1826,6 @@ void Renderer::render()
 	//	m_dContextPtr->OMSetRenderTargets(2, nullRenderTargetsTwo, m_depthStencilViewPtr.Get());
 	//	this->zPrePass(&frust, &W, &V, &P, meshCompVec);
 	//}
->>>>>>> Stashed changes
 
 	// Normals & Depth pass
 	normalsNDepthPass(&frust, &wvp, &V, &P);
@@ -1886,17 +1840,11 @@ void Renderer::render()
 	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
 	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 
-<<<<<<< Updated upstream
-	m_dContextPtr->OMSetBlendState(m_blendStateWithBlendPtr, m_blendFactor, m_sampleMask);
-	renderScene(&frust, &wvp, &V, &P);
-	m_dContextPtr->OMSetBlendState(m_blendStateNoBlendPtr, m_blendFactor, m_sampleMask);
-=======
 	//if (!USE_EXPERIMENTAL_SORTING)
 	//	USE_QUADTREE ? renderScene(&frust, &W, &V, &P, meshCompVec) : renderSortedScene(&frust, &W, &V, &P); //If we use quadTree we use render scene otherwise we use sorted scene.
 	//else
 		renderSceneWithExperimentalSorting(&frust, &W, &V, &P);
 	//renderScene(&frust, &wvp, &V, &P);
->>>>>>> Stashed changes
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
 	m_dContextPtr->PSSetShaderResources(0, 1, srv);

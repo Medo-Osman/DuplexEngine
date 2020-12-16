@@ -8,8 +8,7 @@
 #include"Renderer.h"
 #include"TrampolineComponent.h"
 
-<<<<<<< Updated upstream
-=======
+
 void Scene::addMeshToDrawCallList(MeshComponent* meshComp)
 {
 	for (int i = 0; i < meshComp->getMeshResourcePtr()->getMaterialCount(); i++) // Loop over all materials on the mesh
@@ -85,7 +84,6 @@ void Scene::sortDrawCallList()
 	}
 }
 
->>>>>>> Stashed changes
 Scene::Scene()
 {
 	// Player
@@ -2286,11 +2284,7 @@ std::unordered_map<std::string, LightComponent*>* Scene::getLightMap()
 	return &m_lightComponentMap;
 }
 
-<<<<<<< Updated upstream
-std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMap()
-=======
 std::vector<std::vector<DrawCallStruct>>* Scene::getDrawCallsPtr()
->>>>>>> Stashed changes
 {
 	return &m_meshComponentMap;
 }

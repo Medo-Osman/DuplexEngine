@@ -131,9 +131,7 @@ bool Engine::addComponentToPlayer(std::string componentIdentifier, Component* co
 }
 
 
-<<<<<<< Updated upstream
-std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
-=======
+
 //std::unordered_map<unsigned int long, MeshComponent*>* Engine::getMeshComponentMap()
 //{
 //	return m_meshComponentMap;
@@ -145,7 +143,6 @@ std::vector<std::vector<DrawCallStruct>>* Engine::getDrawCallsPtr()
 }
 
 std::vector<MeshComponent*>* Engine::getShadowPassDrawCallsPtr()
->>>>>>> Stashed changes
 {
 	return m_meshComponentMap;
 }
