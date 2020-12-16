@@ -26,7 +26,7 @@ void SceneManager::initalize(Input* input)
 	//start button
 	btnStyle.position = Vector2(140, 300);
 	btnStyle.scale = Vector2(1, 1);
-	m_multiplayerIndex = GUIHandler::get().addGUIButton(L"singleplayerBtn.png", btnStyle);
+	m_multiplayerIndex = GUIHandler::get().addGUIButton(L"MultiplayerBtn.png", btnStyle);
 
 	startButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_multiplayerIndex));
 	startButton->Attach(this);
@@ -35,21 +35,21 @@ void SceneManager::initalize(Input* input)
 	//start button
 	btnStyle.position = Vector2(140, 100);
 	btnStyle.scale = Vector2(1, 1);
-	m_multiPlayerIndexTwo = GUIHandler::get().addGUIButton(L"2.png", btnStyle);
+	m_multiPlayerIndexTwo = GUIHandler::get().addGUIButton(L"2Btn.png", btnStyle);
 
 	GUIButton* peopleButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_multiPlayerIndexTwo));
 	peopleButton->Attach(this);
 
 	btnStyle.position = Vector2(140, 300);
 	btnStyle.scale = Vector2(1, 1);
-	m_multiPlayerIndexThree = GUIHandler::get().addGUIButton(L"3.png", btnStyle);
+	m_multiPlayerIndexThree = GUIHandler::get().addGUIButton(L"3Btn.png", btnStyle);
 
 	peopleButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_multiPlayerIndexThree));
 	peopleButton->Attach(this);
 
 	btnStyle.position = Vector2(140, 500);
 	btnStyle.scale = Vector2(1, 1);
-	m_multiPlayerIndexFour = GUIHandler::get().addGUIButton(L"4.png", btnStyle);
+	m_multiPlayerIndexFour = GUIHandler::get().addGUIButton(L"4Btn.png", btnStyle);
 
 	peopleButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_multiPlayerIndexFour));
 	peopleButton->Attach(this);
@@ -674,9 +674,21 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		{
 			button->setTexture(L"singleplayerBtnHover.png");
 		}
+		if (guiElement->m_index == m_multiPlayerIndexTwo)
+		{
+			button->setTexture(L"2BtnHover.png");
+		}
+		if (guiElement->m_index == m_multiPlayerIndexThree)
+		{
+			button->setTexture(L"3BtnHover.png");
+		}
+		if (guiElement->m_index == m_multiPlayerIndexFour)
+		{
+			button->setTexture(L"4BtnHover.png");
+		}
 		if (guiElement->m_index == m_multiplayerIndex)
 		{
-			button->setTexture(L"singleplayerBtnHover.png");
+			button->setTexture(L"MultiplayerBtnHover.png");
 		}
 		if (guiElement->m_index == m_tutorialIndex)
 		{
@@ -752,7 +764,19 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		}
 		if (guiElement->m_index == m_multiplayerIndex)
 		{
-			button->setTexture(L"singleplayerBtn.png");
+			button->setTexture(L"MultiplayerBtn.png");
+		}
+		if (guiElement->m_index == m_multiPlayerIndexTwo)
+		{
+			button->setTexture(L"2Btn.png");
+		}
+		if (guiElement->m_index == m_multiPlayerIndexThree)
+		{
+			button->setTexture(L"3Btn.png");
+		}
+		if (guiElement->m_index == m_multiPlayerIndexFour)
+		{
+			button->setTexture(L"4Btn.png");
 		}
 		if (guiElement->m_index == m_tutorialIndex)
 		{
