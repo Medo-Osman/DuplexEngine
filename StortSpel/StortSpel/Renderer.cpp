@@ -1592,6 +1592,7 @@ void Renderer::renderSceneWithExperimentalSorting(BoundingFrustum* frust, XMMATR
 	for (auto& drawCall : m_drawCallVector)
 	{
 		renderDrawCall(frust, wvp, V, P, drawCall.second, false);
+		delete drawCall.second;
 	}
 		
 	m_drawCallVector.clear();
@@ -1883,28 +1884,30 @@ void Renderer::render()
 
 	
 	QuadTree* quadTree = Engine::get().getQuadTreePtr();
-	std::vector<DrawCallStruct*> drawCalls;
+	std::unordered_map<std::string, Entity*>* entityMapPtr = Engine::get().getEntityMap();
+//	std::vector<DrawCallStruct*> drawCalls;
+	std::vector<MeshComponent*> meshCompVec;
 	if (quadTree)
 	{
-		quadTree->getRenderList(&frust, drawCalls, m_boundingVolumes);
+		quadTree->getRenderList(&frust, meshCompVec, m_boundingVolumes);
 		if (USE_EXPERIMENTAL_SORTING)
 		{
-			for (int i = 0; i < (int)drawCalls.size(); i++)
+			for (int i = 0; i < (int)meshCompVec.size(); i++)
 			{
-				DrawCallStruct* dcs = drawCalls.at(i);
-				MeshComponent* mComp = drawCalls.at(i)->mesh;
-
-				ShaderProgramsEnum shaderProg = dcs->mesh->getShaderProgEnum(dcs->material_IDX);
-				DrawCallStruct* dStruct = dcs;
-				Vector3 meshPos = static_cast<Entity*>(dcs->entity)->getTranslation();
-				Vector3 dist = meshPos - Vector3(m_camera->getPosition());
-				unsigned int val = 0;
-				drawInt dInt;
-				dInt.dist = dist.Length();
-				dInt.id = (unsigned int)shaderProg;
-				UINT64 poo = (dInt.dist << 24 | dInt.id * 100);
-				m_drawCallVector.push_back(std::make_pair((unsigned int)(dInt.dist | dInt.id), dStruct));
-
+				MeshComponent* mComp = meshCompVec.at(i);
+				Entity* entity = entityMapPtr->at(mComp->getParentEntityIdentifier());
+				int nrOfMaterials = mComp->getMeshResourcePtr()->getMaterialCount();
+				for (int j = 0; j < nrOfMaterials; j++)
+				{
+					DrawCallStruct* dStruct = new DrawCallStruct(mComp, j, entity);
+					Vector3 meshPos = entity->getTranslation();
+					Vector3 dist = meshPos - Vector3(m_camera->getPosition());
+					unsigned int val = 0;
+					drawInt dInt;
+					dInt.dist = dist.Length();
+					dInt.id = (unsigned int)mComp->getShaderProgEnum(j);
+					m_drawCallVector.push_back(std::make_pair((unsigned int)(dInt.dist | dInt.id), dStruct));
+				}
 				
 			}
 		}
@@ -1932,7 +1935,6 @@ void Renderer::render()
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 
-	std::vector<MeshComponent*> meshCompVec;
 
 	if(USE_Z_PRE_PASS)
 	{

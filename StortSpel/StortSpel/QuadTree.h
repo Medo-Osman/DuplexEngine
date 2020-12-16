@@ -4,7 +4,6 @@
 #include"MeshComponent.h"
 #include"BoundingVolumeHolder.h"
 #include"OptimizationConfiguration.h"
-#include"DrawCallStructFile.h"
 
 class QuadTree
 {
@@ -15,8 +14,7 @@ private:
 	Vector3 m_minPos;
 	const bool addBoundingBoxes = false;
 
-
-	std::vector<DrawCallStruct*> m_drawCallStructs;
+	std::vector<Entity*> m_entities;
 
 	QuadTree* m_topLeftQuad;
 	QuadTree* m_topRightQuad;
@@ -28,10 +26,10 @@ private:
 		BoundingBox bigBoundingB;
 		bigBoundingB.Center = (min + max) * 0.5f;
 		bigBoundingB.Extents = (max - min) * 0.5f;
-		if(bigBoundingB.Contains(bb) == ContainmentType::CONTAINS )
-		//if (center.x > min.x && center.x < max.x
-		//	&& center.y > min.y && center.y < max.y
-		//	&& center.z > min.z && center.z < max.z)
+		if (bigBoundingB.Contains(bb) == ContainmentType::CONTAINS)
+			//if (center.x > min.x && center.x < max.x
+			//	&& center.y > min.y && center.y < max.y
+			//	&& center.z > min.z && center.z < max.z)
 		{
 			isInsideQuad = true;
 		}
@@ -40,16 +38,16 @@ private:
 	}
 
 
-	void partition(const XMFLOAT3& minPos, const XMFLOAT3& maxPos, const std::vector<DrawCallStruct*>& drawCallStructVector)
+	void partition(const XMFLOAT3& minPos, const XMFLOAT3& maxPos, const std::vector<Entity*>& entitys)
 	{
 		if (!USE_QUADTREE) return;
 		int totalNrOfVerticies = 0;
 
-		for (int i = 0; i < (int)drawCallStructVector.size(); i++)
+		for (int i = 0; i < (int)entitys.size(); i++)
 		{
 
 			std::vector<Component*>  meshCompVec;
-			drawCallStructVector.at(i)->entity->getComponentsOfType(meshCompVec, ComponentType::MESH);
+			entitys.at(i)->getComponentsOfType(meshCompVec, ComponentType::MESH);
 
 			for (int j = 0; j < meshCompVec.size(); j++)
 			{
@@ -58,7 +56,7 @@ private:
 			}
 		}
 
-		if (totalNrOfVerticies >= NR_OF_VERTICIES_FOR_PARTITION && drawCallStructVector.size() > 4) //Partition, since we do not split models make sure there is more than one model
+		if (totalNrOfVerticies >= NR_OF_VERTICIES_FOR_PARTITION && entitys.size() > 1) //Partition, since we do not split models make sure there is more than one model
 		{
 			//Calculate new center
 			XMFLOAT3 newCenter = { (minPos.x + maxPos.x) / 2, (minPos.y + maxPos.z) / 2, (minPos.z + maxPos.z) / 2 };
@@ -70,42 +68,41 @@ private:
 			XMFLOAT3 topLeftMax = XMFLOAT3(newCenter.x, maxPos.y, newCenter.z + centerToBotZ);
 			newCenterMaxY.y = maxPos.y, newCenterMinY.y = minPos.y;
 
-			std::vector<DrawCallStruct*> topLeftObj;
-			std::vector<DrawCallStruct*> topRightObj;
-			std::vector<DrawCallStruct*> botLeftObj;
-			std::vector<DrawCallStruct*> botRightObj;
-			std::vector<DrawCallStruct*> center;
+			std::vector<Entity*> topLeftObj;
+			std::vector<Entity*> topRightObj;
+			std::vector<Entity*> botLeftObj;
+			std::vector<Entity*> botRightObj;
+			std::vector<Entity*> center;
 
 
-			for (int i = 0; i < (int)drawCallStructVector.size(); i++)
+			for (int i = 0; i < (int)entitys.size(); i++)
 			{
-				Entity* entity = static_cast<Entity*>(drawCallStructVector.at(i)->entity);
 				Vector3 min = { 9999, 9999, 9999 }, max = { -9999, -9999, -9999 };
 				BoundingOrientedBox bb;
-				getMinMaxFromEntity(entity, min, max);
-				bb.Center = entity->getTranslation();
+				getMinMaxFromEntity(entitys.at(i), min, max);
+				bb.Center = entitys[i]->getTranslation();
 				bb.Extents = (max - min) * 0.5f;
-				bb.Orientation = entity->getRotation();
+				bb.Orientation = entitys.at(i)->getRotation();
 
 				if (this->contains(bb, minPos, newCenterMaxY)) //For BottomLeft
 				{
-					botLeftObj.emplace_back(drawCallStructVector.at(i));
+					botLeftObj.emplace_back(entitys.at(i));
 				}
 				else if (this->contains(bb, newCenterMinY, maxPos)) //For TopRight
 				{
-					topRightObj.emplace_back(drawCallStructVector.at(i));
+					topRightObj.emplace_back(entitys.at(i));
 				}
 				else if (this->contains(bb, botRightMin, botRightMax)) //For botRight
 				{
-					botRightObj.emplace_back(drawCallStructVector.at(i));
+					botRightObj.emplace_back(entitys.at(i));
 				}
 				else if (this->contains(bb, topLeftMin, topLeftMax)) //For TopLeft
 				{
-					topLeftObj.emplace_back(drawCallStructVector.at(i));
+					topLeftObj.emplace_back(entitys.at(i));
 				}
 				else
 				{
-					center.emplace_back(drawCallStructVector.at(i));
+					center.emplace_back(entitys.at(i));
 				}
 			}
 
@@ -133,17 +130,17 @@ private:
 			{
 				for (int i = 0; i < center.size(); i++)
 				{
-					this->m_drawCallStructs.emplace_back(center.at(i));
+					this->m_entities.emplace_back(center.at(i));
 				}
-				this->m_drawCallStructs = center;
+				this->m_entities = center;
 			}
 
 		}
 		else
 		{
-			for (int i = 0; i < (int)m_drawCallStructs.size(); i++)
+			for (int i = 0; i < (int)entitys.size(); i++)
 			{
-				this->m_drawCallStructs.emplace_back(m_drawCallStructs.at(i));
+				this->m_entities.emplace_back(entitys.at(i));
 			}
 		}
 	}
@@ -158,8 +155,7 @@ public:
 		this->m_botLeftQuad = nullptr;
 		this->m_botRightQuad = nullptr;
 	}
-
-	QuadTree(const XMFLOAT3& minPos, const XMFLOAT3& maxPos, const std::vector<DrawCallStruct*>& drawCallStructVector) //Used when creating new quadtrees inside datastructure. Assumes correct min/max pos was sent for Entitys.
+	QuadTree(const XMFLOAT3& minPos, const XMFLOAT3& maxPos, const std::vector<Entity*>& Entitys) //Used when creating new quadtrees inside datastructure. Assumes correct min/max pos was sent for Entitys.
 	{
 		this->m_maxPos = maxPos;
 		this->m_minPos = minPos;
@@ -168,11 +164,11 @@ public:
 		this->m_botLeftQuad = nullptr;
 		this->m_botRightQuad = nullptr;
 
-		this->partition(minPos, maxPos, drawCallStructVector);
+		this->partition(minPos, maxPos, Entitys);
 
 	}
 
-	void getRenderList(const BoundingFrustum* frust, std::vector<DrawCallStruct*> &drawCallStructVectorOut, std::vector<BoundingVolumeHolder>& vecOut)
+	void getRenderList(const BoundingFrustum* frust, std::vector<MeshComponent*>& meshComponentVec, std::vector<BoundingVolumeHolder>& vecOut)
 	{
 
 		Vector3 min = m_minPos, max = m_maxPos, center, ext;
@@ -183,72 +179,71 @@ public:
 		XMStoreFloat3(&bb.Center, center);
 		XMStoreFloat3(&bb.Extents, ext);
 
-		if(addBoundingBoxes)
+		if (addBoundingBoxes)
 			vecOut.emplace_back(BoundingVolumeTypes::BOX, new BoundingBox(bb));
 
 		if (frust->Contains(bb) == ContainmentType::INTERSECTS || frust->Contains(bb) == ContainmentType::CONTAINS)
 		{
-			if (m_drawCallStructs.size() >= 1)
+			if (m_entities.size() >= 1)
 			{
-				for (int i = 0; i < (int)m_drawCallStructs.size(); i++)
+				for (int i = 0; i < (int)m_entities.size(); i++)
 				{
 					bool draw = true;
-					DrawCallStruct* drawCall = m_drawCallStructs.at(i);
-					MeshComponent* meshComponent = drawCall->mesh;
-					Entity* parentEntity = drawCall->entity;
-					if (!parentEntity)
-						continue;
-					
-
-					if (parentEntity->m_canCull && USE_FRUSTUM_CULLING)
+					MeshComponent* meshComponent;
+					Entity* parentEntity = m_entities[i];
+					std::vector<Component*> compVect;
+					m_entities.at(i)->getComponentsOfType(compVect, ComponentType::MESH);
+					for (size_t j = 0; j < compVect.size(); j++)
 					{
-						//Culling
-						Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
-						XMVECTOR pos = parentEntity->getTranslation();
-						pos += meshComponent->getTranslation();
-						pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
-						XMFLOAT3 posFloat3;
-						XMStoreFloat3(&posFloat3, pos);
+						meshComponent = static_cast<MeshComponent*>(compVect.at(j));
 
-						if (frust->Contains(pos) != ContainmentType::CONTAINS)
+						if (parentEntity->m_canCull && USE_FRUSTUM_CULLING)
 						{
-							meshComponent->getMeshResourcePtr()->getMinMax(min, max);
-							XMFLOAT3 ext = (max - min) / 2;
-							ext = ext * scale;
-							XMFLOAT4 rot = parentEntity->getRotation() * meshComponent->getRotation();
-							BoundingOrientedBox box(posFloat3, ext, rot);
+							//Culling
+							Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
+							XMVECTOR pos = parentEntity->getTranslation();
+							pos += meshComponent->getTranslation();
+							pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
+							XMFLOAT3 posFloat3;
+							XMStoreFloat3(&posFloat3, pos);
 
-							ContainmentType contType = frust->Contains(box);
-							draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+							if (frust->Contains(pos) != ContainmentType::CONTAINS)
+							{
+								meshComponent->getMeshResourcePtr()->getMinMax(min, max);
+								XMFLOAT3 ext = (max - min) / 2;
+								ext = ext * scale;
+								XMFLOAT4 rot = parentEntity->getRotation() * meshComponent->getRotation();
+								BoundingOrientedBox box(posFloat3, ext, rot);
+
+								ContainmentType contType = frust->Contains(box);
+								draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+							}
+							else
+							{
+								draw = true;
+							}
 						}
-						else
-						{
-							draw = true;
-						}
+						if (draw)
+							meshComponentVec.emplace_back(meshComponent);
 					}
-					if(draw)
-						drawCallStructVectorOut.emplace_back(m_drawCallStructs.at(i));
 				}
 			}
 			if (this->m_topLeftQuad != nullptr)
-				this->m_topLeftQuad->getRenderList(frust, drawCallStructVectorOut, vecOut);
+				this->m_topLeftQuad->getRenderList(frust, meshComponentVec, vecOut);
 			if (this->m_topRightQuad != nullptr)
-				this->m_topRightQuad->getRenderList(frust, drawCallStructVectorOut, vecOut);
+				this->m_topRightQuad->getRenderList(frust, meshComponentVec, vecOut);
 			if (this->m_botLeftQuad != nullptr)
-				this->m_botLeftQuad->getRenderList(frust, drawCallStructVectorOut, vecOut);
+				this->m_botLeftQuad->getRenderList(frust, meshComponentVec, vecOut);
 			if (this->m_botRightQuad != nullptr)
-				this->m_botRightQuad->getRenderList(frust, drawCallStructVectorOut, vecOut);
+				this->m_botRightQuad->getRenderList(frust, meshComponentVec, vecOut);
 		}
 
 	}
-
-
 	void partition(std::unordered_map<std::string, Entity*>& entityMap)
 	{
 		if (!USE_QUADTREE) return;
 
-		std::vector<Entity*> tempEntityVec; 
-		std::vector<DrawCallStruct*> tempDrawCallStructVector;
+		std::vector<Entity*> tempEntityVec;
 		Vector3 min = XMVectorSet(99999, 99999, 99999, 1), max = XMVectorSet(-99999, -99999, -99999, 1);
 		//Calculate min/max and set them
 		for (auto& entityItterator : entityMap) {
@@ -258,10 +253,11 @@ public:
 			PhysicsComponent* physComp = dynamic_cast<PhysicsComponent*>(entity->getComponent("physics"));
 			if (physComp && physComp->isStatic()) //We only wanna keep static s****.
 			{
-			
+
 				std::vector<Component*>  meshCompVec;
 				entity->getComponentsOfType(meshCompVec, ComponentType::MESH);
 
+				bool added = false;
 				for (int i = 0; i < meshCompVec.size(); i++)
 				{
 					MeshComponent* meshComponent = static_cast<MeshComponent*>(meshCompVec.at(i));
@@ -280,13 +276,10 @@ public:
 								min = XMVectorMin(min, pos);
 								max = XMVectorMax(max, pos);
 							}
-
-							for (size_t j = 0; j < meshResource->getMaterialCount(); j++)
+							if (!added)
 							{
-								tempDrawCallStructVector.emplace_back(new DrawCallStruct(meshComponent, j, entity));
-
+								tempEntityVec.emplace_back(entity);
 							}
-							
 						}
 					}
 				}
@@ -296,11 +289,11 @@ public:
 
 		m_maxPos = max;
 		m_minPos = min;
-		partition(this->m_minPos, this->m_maxPos, tempDrawCallStructVector);
+		partition(this->m_minPos, this->m_maxPos, tempEntityVec);
 
 	}
 
-	void getMinMaxFromEntity(Entity* entity, Vector3 &min, Vector3 &max)
+	void getMinMaxFromEntity(Entity* entity, Vector3& min, Vector3& max)
 	{
 		PhysicsComponent* physComp = dynamic_cast<PhysicsComponent*>(entity->getComponent("physics"));
 
@@ -340,19 +333,18 @@ public:
 		return this->m_maxPos;
 	}
 
-	void getAllMeshComponents(std::vector<MeshComponent*> &vecOut)
+	void getAllMeshComponents(std::vector<MeshComponent*>& vecOut)
 	{
-		if (m_drawCallStructs.size() >= 1)
+		if (m_entities.size() >= 1)
 		{
-			for (int i = 0; i < (int)m_drawCallStructs.size(); i++)
+			for (int i = 0; i < (int)m_entities.size(); i++)
 			{
-				vecOut.emplace_back(m_drawCallStructs.at(i)->mesh);
-				//std::vector<Component*> compVect;
-				//m_drawCallStructs.at(i)->entity->getComponentsOfType(compVect, ComponentType::MESH);
-				//for (size_t j = 0; j < compVect.size(); j++)
-				//{
-				//	vecOut.emplace_back(static_cast<MeshComponent*>(compVect.at(j)));
-				//}
+				std::vector<Component*> compVect;
+				m_entities.at(i)->getComponentsOfType(compVect, ComponentType::MESH);
+				for (size_t j = 0; j < compVect.size(); j++)
+				{
+					vecOut.emplace_back(static_cast<MeshComponent*>(compVect.at(j)));
+				}
 			}
 		}
 		if (this->m_topLeftQuad != nullptr)
@@ -365,6 +357,5 @@ public:
 			this->m_botRightQuad->getAllMeshComponents(vecOut);
 
 	}
-	
 
 };
