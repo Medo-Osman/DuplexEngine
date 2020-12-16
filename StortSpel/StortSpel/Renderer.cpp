@@ -1304,7 +1304,7 @@ void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V
 
 	// >>>>>>>>>>>>>>>>>>>>> Step 2: Cull all meshes not seen
 	bool meshIsInsideFrustrum = true;
-	if (m_camera->frustumCullingOn && parentEntity->m_canCull && USE_FRUSTUM_CULLING && useFrustumCullingParam)
+	if (useFrustumCullingParam && m_camera->frustumCullingOn && parentEntity->m_canCull && USE_FRUSTUM_CULLING)
 	{
 		meshIsInsideFrustrum = preformCullOnMeshComponent(frust, meshComponent, parentEntity);
 	}
@@ -1582,12 +1582,6 @@ void Renderer::renderSceneWithExperimentalSorting(BoundingFrustum* frust, XMMATR
 {
 	m_drawn = 0;
 
-	for (auto& meshComponent : *Engine::get().getShadowPassDrawCallsPtr())
-	{
-
-		this->renderMeshComponent(frust, wvp, V, P, meshComponent, true);
-
-	}
 
 	for (auto& drawCall : m_drawCallVector)
 	{
@@ -1906,16 +1900,44 @@ void Renderer::render()
 					drawInt dInt;
 					dInt.dist = dist.Length();
 					dInt.id = (unsigned int)mComp->getShaderProgEnum(j);
-					m_drawCallVector.push_back(std::make_pair((unsigned int)(dInt.dist | dInt.id), dStruct));
+					dInt.translucency = (dInt.id == (int)ShaderProgramsEnum::LUCY_FACE);
+					m_drawCallVector.push_back(std::make_pair((UINT16)(dInt.translucency << 15 | dInt.dist << 4 | dInt.id), dStruct));
 				}
 				
 			}
+
+			for (auto mComp : *Engine::get().getShadowPassDrawCallsPtr())
+			{
+				Entity* entity = entityMapPtr->at(mComp->getParentEntityIdentifier());
+				bool draw = true;
+				if (entity->m_canCull)
+				{
+					draw = preformCullOnMeshComponent(&frust, mComp, entity);
+				}
+				if (!draw)
+					continue;
+
+				int nrOfMaterials = mComp->getMeshResourcePtr()->getMaterialCount();
+				for (int j = 0; j < nrOfMaterials; j++)
+				{
+					DrawCallStruct* dStruct = new DrawCallStruct(mComp, j, entity);
+					Vector3 meshPos = entity->getTranslation();
+					Vector3 dist = meshPos - Vector3(m_camera->getPosition());
+					unsigned int val = 0;
+					drawInt dInt;
+					dInt.dist = dist.Length() + j;
+					dInt.id = (unsigned int)mComp->getShaderProgEnum(j);
+					dInt.translucency = (dInt.id == (int)ShaderProgramsEnum::LUCY_FACE);
+					m_drawCallVector.push_back(std::make_pair((UINT16)(dInt.translucency << 15 | dInt.dist << 4 | dInt.id), dStruct));
+				}
+			}
+
+			std::sort(m_drawCallVector.begin(), m_drawCallVector.end());
 		}
 		
 	}
 
-	if(USE_EXPERIMENTAL_SORTING)
-		std::sort(m_drawCallVector.begin(), m_drawCallVector.end());
+
 
 
 
