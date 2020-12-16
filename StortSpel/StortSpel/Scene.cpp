@@ -711,36 +711,36 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 	}
 	*/
 
-	//Entity* MetalBall = sceneObject->addEntity("MetalBall");
-	//if (MetalBall)
-	//{
-	//	Material MetalBallMaterial;
+	Entity* MetalBall = sceneObject->addEntity("MetalBall");
+	if (MetalBall)
+	{
+		Material MetalBallMaterial;
 
-	//	//Texture2D albedoTexture : TEXTURE: register(t0);
-	//	//Texture2D emissiveTexture : TEXTURE: register(t1);
-	//	//Texture2D normalTexture : TEXTURE: register(t2);
-	//	//Texture2D ORMtexture : TEXTURE: register(t3);
+		//Texture2D albedoTexture : TEXTURE: register(t0);
+		//Texture2D emissiveTexture : TEXTURE: register(t1);
+		//Texture2D normalTexture : TEXTURE: register(t2);
+		//Texture2D ORMtexture : TEXTURE: register(t3);
 
-	//	MetalBallMaterial.addTexture(L"T_Missing_D.dds", true);
-	//	MetalBallMaterial.addTexture(L"T_Missing_E.dds", true);
-	//	MetalBallMaterial.addTexture(L"T_Missing_N.dds", true);
-	//	MetalBallMaterial.addTexture(L"T_Missing_ORM.png");
+		MetalBallMaterial.addTexture(L"T_Missing_D.dds", true);
+		MetalBallMaterial.addTexture(L"T_Missing_E.dds", true);
+		MetalBallMaterial.addTexture(L"T_Missing_N.dds", true);
+		MetalBallMaterial.addTexture(L"T_Missing_ORM.png");
 
-	//	MetalBallMaterial.addTexture(L"sunset_skybox1_IR_2.dds");
-	//	MetalBallMaterial.addTexture(L"sunset_skybox1.dds");
-	//	MetalBallMaterial.addTexture(L"ibl_brdf_lut.png");
+		MetalBallMaterial.addTexture(L"sunset_skybox1_IR_2.dds");
+		MetalBallMaterial.addTexture(L"sunset_skybox1.dds");
+		MetalBallMaterial.addTexture(L"ibl_brdf_lut.png");
 
-	//	MetalBallMaterial.setTextured(false);
-	//	MetalBallMaterial.setBaseColor({ 0.8f, 0.8f, 0.8f });
-	//	MetalBallMaterial.setRoughness(1.0f);
-	//	MetalBallMaterial.setMetallic(1.0f);
+		MetalBallMaterial.setTextured(false);
+		MetalBallMaterial.setBaseColor({ 0.8f, 0.8f, 0.8f });
+		MetalBallMaterial.setRoughness(1.0f);
+		MetalBallMaterial.setMetallic(1.0f);
 
-	//	sceneObject->addComponent(MetalBall, "mesh", new MeshComponent("highPolySphere_Sphere.lrm", ShaderProgramsEnum::PBRTEST, MetalBallMaterial));
-	//	MetalBall->scale({ 1.0, 1.0, 1.0 });
-	//	MetalBall->translate({ 0, 2, 5 });
-	//	MetalBall->rotate({ (-1.5708), 0.f, 0.f });
-	//	sceneObject->createNewPhysicsComponent(MetalBall, false, "", PxGeometryType::eSPHERE, "earth", false);
-	//}
+		sceneObject->addComponent(MetalBall, "mesh", new MeshComponent("highPolySphere_Sphere.lrm", ShaderProgramsEnum::PBRTEST, MetalBallMaterial));
+		MetalBall->scale({ 1.0, 1.0, 1.0 });
+		MetalBall->translate({ 0, 3, 7 });
+		MetalBall->rotate({ (-1.5708), 0.f, 0.f });
+		sceneObject->createNewPhysicsComponent(MetalBall, false, "", PxGeometryType::eSPHERE, "earth", false);
+	}
 
 
 
@@ -854,9 +854,15 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 	//	sceneObject->createNewPhysicsComponent(PearlTest, false, "", PxGeometryType::eSPHERE, "earth", false);
 	//}
 
+	//switch (switch_on)
+	//{
+	//default:
+	//	break;
+	//}
+
 	sceneObject->addCloudBedMesh({ 0, 0, 0 }, "cloudPlane_allParts_cloud_plane", 11);
-	sceneObject->addCloudBedMesh({ 0, 0, 0 }, "cloudPlane_allParts_cloud_plane", 11);
-	sceneObject->addS
+	sceneObject->createSkybox(L"Skyway_Sunset_CM.dds", L"Skyway_Sunset_RF.dds", L"Skyway_Sunset_IR.dds");
+	//sceneObject->createSkybox(L"Skyway_Day.dds");
 
 	delete[] levelData;
 	*finished = true; //Inform the main thread that the loading is complete.
