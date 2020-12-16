@@ -393,8 +393,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	assert(SUCCEEDED(hr) && "Failed to create SamplerState");
 	m_dContextPtr->PSSetSamplers(3, 1, m_SSAOSamplerStateNRM.GetAddressOf());
 
-
-	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
+	perObjectMVP perObjectMVP;
+	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP, 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 	m_dContextPtr->HSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 	m_dContextPtr->DSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
