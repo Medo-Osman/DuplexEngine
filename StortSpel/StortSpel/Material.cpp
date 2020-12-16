@@ -152,12 +152,17 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap, bool isTexture3
 		m_isDefault = false;
 	}
 
-	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, true, isTexture3D);
+	bool refBasedDelete = true;
+	if (isCubeMap)
+		refBasedDelete = false;
+
+	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, refBasedDelete, isTexture3D);
 	//std::cout << "\tMaterial loaded in: " << loadedTexResource->debugName << std::endl;
 	//loadedTexResource->addRef();
 	
 	this->m_textureArray.push_back(loadedTexResource->view);
-	this->m_referencedResources.push_back(loadedTexResource);
+	if(refBasedDelete)
+		this->m_referencedResources.push_back(loadedTexResource);
 }
 
 void Material::swapTexture(const WCHAR* fileName, int index, bool isCubeMap)
