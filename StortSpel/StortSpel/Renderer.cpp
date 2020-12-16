@@ -1596,10 +1596,8 @@ void Renderer::renderSceneWithExperimentalSorting(BoundingFrustum* frust, XMMATR
 
 void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
 {
+
 	std::vector<MeshComponent*>* shadowPassDrawCalls = Engine::get().getShadowPassDrawCallsPtr();
-	
-	ID3D11ShaderResourceView* emptySRV[1] = { nullptr };
-	m_dContextPtr->PSSetShaderResources(2, 1, emptySRV);
 
 	//Shadow
 	m_shadowMap->bindResourcesAndSetNullRTV(m_dContextPtr.Get());
@@ -1610,59 +1608,61 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	shadowBufferStruct.lightViewMatrix = XMMatrixTranspose(m_shadowMap->m_lightViewMatrix);
 	shadowBufferStruct.shadowMatrix = XMMatrixTranspose(m_shadowMap->m_shadowTransform);
 	m_shadowConstantBuffer.updateBuffer(m_dContextPtr.Get(), &shadowBufferStruct);
+	ID3D11ShaderResourceView* emptySRV[1] = { nullptr };
+	m_dContextPtr->PSSetShaderResources(2, 1, emptySRV);
 
-	//for (auto& drawCallVector : *Engine::get().getDrawCallsPtr())
+
+	for(auto meshComponent : *shadowPassDrawCalls)
 	{
-		//for (auto& drawCallStruct : drawCallVector)
-		for (int i = 0; i < shadowPassDrawCalls->size(); i++)
-		{
-			//MeshComponent* component = drawCallStruct.mesh;
- 			MeshComponent* component = shadowPassDrawCalls->at(i);
+		this->renderShadowPassByMeshComponent(frust, wvp, V, P, meshComponent);
 
-			if (component->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_PBR && component->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && component->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
-			{
-				ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
-				m_compiledShaders[meshShaderEnum]->setShaders();
-				m_currentSetShaderProg = meshShaderEnum;
-			}
-			else
-			{
-				ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH_ANIM;
-				m_compiledShaders[meshShaderEnum]->setShaders();
-				m_currentSetShaderProg = meshShaderEnum;
-			}
+	}
 
-			// Get Entity map from Engine
-			std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+}
+
+
+
+void Renderer::renderShadowPassByMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent)
+{
+	
+	if (meshComponent->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_PBR && meshComponent->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && meshComponent->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
+	{
+		ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
+		m_compiledShaders[meshShaderEnum]->setShaders();
+		m_currentSetShaderProg = meshShaderEnum;
+	}
+	else
+	{
+		ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH_ANIM;
+		m_compiledShaders[meshShaderEnum]->setShaders();
+		m_currentSetShaderProg = meshShaderEnum;
+	}
+
+	// Get Entity map from Engine
+	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
 			
-			Entity* parentEntity;
-			parentEntity = (*entityMap)[component->getParentEntityIdentifier()];
+	Entity* parentEntity;
+	parentEntity = (*entityMap)[meshComponent->getParentEntityIdentifier()];
 
-			//MeshComponent* comp = dynamic_cast<MeshComponent*>(component);
-			if (component->castsShadow())
-			{
-				perObjectMVP constantBufferPerObjectStruct;
-				component->getMeshResourcePtr()->set(m_dContextPtr.Get());
-				constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);//XMMatrixTranspose(m_camera->getProjectionMatrix());
-				constantBufferPerObjectStruct.view = XMMatrixTranspose(m_shadowMap->m_lightViewMatrix);//XMMatrixTranspose(m_camera->getViewMatrix());
-				constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(component->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
-				constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
-				m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+	//MeshComponent* comp = dynamic_cast<MeshComponent*>(component);
+	if (meshComponent->castsShadow())
+	{
+		perObjectMVP constantBufferPerObjectStruct;
+		meshComponent->getMeshResourcePtr()->set(m_dContextPtr.Get());
+		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);//XMMatrixTranspose(m_camera->getProjectionMatrix());
+		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_shadowMap->m_lightViewMatrix);//XMMatrixTranspose(m_camera->getViewMatrix());
+		constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(meshComponent->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
+		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
-				if (component->getType() == ComponentType::ANIM_MESH)
-				{
-					AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component);
-					assert(animMeshComponent);
-					m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());// ? does this need to be optimised or is it fine to do this for every mesh?
-				}
-
-				//std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component->getMeshResourcePtr()->getMaterialOffsetAndSize(drawCallStruct.material_IDX);
-
-				//m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
-				m_dContextPtr->DrawIndexed(component->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
-				//m_dContextPtr->DrawIndexed(component->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
-			}
+		if (meshComponent->getType() == ComponentType::ANIM_MESH)
+		{
+			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(meshComponent);
+			assert(animMeshComponent);
+			m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());// ? does this need to be optimised or is it fine to do this for every mesh?
 		}
+
+		m_dContextPtr->DrawIndexed(meshComponent->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
 }
 
@@ -1901,44 +1901,47 @@ void Renderer::render()
 					dInt.dist = dist.Length();
 					dInt.id = (unsigned int)mComp->getShaderProgEnum(j);
 					dInt.translucency = (dInt.id == (int)ShaderProgramsEnum::LUCY_FACE);
-					m_drawCallVector.push_back(std::make_pair((UINT16)(dInt.translucency << 15 | dInt.dist << 4 | dInt.id), dStruct));
+					m_drawCallVector.push_back(std::make_pair((uint_fast16_t)(dInt.translucency << 15 | dInt.dist << 4 | dInt.id), dStruct));
 				}
 				
 			}
 
-			for (auto mComp : *Engine::get().getShadowPassDrawCallsPtr())
-			{
-				Entity* entity = entityMapPtr->at(mComp->getParentEntityIdentifier());
-				bool draw = true;
-				if (entity->m_canCull)
-				{
-					draw = preformCullOnMeshComponent(&frust, mComp, entity);
-				}
-				if (!draw)
-					continue;
-
-				int nrOfMaterials = mComp->getMeshResourcePtr()->getMaterialCount();
-				for (int j = 0; j < nrOfMaterials; j++)
-				{
-					DrawCallStruct* dStruct = new DrawCallStruct(mComp, j, entity);
-					Vector3 meshPos = entity->getTranslation();
-					Vector3 dist = meshPos - Vector3(m_camera->getPosition());
-					unsigned int val = 0;
-					drawInt dInt;
-					dInt.dist = dist.Length() + j;
-					dInt.id = (unsigned int)mComp->getShaderProgEnum(j);
-					dInt.translucency = (dInt.id == (int)ShaderProgramsEnum::LUCY_FACE);
-					m_drawCallVector.push_back(std::make_pair((UINT16)(dInt.translucency << 15 | dInt.dist << 4 | dInt.id), dStruct));
-				}
-			}
-
-			std::sort(m_drawCallVector.begin(), m_drawCallVector.end());
+			
 		}
 		
 	}
 
 
+	if(USE_EXPERIMENTAL_SORTING)
+	{
+		for (auto mComp : *Engine::get().getMeshComponents())
+		{
+			Entity* entity = entityMapPtr->at(mComp->getParentEntityIdentifier());
+			bool draw = true;
+			if (entity->m_canCull)
+			{
+				draw = preformCullOnMeshComponent(&frust, mComp, entity);
+			}
+			if (!draw)
+				continue;
 
+			int nrOfMaterials = mComp->getMeshResourcePtr()->getMaterialCount();
+			for (int j = 0; j < nrOfMaterials; j++)
+			{
+				DrawCallStruct* dStruct = new DrawCallStruct(mComp, j, entity);
+				Vector3 meshPos = entity->getTranslation();
+				Vector3 dist = meshPos - Vector3(m_camera->getPosition());
+				unsigned int val = 0;
+				drawInt dInt;
+				dInt.dist = dist.Length() + j;
+				dInt.id = (unsigned int)mComp->getShaderProgEnum(j);
+				dInt.translucency = (dInt.id == (int)ShaderProgramsEnum::LUCY_FACE);
+				m_drawCallVector.push_back(std::make_pair((uint_fast16_t)(dInt.translucency << 15 | dInt.dist << 4 | dInt.id), dStruct));
+			}
+		}
+
+		std::sort(m_drawCallVector.begin(), m_drawCallVector.end());
+	}
 
 
 	//Run the shadow pass before everything else

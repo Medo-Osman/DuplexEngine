@@ -90,6 +90,11 @@ void Engine::setShadowPassDrawCallsPtr(std::vector<MeshComponent*>* shadowPassDr
 	m_shadowPassDrawCallsPtr = shadowPassDrawCallsPtr;
 }
 
+void Engine::setMeshComponentVector(std::vector<MeshComponent*>* meshComponentVector)
+{
+	m_meshComponents = meshComponentVector;
+}
+
 void Engine::setLightComponentMapPtr(std::unordered_map<std::string, LightComponent*>* lightComponents)
 {
 	m_lightComponentMap = lightComponents;
@@ -142,6 +147,11 @@ std::vector<std::vector<DrawCallStruct>>* Engine::getDrawCallsPtr()
 std::vector<MeshComponent*>* Engine::getShadowPassDrawCallsPtr()
 {
 	return m_shadowPassDrawCallsPtr;
+}
+
+std::vector<MeshComponent*>* Engine::getMeshComponents()
+{
+	return m_meshComponents;
 }
 
 std::unordered_map<std::string, LightComponent*>* Engine::getLightComponentMap()

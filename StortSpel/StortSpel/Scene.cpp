@@ -71,6 +71,20 @@ void Scene::removeMeshFromShadowPassDrawCallList(MeshComponent* meshComp)
 	}
 }
 
+void Scene::removeMeshFromMeshComponentVector(MeshComponent* meshComp)
+{
+	int indexToPop = -1;
+
+	for (int i = 0; i < m_meshComponentVector.size() && indexToPop == -1; i++)
+	{
+		if (m_meshComponentVector.at(i) == meshComp)
+		{
+			indexToPop = i;
+			m_meshComponentVector.erase(m_meshComponentVector.begin() + i);
+		}
+	}
+}
+
 void Scene::clearDrawCallList()
 {
 	m_drawCalls.clear();
@@ -257,7 +271,7 @@ void Scene::removeQuadTreeMeshComponentsFromMeshComponentMap(Scene* sceneObject)
 	sceneObject->m_quadTree->getAllMeshComponents(quadTreeMeshComponents);
 	for (int i = 0; i < quadTreeMeshComponents.size(); i++)
 	{
-		sceneObject->removeMeshFromShadowPassDrawCallList(quadTreeMeshComponents.at(i));
+		sceneObject->removeMeshFromMeshComponentVector(quadTreeMeshComponents.at(i));
 	}
 
 }
@@ -2203,6 +2217,7 @@ void Scene::removeEntity(std::string identifier)
 			removeMeshFromDrawCallList(meshComp);
 
 		removeMeshFromShadowPassDrawCallList(meshComp);
+		removeMeshFromMeshComponentVector(meshComp);
 		m_entities[identifier]->removeComponent(meshComponent);
 	}
 	delete m_entities[identifier];
@@ -2235,10 +2250,16 @@ bool Scene::addComponent(Entity* entity, std::string componentIdentifier, Compon
 void Scene::addMeshComponent(MeshComponent* component)
 {
 	//component->setRenderId(++m_meshCount);
-	if(!USE_QUADTREE)
+	if (!USE_QUADTREE)
+	{
 		addMeshToDrawCallList(component);
 
+	}
+	
 	m_shadowPassDrawCalls.push_back(component);
+	m_meshComponentVector.emplace_back(component);
+	
+	
 }
 
 void Scene::createNewPhysicsComponent(Entity* entity, bool dynamic, std::string meshName, PxGeometryType::Enum geometryType, std::string materialName, bool isUnique)
@@ -2367,6 +2388,11 @@ std::unordered_map<std::string, Entity*>* Scene::getEntityMap()
 std::unordered_map<std::string, LightComponent*>* Scene::getLightMap()
 {
 	return &m_lightComponentMap;
+}
+
+std::vector<MeshComponent*>* Scene::getMeshComponentMap()
+{
+	return &m_meshComponentVector;
 }
 
 

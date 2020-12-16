@@ -59,6 +59,7 @@ void SceneManager::initalize(Input* input)
 	//Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 	Engine::get().setDrawCallsPtr(m_currentScene->getDrawCallsPtr());
 	Engine::get().setShadowPassDrawCallsPtr(m_currentScene->getShadowPassDrawCallsPtr());
+	Engine::get().setMeshComponentVector(m_currentScene->getMeshComponentMap());
 
 	// Sorting
 	//Renderer::get().initializeDrawCallList();
@@ -423,6 +424,7 @@ void SceneManager::swapScenes()
 		//Engine::get().setMeshComponentMapPtr(m_currentScene->getMeshComponentMap());
 		Engine::get().setDrawCallsPtr(m_currentScene->getDrawCallsPtr());
 		Engine::get().setShadowPassDrawCallsPtr(m_currentScene->getShadowPassDrawCallsPtr());
+		Engine::get().setMeshComponentVector(m_currentScene->getMeshComponentMap());
 
 		m_currentScene->activateScene();
 		Engine::get().setQuadTreePtr(m_currentScene->getQuadTreePtr());

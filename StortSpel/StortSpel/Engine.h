@@ -57,6 +57,7 @@ private:
 
 	std::vector<std::vector<DrawCallStruct>>* m_drawCallsPtr;
 	std::vector<MeshComponent*>* m_shadowPassDrawCallsPtr;
+	std::vector<MeshComponent*>* m_meshComponents;
 
 	std::unordered_map<std::string, LightComponent*>* m_lightComponentMap;
 
@@ -91,6 +92,8 @@ public:
 	void setDrawCallsPtr(std::vector<std::vector<DrawCallStruct>>* drawCallsPtr);
 	void setShadowPassDrawCallsPtr(std::vector<MeshComponent*>* shadowPassDrawCallsPtr);
 
+	void setMeshComponentVector(std::vector<MeshComponent*>* meshComponentVector);
+
 	void setLightComponentMapPtr(std::unordered_map<std::string, LightComponent*>* lightComponents);
 	void setQuadTreePtr(QuadTree* quadTree) { m_quadTreePtr = quadTree; }
 	QuadTree* getQuadTreePtr() { return m_quadTreePtr; }
@@ -99,6 +102,8 @@ public:
 
 	std::vector<std::vector<DrawCallStruct>>* getDrawCallsPtr();
 	std::vector<MeshComponent*>* getShadowPassDrawCallsPtr();
+
+	std::vector<MeshComponent*>* getMeshComponents();
 
 	std::unordered_map<std::string, LightComponent*>* getLightComponentMap();
 	std::unordered_map<std::string, Entity*>* getEntityMap();

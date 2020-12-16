@@ -130,6 +130,7 @@ private:
 	std::unordered_map<std::string, Entity*> m_entities;
 	std::vector<std::vector<DrawCallStruct>> m_drawCalls;
 	std::vector<MeshComponent*> m_shadowPassDrawCalls;
+	std::vector<MeshComponent*> m_meshComponentVector;
 	std::unordered_map<std::string, LightComponent*> m_lightComponentMap;
 	std::vector<ParticleComponent*> m_tempParticleComponent;
 
@@ -182,6 +183,7 @@ private:
 	void addMeshToDrawCallList(MeshComponent* meshComp);
 	void removeMeshFromDrawCallList(MeshComponent* meshComp);
 	void removeMeshFromShadowPassDrawCallList(MeshComponent* meshComp);
+	void removeMeshFromMeshComponentVector(MeshComponent* meshComp);
 	void clearDrawCallList();
 	
 	static bool compairDrawCalls(const DrawCallStruct& A, const DrawCallStruct& B) { return (A.material_ID < B.material_ID); }
@@ -248,7 +250,7 @@ public:
 	std::vector<std::pair<int, std::string>>* getScores();
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
-	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
+	std::vector<MeshComponent*>* getMeshComponentMap();
 
 
 	QuadTree* getQuadTreePtr();
