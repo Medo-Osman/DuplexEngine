@@ -2891,12 +2891,12 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 
 		if ((PickupType)msg.intEnum == PickupType::CANNON)
 		{
-			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", Material({ L"T_CanonPipe_P_D.png" }));
+			MeshComponent* pipe = new MeshComponent("Canon_Pipe.lrm", PBRTEST, Material( L"CanonPipe", true ));
 			pipe->setPosition(Vector3(0, 1, 0));
 
 			Entity* cannon = addEntity("cannon" + std::to_string(m_nrOf++));
 			cannon->setScale(0.5f, 0.5f, 0.5f);
-			addComponent(cannon, "mesh1", new MeshComponent("Canon_Base.lrm", Material({ L"T_CanonBase_P_D.png" })));
+			addComponent(cannon, "mesh1", new MeshComponent("Canon_Base.lrm", PBRTEST, Material( L"CanonBase", true)));
 			addComponent(cannon, "mesh2", pipe);
 			cannon->setPosition(m_player->getPlayerEntity()->getTranslation());
 			//cannon->setRotationQuat(m_input);
