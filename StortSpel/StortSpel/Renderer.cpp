@@ -230,7 +230,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	buildFrustumFarCorners((80.f / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
 	buildOffsetVectors();
 	calculateBlurWeights(m_ssaoBlurData, BLUR_RADIUS, m_ssaoSigma);
-	createViewPort(m_SSAOViewport, m_settings.width, m_settings.height);
+	//createViewPort(m_SSAOViewport, m_settings.width, m_settings.height);
+	createViewPort(m_SSAOViewport, m_settings.width / 2.f, m_settings.height / 2.f);
 
 	// Bloom
 	initializeBloomFilter();
@@ -254,9 +255,9 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	glowTexture->Release();
 
+	// SSAO Maps
 	ID3D11Texture2D* normalsNDepthTexture;
-
-	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	textureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	textureDesc.SampleDesc.Count = 1;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Format = textureDesc.Format;
@@ -267,14 +268,15 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = m_devicePtr->CreateRenderTargetView(normalsNDepthTexture, 0, m_normalsNDepthRenderTargetViewPtr.GetAddressOf());
 	if (!SUCCEEDED(hr)) return hr;
 
-
 	hr = m_devicePtr->CreateShaderResourceView(normalsNDepthTexture, &srvDesc, &m_normalsNDepthSRV);
 	if (!SUCCEEDED(hr)) return hr;
 
 	normalsNDepthTexture->Release();
 
 	ID3D11Texture2D* SSAOTexture;
-	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	textureDesc.Width = m_settings.width / 2.f;
+	textureDesc.Height = m_settings.height / 2.f;
+	textureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
 
 	srvDesc.Format = textureDesc.Format;
@@ -1074,7 +1076,8 @@ void Renderer::ssaoBlurPass()
 		this->m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &blurUAVs[m_ssaoBlurData.direction], &cOffset);
 
 		// Dispatch Shader
-		this->m_dContextPtr->Dispatch(m_settings.width / 8, m_settings.height / 8, 1);
+		this->m_dContextPtr->Dispatch(m_settings.width / 16, m_settings.height / 16, 1);
+		//this->m_dContextPtr->Dispatch(m_settings.width / 8, m_settings.height / 8, 1);
 
 		// Unbind Unordered Access View and Shader Resource View
 		this->m_dContextPtr->CSSetShaderResources(0, 1, &this->nullSrv);
@@ -1086,6 +1089,7 @@ void Renderer::ssaoBlurPass()
 
 	//ImGui::Begin("someWindow");
 	//ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(512, 288));
+	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(512, 288));
 	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(1024, 576));
 	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(256, 256));
 	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(128, 128));
