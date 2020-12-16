@@ -1124,12 +1124,23 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 		{
 			//Culling
 			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
-			XMVECTOR pos = parentEntity->getTranslation();
-			pos += component.second->getTranslation();
-			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
-			XMFLOAT3 posFloat3;
-			XMStoreFloat3(&posFloat3, pos);
+			Vector3 pos = parentEntity->getTranslation();
+			Vector3 meshOffset = component.second->getTranslation();
+			Vector3 boundsCenter = component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
 
+			if (!XMQuaternionIsIdentity(parentEntity->getRotation()))
+			{
+				meshOffset = XMVector3Rotate(meshOffset, parentEntity->getRotation());
+				boundsCenter = XMVector3Rotate(boundsCenter, parentEntity->getRotation());
+			}
+			if (!XMQuaternionIsIdentity(component.second->getRotation()))
+			{
+				meshOffset = XMVector3Rotate(meshOffset, component.second->getRotation());
+				boundsCenter = XMVector3Rotate(boundsCenter, component.second->getRotation());
+			}
+
+			pos += meshOffset;
+			pos += boundsCenter;
 
 			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
@@ -1138,7 +1149,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 				XMFLOAT3 ext = (max - min) / 2;
 				ext = ext * scale;
 				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
-				BoundingOrientedBox box(posFloat3, ext, rot);
+				BoundingOrientedBox box(pos, ext, rot);
 
 				ContainmentType contType = frust->Contains(box);
 				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
@@ -1358,12 +1369,23 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		{
 			//Culling
 			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
-			XMVECTOR pos = parentEntity->getTranslation();
-			pos += component.second->getTranslation();
-			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
-			XMFLOAT3 posFloat3;
-			XMStoreFloat3(&posFloat3, pos);
+			Vector3 pos = parentEntity->getTranslation();
+			Vector3 meshOffset = component.second->getTranslation();
+			Vector3 boundsCenter = component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
+			
+			if (!XMQuaternionIsIdentity(parentEntity->getRotation()))
+			{
+				meshOffset = XMVector3Rotate(meshOffset, parentEntity->getRotation());
+				boundsCenter = XMVector3Rotate(boundsCenter, parentEntity->getRotation());
+			}
+			if (!XMQuaternionIsIdentity(component.second->getRotation()))
+			{
+				meshOffset = XMVector3Rotate(meshOffset, component.second->getRotation());
+				boundsCenter = XMVector3Rotate(boundsCenter, component.second->getRotation());
+			}
 
+			pos += meshOffset;
+			pos += boundsCenter;
 
 			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
@@ -1372,7 +1394,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 				XMFLOAT3 ext = (max - min) / 2;
 				ext = ext * scale;
 				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
-				BoundingOrientedBox box(posFloat3, ext, rot);
+				BoundingOrientedBox box(pos, ext, rot);
 
 				ContainmentType contType = frust->Contains(box);
 				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);

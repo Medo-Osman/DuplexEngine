@@ -102,7 +102,7 @@ void Player::setCannonEntity(Entity* entity, MeshComponent* pipe)
 		m_3dMarker = new Entity("3DMarker");
 		m_3dMarker->scale(0.25f, 0.25f, 0.25f);
 		Engine::get().getEntityMap()->emplace("3DMarker", m_3dMarker);
-		MeshComponent* mesh = new MeshComponent("testCube_pCube1.lrm");
+		MeshComponent* mesh = new MeshComponent("Marker3D.lrm", TEMP_TEST);
 		mesh->setCastsShadow(false);
 		m_3dMarker->addComponent("6 nov (mesh)", mesh);
 		Engine::get().getMeshComponentMap()->emplace(1632, mesh);
