@@ -59,7 +59,7 @@ public:
 
 		//Picture info
 		float sizeX = 118, sizeY = 118; //Full Image Size
-		float scaleX = 0.8 * scaleToUse.x, scaleY = 0.8 * scaleToUse.y; //Final Scale
+		float scaleX = 0.8f * scaleToUse.x, scaleY = 0.8f * scaleToUse.y; //Final Scale
 		style.origin = { (sizeX/2), (sizeY/2) };
 		style.position = { windowSize.x - (sizeX/2 * scaleX + 62) , windowSize.y * 0.150f + (sizeY/2 * scaleY) };
 		style.scale = { scaleX, scaleY };
@@ -69,7 +69,7 @@ public:
 
 
 		sizeX = 50, sizeY = 50; //Full Image Size
-		scaleX = 0.8 * scaleToUse.x, scaleY = 0.8 * scaleToUse.y; //Final Scale
+		scaleX = 0.8f * scaleToUse.x, scaleY = 0.8f * scaleToUse.y; //Final Scale
 		style.origin = { (sizeX / 2), (sizeY / 2) };
 		style.position = { windowSize.x - (sizeX / 2 * scaleX + 130) , windowSize.y * 0.225f + (sizeY / 2 * scaleY) };
 		style.scale = { scaleX, scaleY };

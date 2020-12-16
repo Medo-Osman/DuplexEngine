@@ -58,7 +58,7 @@ public:
 		if (m_moveHowMuch.x > 0)
 		{
 			//In case move in positive x
-			for (int x = m_currentPlatformIndex->x; x < m_currentPlatformIndex->x + m_moveHowMuch.x; x++)
+			for (int x = (int)m_currentPlatformIndex->x; x < (int)m_currentPlatformIndex->x + (int)m_moveHowMuch.x; x++)
 			{
 				Entity* platform = (*m_platformArray)[x][m_currentPlatformIndex->y];
 				movePlatform(platform);
@@ -67,7 +67,7 @@ public:
 		else
 		{
 			//In case move in negative x
-			for (int x = m_currentPlatformIndex->x; x > m_currentPlatformIndex->x + m_moveHowMuch.x; x--)
+			for (int x = (int)m_currentPlatformIndex->x; x > (int)m_currentPlatformIndex->x + (int)m_moveHowMuch.x; x--)
 			{
 				Entity* platform = (*m_platformArray)[x][m_currentPlatformIndex->y];
 				movePlatform(platform);
@@ -77,7 +77,7 @@ public:
 		//Handle y-movement
 		if (m_moveHowMuch.y > 0)
 		{	//In case move in positive y
-			for (int y = m_currentPlatformIndex->y; y < m_currentPlatformIndex->y + m_moveHowMuch.y; y++)
+			for (int y = (int)m_currentPlatformIndex->y; y < (int)m_currentPlatformIndex->y + (int)m_moveHowMuch.y; y++)
 			{
 				Entity* platform = (*m_platformArray)[m_currentPlatformIndex->x][y];
 				movePlatform(platform);
@@ -85,14 +85,14 @@ public:
 		}
 		else
 		{	//In case move in negative y
-			for (int y = m_currentPlatformIndex->y; y > m_currentPlatformIndex->y + m_moveHowMuch.y; y--)
+			for (int y = (int)m_currentPlatformIndex->y; y > (int)m_currentPlatformIndex->y + (int)m_moveHowMuch.y; y--)
 			{
 				Entity* platform = (*m_platformArray)[m_currentPlatformIndex->x][y];
 				movePlatform(platform);
 			}
 		}
 		
-		targetEntity = (*m_platformArray)[m_currentPlatformIndex->x + m_moveHowMuch.x][m_currentPlatformIndex->y + m_moveHowMuch.y];
+		targetEntity = (*m_platformArray)[(int)m_currentPlatformIndex->x + (int)m_moveHowMuch.x][(int)m_currentPlatformIndex->y + (int)m_moveHowMuch.y];
 		*m_currentPlatformIndex = *(m_currentPlatformIndex)+m_moveHowMuch;
 		Vector3 targetPosition = targetEntity->getTranslation();
 		dir = XMVector3Normalize(Vector3(targetPosition.x, m_bossEntity->getTranslation().y, targetPosition.z) - m_bossEntity->getTranslation());
