@@ -14,7 +14,7 @@
 #include"DebugDraw.h"
 #include"BoundingVolumeHolder.h"
 
-class Renderer
+class Renderer : public InputObserver
 {
 
 private:
@@ -183,6 +183,7 @@ private:
 	void zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
+	void toggleFlyingCamera();
 	Renderer(); //{};
 
 	Camera m_testCamera;
@@ -233,5 +234,9 @@ public:
 
 
 	void addPrimitiveToDraw();
+
+
+	// Inherited via InputObserver
+	virtual void inputUpdate(InputData& inputData) override;
 
 };

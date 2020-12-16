@@ -26,6 +26,7 @@ public:
 		m_actionMapping['\x0D'] = Action::USE;
 		m_actionMapping['mwp'] = Action::SCROLL_UP;
 		m_actionMapping['mwr'] = Action::SCROLL_DOWN;
+		m_actionMapping['M'] = Action::TOGGLEFLY;
 
 		//States
 		m_stateMapping['W'] = State::WALK_FORWARD;

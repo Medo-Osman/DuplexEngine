@@ -1448,6 +1448,16 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	}
 }
 
+void Renderer::toggleFlyingCamera()
+{
+	m_useFlyingCamera = !m_useFlyingCamera;
+	Engine::get().getPlayerPtr()->m_ignoreInput = m_useFlyingCamera;
+
+	m_camera = &m_flyingCamera;
+	m_camera->frustumCullingOn = false;
+	m_camera->setPosition(Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation() + Vector3(0, 4.f, 0));
+}
+
 void Renderer::resizeBackbuff(int x, int y)
 {
 	//m_swapChainPtr.
@@ -1498,34 +1508,31 @@ void Renderer::update(const float& dt)
 
 		if (ImGui::Button("Flying camera"))
 		{
-			m_useFlyingCamera = !m_useFlyingCamera;
-			Engine::get().getPlayerPtr()->m_ignoreInput = m_useFlyingCamera;
-
-			m_camera = &m_flyingCamera;
-			m_camera->frustumCullingOn = false;
-			m_camera->setPosition(Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation());
+			toggleFlyingCamera();
 		}
 
-		if (m_useFlyingCamera)
+		
+
+	}
+
+	if (m_useFlyingCamera)
+	{
+
+		m_camera->update(dt);
+		m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
+
+		if (m_camera->updateFov)
 		{
-
-			m_camera->update(dt);
-			m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
-
-			if (m_camera->updateFov)
-			{
-				buildFrustumFarCorners((m_camera->fovAmount / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
-				buildOffsetVectors();
-			}
-
-			
-
+			buildFrustumFarCorners((m_camera->fovAmount / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
+			buildOffsetVectors();
 		}
-		else
-		{
-			m_camera = Engine::get().getCameraPtr();
 
-		}
+
+
+	}
+	else
+	{
+		m_camera = Engine::get().getCameraPtr();
 
 	}
 
@@ -1764,4 +1771,16 @@ void Renderer::printLiveObject()
 	HRESULT hr = m_debugPtr->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 	assert(SUCCEEDED(hr));
 #endif
+}
+
+void Renderer::inputUpdate(InputData& inputData)
+{
+	for (size_t i = 0; i < inputData.actionData.size(); i++)
+	{
+		if (inputData.actionData[i] == Action::TOGGLEFLY)
+		{
+			toggleFlyingCamera();
+		}
+	}
+
 }
