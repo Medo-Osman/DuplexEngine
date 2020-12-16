@@ -44,11 +44,11 @@ vs_out main(vs_in input)
     
     output.pos = mul(float4(input.pos, 1), wvpMatrix);
     output.uv = input.uv;
+    
     output.vNormal = normalize(mul(float4(input.normal, 0), worldInverseTransposeView));
     output.vTangent = normalize(mul(float4(input.tangent, 0), worldInverseTransposeView));
     output.vBitangent = normalize(mul(float4(input.bitangent, 0), worldInverseTransposeView));
-    //float3 worldNormal = normalize(mul(float4(input.normal, 0), worldMatrix));
-    //output.vNormal = normalize(mul(float4(worldNormal, 0), viewMatrix));
+    
     output.vPos = mul(float4(input.pos, 1), worldMatrix);
     output.vPos = mul(float4(output.vPos, 1), viewMatrix);
     

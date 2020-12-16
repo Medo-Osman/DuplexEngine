@@ -210,8 +210,8 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 	);
 
 	// Allow binding of a displacement map to the domain shader
-	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Vertex, true);
-	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Pixel, true);
+	/*(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Vertex, true);
+	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Pixel, true);*/
 
 	(*compiledShadersMap)[ShaderProgramsEnum::NORMALS_DEPTH] = new ShaderProgram
 	(

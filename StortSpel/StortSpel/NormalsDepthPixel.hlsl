@@ -9,12 +9,12 @@ cbuffer MaterialBuffer : register(b3)
 
 struct ps_in
 {
-    float4 pos          : SV_POSITION;
-    float2 uv           : TEXCOORD;
-    float3 vNormal      : VNORMAL;
-    float3 vTangent     : TANGENT;
-    float3 vBitangent   : BITANGENT;
-    float3 vPos         : POSITION;
+    float4 pos : SV_POSITION;
+    float2 uv : TEXCOORD;
+    float3 vNormal : VNORMAL;
+    float3 vTangent : TANGENT;
+    float3 vBitangent : BITANGENT;
+    float3 vPos : POSITION;
 };
 
 Texture2D normalTexture : TEXTURE : register(t2);
