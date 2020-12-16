@@ -25,7 +25,7 @@ enum ShaderProgramsEnum
 	SSAO_MAP,
 	NONE
 };
-const int NR_OF_SHADER_PROGRAM_ENUMS = 18;
+const int NR_OF_SHADER_PROGRAM_ENUMS = 21;
 
 inline ShaderProgramsEnum charToShaderEnum(char e)
 {
