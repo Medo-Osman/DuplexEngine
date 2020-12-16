@@ -50,7 +50,7 @@ private:
 	Vector4 m_skyLightDir = Vector4(0.25, -0.5, 0.25, 0);//Vector4(-0.8f, 1.0f, -0.7f, 0);//Vector4(-0.5, 0, -0.5, 0);
 	Vector4 m_skyLightColor = Vector4(1, 1, 1, 1);
 	FLOAT m_skyLightBrightness = 4.f;
-	FLOAT m_ambientLightLevel = 0.3f;
+	FLOAT m_ambientLightLevel = 0.5f;
 
 	// Entities
 	std::unordered_map<std::string, Entity*>* m_entities;
@@ -67,11 +67,9 @@ private:
 
 	Input* m_input = nullptr;
 
+
 	QuadTree* m_quadTreePtr;
-
-	// Materials
-
-
+	
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
 	void updateLightData();
 
@@ -106,7 +104,7 @@ public:
 
 	Settings getSettings() const;
 	Camera* getCameraPtr();
-	float getGameTime();
+	float getGameTime() const;
 	Player* getPlayerPtr();
 
 	ID3D11DeviceContext* getDeviceContextPtr() { return m_dContextPtr; }

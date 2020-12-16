@@ -207,6 +207,7 @@ void Renderer::release()
 {
 	delete m_shadowMap;
 	skyboxDSSPtr->Release();
+	m_blendStateNoBlendPtr->Release();
 
 	for (std::pair<ShaderProgramsEnum, ShaderProgram*> element : m_compiledShaders)
 	{
@@ -338,10 +339,22 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	geometryTexture->Release();
 
-	initializeBloomFilter();
+	// Blur
+	m_blurBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_blurData, 1);
 
+	// SSAO
+	m_ssaoBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_ssaoData, 1);
+	buildRandomVectorTexture();
+	buildFrustumFarCorners((80.f / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
+	buildOffsetVectors();
+	calculateBlurWeights(m_ssaoBlurData, BLUR_RADIUS, m_ssaoSigma);
+	createViewPort(m_SSAOViewport, m_settings.width, m_settings.height);
+
+	// Bloom
+	initializeBloomFilter();
 	compileAllShaders(&m_compiledShaders, m_devicePtr.Get(), m_dContextPtr.Get(), m_depthStencilViewPtr.Get());
 
+	// Default stuff
 	createViewPort(m_defaultViewport, m_settings.width, m_settings.height);
 	rasterizerSetup();
 
@@ -359,8 +372,89 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	glowTexture->Release();
 
+	ID3D11Texture2D* normalsNDepthTexture;
+
+	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	textureDesc.SampleDesc.Count = 1;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Format = textureDesc.Format;
+
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &normalsNDepthTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateRenderTargetView(normalsNDepthTexture, 0, m_normalsNDepthRenderTargetViewPtr.GetAddressOf());
+	if (!SUCCEEDED(hr)) return hr;
+
+
+	hr = m_devicePtr->CreateShaderResourceView(normalsNDepthTexture, &srvDesc, &m_normalsNDepthSRV);
+	if (!SUCCEEDED(hr)) return hr;
+
+	normalsNDepthTexture->Release();
+
+	ID3D11Texture2D* SSAOTexture;
+	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+
+	srvDesc.Format = textureDesc.Format;
+
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &SSAOTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateRenderTargetView(SSAOTexture, 0, m_SSAORenderTargetViewPtr.GetAddressOf());
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateShaderResourceView(SSAOTexture, &srvDesc, &m_SSAOShaderResourceViewPtr);
+	if (!SUCCEEDED(hr)) return hr;
+
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+
+	uavDesc.Format = textureDesc.Format;
+	uavDesc.ViewDimension = D3D11_UAV_DIMENSION::D3D11_UAV_DIMENSION_TEXTURE2D;
+	uavDesc.Texture2D.MipSlice = 0;
+	hr = m_devicePtr->CreateUnorderedAccessView(SSAOTexture, &uavDesc, &m_SSAOUnorderedAccessViewPtr);
+	if (!SUCCEEDED(hr)) return hr;
+
+	SSAOTexture->Release();
+
+	ID3D11Texture2D* SSAOblurTexture;
+	hr = m_devicePtr->CreateTexture2D(&textureDesc, NULL, &SSAOblurTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateShaderResourceView(SSAOblurTexture, &srvDesc, &m_SSAOblurSrv);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateUnorderedAccessView(SSAOblurTexture, &uavDesc, &m_SSAOblurUav);
+	if (!SUCCEEDED(hr)) return hr;
+
+
 	m_geometryPassRTVs[0] = m_geometryRenderTargetViewPtr.Get();
 	m_geometryPassRTVs[1] = m_glowMapRenderTargetViewPtr.Get();
+	//m_geometryPassRTVs[2] = m_normalsNDepthRenderTargetViewPtr.Get();
+
+	
+
+	D3D11_BLEND_DESC BlendState;
+	ZeroMemory(&BlendState, sizeof(D3D11_BLEND_DESC));
+	BlendState.AlphaToCoverageEnable = FALSE;
+	BlendState.IndependentBlendEnable = FALSE;
+	BlendState.RenderTarget[0].BlendEnable = FALSE;
+	BlendState.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	BlendState.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
+	BlendState.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	BlendState.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	BlendState.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	BlendState.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	BlendState.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	m_devicePtr->CreateBlendState(&BlendState, &m_blendStateNoBlendPtr);
+
+	BlendState.RenderTarget[0].BlendEnable = TRUE;
+	BlendState.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	BlendState.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	BlendState.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	BlendState.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+
+	m_devicePtr->CreateBlendState(&BlendState, &m_blendStateWithBlendPtr);
 
 	//Setup samplerstate
 	D3D11_SAMPLER_DESC samplerStateDesc;
@@ -380,8 +474,43 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 	m_dContextPtr->DSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 
-	perObjectMVP perObjectMVP;
-	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP, 1);
+	// SSAO Random sampler
+	
+	ZeroMemory(&samplerStateDesc, sizeof(D3D11_SAMPLER_DESC));
+
+	samplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+	samplerStateDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerStateDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerStateDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerStateDesc.MinLOD = -D3D11_FLOAT32_MAX;
+	samplerStateDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	samplerStateDesc.MipLODBias = 0;
+	samplerStateDesc.MaxAnisotropy = 1;
+	samplerStateDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerStateDesc.BorderColor[0] = 1.f;
+	samplerStateDesc.BorderColor[1] = 1.f;
+	samplerStateDesc.BorderColor[2] = 1.f;
+	samplerStateDesc.BorderColor[3] = 1.f;
+	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_SSAOSamplerStateRAND);
+	assert(SUCCEEDED(hr) && "Failed to create SamplerState");
+	m_dContextPtr->PSSetSamplers(2, 1, m_SSAOSamplerStateRAND.GetAddressOf());
+
+	// SSAO Normal & Depth Sampler
+
+	samplerStateDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerStateDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerStateDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerStateDesc.BorderColor[0] = 0.f;
+	samplerStateDesc.BorderColor[1] = 0.f;
+	samplerStateDesc.BorderColor[2] = 0.f;
+	samplerStateDesc.BorderColor[3] = 1e5f;
+
+	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_SSAOSamplerStateNRM);
+	assert(SUCCEEDED(hr) && "Failed to create SamplerState");
+	m_dContextPtr->PSSetSamplers(3, 1, m_SSAOSamplerStateNRM.GetAddressOf());
+
+
+	m_perObjectConstantBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &perObjectMVP(), 1);
 	m_dContextPtr->VSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 	m_dContextPtr->HSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
 	m_dContextPtr->DSSetConstantBuffers(0, 1, m_perObjectConstantBuffer.GetAddressOf());
@@ -549,11 +678,26 @@ HRESULT Renderer::createDepthStencil()
 	depthTextureDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
 
 	ID3D11Texture2D* depthStencilBufferPtr;
+
+
 	hr = m_devicePtr->CreateTexture2D(&depthTextureDesc, 0, &depthStencilBufferPtr);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = m_devicePtr->CreateDepthStencilView(depthStencilBufferPtr, NULL, m_depthStencilViewPtr.GetAddressOf());
 	depthStencilBufferPtr->Release();
+
+	// Normals & Depth depthStencil
+	ID3D11Texture2D* NandDDepthBufferPtr;
+
+	depthTextureDesc.SampleDesc.Count = 1;
+
+	hr = m_devicePtr->CreateTexture2D(&depthTextureDesc, 0, &NandDDepthBufferPtr);
+	if (!SUCCEEDED(hr)) return hr;
+
+	hr = m_devicePtr->CreateDepthStencilView(NandDDepthBufferPtr, NULL, m_NormalDepthStencilViewPtr.GetAddressOf());
+
+	NandDDepthBufferPtr->Release();
+
 	//Binding rendertarget and depth target to pipline
 //Best practice to use an array even if only using one rendertarget
 	m_dContextPtr->OMSetRenderTargets(1, m_geometryRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
@@ -587,6 +731,164 @@ void Renderer::createViewPort(D3D11_VIEWPORT& viewPort, const int& width, const 
 	viewPort.MaxDepth = 1.0f;
 }
 
+HRESULT Renderer::buildRandomVectorTexture()
+{
+	HRESULT hr;
+	int dimensions = 256;
+	D3D11_TEXTURE2D_DESC texDesc;
+	texDesc.Width = dimensions;
+	texDesc.Height = dimensions;
+	texDesc.MipLevels = 1;
+	texDesc.ArraySize = 1;
+	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	texDesc.SampleDesc.Count = 1;
+	texDesc.SampleDesc.Quality = 0;
+	texDesc.Usage = D3D11_USAGE_DYNAMIC;
+	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	texDesc.MiscFlags = 0;
+
+	m_randomColors = new XMVECTOR[dimensions * dimensions];
+	for (int i = 0; i < dimensions; i++)
+	{
+		for(int j = 0; j < dimensions; j++)
+		{
+			m_randomColors[i * dimensions + j] = XMVectorSet(randomFloat(), randomFloat(), randomFloat(), randomFloat());
+			//std::cout << Vector4(m_randomColors[i * 16 + j]).x << ", " << Vector4(m_randomColors[i * 16 + j]).y << ", " << Vector4(m_randomColors[i * 16 + j]).z << "\n";
+		}
+	}
+
+	D3D11_SUBRESOURCE_DATA subData;
+	subData.pSysMem = m_randomColors;
+	subData.SysMemPitch = texDesc.Width * sizeof(XMVECTOR);
+	//subData.SysMemSlicePitch = texDesc.Width * texDesc.Height * sizeof(float) * 4;
+
+	hr = m_devicePtr->CreateTexture2D(&texDesc, &subData, &m_randomTexture);
+	if (!SUCCEEDED(hr)) return hr;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = texDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	hr = m_devicePtr->CreateShaderResourceView(m_randomTexture.Get(), &srvDesc, &m_randomVectorsSRV);
+	if (!SUCCEEDED(hr)) return hr;
+}
+
+void Renderer::buildOffsetVectors()
+{
+	// 8 cube corners
+	m_offsetVectors[0] = XMFLOAT4(+1.0f, +1.0f, +1.0f, 0.0f);
+	m_offsetVectors[1] = XMFLOAT4(-1.0f, -1.0f, -1.0f, 0.0f);
+
+	m_offsetVectors[2] = XMFLOAT4(-1.0f, +1.0f, +1.0f, 0.0f);
+	m_offsetVectors[3] = XMFLOAT4(+1.0f, -1.0f, -1.0f, 0.0f);
+
+	m_offsetVectors[4] = XMFLOAT4(+1.0f, +1.0f, -1.0f, 0.0f);
+	m_offsetVectors[5] = XMFLOAT4(-1.0f, -1.0f, +1.0f, 0.0f);
+
+	m_offsetVectors[6] = XMFLOAT4(-1.0f, +1.0f, -1.0f, 0.0f);
+	m_offsetVectors[7] = XMFLOAT4(+1.0f, -1.0f, +1.0f, 0.0f);
+
+	// 6 centers of cube faces
+	m_offsetVectors[8] = XMFLOAT4(-1.0f, 0.0f, 0.0f, 0.0f);
+	m_offsetVectors[9] = XMFLOAT4(+1.0f, 0.0f, 0.0f, 0.0f);
+
+	m_offsetVectors[10] = XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f);
+	m_offsetVectors[11] = XMFLOAT4(0.0f, +1.0f, 0.0f, 0.0f);
+
+	m_offsetVectors[12] = XMFLOAT4(0.0f, 0.0f, -1.0f, 0.0f);
+	m_offsetVectors[13] = XMFLOAT4(0.0f, 0.0f, +1.0f, 0.0f);
+
+	
+	for (int i = 0; i < 14; ++i) {
+		float s = randomFloat(0.25f, 1.0f);
+		m_offsetVectors[i].Normalize();
+		Vector4 v = s * m_offsetVectors[i];
+		m_offsetVectors[i] = v;
+	}
+}
+
+void Renderer::buildFrustumFarCorners(float fovY, float farZ)
+{
+	float aspect = (float)(m_settings.width) / (float)(m_settings.height);
+
+	float halfHeight = farZ * tanf(0.5f * fovY);
+	//float halfHeight = farZ * tanf(fovY);
+	float halfWidth = aspect * halfHeight;
+
+	m_frustumFarCorners[0] = Vector4(-halfWidth, -halfHeight, farZ, 0);
+	m_frustumFarCorners[1] = Vector4(-halfWidth, +halfHeight, farZ, 0);
+	m_frustumFarCorners[2] = Vector4(+halfWidth, +halfHeight, farZ, 0);
+	m_frustumFarCorners[3] = Vector4(+halfWidth, -halfHeight, farZ, 0);
+}
+
+void Renderer::computeSSAOPass()
+{
+	UINT offset = 0;
+	int vertexCount = 6;
+
+	m_dContextPtr->RSSetViewports(1, &m_SSAOViewport); 
+
+	m_dContextPtr->OMSetRenderTargets(1, &nullRtv, NULL);
+
+
+	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(8, 1, &nullSrv);
+
+	/*Matrix T = Matrix::Identity;
+	T._11 = 0.5f;
+	T._22 = -0.5f;
+	T._41 = 0.5f;
+	T._42 = 0.5f;*/
+	XMMATRIX T(
+		0.5f, 0.0f, 0.0f, 0.0f,
+		0.0f, -0.5f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.0f, 1.0f);
+	Matrix P = m_camera->getProjectionMatrix();
+	Matrix pt = P * T;
+
+	m_ssaoData.viewToTexSpace = XMMatrixTranspose(pt);
+
+	for(UINT i = 0; i < 4; i++)
+	{
+		m_ssaoData.frustumCorners[i] = m_frustumFarCorners[i];
+	}
+
+	for(UINT i = 0; i < 14; i++)
+	{
+		m_ssaoData.offsetVectors[i] = m_offsetVectors[i];
+	}
+
+	m_ssaoBuffer.updateBuffer(m_dContextPtr.Get(), &m_ssaoData);
+
+	m_dContextPtr->IASetVertexBuffers(0, 1, m_renderQuadBuffer.GetAddressOf(), m_renderQuadBuffer.getStridePointer(), &offset);
+
+	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), NULL);
+	m_dContextPtr->ClearRenderTargetView(m_SSAORenderTargetViewPtr.Get(), m_blackClearColor);
+
+	m_compiledShaders[ShaderProgramsEnum::SSAO_MAP]->setShaders();
+	m_currentSetShaderProg = ShaderProgramsEnum::SSAO_MAP;
+
+	m_dContextPtr->VSSetConstantBuffers(4, 1, m_ssaoBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(4, 1, m_ssaoBuffer.GetAddressOf());
+	m_dContextPtr->PSSetShaderResources(0, 1, m_normalsNDepthSRV.GetAddressOf());
+	m_dContextPtr->PSSetShaderResources(1, 1, m_randomVectorsSRV.GetAddressOf());
+
+	m_dContextPtr->Draw(vertexCount, 0);
+
+	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
+
+	m_dContextPtr->OMSetRenderTargets(1, &nullRtv, NULL);
+
+	/*m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);*/
+
+}
+
 HRESULT Renderer::initializeBloomFilter()
 {
 	D3D11_TEXTURE2D_DESC textureDesc = { 0 };
@@ -597,8 +899,7 @@ HRESULT Renderer::initializeBloomFilter()
 
 	HRESULT hr;
 
-	m_blurBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &m_blurData, 1);
-	calculateBloomWeights();
+	calculateBlurWeights(m_blurData);
 
 	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	textureDesc.MipLevels = 1;
@@ -695,26 +996,26 @@ HRESULT Renderer::initializeBloomFilter()
 	return hr;
 }
 
-void Renderer::calculateBloomWeights()
+void Renderer::calculateBlurWeights(CS_BLUR_CBUFFER& bufferData, int radius, float sigma)
 {
-	this->m_blurData.direction = 0;
-	this->m_blurData.radius = BLUR_RADIUS;
+	bufferData.direction = 0;
+	bufferData.radius = radius;
 
-	// Blur Pass Calculate Weights
+	// Blur Kernal Weights Calculator
 	float sum = 0.f;
 	float newSum = 0.f;
-	float twoSigmaSq = 2 * m_weightSigma * m_weightSigma; // pow(m_weightSigma, 2.f)
+	float twoSigmaSq = 2 * sigma * sigma; // pow(sigma, 2.f)
 
-	for (size_t i = 0; i <= BLUR_RADIUS; ++i)
+	for (size_t i = 0; i <= bufferData.radius; ++i)
 	{
-		float temp = (1.f / m_weightSigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
-		m_blurData.weights[i] = temp;
+		float temp = (1.f / sigma) * std::expf(-static_cast<float>(i * i) / twoSigmaSq);
+		bufferData.weights[i] = temp;
 		sum += 2 * temp; // Add 2 times to sum because we only compute half of the curve(1 dimension)
 	}
-	sum -= this->m_blurData.weights[0];
+	sum -= bufferData.weights[0];
 
-	for (int i = 0; i <= BLUR_RADIUS; ++i)
-		m_blurData.weights[i] /= sum;
+	for (int i = 0; i <= bufferData.radius; ++i)
+		bufferData.weights[i] /= sum;
 }
 
 void Renderer::downSamplePass()
@@ -776,24 +1077,210 @@ void Renderer::blurPass()
 	m_dContextPtr->OMSetRenderTargets(1, m_finalRenderTargetViewPtr.GetAddressOf(), m_depthStencilViewPtr.Get());
 	m_dContextPtr->PSSetShaderResources(0, 1, m_geometryShaderResourceView.GetAddressOf());
 	m_dContextPtr->PSSetShaderResources(1, 1, m_downSampledShaderResourceView.GetAddressOf());
+	m_dContextPtr->PSSetShaderResources(2, 1, m_randomVectorsSRV.GetAddressOf()); // TEMPORARY
+
+
+	//int dimension = 256;
+	//for (int i = 0; i < dimension; i++)
+	//{
+	//	for (int j = 0; j < dimension; j++)
+	//	{
+	//		m_randomColors[i * dimension + j] = XMVectorSet(randomFloat(), randomFloat(), randomFloat(), 1);
+	//		//m_randomColors[i * dimension + j] = XMFLOAT4(1, 1, 0, 1);
+	//	}
+	//}
+
+	//D3D11_MAPPED_SUBRESOURCE mappedSubResource;
+	//ZeroMemory(&mappedSubResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	//m_dContextPtr->Map(m_randomTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedSubResource);
+	//memcpy(mappedSubResource.pData, m_randomColors, (dimension * dimension * sizeof(XMVECTOR))); // not working
+	//m_dContextPtr->Unmap(m_randomTexture.Get(), 0);
+
 	m_dContextPtr->Draw(vertexCount, 0);
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
 	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
 
 }
 
+void Renderer::ssaoBlurPass()
+{
+	UINT offset = 0;
+	int vertexCount = 6;
+	UINT cOffset = -1;
+
+	m_dContextPtr->OMSetRenderTargets(1, &nullRtv, NULL);
+
+	this->m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &this->nullUav, &cOffset);
+
+	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
+	m_dContextPtr->CSSetShader(m_CSBlurr.Get(), 0, 0);
+
+	ID3D11ShaderResourceView* blurSRVs[] = { m_SSAOShaderResourceViewPtr.Get(), m_SSAOblurSrv.Get() };
+	ID3D11UnorderedAccessView* blurUAVs[] = { m_SSAOblurUav.Get(), m_SSAOUnorderedAccessViewPtr.Get() };
+
+	for (UINT i = 0; i < 2; i++)
+	{
+		// Blur Constant Buffer
+		m_ssaoBlurData.direction = i;
+		m_blurBuffer.updateBuffer(m_dContextPtr.Get(), &m_ssaoBlurData);
+		this->m_dContextPtr->CSSetConstantBuffers(0, 1, m_blurBuffer.GetAddressOf());
+
+		// Set Rescources
+		this->m_dContextPtr->CSSetShaderResources(0, 1, &blurSRVs[m_ssaoBlurData.direction]);
+		this->m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &blurUAVs[m_ssaoBlurData.direction], &cOffset);
+
+		// Dispatch Shader
+		this->m_dContextPtr->Dispatch(m_settings.width / 8, m_settings.height / 8, 1);
+
+		// Unbind Unordered Access View and Shader Resource View
+		this->m_dContextPtr->CSSetShaderResources(0, 1, &this->nullSrv);
+		this->m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &this->nullUav, &cOffset);
+	}
+
+	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
+	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
+
+	//ImGui::Begin("someWindow");
+	//ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(512, 288));
+	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(1024, 576));
+	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(256, 256));
+	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(128, 128));
+	//ImGui::End();
+}
+
+void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
+{
+	m_drawn = 0;
+
+	m_dContextPtr->OMSetRenderTargets(1, m_normalsNDepthRenderTargetViewPtr.GetAddressOf(), m_NormalDepthStencilViewPtr.Get());
+	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_AOclearColor);
+	// Get Entity map from Engine
+	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+
+	for (auto& component : *Engine::get().getMeshComponentMap())
+	{
+		bool isAnim = false;
+		XMFLOAT3 min, max;
+		bool draw = true;
+		Entity* parentEntity;
+
+		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+		else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
+			parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
+		else
+			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
+
+
+		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
+		{
+			//Culling
+			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
+			XMVECTOR pos = parentEntity->getTranslation();
+			pos += component.second->getTranslation();
+			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
+			XMFLOAT3 posFloat3;
+			XMStoreFloat3(&posFloat3, pos);
+
+
+			if (frust->Contains(pos) != ContainmentType::CONTAINS)
+			{
+				component.second->getMeshResourcePtr()->getMinMax(min, max);
+
+				XMFLOAT3 ext = (max - min) / 2;
+				ext = ext * scale;
+				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
+				BoundingOrientedBox box(posFloat3, ext, rot);
+
+				ContainmentType contType = frust->Contains(box);
+				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+			}
+			else
+			{
+				draw = true;
+			}
+		}
+
+		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
+		if (draw && meshComp->isVisible())
+		{
+			m_drawn++;
+
+			perObjectMVP constantBufferPerObjectStruct;
+			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
+			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
+			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
+			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+
+			XMMATRIX w = parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix();
+			w.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+
+			XMVECTOR det = XMMatrixDeterminant(w);
+			w = XMMatrixTranspose(XMMatrixInverse(&det, w));
+
+			m_ssaoData.worldInverseTransposeView = XMMatrixTranspose(w * m_camera->getViewMatrix());
+
+			m_ssaoBuffer.updateBuffer(m_dContextPtr.Get(), &m_ssaoData);
+
+			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
+			ShaderProgramsEnum NormalShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH;
+
+			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
+			{
+				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+				NormalShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH_ANIM;
+			}
+
+			int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
+
+			for (int mat = 0; mat < materialCount; mat++)
+			{
+				ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum(mat);
+				if (meshShaderEnum != ShaderProgramsEnum::SKYBOX)
+				{
+					if (m_currentSetShaderProg != NormalShaderEnum)
+					{
+						m_compiledShaders[NormalShaderEnum]->setShaders();
+						m_currentSetShaderProg = NormalShaderEnum;
+					}
+
+					Material* meshMatPtr = component.second->getMaterialPtr(mat);
+					if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+					{
+						meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
+						m_currentSetMaterialId = meshMatPtr->getMaterialId();
+
+						MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+						currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+
+						m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+					}
+
+					std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
+
+					m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
+				}
+			}
+		}
+	}
+}
+
 void Renderer::initRenderQuad()
 {
-	std::vector<PositionTextureVertex> fullScreenQuad;
-
-	fullScreenQuad.push_back({ XMFLOAT3(-1.f, 1.f, 0.f), XMFLOAT2(0.f, 0.f) });
-	fullScreenQuad.push_back({ XMFLOAT3(1.f, -1.f, 0.f), XMFLOAT2(1.f, 1.f) });
-	fullScreenQuad.push_back({ XMFLOAT3(-1.f, -1.f, 0.f), XMFLOAT2(0.f, 1.f) });
-	fullScreenQuad.push_back({ XMFLOAT3(-1.f, 1.f, 0.f), XMFLOAT2(0.f, 0.f) });
-	fullScreenQuad.push_back({ XMFLOAT3(1.f, 1.f, 0.f), XMFLOAT2(1.f, 0.f) });
-	fullScreenQuad.push_back({ XMFLOAT3(1.f, -1.f, 0.f), XMFLOAT2(1.f, 1.f) });
+	std::vector<TextureNormalVertex> fullScreenQuad;
+	
+	fullScreenQuad.push_back({ XMFLOAT3(-1.f, -1.f, 0.f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.f, 1.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(-1.f, 1.f, 0.f), XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT2(0.f, 0.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(1.f, 1.f, 0.f), XMFLOAT3(2.0f, 0.0f, 0.0f), XMFLOAT2(1.f, 0.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(-1.f, -1.f, 0.f), XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2(0.f, 1.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(1.f, 1.f, 0.f), XMFLOAT3(2.0f, 0.0f, 0.0f), XMFLOAT2(1.f, 0.f) });
+	fullScreenQuad.push_back({ XMFLOAT3(1.f, -1.f, 0.f), XMFLOAT3(3.0f, 0.0f, 0.0f), XMFLOAT2(1.f, 1.f) });
 
 	m_renderQuadBuffer.initializeBuffer(m_devicePtr.Get(), false, D3D11_BIND_VERTEX_BUFFER, fullScreenQuad.data(), (int)fullScreenQuad.size());
+
 }
 
 void Renderer::zPrePassRenderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent, const bool& useFrustumCullingParam)
@@ -952,14 +1439,33 @@ void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATR
 				meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
 				m_currentSetMaterialId = meshMatPtr->getMaterialId();
 
-				MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
-				currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
-				currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
-				currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
-				currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
-				currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
+				if (m_currentSetShaderProg != meshShaderEnum)
+				{
+					m_compiledShaders[meshShaderEnum]->setShaders();
+					m_currentSetShaderProg = meshShaderEnum;
+				}
+				
+				Material* meshMatPtr = component.second->getMaterialPtr(mat);
+				if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
+				{
+					meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
+					m_currentSetMaterialId = meshMatPtr->getMaterialId();
+					
+					MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+					currentMaterialConstantBufferData.UVScale = meshMatPtr->getMaterialParameters().UVScale;
+					currentMaterialConstantBufferData.roughness = meshMatPtr->getMaterialParameters().roughness;
+					currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
+					currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
+					currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
 
-				m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+				}
+				m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
+				m_dContextPtr->PSSetShaderResources(8, 1, m_SSAOShaderResourceViewPtr.GetAddressOf());
+
+				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
+				
+				m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
 			}
 			m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 
@@ -1215,15 +1721,17 @@ void Renderer::render()
 
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
 
-	
+	m_dContextPtr->OMSetBlendState(m_blendStateNoBlendPtr, m_blendFactor, m_sampleMask);
 
 	m_dContextPtr->ClearRenderTargetView(m_geometryRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_finalRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_glowMapRenderTargetViewPtr.Get(), m_blackClearColor);
+	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_clearColor);
 
 	if (m_depthStencilViewPtr)
 	{
 		m_dContextPtr->ClearDepthStencilView(m_depthStencilViewPtr.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+		m_dContextPtr->ClearDepthStencilView(m_NormalDepthStencilViewPtr.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 	}
 
 	//NormalPass
@@ -1288,13 +1796,12 @@ void Renderer::render()
 	ID3D11RenderTargetView* nullRenderTargets[1] = { 0 };
 	m_dContextPtr->OMSetRenderTargets(1, nullRenderTargets, nullptr);
 
-	
 	//Run ZPreePass
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 
-	if(USE_Z_PRE_PASS)
+	if (USE_Z_PRE_PASS)
 	{
 		this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStateCompLessPtr.Get(), NULL);
 		ID3D11RenderTargetView* nullRenderTargetsTwo[2] = { 0 };
@@ -1302,14 +1809,27 @@ void Renderer::render()
 		this->zPrePass(&frust, &W, &V, &P, meshCompVec);
 	}
 
+	// Normals & Depth pass
+	normalsNDepthPass(&frust, &wvp, &V, &P);
+
+	// SSAO
+	computeSSAOPass();
+
+	// SSAO Blur
+	ssaoBlurPass();
+
 	//Run ordinary pass
 	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
 	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 
-	
-	USE_QUADTREE ? renderScene(&frust, &W, &V, &P, meshCompVec) : renderSortedScene(&frust, &W, &V, &P); //If we use quadTree we use render scene otherwise we use sorted scene.
 
-	//renderScene(&frust, &wvp, &V, &P);
+
+
+
+	m_dContextPtr->OMSetBlendState(m_blendStateWithBlendPtr, m_blendFactor, m_sampleMask);
+	USE_QUADTREE ? renderScene(&frust, &W, &V, &P, meshCompVec) : renderSortedScene(&frust, &W, &V, &P); //If we use quadTree we use render scene otherwise we use sorted scene.
+	m_dContextPtr->OMSetBlendState(m_blendStateNoBlendPtr, m_blendFactor, m_sampleMask);
+
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
 	m_dContextPtr->PSSetShaderResources(0, 1, srv);
@@ -1334,7 +1854,6 @@ void Renderer::render()
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	this->setPipelineShaders(nullptr, nullptr, nullptr, nullptr, nullptr);
 	this->m_dContextPtr->OMSetDepthStencilState(this->m_depthStencilStatePtr.Get(), 0);
-	this->m_dContextPtr->PSSetSamplers(1, 1, this->m_psSamplerState.GetAddressOf());
 
 	if (DEBUGMODE)
 	{
@@ -1348,7 +1867,6 @@ void Renderer::render()
 	blurPass();
 
 	drawBoundingVolumes();
-
 
 	// GUI
 	GUIHandler::get().render();

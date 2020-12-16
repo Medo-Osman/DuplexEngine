@@ -6,6 +6,8 @@ struct ps_in
 
 Texture2DMS<float4> geometryTexture : register(t0);
 Texture2D glowTexture : register(t1);
+Texture2D randomTexture : register(t2);
+
 SamplerState sampState : SAMPLER : register(s0);
 
 float4 main(ps_in input) : SV_TARGET

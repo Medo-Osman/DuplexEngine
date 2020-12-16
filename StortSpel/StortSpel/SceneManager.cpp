@@ -128,6 +128,7 @@ void SceneManager::updateScene(const float &dt)
 		case ScenesEnum::START:
 			//sceneLoaderThread = std::thread(Scene::loadTestLevel, m_nextScene,m_nextSceneReady);
 			sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Skyway_1", m_nextSceneReady);
+			//sceneLoaderThread = std::thread(Scene::loadMaterialTest, m_nextScene, m_nextSceneReady);
 			sceneLoaderThread.detach();
 			m_nextScene->hidescore = true;
 			m_gameStarted = true;
@@ -753,6 +754,8 @@ void SceneManager::hideMainMenu()
 	GUIHandler::get().setVisible(m_setFovIncreaseIndex, false);
 	GUIHandler::get().setVisible(m_fovIndex, false);
 	GUIHandler::get().setVisible(m_fullscreenText, false);
+	GUIHandler::get().setVisible(m_resumeBtnIndex, false);
+
 
 	GUIHandler::get().setInMenu(false);
 }
@@ -789,6 +792,8 @@ void SceneManager::hidePauseMenu()
 	GUIHandler::get().setVisible(m_exitIndex, false);
 	GUIHandler::get().setVisible(m_pauseText, false);
 	GUIHandler::get().setVisible(m_backToLobbyIndex, false);
+	GUIHandler::get().setVisible(m_resumeBtnIndex, false);
+
 
 	GUIHandler::get().setInMenu(false);
 }

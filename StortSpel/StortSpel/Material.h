@@ -31,10 +31,15 @@ private:
 	unsigned int long m_materialId;
 	bool m_isDefault;
 
+	bool m_isPRB;
+	inline static std::wstring m_currentSkyboxTex = L"";
+	inline static ID3D11ShaderResourceView* pbrTextures[3];
+	inline static bool pbrIsSet = false;
+
 public:
 
 	Material();
-	Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData = MATERIAL_CONST_BUFFER());
+	Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData = MATERIAL_CONST_BUFFER(), bool isPBR = false);
 	Material(std::wstring materialName, bool isPBR = false);
 	Material(const Material& other);
 	~Material();
@@ -55,6 +60,9 @@ public:
 
 	unsigned int long getMaterialId();
 	MATERIAL_CONST_BUFFER getMaterialParameters();
+
+	static std::wstring getCurrentSkybox();
+	static void setCurrentSkybox(std::wstring newSkyboxTex, std::wstring newIRTex = L"");
 
 	static void readMaterials();
 };

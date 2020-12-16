@@ -3,26 +3,27 @@
 
 enum ShaderProgramsEnum
 {
-	DEFAULT,			// 0
-	TEMP_TEST,			// 1
-	SKYBOX,				// 2
-	SKEL_ANIM,			// 3
-	PBRTEST,			// 4
-	SKEL_PBR,			// 5
-	BLOOM_COMBINE,		// 6
-	OBJECTSPACEGRID,	// 7
-	SHADOW_DEPTH,		// 8 
-	DEFAULT_SHADOW,		// 9
-	SHADOW_DEPTH_ANIM,	// 10
-	EMISSIVE,			// 11
-	LUCY_FACE,			// 12
-	RAINBOW,			// 13
-	CLOUD,				// 14
-	Z_PRE_PASS,			//15
-	Z_PRE_PASS_ANIM,	//16
-	NONE				// 17
-	// VIKTIGT! Ändra NR_OF_SHADER_PROGRAM_ENUMS nedan så den stämmer med antalet i listan :)
-
+	DEFAULT,
+	TEMP_TEST,
+	SKYBOX,
+	SKEL_ANIM,
+	PBRTEST,
+	SKEL_PBR,
+	BLOOM_COMBINE,
+	OBJECTSPACEGRID,
+	SHADOW_DEPTH,
+	DEFAULT_SHADOW,
+	SHADOW_DEPTH_ANIM,
+	EMISSIVE,
+	LUCY_FACE,
+	RAINBOW,
+	CLOUD,
+	Z_PRE_PASS,
+	Z_PRE_PASS_ANIM,
+	NORMALS_DEPTH,
+	NORMALS_DEPTH_ANIM,
+	SSAO_MAP,
+	NONE
 };
 const int NR_OF_SHADER_PROGRAM_ENUMS = 18;
 
@@ -100,7 +101,7 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 	(
 		{ L"CombinePassVertex.hlsl",L"null",L"null",L"null",L"CombinePassPixel.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
-		VertexLayoutType::LRMVertexLayout,
+		VertexLayoutType::renderQuadVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 
@@ -156,7 +157,6 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 
 	(*compiledShadersMap)[ShaderProgramsEnum::LUCY_FACE] = new ShaderProgram
 	(
-		//{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"BasicPixelShader_temp_for_testing_shaderSwitching.hlsl" },BasicPixelShader_Shadow
 		{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"SeeThroughPixel.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		VertexLayoutType::LRSMVertexLayout,
@@ -165,7 +165,6 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 
 	(*compiledShadersMap)[ShaderProgramsEnum::Z_PRE_PASS] = new ShaderProgram
 	(
-		//{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"BasicPixelShader_temp_for_testing_shaderSwitching.hlsl" },BasicPixelShader_Shadow
 		{ L"ZPrePassVertexShaderBasic.hlsl",L"null",L"null",L"null",L"ZPrePassPixelShader.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		VertexLayoutType::LRSMVertexLayout,
@@ -174,7 +173,6 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 
 		(*compiledShadersMap)[ShaderProgramsEnum::Z_PRE_PASS] = new ShaderProgram
 	(
-		//{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"BasicPixelShader_temp_for_testing_shaderSwitching.hlsl" },BasicPixelShader_Shadow
 		{ L"ZPrePassVertexShaderBasic.hlsl",L"null",L"null",L"null",L"ZPrePassPixelShader.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		VertexLayoutType::LRSMVertexLayout,
@@ -183,7 +181,6 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 
 	(*compiledShadersMap)[ShaderProgramsEnum::Z_PRE_PASS_ANIM] = new ShaderProgram
 	(
-		//{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"BasicPixelShader_temp_for_testing_shaderSwitching.hlsl" },BasicPixelShader_Shadow
 		{ L"ZPrePassVertexShaderAnim.hlsl",L"null",L"null",L"null",L"ZPrePassPixelShader.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		VertexLayoutType::LRSMVertexLayout,
@@ -201,4 +198,28 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 
 	// Allow binding of a displacement map to the domain shader
 	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Domain, true);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::NORMALS_DEPTH] = new ShaderProgram
+	(
+		{ L"NormalsDepthVertex.hlsl",L"null",L"null",L"null",L"NormalsDepthPixel.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::NORMALS_DEPTH_ANIM] = new ShaderProgram
+	(
+		{ L"NormalsDepthVertexAnim.hlsl",L"null",L"null",L"null",L"NormalsDepthPixel.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::SSAO_MAP] = new ShaderProgram
+	(
+		{ L"SSAOVertex.hlsl",L"null",L"null",L"null",L"SSAOPixel.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::renderQuadVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
 }
