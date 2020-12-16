@@ -1359,19 +1359,16 @@ void Renderer::initRenderQuad()
 void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, DrawCallStruct* drawCallStruct, const bool& useFrustumCullingParam)
 {
 
-
-
-	// >>>>>>>>>>>>>>>>>>>>> Step 1: Get entity & meshComp to use
 	MeshComponent* meshComponent = drawCallStruct->mesh;
-	Entity* parentEntity;
-	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+	ShaderProgramsEnum shaderProgEnum = meshComponent->getShaderProgEnum(drawCallStruct->material_IDX);
+	if(m_currentSetShaderProg != shaderProgEnum)
+	{
+		m_currentSetShaderProg = shaderProgEnum;
+		m_compiledShaders[m_currentSetShaderProg]->setShaders();
+	}
 
-	if (meshComponent->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
-		parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
-	else if (meshComponent->getParentEntityIdentifier() == (const std::string) "3DMarker")
-		parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
-	else
-		parentEntity = (*Engine::get().getEntityMap())[meshComponent->getParentEntityIdentifier()];
+
+	Entity* parentEntity = drawCallStruct->entity;
 
 
 	// >>>>>>>>>>>>>>>>>>>>> Step 2: Cull all meshes not seen
@@ -1387,8 +1384,8 @@ void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V
 		// ----------------- Step 3.1: Set constant buffers
 		perObjectMVP constantBufferPerObjectStruct;
 		meshComponent->getMeshResourcePtr()->set(m_dContextPtr.Get());
-		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_switchCamera ? m_testCamera.getProjectionMatrix() : m_camera->getProjectionMatrix());
-		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_switchCamera ? m_testCamera.getViewMatrix() : m_camera->getViewMatrix());
+		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
+		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
 		constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(meshComponent->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
 		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
@@ -1399,13 +1396,6 @@ void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V
 		{
 			m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 		}
-
-		if (m_currentSetShaderProg != ShaderProgramsEnum(meshComponent->getShaderProgEnum(drawCallStruct->material_IDX)))
-		{
-			m_currentSetShaderProg = ShaderProgramsEnum(meshComponent->getShaderProgEnum(drawCallStruct->material_IDX));
-			m_compiledShaders[m_currentSetShaderProg]->setShaders();
-		}
-		
 
 		// ----------------- Step 3.3: Set material constant buffers
 		int material_ID = drawCallStruct->material_ID;
@@ -1429,9 +1419,9 @@ void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V
 		m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
 		m_dContextPtr->PSSetShaderResources(8, 1, m_SSAOShaderResourceViewPtr.GetAddressOf());
 		std::pair<std::uint32_t, std::uint32_t> offsetAndSize = meshComponent->getMeshResourcePtr()->getMaterialOffsetAndSize(material_IDX);
-		m_drawn++;
 		m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
 	}
+
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 	m_dContextPtr->PSSetShaderResources(7, 1, nullSRV);
 	
@@ -1447,11 +1437,10 @@ void Renderer::zPrePassRenderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp
 	XMFLOAT3 min, max;
 	Entity* parentEntity;
 
-	m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
 	AnimatedMeshComponent* animMeshComponent = nullptr;
-	if (component.second->getType() == ComponentType::ANIM_MESH)
-		animMeshComponent = static_cast<AnimatedMeshComponent*>(component.second);
+	if (meshComponent->getType() == ComponentType::ANIM_MESH)
+		animMeshComponent = static_cast<AnimatedMeshComponent*>(meshComponent);
 
 
 	if (meshComponent->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
@@ -2272,12 +2261,6 @@ void Renderer::inputUpdate(InputData& inputData)
 {
 	for (size_t i = 0; i < inputData.actionData.size(); i++)
 	{
-		if (inputData.actionData[i] == Action::TOGGLEFLY)
-		{
-			toggleFlyingCamera();
-		}
-	}
-
 		switch (inputData.actionData[i])
 		{
 		case PREVIOUSDEBUGVIEWMODE:
@@ -2287,6 +2270,9 @@ void Renderer::inputUpdate(InputData& inputData)
 		case NEXTDEBUGVIEWMODE:
 			if (m_debugViewMode < debugViewModeCount - 1)
 				m_debugViewMode++;
+			break;
+		case TOGGLEFLY:
+			toggleFlyingCamera();
 			break;
 		default:
 			break;
