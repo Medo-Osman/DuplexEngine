@@ -12,3 +12,4 @@ struct drawInt {
 	unsigned int dist : 32;
 	unsigned int id : 24;
 };
+

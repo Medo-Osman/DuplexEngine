@@ -6,6 +6,7 @@
 #include"OptimizationConfiguration.h"
 #include"DrawCallStructFile.h"
 
+
 class QuadTree
 {
 
@@ -15,8 +16,8 @@ private:
 	Vector3 m_minPos;
 	const bool addBoundingBoxes = false;
 
-
 	std::vector<DrawCallStruct*> m_drawCallStructs;
+
 
 	QuadTree* m_topLeftQuad;
 	QuadTree* m_topRightQuad;
@@ -51,12 +52,14 @@ private:
 			std::vector<Component*>  meshCompVec;
 			static_cast<Entity*>(drawCallStructVector.at(i)->entity)->getComponentsOfType(meshCompVec, ComponentType::MESH);
 
+
 			for (int j = 0; j < meshCompVec.size(); j++)
 			{
 
 				totalNrOfVerticies += dynamic_cast<MeshComponent*>(meshCompVec.at(j))->getMeshResourcePtr()->getVertexBuffer().getSize();
 			}
 		}
+
 
 		if (totalNrOfVerticies >= NR_OF_VERTICIES_FOR_PARTITION && drawCallStructVector.size() > 4) //Partition, since we do not split models make sure there is more than one model
 		{
@@ -160,6 +163,7 @@ public:
 	}
 
 	QuadTree(const XMFLOAT3& minPos, const XMFLOAT3& maxPos, const std::vector<DrawCallStruct*>& drawCallStructVector) //Used when creating new quadtrees inside datastructure. Assumes correct min/max pos was sent for Entitys.
+
 	{
 		this->m_maxPos = maxPos;
 		this->m_minPos = minPos;
@@ -169,7 +173,6 @@ public:
 		this->m_botRightQuad = nullptr;
 
 		this->partition(minPos, maxPos, drawCallStructVector);
-
 	}
 
 	void getRenderList(const BoundingFrustum* frust, std::vector<DrawCallStruct*> &drawCallStructVectorOut, std::vector<BoundingVolumeHolder>& vecOut)
@@ -197,6 +200,7 @@ public:
 					Entity* parentEntity = static_cast<Entity*>(m_drawCallStructs.at(i)->entity);
 					std::vector<Component*> compVect;
 					parentEntity->getComponentsOfType(compVect, ComponentType::MESH);
+
 					for (size_t j = 0; j < compVect.size(); j++)
 					{
 						meshComponent = static_cast<MeshComponent*>(compVect.at(j));
@@ -249,7 +253,7 @@ public:
 	{
 		if (!USE_QUADTREE) return;
 
-		std::vector<Entity*> tempEntityVec; 
+		//std::vector<Entity*> tempEntityVec; 
 		std::vector<DrawCallStruct*> tempDrawCallStructVector;
 		Vector3 min = XMVectorSet(99999, 99999, 99999, 1), max = XMVectorSet(-99999, -99999, -99999, 1);
 		//Calculate min/max and set them
@@ -367,6 +371,4 @@ public:
 			this->m_botRightQuad->getAllMeshComponents(vecOut);
 
 	}
-	
-
 };

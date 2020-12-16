@@ -5,7 +5,7 @@
 #include "Boss.h"
 #include <map>
 #include"ParticleComponent.h"
-
+#include"QuadTree.h"
 enum class ScenesEnum
 {
 	LOBBY,
@@ -47,6 +47,9 @@ private:
 	int m_tempParticleID = 0;
 	//std::unordered_map<std::string, Entity*> m_entities;
 	Camera* m_camera;
+
+	QuadTree* m_quadTree;
+	
 	int nrOfParisWheels = 0;
 	void createParisWheel(Vector3 position, float rotation, float rotationSpeed = 20, int nrOfPlatforms = 4);
 	int nrOfFlippingPlatforms = 0;
@@ -125,20 +128,23 @@ private:
 	std::vector<std::pair<int, std::string>> m_scores;
 
 	std::unordered_map<std::string, Entity*> m_entities;
-<<<<<<< Updated upstream
-	std::unordered_map<unsigned int long, MeshComponent*> m_meshComponentMap;
-=======
+
 	std::vector<std::vector<DrawCallStruct>> m_drawCalls;
 	std::vector<MeshComponent*> m_shadowPassDrawCalls;
->>>>>>> Stashed changes
+
 	std::unordered_map<std::string, LightComponent*> m_lightComponentMap;
 	std::vector<ParticleComponent*> m_tempParticleComponent;
 
 	void sendPhysicsMessage(PhysicsData& physicsData, bool& removed);
 	int m_nrOfScore = 400;
 
+	static void removeQuadTreeMeshComponentsFromMeshComponentMap(Scene* sceneObject);
+
+
 	int m_nrOfPickups = 0;
-	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
+	static void createQuadTree(Scene* sceneObject);
+	
+	void addPickup(const Vector3& position, const int tier = 1, std::string name = "", const int pickupType = 3);
 	void loadPickups();
 	void loadScore();
 	Entity* addScore(const Vector3& position, const int tier = 1, std::string name = "");
@@ -172,18 +178,12 @@ private:
 	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
 
 	int startGameIndex = 0;
-<<<<<<< Updated upstream
-=======
 
-	//Sorting
-	void addMeshToDrawCallList(MeshComponent* meshComp);
-	void removeMeshFromDrawCallList(MeshComponent* meshComp);
-	void removeMeshFromShadowPassDrawCallList(MeshComponent* meshComp);
-	void clearDrawCallList();
+
 	static bool compairDrawCalls(const DrawCallStruct& A, const DrawCallStruct& B) { return (A.material_ID < B.material_ID); }
 	void sortDrawCallList();
 
->>>>>>> Stashed changes
+
 public:
 	Boss* m_boss = nullptr;
 	Scene();
@@ -204,6 +204,7 @@ public:
 	static void loadBossTestPhaseTwo(Scene* sceneObject, bool* finished);
 	static void loadEmpty(Scene* sceneObject, bool* finished);
 	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
+	static void loadSortTest(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
 	
@@ -245,14 +246,11 @@ public:
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
-<<<<<<< Updated upstream
-=======
+
 	QuadTree* getQuadTreePtr();
 	std::vector<std::vector<DrawCallStruct>>* getDrawCallsPtr();
 	std::vector<MeshComponent*>* getShadowPassDrawCallsPtr();
 
-
->>>>>>> Stashed changes
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
 	Entity* addTrampoline(Vector3 position);

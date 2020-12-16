@@ -2,9 +2,12 @@
 #include "Input.h"
 #include "Transform.h"
 
+
 class Camera : public InputObserver
 {
 private:
+	float m_flightSpeedMultiplier = 1;
+
 	XMVECTOR m_position;
 	XMVECTOR m_rotation;
 	const XMVECTOR upVector = { 0.0f, 1.0f, 0.0f, 0.0f };
@@ -13,6 +16,7 @@ private:
 	BoundingFrustum m_frustum;
 
 	bool m_isPlayerCamera = false;
+	bool m_isFlyingCamera = false;
 
 	Transform m_transform;
 
@@ -34,17 +38,26 @@ public:
 	Camera();
 	~Camera();
 	void initialize(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ);
-	void setProjectionMatrix(const int &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
+	void setProjectionMatrix(const float &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
 	void setPosition(const Vector3&pos);
 	void setRotation(const XMVECTOR&rot);
 	bool endSceneCamera = false;
 	bool frustumCullingOn = true;
-	int fovAmount = 80;
+	float fovAmount = 80;
+	float targetFov = 80;
 	Transform* getTransform();
 
 	void setIsPlayerCamera(bool isPlayerCamera)
 	{
 		m_isPlayerCamera = isPlayerCamera;
+	}
+	void setIsFlyingCamera(bool isFlying)
+	{
+		m_isFlyingCamera = isFlying;
+	}
+	bool isFlying()
+	{
+		return m_isFlyingCamera;
 	}
 
 	void increaseSensitivity();

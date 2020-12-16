@@ -227,6 +227,7 @@
     <ClCompile Include="DebugDraw.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClInclude Include="DebugDraw.h" />
+    <ClInclude Include="DrawCallStructFile.h" />
     <ClInclude Include="Entity.h" />
     <ClCompile Include="GUIHandler.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -285,6 +286,7 @@
     <ClInclude Include="GUIContext.h" />
     <ClInclude Include="GUIImageLabel.h" />
     <ClInclude Include="HeightPickup.h" />
+    <ClInclude Include="OptimizationConfiguration.h" />
     <ClInclude Include="Particles\LineArrayParticle.h" />
     <ClInclude Include="MoveToAction.h" />
     <ClInclude Include="MoveOneInGridAction.h" />
@@ -314,6 +316,7 @@
     <ClInclude Include="ProjectileComponent.h" />
     <ClInclude Include="PushTrapComponent.h" />
     <ClInclude Include="ReferenceCounted.h" />
+    <ClInclude Include="QuadTree.h" />
     <ClInclude Include="RotateComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
