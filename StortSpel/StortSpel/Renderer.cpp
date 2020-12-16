@@ -1107,6 +1107,8 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
+		
+		
 		bool isAnim = false;
 		XMFLOAT3 min, max;
 		bool draw = true;
@@ -1188,7 +1190,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 
 			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
 			{
-				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+				//m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 				NormalShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH_ANIM;
 			}
 
@@ -1421,10 +1423,10 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
 
-			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
-			{
-				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
-			}
+			//if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
+			//{
+			//	m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+			//}
 
 			int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
 
@@ -1485,7 +1487,6 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
-
 		if (component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_PBR && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
 		{
 			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;

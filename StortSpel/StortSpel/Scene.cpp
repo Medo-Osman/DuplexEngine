@@ -860,7 +860,8 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 	//	break;
 	//}
 
-	sceneObject->addCloudBedMesh({ 0, 0, 0 }, "cloudPlane_allParts_cloud_plane", 11);
+	//sceneObject->addCloudBedMesh({ 0, 0, 0 }, "cloudPlane_allParts_cloud_plane", 11);
+	sceneObject->addCloudBedMesh2({ 0, 0, 0 }, "cloudPlane.lrm");
 	sceneObject->createSkybox(L"Skyway_Sunset_CM.dds", L"Skyway_Sunset_RF.dds", L"Skyway_Sunset_IR.dds");
 	//sceneObject->createSkybox(L"Skyway_Day.dds");
 
@@ -3482,6 +3483,24 @@ void Scene::addCloudBedMesh(Vector3 Position, const char* meshName, int nrOfPart
 			addComponent(testCloudBed, partName, cloudMesh);
 			cloudMesh->setCastsShadow(true);
 		}
+
+		testCloudBed->translate(Position);
+	}
+};
+
+void Scene::addCloudBedMesh2(Vector3 Position, const char* meshName)
+{
+	Entity* testCloudBed = addEntity(meshName);
+	if (testCloudBed)
+	{
+		Material cloudMat;
+
+		cloudMat.setIsPBR(true);
+		cloudMat.addTexture(L"worley_2.dds", false, true);
+
+		MeshComponent* cloudMesh = new MeshComponent(meshName, ShaderProgramsEnum::CLOUD, cloudMat);
+		addComponent(testCloudBed, meshName, cloudMesh);
+		cloudMesh->setCastsShadow(true);
 
 		testCloudBed->translate(Position);
 	}
