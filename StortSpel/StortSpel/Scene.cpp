@@ -210,14 +210,29 @@ Entity* Scene::addScore(const Vector3& position, const int tier, std::string nam
 	mat.setEmissiveStrength(100.f);
 	Entity* pickupPtr = addEntity(name);
 
+	const WCHAR* textureName = L"";
+
+	switch (tier)
+	{
+	case 1: textureName = L"Green";
+		pickupPtr->scaleUniform(0.25f);
+	break;
+	case 3: textureName = L"Blue";
+		pickupPtr->scaleUniform(0.4f);
+	break;
+	case 10: textureName = L"Red";
+		pickupPtr->scaleUniform(0.5f);
+	break;
+	}
+
+	mat = Material(textureName, false);
 
 	pickupPtr->setPosition(position);
-	pickupPtr->scaleUniform(0.5f);
 
-	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST, mat));
+	addComponent(pickupPtr, "mesh", new MeshComponent("SphereAttempt_Plane.lrm", ShaderProgramsEnum::EMISSIVE, mat));
 	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 0.5f, 0.5f, 0.5f });
-	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
+	//addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 
 	return pickupPtr;
 }

@@ -157,8 +157,9 @@ ps_out main(ps_in input) : SV_TARGET
     output.glow = float4(emissive.rgb * emissiveScalar, 1.f);
     
     // Diffuse color
-    float3 diffuse = lightResult.lightColor * (1.f - length(emissive.rgb));
+    //float3 diffuse = lightResult.lightColor * (1.f - length(emissive.rgb));
+    float3 diffuse = float3(1, 1, 1) * (1.f - length(emissive.rgb));
     output.diffuse = float4(diffuse, 1.f) + float4(emissive.rgb + (emStrengthColor * length(emissive.rgb)), 1.f);
-    
+    output.glow = output.diffuse;
     return output;
 }
