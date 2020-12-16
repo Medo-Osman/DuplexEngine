@@ -109,7 +109,7 @@ void Renderer::renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 {
 	m_drawn = 0;
 
-	std::vector<std::vector<drawCallStruct>>* drawCalls = Engine::get().getDrawCallsPtr();
+	std::vector<std::vector<DrawCallStruct>>* drawCalls = Engine::get().getDrawCallsPtr();
 
 	for (int i = 0; i < NR_OF_SHADER_PROGRAM_ENUMS; i++) // Loop over all different types of shader enums
 	{
@@ -1159,39 +1159,39 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 	// Get Entity map from Engine
 	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
 
-	for (auto& component : *Engine::get().getMeshComponentMap())
+	for (auto& component : *Engine::get().getShadowPassDrawCallsPtr())
 	{
 		bool isAnim = false;
 		XMFLOAT3 min, max;
 		bool draw = true;
 		Entity* parentEntity;
 
-		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+		if (component->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
 			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
-		else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
+		else if (component->getParentEntityIdentifier() == (const std::string) "3DMarker")
 			parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
 		else
-			parentEntity = (*entityMap)[component.second->getParentEntityIdentifier()];
+			parentEntity = (*entityMap)[component->getParentEntityIdentifier()];
 
 
 		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
 		{
 			//Culling
-			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
+			Vector3 scale = component->getScaling() * parentEntity->getScaling();
 			XMVECTOR pos = parentEntity->getTranslation();
-			pos += component.second->getTranslation();
-			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
+			pos += component->getTranslation();
+			pos += component->getMeshResourcePtr()->getBoundsCenter() * scale;
 			XMFLOAT3 posFloat3;
 			XMStoreFloat3(&posFloat3, pos);
 
 
 			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
-				component.second->getMeshResourcePtr()->getMinMax(min, max);
+				component->getMeshResourcePtr()->getMinMax(min, max);
 
 				XMFLOAT3 ext = (max - min) / 2;
 				ext = ext * scale;
-				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
+				XMFLOAT4 rot = parentEntity->getRotation() * component->getRotation();
 				BoundingOrientedBox box(posFloat3, ext, rot);
 
 				ContainmentType contType = frust->Contains(box);
@@ -1203,20 +1203,20 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 			}
 		}
 
-		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
+		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component);
 		if (draw && meshComp->isVisible())
 		{
 			m_drawn++;
 
 			perObjectMVP constantBufferPerObjectStruct;
-			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
+			component->getMeshResourcePtr()->set(m_dContextPtr.Get());
 			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
 			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
-			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component->calculateWorldMatrix()));
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
-			XMMATRIX w = parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix();
+			XMMATRIX w = parentEntity->calculateWorldMatrix() * component->calculateWorldMatrix();
 			w.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 
 			XMVECTOR det = XMMatrixDeterminant(w);
@@ -1226,7 +1226,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 
 			m_ssaoBuffer.updateBuffer(m_dContextPtr.Get(), &m_ssaoData);
 
-			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
+			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component);
 			ShaderProgramsEnum NormalShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH;
 
 			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
@@ -1235,11 +1235,11 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 				NormalShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH_ANIM;
 			}
 
-			int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
+			int materialCount = component->getMeshResourcePtr()->getMaterialCount();
 
 			for (int mat = 0; mat < materialCount; mat++)
 			{
-				ShaderProgramsEnum meshShaderEnum = component.second->getShaderProgEnum(mat);
+				ShaderProgramsEnum meshShaderEnum = component->getShaderProgEnum(mat);
 				if (meshShaderEnum != ShaderProgramsEnum::SKYBOX)
 				{
 					if (m_currentSetShaderProg != NormalShaderEnum)
@@ -1248,7 +1248,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 						m_currentSetShaderProg = NormalShaderEnum;
 					}
 
-					Material* meshMatPtr = component.second->getMaterialPtr(mat);
+					Material* meshMatPtr = component->getMaterialPtr(mat);
 					if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
 					{
 						meshMatPtr->setMaterial(m_compiledShaders[meshShaderEnum], m_dContextPtr.Get());
@@ -1260,7 +1260,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 						m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 					}
 
-					std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
+					std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
 
 					m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
 				}
@@ -1951,7 +1951,7 @@ void Renderer::render()
 		renderSceneWithExperimentalSorting(&frust, &W, &V, &P);
 	//renderScene(&frust, &wvp, &V, &P);
 
-	USE_QUADTREE ? renderScene(&frust, &W, &V, &P, meshCompVec) : renderSortedScene(&frust, &W, &V, &P); //If we use quadTree we use render scene otherwise we use sorted scene.
+	//USE_QUADTREE ? renderScene(&frust, &W, &V, &P, meshCompVec) : renderSortedScene(&frust, &W, &V, &P); //If we use quadTree we use render scene otherwise we use sorted scene.
 
 	//renderScene(&frust, &wvp, &V, &P);
 

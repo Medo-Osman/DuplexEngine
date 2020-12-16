@@ -37,7 +37,6 @@ struct DrawCallStruct
 			this->material_ID == other.material_ID &&
 			this->material_IDX == other.material_IDX &&
 			this->name == other.name && this->entity == other.entity)
-			this->name == other.name)
 		{
 			return true;
 		}

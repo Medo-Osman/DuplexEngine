@@ -21,6 +21,9 @@ enum ShaderProgramsEnum
 	CLOUD,				// 14
 	Z_PRE_PASS,			//15
 	Z_PRE_PASS_ANIM,	//16
+	NORMALS_DEPTH,
+	NORMALS_DEPTH_ANIM,
+	SSAO_MAP,
 	NONE				// 17
 	// VIKTIGT! Ändra NR_OF_SHADER_PROGRAM_ENUMS nedan så den stämmer med antalet i listan :)
 
@@ -223,3 +226,4 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 }
+

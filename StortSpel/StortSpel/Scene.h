@@ -206,6 +206,12 @@ public:
 	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
 	static void loadSortTest(Scene* sceneObject, bool* finished);
 
+	void addMeshToDrawCallList(MeshComponent* meshComp);
+	void removeMeshFromDrawCallList(MeshComponent* meshComp);
+	void removeMeshFromShadowPassDrawCallList(MeshComponent* meshComp);
+	void clearDrawCallList();
+
+
 	void onSceneLoaded();
 	
 	void updateScene(const float &dt);
