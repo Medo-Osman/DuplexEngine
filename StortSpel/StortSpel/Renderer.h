@@ -211,7 +211,7 @@ private:
 
 	bool m_useFlyingCamera = false;
 	bool m_switchCamera = false;
-	bool m_useFlyingCamera = false;
+
 	// Sorting
 	void renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 

@@ -31,7 +31,6 @@ private:
 	bool m_shouldRayCast = true;
 
 	float m_sensitivity = 0.05f;
-	float m_flightSpeedMultiplier = 1.f;
 	
 	void updateViewMatrix();
 	void updateViewMatrixEndScene();
@@ -61,14 +60,6 @@ public:
 	void setIsPlayerCamera(bool isPlayerCamera)
 	{
 		m_isPlayerCamera = isPlayerCamera;
-	}
-	void setIsFlyingCamera(bool isFlying)
-	{
-		m_isFlyingCamera = isFlying;
-	}
-	bool isFlying()
-	{
-		return m_isFlyingCamera;
 	}
 
 	void increaseSensitivity();
