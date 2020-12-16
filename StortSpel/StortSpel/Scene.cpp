@@ -820,38 +820,36 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 	}
 	*/
 
-	sceneObject->addCloudBedMesh(Vector3(0, 0, 0), "cloudPlane.lrm");
+	Entity* MetalBall = sceneObject->addEntity("MetalBall");
+	if (MetalBall)
+	{
+		Material MetalBallMaterial;
 
-	//Entity* MetalBall = sceneObject->addEntity("MetalBall");
-	//if (MetalBall)
-	//{
-	//	Material MetalBallMaterial;
+		//Texture2D albedoTexture : TEXTURE: register(t0);
+		//Texture2D emissiveTexture : TEXTURE: register(t1);
+		//Texture2D normalTexture : TEXTURE: register(t2);
+		//Texture2D ORMtexture : TEXTURE: register(t3);
 
-	//	//Texture2D albedoTexture : TEXTURE: register(t0);
-	//	//Texture2D emissiveTexture : TEXTURE: register(t1);
-	//	//Texture2D normalTexture : TEXTURE: register(t2);
-	//	//Texture2D ORMtexture : TEXTURE: register(t3);
+		MetalBallMaterial.addTexture(L"T_Missing_D.dds", true);
+		MetalBallMaterial.addTexture(L"T_Missing_E.dds", true);
+		MetalBallMaterial.addTexture(L"T_Missing_N.dds", true);
+		MetalBallMaterial.addTexture(L"T_Missing_ORM.png");
 
-	//	MetalBallMaterial.addTexture(L"T_Missing_D.dds", true);
-	//	MetalBallMaterial.addTexture(L"T_Missing_E.dds", true);
-	//	MetalBallMaterial.addTexture(L"T_Missing_N.dds", true);
-	//	MetalBallMaterial.addTexture(L"T_Missing_ORM.png");
+		MetalBallMaterial.addTexture(L"sunset_skybox1_IR_2.dds");
+		MetalBallMaterial.addTexture(L"sunset_skybox1.dds");
+		MetalBallMaterial.addTexture(L"ibl_brdf_lut.png");
 
-	//	MetalBallMaterial.addTexture(L"sunset_skybox1_IR_2.dds");
-	//	MetalBallMaterial.addTexture(L"sunset_skybox1.dds");
-	//	MetalBallMaterial.addTexture(L"ibl_brdf_lut.png");
+		MetalBallMaterial.setTextured(false);
+		MetalBallMaterial.setBaseColor({ 0.8f, 0.8f, 0.8f });
+		MetalBallMaterial.setRoughness(1.0f);
+		MetalBallMaterial.setMetallic(1.0f);
 
-	//	MetalBallMaterial.setTextured(false);
-	//	MetalBallMaterial.setBaseColor({ 0.8f, 0.8f, 0.8f });
-	//	MetalBallMaterial.setRoughness(1.0f);
-	//	MetalBallMaterial.setMetallic(1.0f);
-
-	//	sceneObject->addComponent(MetalBall, "mesh", new MeshComponent("highPolySphere_Sphere.lrm", ShaderProgramsEnum::PBRTEST, MetalBallMaterial));
-	//	MetalBall->scale({ 1.0, 1.0, 1.0 });
-	//	MetalBall->translate({ 0, 2, 5 });
-	//	MetalBall->rotate({ (-1.5708), 0.f, 0.f });
-	//	sceneObject->createNewPhysicsComponent(MetalBall, false, "", PxGeometryType::eSPHERE, "earth", false);
-	//}
+		sceneObject->addComponent(MetalBall, "mesh", new MeshComponent("highPolySphere_Sphere.lrm", ShaderProgramsEnum::PBRTEST, MetalBallMaterial));
+		MetalBall->scale({ 1.0, 1.0, 1.0 });
+		MetalBall->translate({ 0, 3, 7 });
+		MetalBall->rotate({ (-1.5708), 0.f, 0.f });
+		sceneObject->createNewPhysicsComponent(MetalBall, false, "", PxGeometryType::eSPHERE, "earth", false);
+	}
 
 
 
@@ -963,8 +961,16 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 	//	PearlTest->translate({ 0, 2, 5 });
 	//	PearlTest->rotate({ (-1.5708), 0.f, 0.f });
 	//	sceneObject->createNewPhysicsComponent(PearlTest, false, "", PxGeometryType::eSPHERE, "earth", false);
+	//
+	//switch (switch_on)
+	//{
+	//default:
+	//	break;
 	//}
-	
+
+	sceneObject->addCloudBedMesh({ 0, 0, 0 }, "cloudPlane_allParts_cloud_plane", 11);
+	sceneObject->createSkybox(L"Skyway_Sunset_CM.dds", L"Skyway_Sunset_RF.dds", L"Skyway_Sunset_IR.dds");
+	//sceneObject->createSkybox(L"Skyway_Day.dds");
 
 	createQuadTree(sceneObject);
 	delete[] levelData;
@@ -3703,25 +3709,28 @@ void Scene::sortScore()
 	std::sort(m_scores.begin(), m_scores.end());
 }
 
-void Scene::addCloudBedMesh(Vector3 Position, const char* meshName)
+void Scene::addCloudBedMesh(Vector3 Position, const char* meshName, int nrOfParts)
 {
-	Entity* testCloudBed = addEntity("testCloudBed");
+	Entity* testCloudBed = addEntity(meshName);
 	if (testCloudBed)
 	{
-		Material testCloudBedMat;
+		for (size_t partNr = 1; partNr < nrOfParts + 1; partNr++)
+		{
+			Material cloudMat;
+			std::string partName = meshName + std::string(".0");
+			if (partNr < 10)
+				partName += std::string("0");
+			partName += std::to_string(partNr);
+			partName += ".lrm";
 
-		/*testCloudBedMat.addTexture(L"sunset_skybox_1_IR.dds", true);
-		testCloudBedMat.addTexture(L"sunset_skybox_1.dds", true);
-		testCloudBedMat.addTexture(L"ibl_brdf_lut.png");*/
-		testCloudBedMat.setIsPBR(true);
-		testCloudBedMat.addTexture(L"worley_2.dds", false, true);
+			cloudMat.setIsPBR(true);
+			cloudMat.addTexture(L"worley_2.dds", false, true);
 
-		MeshComponent* cloudMesh = new MeshComponent(meshName, ShaderProgramsEnum::CLOUD, testCloudBedMat);
-		addComponent(testCloudBed, "mesh", cloudMesh);
-		testCloudBed->scale({ 1, 1, 1 });
+			MeshComponent* cloudMesh = new MeshComponent(partName.c_str(), ShaderProgramsEnum::CLOUD, cloudMat);
+			addComponent(testCloudBed, partName, cloudMesh);
+			cloudMesh->setCastsShadow(true);
+		}
+
 		testCloudBed->translate(Position);
-		testCloudBed->rotate({ 0, 0, 0 });
-
-		cloudMesh->setCastsShadow(true);
 	}
 };
