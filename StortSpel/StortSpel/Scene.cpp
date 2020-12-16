@@ -711,8 +711,6 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 	}
 	*/
 
-	sceneObject->addCloudBedMesh(Vector3(0, 0, 0), "cloudPlane.lrm");
-
 	//Entity* MetalBall = sceneObject->addEntity("MetalBall");
 	//if (MetalBall)
 	//{
@@ -856,6 +854,9 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 	//	sceneObject->createNewPhysicsComponent(PearlTest, false, "", PxGeometryType::eSPHERE, "earth", false);
 	//}
 
+	sceneObject->addCloudBedMesh({ 0, 0, 0 }, "cloudPlane_allParts_cloud_plane", 11);
+	sceneObject->addCloudBedMesh({ 0, 0, 0 }, "cloudPlane_allParts_cloud_plane", 11);
+	sceneObject->addS
 
 	delete[] levelData;
 	*finished = true; //Inform the main thread that the loading is complete.
@@ -3454,25 +3455,28 @@ void Scene::sortScore()
 	std::sort(m_scores.begin(), m_scores.end());
 }
 
-void Scene::addCloudBedMesh(Vector3 Position, const char* meshName)
+void Scene::addCloudBedMesh(Vector3 Position, const char* meshName, int nrOfParts)
 {
-	Entity* testCloudBed = addEntity("testCloudBed");
+	Entity* testCloudBed = addEntity(meshName);
 	if (testCloudBed)
 	{
-		Material testCloudBedMat;
+		for (size_t partNr = 1; partNr < nrOfParts + 1; partNr++)
+		{
+			Material cloudMat;
+			std::string partName = meshName + std::string(".0");
+			if (partNr < 10)
+				partName += std::string("0");
+			partName += std::to_string(partNr);
+			partName += ".lrm";
 
-		/*testCloudBedMat.addTexture(L"sunset_skybox_1_IR.dds", true);
-		testCloudBedMat.addTexture(L"sunset_skybox_1.dds", true);
-		testCloudBedMat.addTexture(L"ibl_brdf_lut.png");*/
-		testCloudBedMat.setIsPBR(true);
-		testCloudBedMat.addTexture(L"worley_2.dds", false, true);
+			cloudMat.setIsPBR(true);
+			cloudMat.addTexture(L"worley_2.dds", false, true);
 
-		MeshComponent* cloudMesh = new MeshComponent(meshName, ShaderProgramsEnum::CLOUD, testCloudBedMat);
-		addComponent(testCloudBed, "mesh", cloudMesh);
-		testCloudBed->scale({ 1, 1, 1 });
+			MeshComponent* cloudMesh = new MeshComponent(partName.c_str(), ShaderProgramsEnum::CLOUD, cloudMat);
+			addComponent(testCloudBed, partName, cloudMesh);
+			cloudMesh->setCastsShadow(true);
+		}
+
 		testCloudBed->translate(Position);
-		testCloudBed->rotate({ 0, 0, 0 });
-
-		cloudMesh->setCastsShadow(true);
 	}
 };
