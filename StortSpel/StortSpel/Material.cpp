@@ -138,7 +138,7 @@ void Material::setMaterial(bool shaderNeedsResource[5], bool shaderNeedsCBuffer[
 	//TODO: check what is already set and if it should be overwritten, maybe might already be in the drivers
 }
 
-void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
+void Material::addTexture(const WCHAR* fileName, bool isCubeMap, bool isTexture3D)
 {
 	std::wstring wideString = fileName;
 	std::string string = std::string(wideString.begin(), wideString.end());
@@ -152,12 +152,17 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 		m_isDefault = false;
 	}
 
-	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, true);
+	bool refBasedDelete = true;
+	if (isCubeMap)
+		refBasedDelete = false;
+
+	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, refBasedDelete, isTexture3D);
 	//std::cout << "\tMaterial loaded in: " << loadedTexResource->debugName << std::endl;
 	//loadedTexResource->addRef();
 	
 	this->m_textureArray.push_back(loadedTexResource->view);
-	this->m_referencedResources.push_back(loadedTexResource);
+	if(refBasedDelete)
+		this->m_referencedResources.push_back(loadedTexResource);
 }
 
 void Material::swapTexture(const WCHAR* fileName, int index, bool isCubeMap)
@@ -180,6 +185,18 @@ void Material::setUVScale(float scale)
 	}
 
 	this->m_materialConstData.UVScale = scale;
+}
+
+void Material::setBaseColor(Vector3 color)
+{
+	if (m_isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		m_isDefault = false;
+	}
+
+	this->m_materialConstData.baseColor = color;
 }
 
 void Material::setRoughness(float roughness)
@@ -287,6 +304,11 @@ void Material::setCurrentSkybox(std::wstring newSkyboxTex, std::wstring newIRTex
 	/*this->m_referencedResources.push_back(t);
 	this->m_referencedResources.push_back(t1);
 	this->m_referencedResources.push_back(t2);*/
+}
+
+void Material::setIsPBR(bool state)
+{
+	m_isPRB = state;
 }
 
 //void Material::readMaterials()
@@ -404,7 +426,7 @@ void Material::readMaterials()
 		{
 			if (materials[textureNames[i]].find(letters[l]) == materials[textureNames[i]].end())
 			{
-				materials[textureNames[i]][letters[l]] = L"T_Missing_" + letters[l] + L".png";
+				materials[textureNames[i]][letters[l]] = L"T_Missing_" + letters[l] + L".dds";
 			}
 		}
 

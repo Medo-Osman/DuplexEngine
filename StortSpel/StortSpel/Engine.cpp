@@ -179,6 +179,16 @@ void Engine::setSkyLightDir(Vector4 dir)
 	m_skyLightDir = dir;
 }
 
+void Engine::setSkyLightColor(Vector4 color)
+{
+	m_skyLightColor = color;
+}
+
+void Engine::setSkyLightIntensity(float intensity)
+{
+	m_skyLightBrightness = intensity;
+}
+
 Settings Engine::getSettings() const
 {
 	return m_settings;

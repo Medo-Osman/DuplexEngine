@@ -15,8 +15,6 @@ struct vs_out
 	float4 pos : SV_POSITION;
 	float2 uv : TEXCOORD;
 	float3 normal : NORMAL;
-    float3 vNormal : VNORMAL;
-    float depth : DEPTH;
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
 	float4 worldPos : POSITION;
@@ -69,7 +67,6 @@ vs_out main(vs_in input, in uint vID : SV_VertexID)
     output.normal = normalize(mul(float4(blendedNormal, 0), worldMatrix));
     float4 worldPos = mul(localPosition, worldMatrix);
     float4 vPos = mul(worldPos, viewMatrix);
-    output.vNormal = normalize(mul(float4(output.normal, 0), viewMatrix));
     output.tangent = normalize(mul(float4(blendedTangent, 0), worldMatrix));
     output.bitangent = normalize(mul(float4(blendedBitangent, 0), worldMatrix));
 	output.uv = input.uv;
@@ -80,7 +77,6 @@ vs_out main(vs_in input, in uint vID : SV_VertexID)
 	output.shadowPos = mul(localPosition, worldMatrix);
 	output.shadowPos = mul(output.shadowPos, lightViewMatrix);
 	output.shadowPos = mul(output.shadowPos, lightProjMatrix);
-    output.depth = 1 - output.pos.z;
     output.ssaoPos = mul(localPosition, wvpMatrix);
 
 	//output.wsPos = mul(localPosition, worldMatrix);

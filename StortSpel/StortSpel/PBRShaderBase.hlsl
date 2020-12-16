@@ -61,6 +61,7 @@ cbuffer MaterialBuffer : register(b3)
 	float materialMetallic;
 	int materialTextured;
     float materialEmissiveStrength;
+	float3 materialBaseColor;
 }
 
 cbuffer globalConstBuffer : register(b4)
@@ -90,8 +91,6 @@ struct ps_in
 	float4 pos : SV_POSITION;
 	float2 uv : TEXCOORD;
 	float3 normal : NORMAL;
-    float3 vNormal : VNORMAL;
-    float depth : DEPTH;
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
 	float4 worldPos : POSITION;
@@ -232,12 +231,12 @@ ps_out main(ps_in input) : SV_TARGET
 {
     ps_out output;
     
-    float4 emissive = emissiveTexture.Sample(sampState, input.uv);
+	float4 emissive = float4(0, 0, 0, 1);
     
 	float3 N = normalize(input.normal);
 	float3 V = normalize(cameraPosition - input.worldPos);
 	
-	float3 albedo = float3(0.0, 0.0, 1.0);
+	float3 albedo = materialBaseColor;
 	float3 metallic = materialMetallic;
 	float roughness = materialRoughness;
 	float ao = 1.0f;
@@ -250,12 +249,9 @@ ps_out main(ps_in input) : SV_TARGET
 	
 	if (materialTextured)
 	{
-		albedo = pow(albedoTexture.Sample(sampState, input.uv).rgb, 2.2f);
-		metallic = ORMtexture.Sample(sampState, input.uv).b;
-		roughness = ORMtexture.Sample(sampState, input.uv).g;
-		ao = ORMtexture.Sample(sampState, input.uv).r;
-		float3 normalFromMap = normalTexture.Sample(sampState, input.uv).rgb * 2 - 1;
-	
+		input.uv *= materialUVScale;
+		
+		// TBN matrix calculation
 		input.tangent = normalize(input.tangent);
 
 		float3 T = normalize(input.tangent - N * dot(input.tangent, N));
@@ -263,6 +259,14 @@ ps_out main(ps_in input) : SV_TARGET
 		float3 B = normalize(input.bitangent - N * dot(input.bitangent, N));
 
 		float3x3 TBN = float3x3(T, B, N);
+		
+		albedo = pow(albedoTexture.Sample(sampState, input.uv).rgb, 2.2f);
+		metallic = ORMtexture.Sample(sampState, input.uv).b;
+		roughness = ORMtexture.Sample(sampState, input.uv).g;
+		ao = ORMtexture.Sample(sampState, input.uv).r;
+		emissive = emissiveTexture.Sample(sampState, input.uv);
+		float3 normalFromMap = normalTexture.Sample(sampState, input.uv).rgb * 2 - 1;
+	
 		N = normalize(mul(normalFromMap, TBN));
 	}
 	
@@ -304,6 +308,8 @@ ps_out main(ps_in input) : SV_TARGET
 		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 	}
 	
+	float3 tempFloat3 = float3(0, 0, 0);
+	
 	{		
 		// Calculate per-light radiance
 		float3 L = normalize(-skyLight.direction);
@@ -335,6 +341,7 @@ ps_out main(ps_in input) : SV_TARGET
 		Lo += (kD * albedo / PI + specular) * radiance * NdotL * shadowFactor;
 	
 		//Lo = Lo + shadowFactor * saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
+		tempFloat3 = F;
 	}
 	
 	float3 ambient = float3(0.0, 0.0, 0.0);
@@ -353,13 +360,13 @@ ps_out main(ps_in input) : SV_TARGET
 	float3 kD = 1.0 - kS;
 	kD *= 1.0 - metallic;
   
-	float3 irradiance = skyIR.Sample(sampState, N).rgb;
+	float3 irradiance = skyIR.Sample(sampState, N).rgb * environmentMapBrightness;
 	float3 diffuse = irradiance * albedo;
 	
 	float3 R = reflect(-V, N);
   
 	const float MAX_REFLECTION_LOD = 10.0;
-	float3 prefilteredColor = skyPrefilter.SampleLevel(sampState, R, roughness * MAX_REFLECTION_LOD).rgb;
+	float3 prefilteredColor = skyPrefilter.SampleLevel(sampState, R, roughness * MAX_REFLECTION_LOD).rgb * environmentMapBrightness;
 	float2 brdf = brdfLUT.Sample(sampState, float2(max(dot(N, V), 0.0f), roughness)).rg;
 	float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
   
@@ -380,7 +387,7 @@ ps_out main(ps_in input) : SV_TARGET
 	//ambient = float3(0.03, 0.03, 0.03) * albedo * ao;
 	
 	// Combine ambience and specular
-        float3 color = ambient + Lo;
+	float3 color = ambient + Lo;
 
 	// HDR tonemapping
 	color = color / (color + float3(1.0, 1.0, 1.0));
@@ -396,13 +403,14 @@ ps_out main(ps_in input) : SV_TARGET
     output.diffuse = float4(color, 1.f) + float4(emissive.rgb + (emStrengthColor * length(emissive.rgb)), 1.f);
 		
 	// Atmospheric fog
-	float3 eyeToPixel = input.worldPos.xyz - cameraPosition.xyz;
-	output.diffuse = float4(ApplyFog(output.diffuse.xyz, cameraPosition.y, eyeToPixel), 1);
+	//float3 eyeToPixel = input.worldPos.xyz - cameraPosition.xyz;
+	//output.diffuse = float4(ApplyFog(output.diffuse.xyz, cameraPosition.y, eyeToPixel), 1);
 	
-	float yPos = input.worldPos.y;
-	float yRatio = 1 - remapToRange(yPos, cloudFogHeightStart, cloudFogHeightEnd, 0, 1);
+	//float yPos = input.worldPos.y;
+	//float yRatio = 1 - remapToRange(yPos, cloudFogHeightStart, cloudFogHeightEnd, 0, 1);
     
-	output.diffuse = lerp(output.diffuse, float4(cloudFogColor, 1.0), clamp(yRatio, 0, 1) * cloudFogStrength);
+	//output.diffuse = lerp(output.diffuse, float4(cloudFogColor, 1.0), clamp(yRatio, 0, 1) * cloudFogStrength);
+	//output.diffuse = float4(fresnelSchlick(dot(N, V), F0), 1);	
 	
     return output;
 }

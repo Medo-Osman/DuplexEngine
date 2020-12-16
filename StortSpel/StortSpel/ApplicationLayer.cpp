@@ -71,6 +71,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 
 	// Renderer
 	m_rendererPtr = &Renderer::get();//new Renderer();
+	m_input.Attach(m_rendererPtr);
 	hr = m_rendererPtr->initialize(m_window);
 	m_input.Attach(m_rendererPtr);
 	if (SUCCEEDED(hr))
@@ -177,6 +178,8 @@ void ApplicationLayer::applicationLoop()
 			m_gameTime += m_dt;
 			//m_dt *= 0.3f;
 			m_timer.restart();
+
+			m_dt *= Renderer::get().getGlobalConstBuffer().globalTimeDilation;
 
 			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();

@@ -19,7 +19,7 @@ void ResourceHandler::isResourceHandlerReady()
 
 void ResourceHandler::checkResources()
 {
-	/*
+	
 	//=========================================== Meshes
 	std::vector<std::string> idsForMeshesToRemove;
 	for (auto meshStruct : m_meshCache)
@@ -93,14 +93,13 @@ void ResourceHandler::checkResources()
 	//for (auto& m : m_textureCache)
 		//if (m.second->m_doReferenceCount)
 			//std::cout << m.second->debugName << ", " << m.second->getRefCount() << ", " << m.second->view << std::endl;
-	*/
+	
 }
 
-TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isCubeMap, bool referenceBasedDelete)
+TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isCubeMap, bool referenceBasedDelete, bool isTexture3D)
 {
 	std::wstring wideString = texturePath;
 	std::string string = std::string(wideString.begin(), wideString.end());
-
 
 	if (m_textureCache.count(texturePath))
 	{
@@ -126,6 +125,11 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isC
 				hr = CreateDDSTextureFromFileEx(m_devicePtr, m_deferredDContextPtr, path.c_str(), 5, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, false, NULL, &srv, nullptr);
 				m_deferredDContextPtr->FinishCommandList(TRUE, &m_commandList);
 			}
+			else if (isTexture3D == true)
+			{
+				hr = CreateDDSTextureFromFileEx(m_devicePtr, m_deferredDContextPtr, path.c_str(), 5, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_DIMENSION_TEXTURE3D, false, NULL, &srv, nullptr);
+				m_deferredDContextPtr->FinishCommandList(TRUE, &m_commandList);
+			}
 			else
 			{
 				hr = CreateDDSTextureFromFile(m_devicePtr, path.c_str(), nullptr, &srv);
@@ -143,6 +147,9 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isC
 			{
 				//m_textureCache[m_ERROR_TEXTURE_NAME] = new TextureResource();
 				path = m_TEXTURES_PATH + m_ERROR_TEXTURE_NAME;
+
+				m_textureCache[m_ERROR_TEXTURE_NAME] = new TextureResource();
+
 				hr = CreateWICTextureFromFile(m_devicePtr, path.c_str(), nullptr, &m_textureCache[m_ERROR_TEXTURE_NAME]->view);
 				if (SUCCEEDED(hr))
 					return m_textureCache[m_ERROR_TEXTURE_NAME];
@@ -156,6 +163,8 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isC
 		}
 		else
 		{
+			m_textureCache[texturePath] = new TextureResource();
+
 			std::wstring wideString = texturePath;
 			m_textureCache[texturePath]->view = srv;
 			m_textureCache[texturePath]->m_doReferenceCount = referenceBasedDelete;
