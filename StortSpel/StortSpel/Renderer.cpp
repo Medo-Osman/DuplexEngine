@@ -160,6 +160,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	HRESULT hr;
 	m_window = window;
 	
+	m_flyingCamera.setIsFlyingCamera(true);
+
 	m_settings = Engine::get().getSettings();
 
 	hr = createDeviceAndSwapChain(); //Device and context creation
@@ -487,6 +489,10 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_testCamera.initialize(m_testCamera.fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 	m_testCamera.setPosition(Vector3(0, 5, 0));
 	m_testCamera.setRotation(Vector4(0.7071068f, 0.f, 0.f, 0.7071068f));
+
+	m_flyingCamera.initialize(m_flyingCamera.fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
+	m_flyingCamera.setPosition(Vector3(0, 100, 300));
+	m_flyingCamera.setRotation(Vector4(0.7071068f, 0.f, 0.f, 0.7071068f));
 	return hr;
 }
 
@@ -1488,6 +1494,30 @@ void Renderer::update(const float& dt)
 		if (ImGui::Button("Switch Camera"))
 		{
 			m_switchCamera = !m_switchCamera;
+		}
+
+		if (ImGui::Button("Flying camera"))
+		{
+			m_useFlyingCamera = !m_useFlyingCamera;
+			Engine::get().getPlayerPtr()->m_ignoreInput = m_useFlyingCamera;
+
+			m_camera = &m_flyingCamera;
+			m_camera->frustumCullingOn = false;
+			m_camera->setPosition(Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation());
+		}
+
+		if (m_useFlyingCamera)
+		{
+
+			m_camera->update(dt);
+			m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
+
+
+		}
+		else
+		{
+			m_camera = Engine::get().getCameraPtr();
+
 		}
 
 	}

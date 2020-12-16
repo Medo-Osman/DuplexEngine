@@ -224,6 +224,7 @@ public:
     Player();
     ~Player();
     bool m_shouldDrawLine = false;
+    bool m_ignoreInput = false;
 
 
     virtual void Attach(PlayerObserver* observer)

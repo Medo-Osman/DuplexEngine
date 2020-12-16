@@ -13,6 +13,7 @@ private:
 	BoundingFrustum m_frustum;
 
 	bool m_isPlayerCamera = false;
+	bool m_isFlyingCamera = false;
 
 	Transform m_transform;
 
@@ -27,6 +28,7 @@ private:
 	bool m_shouldRayCast = true;
 
 	float m_sensitivity = 0.05f;
+	float m_flightSpeedMultiplier = 1.f;
 	
 	void updateViewMatrix();
 	void updateViewMatrixEndScene();
@@ -34,13 +36,23 @@ public:
 	Camera();
 	~Camera();
 	void initialize(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ);
-	void setProjectionMatrix(const int &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
+	void setProjectionMatrix(const float &fov, const float &aspectRatio, const float &nearZ, const float &farZ);
 	void setPosition(const Vector3&pos);
 	void setRotation(const XMVECTOR&rot);
 	bool endSceneCamera = false;
 	bool frustumCullingOn = true;
-	int fovAmount = 80;
+	float fovAmount = 80;
+	float targetFov = 80;
 	Transform* getTransform();
+
+	void setIsFlyingCamera(bool isFlying)
+	{
+		m_isFlyingCamera = isFlying;
+	}
+	bool isFlying()
+	{
+		return m_isFlyingCamera;
+	}
 
 	void setIsPlayerCamera(bool isPlayerCamera)
 	{

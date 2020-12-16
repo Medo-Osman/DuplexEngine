@@ -940,50 +940,53 @@ void Player::sendPlayerMSG(const PlayerMessageData &data)
 
 void Player::inputUpdate(InputData& inputData)
 {
-	if (m_state == PlayerState::CANNON)
+	if (!m_ignoreInput)
 	{
+		if (m_state == PlayerState::CANNON)
+		{
+			for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
+			{
+				if (inputData.actionData.at(i) == Action::USE)
+				{
+					m_shouldFire = true;
+				}
+			}
+		}
+
+		this->setStates(inputData);
+
 		for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
 		{
-			if (inputData.actionData.at(i) == Action::USE)
+			switch (inputData.actionData[i])
 			{
-				m_shouldFire = true;
+			case DASH:
+				if (m_state == PlayerState::IDLE)
+				{
+					roll();
+				}
+				else
+				{
+					if (canDash())
+						dash();
+				}
+				break;
+			case USEPICKUP:
+				if (canUsePickup())
+					handlePickupOnUse();
+				break;
+
+			case CLOSEINTROGUI:
+				//GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+				//GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
+				break;
+
+			case RESPAWN:
+				respawnPlayer();
+				break;
+
+			default:
+				break;
 			}
-		}		
-	}
-
-	this->setStates(inputData);
-
-	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
-	{
-		switch (inputData.actionData[i])
-		{
-		case DASH:
-			if (m_state == PlayerState::IDLE)
-			{
-				roll();
-			}
-			else
-			{
-				if (canDash())
-					dash();
-			}
-			break;
-		case USEPICKUP:
-			if (canUsePickup())
-				handlePickupOnUse();
-			break;
-
-		case CLOSEINTROGUI:
-			//GUIHandler::get().setVisible(m_instructionGuiIndex, false);
-			//GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
-			break;
-
-		case RESPAWN:
-			respawnPlayer();
-			break;
-
-		default:
-			break;
 		}
 	}
 }
