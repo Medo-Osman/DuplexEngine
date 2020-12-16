@@ -33,6 +33,7 @@ private:
 	void updateViewMatrix();
 	void updateViewMatrixEndScene();
 public:
+	bool updateFov = true;
 	Camera();
 	~Camera();
 	void initialize(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ);

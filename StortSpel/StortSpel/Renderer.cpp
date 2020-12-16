@@ -1389,7 +1389,7 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 
 	//Shadow
 	m_shadowMap->bindResourcesAndSetNullRTV(m_dContextPtr.Get());
-	m_shadowMap->computeShadowMatrix(Engine::get().getCameraPtr()->getPosition());
+	m_shadowMap->computeShadowMatrix(m_camera->getPosition());
 
 	shadowBuffer shadowBufferStruct;
 	shadowBufferStruct.lightProjMatrix = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);
@@ -1512,6 +1512,13 @@ void Renderer::update(const float& dt)
 			m_camera->update(dt);
 			m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 
+			if (m_camera->updateFov)
+			{
+				buildFrustumFarCorners((m_camera->fovAmount / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
+				buildOffsetVectors();
+			}
+
+			
 
 		}
 		else

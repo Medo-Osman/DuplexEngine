@@ -265,6 +265,11 @@ void Camera::update(const float& dt)
 		this->updateViewMatrix();
 
 		fovAmount = lerp(fovAmount, targetFov, 0.1f);
+
+		if (abs(targetFov - fovAmount) < 0.1f)
+			updateFov = false;
+		else
+			updateFov = true;
 	}
 
 }
