@@ -18,7 +18,6 @@ class Renderer
 {
 
 private:
-	static const bool USE_Z_PRE_PASS;
 	//Pointers
 	//ID3D11RenderTargetView** m_rTargetViewsArray;
 	Microsoft::WRL::ComPtr<ID3D11Device> m_devicePtr = NULL;
@@ -145,7 +144,7 @@ private:
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
-	unsigned int long m_currentSetMaterialId = 1000;
+	unsigned int long m_currentSetMaterialId = -1;
 
 	// Blendstate
 	ID3D11BlendState* m_blendStateNoBlendPtr = NULL;
@@ -187,10 +186,12 @@ private:
 	void renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent, const bool& useFrustumCullingParam = false);
 	void renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, std::vector<MeshComponent*>& meshComponentsFromQuadTree);
 	void renderSceneWithExperimentalSorting(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
+	void zPrePassRenderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent, const bool& useFrustumCullingParam = false);
 	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	Renderer(); //{};
 
 	Camera m_testCamera;
+	Camera m_flyingCamera;
 
 	using VertexType = DirectX::VertexPositionColor;
 
@@ -206,7 +207,12 @@ private:
 	int m_drawn = 0;
 	bool m_isFullscreen = false;
 
+
 	bool m_switchCamera = false;
+	bool m_useFlyingCamera = false;
+	// Sorting
+	void renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
+
 public:
 	Renderer(const Renderer&) = delete;
 	void operator=(Renderer const&) = delete;

@@ -5,7 +5,7 @@
 #include "Boss.h"
 #include <map>
 #include"ParticleComponent.h"
-
+#include"QuadTree.h"
 enum class ScenesEnum
 {
 	LOBBY,
@@ -47,6 +47,9 @@ private:
 	int m_tempParticleID = 0;
 	//std::unordered_map<std::string, Entity*> m_entities;
 	Camera* m_camera;
+
+	QuadTree* m_quadTree;
+	
 	int nrOfParisWheels = 0;
 	void createParisWheel(Vector3 position, float rotation, float rotationSpeed = 20, int nrOfPlatforms = 4);
 	int nrOfFlippingPlatforms = 0;
@@ -133,8 +136,13 @@ private:
 	void sendPhysicsMessage(PhysicsData& physicsData, bool& removed);
 	int m_nrOfScore = 400;
 
+	static void removeQuadTreeMeshComponentsFromMeshComponentMap(Scene* sceneObject);
+
+
 	int m_nrOfPickups = 0;
-	void addPickup(const Vector3& position, const int tier = 1, std::string name = "");
+	static void createQuadTree(Scene* sceneObject);
+	
+	void addPickup(const Vector3& position, const int tier = 1, std::string name = "", const int pickupType = 3);
 	void loadPickups();
 	void loadScore();
 	Entity* addScore(const Vector3& position, const int tier = 1, std::string name = "");
@@ -175,6 +183,7 @@ private:
 	void removeMeshFromDrawCallList(MeshComponent* meshComp);
 	void removeMeshFromShadowPassDrawCallList(MeshComponent* meshComp);
 	void clearDrawCallList();
+	
 	static bool compairDrawCalls(const DrawCallStruct& A, const DrawCallStruct& B) { return (A.material_ID < B.material_ID); }
 	void sortDrawCallList();
 
@@ -198,6 +207,7 @@ public:
 	static void loadBossTestPhaseTwo(Scene* sceneObject, bool* finished);
 	static void loadEmpty(Scene* sceneObject, bool* finished);
 	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
+	static void loadSortTest(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
 	
@@ -240,8 +250,10 @@ public:
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
 
+
 	QuadTree* getQuadTreePtr();
 	std::vector<std::vector<DrawCallStruct>>* getDrawCallsPtr();
+
 	std::vector<MeshComponent*>* getShadowPassDrawCallsPtr();
 
 

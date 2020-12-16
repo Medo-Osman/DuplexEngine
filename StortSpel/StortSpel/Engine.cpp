@@ -79,6 +79,7 @@ void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entitie
 //	m_meshComponentMap = meshComponents;
 //}
 
+
 void Engine::setDrawCallsPtr(std::vector<std::vector<DrawCallStruct>>* drawCallsPtr)
 {
 	m_drawCallsPtr = drawCallsPtr;
@@ -86,7 +87,7 @@ void Engine::setDrawCallsPtr(std::vector<std::vector<DrawCallStruct>>* drawCalls
 
 void Engine::setShadowPassDrawCallsPtr(std::vector<MeshComponent*>* shadowPassDrawCallsPtr)
 {
-	m_meshComponentMap = meshComponents;
+	m_shadowPassDrawCallsPtr = shadowPassDrawCallsPtr;
 }
 
 void Engine::setLightComponentMapPtr(std::unordered_map<std::string, LightComponent*>* lightComponents)
@@ -140,7 +141,7 @@ std::vector<std::vector<DrawCallStruct>>* Engine::getDrawCallsPtr()
 
 std::vector<MeshComponent*>* Engine::getShadowPassDrawCallsPtr()
 {
-	return m_meshComponentMap;
+	return m_shadowPassDrawCallsPtr;
 }
 
 std::unordered_map<std::string, LightComponent*>* Engine::getLightComponentMap()

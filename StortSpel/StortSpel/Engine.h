@@ -20,6 +20,10 @@
 #include "BarrelTriggerComponent.h"
 //#include <algorithm>
 #include "SwingComponent.h"
+#include <filesystem>
+#include <algorithm>
+#include"QuadTree.h"
+#include "DrawCallStructFile.h"
 
 struct Settings
 {
@@ -65,6 +69,9 @@ private:
 
 	Input* m_input = nullptr;
 
+
+	QuadTree* m_quadTreePtr;
+	
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
 	void updateLightData();
 
@@ -85,6 +92,8 @@ public:
 	void setShadowPassDrawCallsPtr(std::vector<MeshComponent*>* shadowPassDrawCallsPtr);
 
 	void setLightComponentMapPtr(std::unordered_map<std::string, LightComponent*>* lightComponents);
+	void setQuadTreePtr(QuadTree* quadTree) { m_quadTreePtr = quadTree; }
+	QuadTree* getQuadTreePtr() { return m_quadTreePtr; }
 
 	bool addComponentToPlayer(std::string componentIdentifier, Component* component);
 
@@ -105,4 +114,5 @@ public:
 
 	ID3D11DeviceContext* getDeviceContextPtr() { return m_dContextPtr; }
 	ID3D11Device* getDevicePtr() { return m_devicePtr; }
+
 };
