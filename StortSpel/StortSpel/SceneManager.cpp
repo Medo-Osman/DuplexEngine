@@ -721,6 +721,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 }
 void SceneManager::hideScore()
 {
+	GUIHandler::get().setVisible(m_menuOverlayIndex, false);
 	GUIHandler::get().setVisible(m_highScoreLabelIndex, false);
 	GUIHandler::get().setVisible(m_playerOneScoreIndex, false);
 	GUIHandler::get().setVisible(m_playerTwoScoreIndex, false);
@@ -733,6 +734,7 @@ void SceneManager::hideScore()
 
 void SceneManager::showScore()
 {
+	GUIHandler::get().setVisible(m_menuOverlayIndex, true);
 	GUIHandler::get().setVisible(m_highScoreLabelIndex, true);
 	GUIHandler::get().setVisible(m_playerOneScoreIndex, true);
 	GUIHandler::get().setVisible(m_playerTwoScoreIndex, true);
@@ -745,6 +747,7 @@ void SceneManager::showScore()
 
 void SceneManager::hideMainMenu()
 {
+	GUIHandler::get().setVisible(m_menuOverlayIndex, false);
 	GUIHandler::get().setVisible(m_singleplayerIndex, false);
 	GUIHandler::get().setVisible(m_tutorialIndex, false);
 	GUIHandler::get().setVisible(m_exitIndex, false);
@@ -772,7 +775,9 @@ void SceneManager::showPauseMenu()
 	GUIButton* settingsBtn = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_settingsIndex));
 
 	disableMovement();
+	GUIHandler::get().setVisible(m_menuOverlayIndex, true);
 	GUIHandler::get().setVisible(m_pauseText, true);
+	GUIHandler::get().setVisible(m_controllsUIIndex, true);
 	GUIHandler::get().setVisible(m_resumeBtnIndex, true);
 
 	resumeBtn->setNextMenuButton(settingsBtn);
@@ -789,11 +794,13 @@ void SceneManager::showPauseMenu()
 
 void SceneManager::hidePauseMenu()
 {
+	GUIHandler::get().setVisible(m_menuOverlayIndex, false);
 	GUIHandler::get().setVisible(m_singleplayerIndex, false);
 	GUIHandler::get().setVisible(m_tutorialIndex, false);
 	GUIHandler::get().setVisible(m_settingsIndex, false);
 	GUIHandler::get().setVisible(m_exitIndex, false);
 	GUIHandler::get().setVisible(m_pauseText, false);
+	GUIHandler::get().setVisible(m_controllsUIIndex, false);
 	GUIHandler::get().setVisible(m_backToLobbyIndex, false);
 	GUIHandler::get().setVisible(m_resumeBtnIndex, false);
 
@@ -804,6 +811,7 @@ void SceneManager::hidePauseMenu()
 void SceneManager::showMainMenu()
 {
 
+	GUIHandler::get().setVisible(m_menuOverlayIndex, true);
 	GUIHandler::get().setVisible(m_singleplayerIndex, true);
 	GUIHandler::get().setVisible(m_tutorialIndex, true);
 	GUIHandler::get().setVisible(m_settingsIndex, true);
@@ -910,6 +918,7 @@ void SceneManager::showSettingsMenu()
 	}
 
 
+	GUIHandler::get().setVisible(m_menuOverlayIndex, true);
 	GUIHandler::get().setVisible(m_sensitivityIndex, true);
 	GUIHandler::get().setVisible(m_settingsText, true);
 	GUIHandler::get().setVisible(m_fullscreenText, true);
@@ -925,6 +934,7 @@ void SceneManager::showSettingsMenu()
 
 void SceneManager::hideSettingsMenu()
 {
+	GUIHandler::get().setVisible(m_menuOverlayIndex, false);
 	GUIHandler::get().setVisible(m_sensitivityIndex, false);
 	GUIHandler::get().setVisible(m_volumeAmountIndex, false);
 	GUIHandler::get().setVisible(m_volumeDecreaseIndex, false);
@@ -952,6 +962,13 @@ void SceneManager::uiMenuInitialize()
 	//define gui button
 	GUIButtonStyle btnStyle;
 	GUITextStyle textStyle;
+	GUIImageStyle imageStyle;
+	Settings settings = Engine::get().getSettings();
+
+	//------- Menu Overlay --------- NEEEDS TO BE DECLARED AT THE BEGINNING(SHOULD NOT BE MOVED FROM HERE)!!!!!!!!!!!!!!!!!!!!!!!!!
+	imageStyle.position = Vector2(0, 0);
+	imageStyle.scale = Vector2(settings.width * 2.f, settings.height * 2.f);
+	m_menuOverlayIndex = GUIHandler::get().addGUIImage(L"menu_overlay.png", imageStyle);
 
 	//------- Main Menu ----------
 	//start button
@@ -1120,6 +1137,13 @@ void SceneManager::uiMenuInitialize()
 	textStyle.position.x = 140.0f;
 	textStyle.position.y = 100.0f;
 	m_pauseText = GUIHandler::get().addGUIText("Pause", L"concert_one_60.spritefont", textStyle);
+
+	// Controlls UI
+	float imageWidth = 1332.f;
+	float rightOffset = 40.f;
+	imageStyle.position = Vector2(settings.width - imageWidth - rightOffset, 400);
+	imageStyle.scale = Vector2(1.f, 1.f);
+	m_controllsUIIndex = GUIHandler::get().addGUIImage(L"controlls_ui.png", imageStyle);
 
 	//resume button
 	btnStyle.position = Vector2(140, 600);

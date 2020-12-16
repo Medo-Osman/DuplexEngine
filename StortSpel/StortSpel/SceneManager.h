@@ -34,7 +34,8 @@ private:
 	int m_rankingScoreIndecThree;
 
 	bool checked = true;
-	
+
+	int m_menuOverlayIndex = 0;
 	bool m_inPause = false;
 	bool m_inPauseSettings = false;
 	int m_cameraSense;
@@ -57,6 +58,7 @@ private:
 	int m_volumeAmountIndex = 0;
 	int m_setFovIncreaseIndex = 0;
 	int m_setFovDecreaseIndex = 0;
+	int m_controllsUIIndex = 0;
 	int m_resumeBtnIndex = 0;
 	int m_fullscreenIndex = 0;
 	int m_exitFullscreenindex = 0;
