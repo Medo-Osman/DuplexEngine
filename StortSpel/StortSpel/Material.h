@@ -65,6 +65,8 @@ public:
 	static std::wstring getCurrentSkybox();
 	static void setCurrentSkybox(std::wstring newSkyboxTex, std::wstring newIRTex = L"");
 
+	void setIsPBR(bool state);
+
 	static void readMaterials();
 };
 

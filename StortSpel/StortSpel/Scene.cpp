@@ -744,14 +744,16 @@ void Scene::loadScene(Scene* sceneObject, std::string path, bool* finished)
 	//	sceneObject->createNewPhysicsComponent(MetalBall, false, "", PxGeometryType::eSPHERE, "earth", false);
 	//}
 
-	int xCounter = 0;
-	int yCounter = 0;
+
+
+	//int xCounter = 0;
+	//int yCounter = 0;
 
 	//Entity* entity;
 	//for (size_t i = 0; i < 25; i++)
 	//{
 	//	std::string currentSphereName = ("PBRSphere" + std::to_string(i));
-	//	sceneObject->addEntity(currentSphereName);
+	//	sceneObject->m_entities[currentSphereName] = sceneObject->addEntity(currentSphereName);
 	//	if (sceneObject->m_entities[currentSphereName])
 	//	{
 	//		entity = sceneObject->m_entities[currentSphereName];
@@ -3459,10 +3461,10 @@ void Scene::addCloudBedMesh(Vector3 Position, const char* meshName)
 	{
 		Material testCloudBedMat;
 
-		testCloudBedMat.addTexture(L"sunset_skybox_1_IR.dds", true);
+		/*testCloudBedMat.addTexture(L"sunset_skybox_1_IR.dds", true);
 		testCloudBedMat.addTexture(L"sunset_skybox_1.dds", true);
-		testCloudBedMat.addTexture(L"ibl_brdf_lut.png");
-
+		testCloudBedMat.addTexture(L"ibl_brdf_lut.png");*/
+		testCloudBedMat.setIsPBR(true);
 		testCloudBedMat.addTexture(L"worley_2.dds", false, true);
 
 		MeshComponent* cloudMesh = new MeshComponent(meshName, ShaderProgramsEnum::CLOUD, testCloudBedMat);

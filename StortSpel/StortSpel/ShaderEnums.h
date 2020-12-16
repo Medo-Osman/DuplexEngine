@@ -193,7 +193,7 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 		//{ L"CloudShaderVS.hlsl", L"CloudShaderHS.hlsl", L"CloudShaderDS.hlsl", L"null", L"CloudShaderPS.hlsl" },
 		{ L"CloudShaderVS.hlsl", L"CloudShaderHS.hlsl", L"CloudShaderDS.hlsl", L"null", L"CloudShaderPS.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST,
-		VertexLayoutType::LRSMVertexLayout,
+		VertexLayoutType::LRMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 
@@ -205,13 +205,13 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 	(
 		{ L"PearlVS.hlsl", L"null", L"null", L"null", L"PearlPS.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST,
-		VertexLayoutType::LRSMVertexLayout,
+		VertexLayoutType::LRMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 
 	// Allow binding of a displacement map to the domain shader
-	/*(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Vertex, true);
-	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Pixel, true);*/
+	//(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Vertex, true);
+	//(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Pixel, true);
 
 	(*compiledShadersMap)[ShaderProgramsEnum::NORMALS_DEPTH] = new ShaderProgram
 	(
