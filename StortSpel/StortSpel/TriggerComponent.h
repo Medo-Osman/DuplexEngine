@@ -32,6 +32,7 @@ public:
 		m_physicsData.stringData = "";
 		m_physicsData.floatData = 0;
 		m_physicsData.intData = 0;
+		
 	}
 	~TriggerComponent()
 	{
@@ -39,7 +40,7 @@ public:
 			m_physicsPtr->removeActor(m_actor);
 	}
 
-	void initTrigger(int sceneID, Transform* transform, XMFLOAT3 halfBoxExtends, Vector3 offset = {0, 0, 0 })
+	void initTrigger(int sceneID, Transform* transform, XMFLOAT3 halfBoxExtends, Vector3 offset = {0, 0, 0 }, bool isBaloon = false)
 	{
 		m_sceneID = sceneID;
 		m_physicsData.entityIdentifier = m_parentEntityIdentifier;
@@ -48,6 +49,12 @@ public:
 		m_offset = offset;
 		m_actor = m_physicsPtr->createRigidActor(transform->getTranslation(), transform->getRotation(), true, &m_physicsData, sceneID);
 		m_physicsPtr->createAndSetShapeForActor(m_actor, m_geometryHolder, "default", false, {1, 1, 1}, true);
+		m_physicsData.boolData = isBaloon;
+	}
+
+	const PhysicsData& getPhysicsData()
+	{
+		return m_physicsData;
 	}
 
 	void setEventData(TriggerType triggerType, int associatedTriggerEnum = 0, void* pointer = nullptr, std::string stringData = "", float floatData = 0.f, int intData = 0)
@@ -58,6 +65,7 @@ public:
 		m_physicsData.stringData = stringData;
 		m_physicsData.floatData = floatData;
 		m_physicsData.intData = intData;
+		
 	}
 
 	void setEventPointer(void* ptr)

@@ -62,6 +62,9 @@ private:
 	void createPointLight(Vector3 position, Vector3 color, float intensity);
 	int m_nrSwingningHammers = 0;
 	void createSwingingHammer(Vector3 position, Vector3 rotation, float swingSpeed);
+	int m_nrOfBaloons = 0;
+	void createBaloon(Vector3 position);
+	std::string removeOnNextFrame = "";
 
 	//---------------------------------------------------------------Boss sstuff
 	UINT m_nrOfProjectiles = 0;
