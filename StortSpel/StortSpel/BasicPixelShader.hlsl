@@ -50,12 +50,15 @@ cbuffer perModel : register(b2)
 
 struct ps_in
 {
-	float4 pos : SV_POSITION;
-	float2 uv : TEXCOORD;
-	float3 normal : NORMAL;
-	float3 tangent : TANGENT;
-	float3 bitangent : BITANGENT;
+    float4 pos : SV_POSITION;
+    float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 vNormal : VNORMAL;
+    float depth : DEPTH;
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
     float4 worldPos : POSITION;
+    float4 shadowPos : SPOS;
 };
 
 Texture2D diffuseTexture : TEXTURE : register(t0);

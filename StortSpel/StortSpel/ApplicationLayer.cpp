@@ -72,6 +72,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	// Renderer
 	m_rendererPtr = &Renderer::get();//new Renderer();
 	hr = m_rendererPtr->initialize(m_window);
+	m_input.Attach(m_rendererPtr);
 	if (SUCCEEDED(hr))
 	{
 		initOK = true;
@@ -181,10 +182,14 @@ void ApplicationLayer::applicationLoop()
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
 			
-			ImGui::Begin("Sleep");
-			if (ImGui::Button("16fps"))
-				m_shouldSleep = !m_shouldSleep;
-			ImGui::End();
+			if (DEBUGMODE)
+			{
+				ImGui::Begin("Sleep");
+				if (ImGui::Button("16fps"))
+					m_shouldSleep = !m_shouldSleep;
+				ImGui::End();
+			}
+			
 
 			m_input.readBuffers(m_dt);
 			m_physics->update(m_dt);

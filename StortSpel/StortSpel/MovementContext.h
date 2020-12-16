@@ -24,12 +24,18 @@ public:
 		m_actionMapping[(char)'\x24'] = Action::RESPAWN; //Home 
 		m_actionMapping['\x1B'] = Action::MENU; // Escape
 		m_actionMapping['\x0D'] = Action::USE;
+		m_actionMapping['mwp'] = Action::SCROLL_UP;
+		m_actionMapping['mwr'] = Action::SCROLL_DOWN;
+		m_actionMapping['M'] = Action::TOGGLEFLY;
 
 		//States
 		m_stateMapping['W'] = State::WALK_FORWARD;
 		m_stateMapping['S'] = State::WALK_BACKWARD;
 		m_stateMapping['D'] = State::WALK_RIGHT;
 		m_stateMapping['A'] = State::WALK_LEFT;
+		m_stateMapping['Q'] = State::FLY_DOWN;
+		m_stateMapping['E'] = State::FLY_UP;
+		m_stateMapping['\x11'] = State::CTRLDOWN;
 		m_stateMapping[' '] = State::JUMPING;
 
 		//Range
