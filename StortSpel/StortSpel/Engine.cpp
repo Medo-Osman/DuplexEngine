@@ -74,9 +74,6 @@ void Engine::setEntitiesMapPtr(std::unordered_map<std::string, Entity*>* entitie
 {
 	m_entities = entities;
 }
-<<<<<<< Updated upstream
-void Engine::setMeshComponentMapPtr(std::unordered_map<unsigned int long, MeshComponent*>* meshComponents)
-=======
 //void Engine::setMeshComponentMapPtr(std::unordered_map<unsigned int long, MeshComponent*>* meshComponents)
 //{
 //	m_meshComponentMap = meshComponents;
@@ -88,7 +85,6 @@ void Engine::setDrawCallsPtr(std::vector<std::vector<DrawCallStruct>>* drawCalls
 }
 
 void Engine::setShadowPassDrawCallsPtr(std::vector<MeshComponent*>* shadowPassDrawCallsPtr)
->>>>>>> Stashed changes
 {
 	m_meshComponentMap = meshComponents;
 }
