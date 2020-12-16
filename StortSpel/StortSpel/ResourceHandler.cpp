@@ -96,7 +96,7 @@ void ResourceHandler::checkResources()
 	*/
 }
 
-TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isCubeMap, bool isTexture3D, bool referenceBasedDelete)
+TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isCubeMap, bool referenceBasedDelete, bool isTexture3D)
 {
 	std::wstring wideString = texturePath;
 	std::string string = std::string(wideString.begin(), wideString.end());

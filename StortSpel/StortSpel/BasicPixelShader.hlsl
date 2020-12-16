@@ -69,15 +69,15 @@ struct lightComputeResult
     float intensity;
 };
 
-float computeShadowFactor(float4 shadowPosH)
-{
-    shadowPosH.xyz /= shadowPosH.w; //Finish projection
+//float computeShadowFactor(float4 shadowPosH)
+//{
+//    shadowPosH.xyz /= shadowPosH.w; //Finish projection
     
-    float depth = shadowPosH.z; //In NDC
+//    float depth = shadowPosH.z; //In NDC
     
     
     
-};
+//};
 
 //Only calculating diffuse light
 lightComputeResult computeLightFactor(ps_in input)
