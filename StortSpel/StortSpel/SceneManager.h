@@ -45,6 +45,7 @@ private:
 
 	char charPtr[256] = { 0 };
 	int m_singleplayerIndex = 0;
+	int m_multiplayerIndex = 0;
 	int m_tutorialIndex = 0;
 	int m_exitIndex = 0;
 	int m_joinGameIndex = 0;

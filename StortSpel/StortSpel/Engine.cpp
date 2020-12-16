@@ -294,10 +294,11 @@ void Engine::initialize(Input* input)
 	{
 		Entity* serverEntity = new Entity(PLAYER_ENTITY_NAME + std::to_string(i + 1));
 		serverEntity->setPosition({ (float)(10 * i), 0, 0 });
-
-		AnimatedMeshComponent* serverMeshComp = new AnimatedMeshComponent("platformerGuy.lrsm", ShaderProgramsEnum::SKEL_ANIM);
+		
+		AnimatedMeshComponent* serverMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth" + std::to_wstring(i)), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
 		serverEntity->addComponent("mesh", serverMeshComp);
-		serverMeshComp->addBlendState({ {"platformer_guy_idle", 0}, {"Running4.1", 1} }, "runOrIdle", true, true);
+		serverEntity->setScaleUniform(0.5f);
+		serverMeshComp->addAndPlayBlendState({ {"Idle", 0.f}, {"RunLoop", 1.f} }, "runOrIdle", 0.f, true, true);
 
 		serverPlayers->at(i) = new Player();
 		serverPlayers->at(i)->setAnimMeshPtr(serverMeshComp);
