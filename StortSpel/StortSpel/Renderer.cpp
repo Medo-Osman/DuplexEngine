@@ -346,7 +346,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	samplerStateDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerStateDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerStateDesc.MipLODBias = 0.0f;
-	samplerStateDesc.MaxAnisotropy = 16;
+	samplerStateDesc.MaxAnisotropy = 2;
 	samplerStateDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	samplerStateDesc.MinLOD = -FLT_MAX;
 	samplerStateDesc.MaxLOD = D3D11_FLOAT32_MAX;
