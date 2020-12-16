@@ -1708,12 +1708,12 @@ void Renderer::renderShadowPassByMeshComponent(BoundingFrustum* frust, XMMATRIX*
 
 	// Get Entity map from Engine
 	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
-			
+
 	Entity* parentEntity;
 	parentEntity = (*entityMap)[meshComponent->getParentEntityIdentifier()];
 
-	//MeshComponent* comp = dynamic_cast<MeshComponent*>(component);
-	if (meshComponent->castsShadow())
+	//MeshComponent* comp = dynamic_cast<MeshComponent*>(meshComponent);
+	if (meshComponent->isVisible() && meshComponent->castsShadow())
 	{
 		perObjectMVP constantBufferPerObjectStruct;
 		meshComponent->getMeshResourcePtr()->set(m_dContextPtr.Get());
@@ -1723,12 +1723,18 @@ void Renderer::renderShadowPassByMeshComponent(BoundingFrustum* frust, XMMATRIX*
 		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
-		if (meshComponent->getType() == ComponentType::ANIM_MESH)
+
+		AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(meshComponent);
+		if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
 		{
-			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(meshComponent);
-			assert(animMeshComponent);
-			m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());// ? does this need to be optimised or is it fine to do this for every mesh?
+			m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 		}
+		//if (meshComponent->getType() == ComponentType::ANIM_MESH)  
+		//{
+		//	AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(meshComponent);
+		//	assert(animMeshComponent);
+		//	m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());// ? does this need to be optimised or is it fine to do this for every mesh?
+		//}
 
 		m_dContextPtr->DrawIndexed(meshComponent->getMeshResourcePtr()->getIndexBuffer().getSize(), 0, 0);
 	}
