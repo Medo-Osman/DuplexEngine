@@ -962,8 +962,6 @@ void Player::inputUpdate(InputData& inputData)
 				}
 			}		
 		}
-
-	
 		this->setStates(inputData);
 
 		for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)

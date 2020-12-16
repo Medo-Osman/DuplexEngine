@@ -234,7 +234,96 @@ void Camera::inputUpdate(InputData& inputData)
 
 		
 	}
-	
+
+	if (m_isFlyingCamera)
+	{
+		bool foundShift = false;
+		for (size_t i = 0; i < inputData.stateData.size(); i++)
+		{
+			if (inputData.stateData[i] == State::WALK_FORWARD)
+			{
+				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+				Vector3 currForward = XMVector3TransformCoord(this->forwardVector, cameraRotation);
+				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				setPosition(m_position);
+			}
+			if (inputData.stateData[i] == State::WALK_LEFT)
+			{
+				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+				Vector3 currForward = XMVector3TransformCoord(-this->rightVector, cameraRotation);
+				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				setPosition(m_position);
+			}
+			if (inputData.stateData[i] == State::WALK_RIGHT)
+			{
+				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+				Vector3 currForward = XMVector3TransformCoord(this->rightVector, cameraRotation);
+				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				setPosition(m_position);
+			}
+			if (inputData.stateData[i] == State::WALK_BACKWARD)
+			{
+				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+				Vector3 currForward = XMVector3TransformCoord(-this->forwardVector, cameraRotation);
+				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				setPosition(m_position);
+			}
+			if (inputData.stateData[i] == State::FLY_UP)
+			{
+				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+				Vector3 currForward = XMVector3TransformCoord(upVector, cameraRotation);
+				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				setPosition(m_position);
+			}
+			if (inputData.stateData[i] == State::FLY_DOWN)
+			{
+				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+				Vector3 currForward = XMVector3TransformCoord(-upVector, cameraRotation);
+				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				setPosition(m_position);
+			}
+			if (inputData.stateData[i] == State::CTRLDOWN)
+			{
+				foundShift = true;
+				std::cout << "Shift down" << std::endl;
+			}
+		}
+
+		for (size_t i = 0; i < inputData.actionData.size(); i++)
+		{
+
+			if (!foundShift)
+			{
+				if (inputData.actionData[i] == Action::SCROLL_DOWN)
+				{
+					m_flightSpeedMultiplier -= 0.1f;
+				}
+
+				if (inputData.actionData[i] == Action::SCROLL_UP)
+				{
+					m_flightSpeedMultiplier += 0.1f;
+				}
+			}
+			else
+			{
+				if (inputData.actionData[i] == Action::SCROLL_DOWN)
+				{
+					targetFov += 1;
+					m_sensitivity = 0.05f * abs(targetFov / 80.f);
+				}
+
+				if (inputData.actionData[i] == Action::SCROLL_UP)
+				{
+					if (targetFov > 10)
+						targetFov -= 1;
+					m_sensitivity = 0.05f * abs(targetFov / 80.f);
+				}
+			}
+
+		}
+
+
+	}
 }
 
 void Camera::update(const float& dt)
@@ -271,7 +360,17 @@ void Camera::update(const float& dt)
 	}
 
 	
+	if (m_isFlyingCamera)
+	{
+		this->updateViewMatrix();
 
+		fovAmount = lerp(fovAmount, targetFov, 0.1f);
+
+		if (abs(targetFov - fovAmount) < 0.1f)
+			updateFov = false;
+		else
+			updateFov = true;
+	}
 
 }
 
@@ -326,11 +425,6 @@ void Camera::updateViewMatrix()
 
 	if (m_isFlyingCamera)
 	{
-		//XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
-		//Vector4(this->upVector) = Vector4(XMVector3TransformCoord(this->upVector, cameraRotation));
-		//m_viewMatrix = XMMatrixLookAtLH(m_position, XMVector3TransformCoord(this->forwardVector, cameraRotation), XMVector3TransformCoord(this->upVector, cameraRotation));
-
-		
 		XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(this->m_rotation);
 		XMVECTOR cameraLookAt = XMVector3TransformCoord(this->forwardVector, cameraRotation);
 		cameraLookAt += this->m_position;
@@ -339,15 +433,8 @@ void Camera::updateViewMatrix()
 
 		//Build view matrix for left-handed coordinate system.
 		this->m_viewMatrix = XMMatrixLookAtLH(this->m_position, cameraLookAt, up);
-		
 	}
-	
 
-
-
-
-	//m_curUp = XMVector3TransformCoord(this->upVector, cameraRotation);
-	//m_curRight = XMVector3TransformCoord(this->rightVector, cameraRotation);
 }
 
 void Camera::updateViewMatrixEndScene()

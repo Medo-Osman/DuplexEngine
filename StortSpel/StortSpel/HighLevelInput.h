@@ -25,6 +25,7 @@ enum Action
 	SCROLL_DOWN,
 	SCROLL_UP,
 	SORT_TEST
+	TOGGLEFLY
 };
 
 enum State

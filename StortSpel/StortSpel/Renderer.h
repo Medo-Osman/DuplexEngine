@@ -14,7 +14,7 @@
 #include"DebugDraw.h"
 #include"BoundingVolumeHolder.h"
 
-class Renderer
+class Renderer : public InputObserver
 {
 
 private:
@@ -188,6 +188,7 @@ private:
 	void renderSceneWithExperimentalSorting(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderShadowPassByMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent);
+	void toggleFlyingCamera();
 	Renderer(); //{};
 
 	Camera m_testCamera;
@@ -208,6 +209,7 @@ private:
 	bool m_isFullscreen = false;
 
 
+	bool m_useFlyingCamera = false;
 	bool m_switchCamera = false;
 	bool m_useFlyingCamera = false;
 	// Sorting
@@ -242,5 +244,9 @@ public:
 
 
 	void addPrimitiveToDraw();
+
+
+	// Inherited via InputObserver
+	virtual void inputUpdate(InputData& inputData) override;
 
 };

@@ -31,10 +31,12 @@ private:
 	bool m_shouldRayCast = true;
 
 	float m_sensitivity = 0.05f;
+	float m_flightSpeedMultiplier = 1.f;
 	
 	void updateViewMatrix();
 	void updateViewMatrixEndScene();
 public:
+	bool updateFov = true;
 	Camera();
 	~Camera();
 	void initialize(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ);
@@ -46,6 +48,15 @@ public:
 	float fovAmount = 80;
 	float targetFov = 80;
 	Transform* getTransform();
+
+	void setIsFlyingCamera(bool isFlying)
+	{
+		m_isFlyingCamera = isFlying;
+	}
+	bool isFlying()
+	{
+		return m_isFlyingCamera;
+	}
 
 	void setIsPlayerCamera(bool isPlayerCamera)
 	{

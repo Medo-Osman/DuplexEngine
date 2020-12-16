@@ -278,6 +278,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	HRESULT hr;
 	m_window = window;
 	
+	m_flyingCamera.setIsFlyingCamera(true);
+
 	m_settings = Engine::get().getSettings();
 	m_flyingCamera.setIsFlyingCamera(true);
 
@@ -1666,6 +1668,16 @@ void Renderer::renderShadowPassByMeshComponent(BoundingFrustum* frust, XMMATRIX*
 	}
 }
 
+void Renderer::toggleFlyingCamera()
+{
+	m_useFlyingCamera = !m_useFlyingCamera;
+	Engine::get().getPlayerPtr()->m_ignoreInput = m_useFlyingCamera;
+
+	m_camera = &m_flyingCamera;
+	m_camera->frustumCullingOn = false;
+	m_camera->setPosition(Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation() + Vector3(0, 4.f, 0));
+}
+
 void Renderer::resizeBackbuff(int x, int y)
 {
 	//m_swapChainPtr.
@@ -1716,22 +1728,21 @@ void Renderer::update(const float& dt)
 
 		if (ImGui::Button("Flying camera"))
 		{
-			m_useFlyingCamera = !m_useFlyingCamera;
-			Engine::get().getPlayerPtr()->m_ignoreInput = m_useFlyingCamera;
-
-			m_camera = &m_flyingCamera;
-			m_camera->frustumCullingOn = false;
-			m_camera->setPosition(Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation());
+			toggleFlyingCamera();
 		}
 	}
 
 	if (m_useFlyingCamera)
 	{
-		
 		m_camera->update(dt);
 		m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
-		
-		
+
+		if (m_camera->updateFov)
+		{
+			buildFrustumFarCorners((m_camera->fovAmount / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
+			buildOffsetVectors();
+		}
+
 	}
 	else
 	{
@@ -2076,25 +2087,15 @@ void Renderer::printLiveObject()
 #endif
 }
 
-/*
-void Renderer::initializeDrawCallList()
+
+void Renderer::inputUpdate(InputData& inputData)
 {
-	drawCalls.clear();
-	//drawCalls.resize(NR_OF_SHADER_PROGRAM_ENUMS);
-	//for (auto& component : *Engine::get().getMeshComponentMap()) // Loop over all meshes in the scene
-	//{
-	//	MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component.second);
-	//	for (int i = 0; i < meshComp->getMeshResourcePtr()->getMaterialCount(); i++) // Loop over all materials on the mesh
-	//	{
-	//		drawCalls.at(meshComp->getShaderProgEnum(i)).push_back(
-	//			drawCallStruct(meshComp,													// mesh
-	//						   meshComp->getShaderProgEnum(i),								// shaderEnu
-	//						   meshComp->getMaterialPtr(i)->getMaterialId(),				// matID
-	//						   i,															// matIDX
-	//						   meshComp->getFilePath()));
-	//	}
-	//}
-	//sortDrawCallList();
-	//int stop = 0;
+	for (size_t i = 0; i < inputData.actionData.size(); i++)
+	{
+		if (inputData.actionData[i] == Action::TOGGLEFLY)
+		{
+			toggleFlyingCamera();
+		}
+	}
+
 }
-*/
