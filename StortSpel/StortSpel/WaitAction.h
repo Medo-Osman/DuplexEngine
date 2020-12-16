@@ -1,8 +1,9 @@
 #pragma once
+#include"3DPCH.h"
 #include "BaseAction.h"
 #include "Entity.h"
 #include "PhysicsComponent.h"
-#include <random>
+
 
 class WaitAction : public BossStructures::BaseAction
 {

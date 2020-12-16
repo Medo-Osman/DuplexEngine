@@ -30,6 +30,7 @@ void Renderer::drawBoundingVolumes()
 	//this->m_effect->Apply(m_dContextPtr.Get());
 
 
+<<<<<<< Updated upstream
 	//for (int i = 0; i < (int)m_boundingVolumes.size(); i++)
 	//{
 	//	BoundingVolumeHolder bvh = m_boundingVolumes[i];
@@ -53,6 +54,85 @@ void Renderer::drawBoundingVolumes()
 	//	default:
 	//		break;
 	//	}
+=======
+		delete bvh.getBoundingVolumePtr();
+	}
+
+	m_batch->End();
+
+	m_boundingVolumes.clear();
+
+	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
+	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+
+	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(2, 1, m_perObjectConstantBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(3, 1, m_currentMaterialConstantBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(5, 1, m_atmosphericFogConstBuffer.GetAddressOf());
+
+}
+
+
+bool preformCullOnMeshComponent(BoundingFrustum* frust ,MeshComponent* meshComponent, Entity* parentEntity)
+{
+	bool draw = true;
+	XMFLOAT3 min, max;
+	Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
+	XMVECTOR pos = parentEntity->getTranslation();
+	pos += meshComponent->getTranslation();
+	pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
+	XMFLOAT3 posFloat3;
+	XMStoreFloat3(&posFloat3, pos);
+
+	if (frust->Contains(pos) != ContainmentType::CONTAINS)
+	{
+		meshComponent->getMeshResourcePtr()->getMinMax(min, max);
+		XMFLOAT3 ext = (max - min) / 2;
+		ext = ext * scale;
+		XMFLOAT4 rot = parentEntity->getRotation() * meshComponent->getRotation();
+		BoundingOrientedBox box(posFloat3, ext, rot);
+
+		ContainmentType contType = frust->Contains(box);
+		draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
+	}
+	else
+	{
+		draw = true;
+	}
+
+
+	return draw;
+}
+
+void Renderer::renderSortedScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
+{
+	m_drawn = 0;
+
+	std::vector<std::vector<DrawCallStruct>>* drawCalls = Engine::get().getDrawCallsPtr();
+
+	for (int i = 0; i < NR_OF_SHADER_PROGRAM_ENUMS; i++) // Loop over all different types of shader enums
+	{
+		m_currentSetShaderProg = ShaderProgramsEnum(i);
+		if (m_compiledShaders[m_currentSetShaderProg] == nullptr)
+			continue;
+		m_compiledShaders[m_currentSetShaderProg]->setShaders();
+
+		for (int j = 0; j < drawCalls->at(i).size(); j++) // Loop over all meshes using that shader enum
+		{
+			// >>>>>>>>>>>>>>>>>>>>> Step 1: Get entity & meshComp to use
+			MeshComponent* meshComponent = drawCalls->at(i).at(j).mesh;
+			Entity* parentEntity;
+			std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+
+			if (meshComponent->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+				parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+			else if (meshComponent->getParentEntityIdentifier() == (const std::string) "3DMarker")
+				parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
+			else
+				parentEntity = (*Engine::get().getEntityMap())[meshComponent->getParentEntityIdentifier()];
+>>>>>>> Stashed changes
 
 	//	delete bvh.getBoundingVolumePtr();
 	//}
@@ -1161,7 +1241,91 @@ void Renderer::initRenderQuad()
 
 }
 
+<<<<<<< Updated upstream
 void Renderer::zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
+=======
+void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, DrawCallStruct* drawCallStruct, const bool& useFrustumCullingParam)
+{
+
+
+
+	// >>>>>>>>>>>>>>>>>>>>> Step 1: Get entity & meshComp to use
+	MeshComponent* meshComponent = drawCallStruct->mesh;
+	Entity* parentEntity;
+	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
+
+	if (meshComponent->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
+		parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
+	else if (meshComponent->getParentEntityIdentifier() == (const std::string) "3DMarker")
+		parentEntity = Engine::get().getPlayerPtr()->get3DMarkerEntity();
+	else
+		parentEntity = (*Engine::get().getEntityMap())[meshComponent->getParentEntityIdentifier()];
+
+
+	// >>>>>>>>>>>>>>>>>>>>> Step 2: Cull all meshes not seen
+	bool meshIsInsideFrustrum = true;
+	if (m_camera->frustumCullingOn && parentEntity->m_canCull && USE_FRUSTUM_CULLING && useFrustumCullingParam)
+	{
+		meshIsInsideFrustrum = preformCullOnMeshComponent(frust, meshComponent, parentEntity);
+	}
+
+	// >>>>>>>>>>>>>>>>>>>>> Step 3: Finalize mesh for drawing
+	if (meshIsInsideFrustrum && meshComponent->isVisible())
+	{
+		// ----------------- Step 3.1: Set constant buffers
+		perObjectMVP constantBufferPerObjectStruct;
+		meshComponent->getMeshResourcePtr()->set(m_dContextPtr.Get());
+		constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_switchCamera ? m_testCamera.getProjectionMatrix() : m_camera->getProjectionMatrix());
+		constantBufferPerObjectStruct.view = XMMatrixTranspose(m_switchCamera ? m_testCamera.getViewMatrix() : m_camera->getViewMatrix());
+		constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(meshComponent->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
+		constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
+		m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
+
+		// ----------------- Step 3.2: Check if the mesh has animations
+		AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(meshComponent);
+		if (animMeshComponent != nullptr)
+		{
+			m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+		}
+
+		if (m_currentSetShaderProg != ShaderProgramsEnum(meshComponent->getShaderProgEnum(drawCallStruct->material_IDX)))
+		{
+			m_currentSetShaderProg = ShaderProgramsEnum(meshComponent->getShaderProgEnum(drawCallStruct->material_IDX));
+			m_compiledShaders[m_currentSetShaderProg]->setShaders();
+		}
+		
+
+		// ----------------- Step 3.3: Set material constant buffers
+		int material_ID = drawCallStruct->material_ID;
+		int material_IDX = drawCallStruct->material_IDX;
+		if (material_ID != m_currentSetMaterialId)
+		{
+			Material* meshMaterial = meshComponent->getMaterialPtr(material_IDX);
+			meshMaterial->setMaterial(m_compiledShaders[m_currentSetShaderProg], m_dContextPtr.Get());
+			m_currentSetMaterialId = material_ID;
+
+			MATERIAL_CONST_BUFFER currentMaterialConstantBufferData;
+			currentMaterialConstantBufferData.UVScale = meshMaterial->getMaterialParameters().UVScale;
+			currentMaterialConstantBufferData.roughness = meshMaterial->getMaterialParameters().roughness;
+			currentMaterialConstantBufferData.metallic = meshMaterial->getMaterialParameters().metallic;
+			currentMaterialConstantBufferData.textured = meshMaterial->getMaterialParameters().textured;
+			currentMaterialConstantBufferData.emissiveStrength = meshMaterial->getMaterialParameters().emissiveStrength;
+			m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
+		}
+
+		// ----------------- Step 3.4:
+		m_dContextPtr->PSSetShaderResources(7, 1, m_shadowMap->m_depthMapSRV.GetAddressOf());
+		std::pair<std::uint32_t, std::uint32_t> offsetAndSize = meshComponent->getMeshResourcePtr()->getMaterialOffsetAndSize(material_IDX);
+		m_drawn++;
+		m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
+	}
+	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+	m_dContextPtr->PSSetShaderResources(7, 1, nullSRV);
+	
+}
+
+void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent, const bool& useFrustumCullingParam)
+>>>>>>> Stashed changes
 {
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
@@ -1372,6 +1536,31 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		}
 	}
 
+	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+	m_dContextPtr->PSSetShaderResources(7, 1, nullSRV);
+}
+
+void Renderer::renderSceneWithExperimentalSorting(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P)
+{
+	m_drawn = 0;
+
+	for (auto& meshComponent : *Engine::get().getShadowPassDrawCallsPtr())
+	{
+
+		this->renderMeshComponent(frust, wvp, V, P, meshComponent, true);
+
+	}
+
+	for (auto& drawCall : m_drawCallVector)
+	{
+		renderDrawCall(frust, wvp, V, P, drawCall.second, false);
+	}
+		
+	for (int i = 0; i < m_drawCallVector.size(); i++)
+	{
+		SAFE_DELETE(m_drawCallVector.at(i).second);
+	}
+	m_drawCallVector.clear();
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 	m_dContextPtr->PSSetShaderResources(7, 1, nullSRV);
 }
@@ -1607,10 +1796,47 @@ void Renderer::render()
 	BoundingFrustum frust = m_camera->getFrustum();
 	frust.Origin = Vector3(m_camera->getPosition());
 	frust.Orientation = m_camera->getFloat4Rotation();
+<<<<<<< Updated upstream
 	XMMATRIX world, wvp;
 	//world = XMMatrixRotationRollPitchYawFromVector(m_camera->getRotation()) * XMMatrixTranslationFromVector(m_camera->getPosition());
 	//world = XMMatrixScalingFromVector({1, 1, 1 }) * XMMatrixRotationQuaternion(XMQuaternionRotationRollPitchYawFromVector(m_camera->getRotation())) * XMMatrixTranslationFromVector(m_camera->getPosition());
 	//wvp = world * P;
+
+=======
+	
+	QuadTree* quadTree = Engine::get().getQuadTreePtr();
+	std::vector<DrawCallStruct*> drawCalls;
+	if (quadTree)
+	{
+		quadTree->getRenderList(&frust, drawCalls, m_boundingVolumes);
+		if (USE_EXPERIMENTAL_SORTING)
+		{
+			for (int i = 0; i < (int)drawCalls.size(); i++)
+			{
+				DrawCallStruct* dcs = drawCalls.at(i);
+				MeshComponent* mComp = drawCalls.at(i)->mesh;
+
+				ShaderProgramsEnum shaderProg = dcs->mesh->getShaderProgEnum(dcs->material_IDX);
+				DrawCallStruct* dStruct = dcs;
+				Vector3 meshPos = static_cast<Entity*>(dcs->entity)->getTranslation();
+				Vector3 dist = meshPos - Vector3(m_camera->getPosition());
+				unsigned int val = 0;
+				drawInt dInt;
+				dInt.dist = dist.Length();
+				dInt.id = (unsigned int)shaderProg;
+				UINT64 poo = (dInt.dist << 24 | dInt.id * 100);
+				m_drawCallVector.push_back(std::make_pair((unsigned int)(dInt.dist | dInt.id), dStruct));
+
+				
+			}
+		}
+		
+	}
+>>>>>>> Stashed changes
+
+	if(USE_EXPERIMENTAL_SORTING)
+		std::sort(m_drawCallVector.begin(), m_drawCallVector.end());
+
 
 
 	//Run the shadow pass before everything else
@@ -1628,6 +1854,7 @@ void Renderer::render()
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
+<<<<<<< Updated upstream
 	if (USE_Z_PRE_PASS)
 	{
 		this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStateCompLessPtr.Get(), NULL);
@@ -1635,6 +1862,16 @@ void Renderer::render()
 		m_dContextPtr->OMSetRenderTargets(2, nullRenderTargetsTwo, m_depthStencilViewPtr.Get());
 		this->zPrePass(&frust, &wvp, &V, &P);
 	}
+=======
+
+	//if(USE_Z_PRE_PASS)
+	//{
+	//	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStateCompLessPtr.Get(), NULL);
+	//	ID3D11RenderTargetView* nullRenderTargetsTwo[2] = { 0 };
+	//	m_dContextPtr->OMSetRenderTargets(2, nullRenderTargetsTwo, m_depthStencilViewPtr.Get());
+	//	this->zPrePass(&frust, &W, &V, &P, meshCompVec);
+	//}
+>>>>>>> Stashed changes
 
 	// Normals & Depth pass
 	normalsNDepthPass(&frust, &wvp, &V, &P);
@@ -1649,9 +1886,17 @@ void Renderer::render()
 	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
 	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 
+<<<<<<< Updated upstream
 	m_dContextPtr->OMSetBlendState(m_blendStateWithBlendPtr, m_blendFactor, m_sampleMask);
 	renderScene(&frust, &wvp, &V, &P);
 	m_dContextPtr->OMSetBlendState(m_blendStateNoBlendPtr, m_blendFactor, m_sampleMask);
+=======
+	//if (!USE_EXPERIMENTAL_SORTING)
+	//	USE_QUADTREE ? renderScene(&frust, &W, &V, &P, meshCompVec) : renderSortedScene(&frust, &W, &V, &P); //If we use quadTree we use render scene otherwise we use sorted scene.
+	//else
+		renderSceneWithExperimentalSorting(&frust, &W, &V, &P);
+	//renderScene(&frust, &wvp, &V, &P);
+>>>>>>> Stashed changes
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
 	m_dContextPtr->PSSetShaderResources(0, 1, srv);

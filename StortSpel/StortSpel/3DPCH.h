@@ -25,6 +25,7 @@
 #include <iostream>
 #include <chrono>
 #include <cmath>
+#include <random>
 
 // DirectX 11
 #include <d3d11.h>

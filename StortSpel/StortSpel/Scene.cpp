@@ -8,6 +8,84 @@
 #include"Renderer.h"
 #include"TrampolineComponent.h"
 
+<<<<<<< Updated upstream
+=======
+void Scene::addMeshToDrawCallList(MeshComponent* meshComp)
+{
+	for (int i = 0; i < meshComp->getMeshResourcePtr()->getMaterialCount(); i++) // Loop over all materials on the mesh
+	{
+		int indexToInsertAt = 0;
+		for (int j = 0; j < m_drawCalls.at(meshComp->getShaderProgEnum(i)).size(); j++) // Loop over all existong materials in this shader enum
+		{
+			if (m_drawCalls.at(meshComp->getShaderProgEnum(i)).at(j).material_ID <= meshComp->getMaterialPtr(i)->getMaterialId())
+			{
+				indexToInsertAt++;
+			}
+			else
+			{
+				j = m_drawCalls.at(meshComp->getShaderProgEnum(i)).size();
+			}
+		}
+
+		m_drawCalls.at(meshComp->getShaderProgEnum(i)).insert(
+			m_drawCalls.at(meshComp->getShaderProgEnum(i)).begin() + indexToInsertAt,
+			DrawCallStruct(meshComp,													// mesh
+				meshComp->getShaderProgEnum(i),								// shaderEnu
+				meshComp->getMaterialPtr(i)->getMaterialId(),				// matID
+				i,															// matIDX
+				meshComp->getFilePath()));
+	}
+}
+
+void Scene::removeMeshFromDrawCallList(MeshComponent* meshComp)
+{
+	for (int i = 0; i < meshComp->getMeshResourcePtr()->getMaterialCount(); i++) // Loop over all materials on the mesh
+	{
+		int indexToPop = 0;
+		for (int j = 0; j < m_drawCalls.at(meshComp->getShaderProgEnum(i)).size(); j++) // Loop over all existong materials in this shader enum
+		{
+			if (m_drawCalls.at(meshComp->getShaderProgEnum(i)).at(j) == DrawCallStruct(meshComp,
+				meshComp->getShaderProgEnum(i),
+				meshComp->getMaterialPtr(i)->getMaterialId(),
+				i,
+				meshComp->getFilePath()))
+			{
+				indexToPop = j;
+				j = m_drawCalls.at(meshComp->getShaderProgEnum(i)).size();
+			}
+		}
+		m_drawCalls.at(meshComp->getShaderProgEnum(i)).erase(m_drawCalls.at(meshComp->getShaderProgEnum(i)).begin() + indexToPop);
+	}
+}
+
+void Scene::removeMeshFromShadowPassDrawCallList(MeshComponent* meshComp)
+{
+	int indexToPop = -1;
+
+	for (int i = 0; i < m_shadowPassDrawCalls.size() && indexToPop == -1; i++)
+	{
+		if (m_shadowPassDrawCalls.at(i) == meshComp)
+		{
+			indexToPop = i;
+			m_shadowPassDrawCalls.erase(m_shadowPassDrawCalls.begin() + i);
+		}
+	}
+}
+
+void Scene::clearDrawCallList()
+{
+	m_drawCalls.clear();
+}
+
+void Scene::sortDrawCallList()
+{
+	for (int i = 0; i < NR_OF_SHADER_PROGRAM_ENUMS; i++)
+	{
+		std::sort(m_drawCalls.at(i).begin(), m_drawCalls.at(i).end(), compairDrawCalls);
+	}
+}
+
+>>>>>>> Stashed changes
 Scene::Scene()
 {
 	// Player
@@ -2208,7 +2286,11 @@ std::unordered_map<std::string, LightComponent*>* Scene::getLightMap()
 	return &m_lightComponentMap;
 }
 
+<<<<<<< Updated upstream
 std::unordered_map<unsigned int long, MeshComponent*>* Scene::getMeshComponentMap()
+=======
+std::vector<std::vector<DrawCallStruct>>* Scene::getDrawCallsPtr()
+>>>>>>> Stashed changes
 {
 	return &m_meshComponentMap;
 }

@@ -156,7 +156,7 @@ namespace BossStructures
 	};
 
 
-}
+};
 
 class BossObserver {
 public:

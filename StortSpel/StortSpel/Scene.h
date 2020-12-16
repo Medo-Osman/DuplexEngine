@@ -125,7 +125,12 @@ private:
 	std::vector<std::pair<int, std::string>> m_scores;
 
 	std::unordered_map<std::string, Entity*> m_entities;
+<<<<<<< Updated upstream
 	std::unordered_map<unsigned int long, MeshComponent*> m_meshComponentMap;
+=======
+	std::vector<std::vector<DrawCallStruct>> m_drawCalls;
+	std::vector<MeshComponent*> m_shadowPassDrawCalls;
+>>>>>>> Stashed changes
 	std::unordered_map<std::string, LightComponent*> m_lightComponentMap;
 	std::vector<ParticleComponent*> m_tempParticleComponent;
 
@@ -167,6 +172,18 @@ private:
 	std::vector<PhysicsComponent*> deferredPhysicsInitVec;
 
 	int startGameIndex = 0;
+<<<<<<< Updated upstream
+=======
+
+	//Sorting
+	void addMeshToDrawCallList(MeshComponent* meshComp);
+	void removeMeshFromDrawCallList(MeshComponent* meshComp);
+	void removeMeshFromShadowPassDrawCallList(MeshComponent* meshComp);
+	void clearDrawCallList();
+	static bool compairDrawCalls(const DrawCallStruct& A, const DrawCallStruct& B) { return (A.material_ID < B.material_ID); }
+	void sortDrawCallList();
+
+>>>>>>> Stashed changes
 public:
 	Boss* m_boss = nullptr;
 	Scene();
@@ -228,6 +245,14 @@ public:
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::unordered_map<unsigned int long, MeshComponent*>* getMeshComponentMap();
+<<<<<<< Updated upstream
+=======
+	QuadTree* getQuadTreePtr();
+	std::vector<std::vector<DrawCallStruct>>* getDrawCallsPtr();
+	std::vector<MeshComponent*>* getShadowPassDrawCallsPtr();
+
+
+>>>>>>> Stashed changes
 	// Inherited via BossObserver
 	virtual void bossEventUpdate(BossMovementType type, BossStructures::BossActionData data) override;
 	Entity* addTrampoline(Vector3 position);
