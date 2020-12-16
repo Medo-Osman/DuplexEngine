@@ -131,11 +131,11 @@ struct ps_in
 	float occlusion : OCCLUSION;
 };
 
-TextureCube skyIR : register(t0);
-TextureCube skyPrefilter : register(t1);
-Texture2D brdfLUT : register(t2);
+TextureCube skyIR : register(t4);
+TextureCube skyPrefilter : register(t5);
+Texture2D brdfLUT : register(t6);
 
-Texture3D displacement1 : register(t3);
+Texture3D displacement1 : register(t0);
 SamplerState sampState : SAMPLER : register(s0);
 
 Texture2D shadowMap : TEXTURE : register(t7);

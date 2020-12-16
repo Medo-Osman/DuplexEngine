@@ -5,7 +5,6 @@ struct vs_out
 	float4 pos : SV_POSITION;
 	float2 uv : TEXCOORD;
 	float3 normal : NORMAL;
-	float3 worldNormal : WNORMAL;
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
 	float4 worldPos : POSITION;
@@ -62,7 +61,6 @@ vs_out main(
 	output.pos = p[i].pos;
 	output.uv = p[i].uv;
 	output.normal = p[i].normal;
-	output.worldNormal = p[i].worldNormal;
 	output.tangent = p[i].tangent;
 	output.bitangent = p[i].bitangent;
 	output.worldPos = p[i].worldPos;

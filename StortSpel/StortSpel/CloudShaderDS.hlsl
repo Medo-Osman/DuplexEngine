@@ -68,7 +68,7 @@ void displaceStuff(inout float3 worldPos, inout float3 worldNormal, float3 world
 
 #define NUM_CONTROL_POINTS 3
 
-Texture3D displacement1 : register(t3);
+Texture3D displacement1 : register(t0);
 //Texture2D displacement2 : register(t4);
 
 SamplerState sampState : SAMPLER : register(s0);

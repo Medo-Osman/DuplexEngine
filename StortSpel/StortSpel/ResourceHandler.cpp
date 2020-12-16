@@ -128,7 +128,7 @@ TextureResource* ResourceHandler::loadTexture(std::wstring texturePath, bool isC
 			}
 			else if (isTexture3D == true)
 			{
-				hr = CreateDDSTextureFromFileEx(m_devicePtr, m_dContextPtr, path.c_str(), 5, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_DIMENSION_TEXTURE3D, false, NULL, &srv, nullptr);
+				hr = CreateDDSTextureFromFileEx(m_devicePtr, m_deferredDContextPtr, path.c_str(), 5, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_DIMENSION_TEXTURE3D, false, NULL, &srv, nullptr);
 			}
 			else
 			{

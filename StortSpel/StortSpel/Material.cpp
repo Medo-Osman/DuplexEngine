@@ -152,7 +152,7 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap, bool isTexture3
 		m_isDefault = false;
 	}
 
-	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, isTexture3D, true);
+	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, true, isTexture3D);
 	//std::cout << "\tMaterial loaded in: " << loadedTexResource->debugName << std::endl;
 	//loadedTexResource->addRef();
 	
@@ -299,6 +299,11 @@ void Material::setCurrentSkybox(std::wstring newSkyboxTex, std::wstring newIRTex
 	/*this->m_referencedResources.push_back(t);
 	this->m_referencedResources.push_back(t1);
 	this->m_referencedResources.push_back(t2);*/
+}
+
+void Material::setIsPBR(bool state)
+{
+	m_isPRB = state;
 }
 
 //void Material::readMaterials()
