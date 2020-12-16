@@ -1421,6 +1421,7 @@ void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V
 		m_dContextPtr->PSSetShaderResources(8, 1, m_SSAOShaderResourceViewPtr.GetAddressOf());
 		std::pair<std::uint32_t, std::uint32_t> offsetAndSize = meshComponent->getMeshResourcePtr()->getMaterialOffsetAndSize(material_IDX);
 		m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
+		m_drawn++;
 	}
 
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
