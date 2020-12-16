@@ -31,13 +31,6 @@ const std::string PLAYER_ENTITY_NAME = "playerEntity";
 const float PLAYER_CAPSULE_HEIGHT = .6f;
 const float PLAYER_CAPSULE_RADIUS = .2f;
 
-enum TimeOfDayState
-{
-	DAY,
-	NIGHT,
-	SUNSET
-};
-
 class Engine
 {
 private:
@@ -72,9 +65,6 @@ private:
 	bool DeviceAndContextPtrsAreSet; //This bool just ensures that no one calls Engine::initialize before Renderer::initialize has been called
 	void updateLightData();
 
-	// Misc. variables
-	TimeOfDayState m_currentTimeState = TimeOfDayState::SUNSET;
-
 public:
 	static Engine& get();
 
@@ -99,8 +89,6 @@ public:
 	void setSkyLightDir(Vector4 dir);
 	void setSkyLightColor(Vector4 color);
 	void setSkyLightIntensity(float intensity);
-	TimeOfDayState getTimeOfDay() const;
-	TimeOfDayState setTimeOfDay(TimeOfDayState state);
 
 	Input* getInput();
 

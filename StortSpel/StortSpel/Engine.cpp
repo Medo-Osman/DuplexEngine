@@ -157,16 +157,6 @@ void Engine::setSkyLightIntensity(float intensity)
 	m_skyLightBrightness = intensity;
 }
 
-TimeOfDayState Engine::setTimeOfDay(TimeOfDayState state)
-{
-	m_currentTimeState = state;
-}
-
-TimeOfDayState Engine::getTimeOfDay() const
-{
-	return m_currentTimeState;
-}
-
 Settings Engine::getSettings() const
 {
 	return m_settings;
