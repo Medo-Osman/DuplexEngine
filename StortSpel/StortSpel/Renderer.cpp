@@ -1358,13 +1358,14 @@ void Renderer::initRenderQuad()
 
 void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, DrawCallStruct* drawCallStruct, const bool& useFrustumCullingParam)
 {
-
+	bool shaderSet= false;
 	MeshComponent* meshComponent = drawCallStruct->mesh;
 	ShaderProgramsEnum shaderProgEnum = meshComponent->getShaderProgEnum(drawCallStruct->material_IDX);
 	if(m_currentSetShaderProg != shaderProgEnum)
 	{
 		m_currentSetShaderProg = shaderProgEnum;
 		m_compiledShaders[m_currentSetShaderProg]->setShaders();
+		shaderSet = true;
 	}
 
 
@@ -1400,7 +1401,7 @@ void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V
 		// ----------------- Step 3.3: Set material constant buffers
 		int material_ID = drawCallStruct->material_ID;
 		int material_IDX = drawCallStruct->material_IDX;
-		if (material_ID != m_currentSetMaterialId)
+		if (material_ID != m_currentSetMaterialId || shaderSet)
 		{
 			Material* meshMaterial = meshComponent->getMaterialPtr(material_IDX);
 			meshMaterial->setMaterial(m_compiledShaders[m_currentSetShaderProg], m_dContextPtr.Get());
