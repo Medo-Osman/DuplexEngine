@@ -12,7 +12,7 @@ struct DrawCallStruct
 		this->name = name;
 		this->entity = nullptr;
 	}
-	DrawCallStruct(MeshComponent* mesh, int material_IDX, void* entity)
+	DrawCallStruct(MeshComponent* mesh, int material_IDX, Entity* entity)
 	{
 		this->mesh = mesh;
 		this->shaderEnum = mesh->getShaderProgEnum(material_IDX);
@@ -26,7 +26,7 @@ struct DrawCallStruct
 	int material_ID;
 	int material_IDX;
 	std::string name;
-	void* entity;
+	Entity* entity;
 
 	bool operator==(const DrawCallStruct& other)
 	{

@@ -49,7 +49,7 @@ private:
 		{
 
 			std::vector<Component*>  meshCompVec;
-			static_cast<Entity*>(drawCallStructVector.at(i)->entity)->getComponentsOfType(meshCompVec, ComponentType::MESH);
+			drawCallStructVector.at(i)->entity->getComponentsOfType(meshCompVec, ComponentType::MESH);
 
 			for (int j = 0; j < meshCompVec.size(); j++)
 			{
@@ -193,43 +193,41 @@ public:
 				for (int i = 0; i < (int)m_drawCallStructs.size(); i++)
 				{
 					bool draw = true;
-					MeshComponent* meshComponent;
-					Entity* parentEntity = static_cast<Entity*>(m_drawCallStructs.at(i)->entity);
-					std::vector<Component*> compVect;
-					parentEntity->getComponentsOfType(compVect, ComponentType::MESH);
-					for (size_t j = 0; j < compVect.size(); j++)
+					DrawCallStruct* drawCall = m_drawCallStructs.at(i);
+					MeshComponent* meshComponent = drawCall->mesh;
+					Entity* parentEntity = drawCall->entity;
+					if (!parentEntity)
+						continue;
+					
+
+					if (parentEntity->m_canCull && USE_FRUSTUM_CULLING)
 					{
-						meshComponent = static_cast<MeshComponent*>(compVect.at(j));
+						//Culling
+						Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
+						XMVECTOR pos = parentEntity->getTranslation();
+						pos += meshComponent->getTranslation();
+						pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
+						XMFLOAT3 posFloat3;
+						XMStoreFloat3(&posFloat3, pos);
 
-						if (parentEntity->m_canCull && USE_FRUSTUM_CULLING)
+						if (frust->Contains(pos) != ContainmentType::CONTAINS)
 						{
-							//Culling
-							Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
-							XMVECTOR pos = parentEntity->getTranslation();
-							pos += meshComponent->getTranslation();
-							pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
-							XMFLOAT3 posFloat3;
-							XMStoreFloat3(&posFloat3, pos);
+							meshComponent->getMeshResourcePtr()->getMinMax(min, max);
+							XMFLOAT3 ext = (max - min) / 2;
+							ext = ext * scale;
+							XMFLOAT4 rot = parentEntity->getRotation() * meshComponent->getRotation();
+							BoundingOrientedBox box(posFloat3, ext, rot);
 
-							if (frust->Contains(pos) != ContainmentType::CONTAINS)
-							{
-								meshComponent->getMeshResourcePtr()->getMinMax(min, max);
-								XMFLOAT3 ext = (max - min) / 2;
-								ext = ext * scale;
-								XMFLOAT4 rot = parentEntity->getRotation() * meshComponent->getRotation();
-								BoundingOrientedBox box(posFloat3, ext, rot);
-
-								ContainmentType contType = frust->Contains(box);
-								draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
-							}
-							else
-							{
-								draw = true;
-							}
+							ContainmentType contType = frust->Contains(box);
+							draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
 						}
-						if(draw)
-							drawCallStructVectorOut.emplace_back(m_drawCallStructs.at(i));
+						else
+						{
+							draw = true;
+						}
 					}
+					if(draw)
+						drawCallStructVectorOut.emplace_back(m_drawCallStructs.at(i));
 				}
 			}
 			if (this->m_topLeftQuad != nullptr)

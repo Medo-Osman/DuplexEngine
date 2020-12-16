@@ -2370,7 +2370,7 @@ std::unordered_map<std::string, LightComponent*>* Scene::getLightMap()
 }
 
 
-std::vector<std::vector<drawCallStruct>>* Scene::getDrawCallsPtr()
+std::vector<std::vector<DrawCallStruct>>* Scene::getDrawCallsPtr()
 {
 	return &m_drawCalls;
 }

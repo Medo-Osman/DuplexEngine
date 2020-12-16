@@ -24,7 +24,7 @@ enum ShaderProgramsEnum
 	NORMALS_DEPTH_ANIM,
 	SSAO_MAP,
 	NONE,
-	COUNT;
+	COUNT,
 };
 const int NR_OF_SHADER_PROGRAM_ENUMS = COUNT;
 
