@@ -292,8 +292,8 @@ void Material::setCurrentSkybox(std::wstring newSkyboxTex, std::wstring newIRTex
 		newIRTex = newSkyboxTex;
 
 	TextureResource* t, *t1,* t2;
-	t  = ResourceHandler::get().loadTexture(newSkyboxTex, true, false);
-	t1 = ResourceHandler::get().loadTexture(newIRTex, true, false);
+	t  = ResourceHandler::get().loadTexture(newIRTex, true, false);
+	t1 = ResourceHandler::get().loadTexture(newSkyboxTex, true, false);
 	t2 = ResourceHandler::get().loadTexture(L"ibl_brdf_lut.png", true, false);
 	pbrTextures[0] = t->view;
 	pbrTextures[1] = t1->view;
