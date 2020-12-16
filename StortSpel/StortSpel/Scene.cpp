@@ -1579,8 +1579,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	sceneObject->m_bossPromptTextIndex = GUIHandler::get().addGUIText("Prepare to collect all the stars! \nAvoid the boss!" , L"concert_one_32.spritefont", sceneObject->textStyle);
 
 
-
-
+	
 	//Generate the boss, if boss does not exist in the scene it will not be updated in sceneUpdate() either.
 	Entity* bossEnt = sceneObject->addEntity("boss");
 	sceneObject->m_bossMusicComp = new AudioComponent(L"BossMusic.wav", true, 0.1f, 0.f, false);
@@ -1652,6 +1651,8 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		//Added the platform to spawn on, as well as a checkpoint on it.
 		sceneObject->addCheckpoint(sceneObject->m_sceneEntryPosition - Vector3(0, 1, 0), 0);
 		Physics::get().Attach(sceneObject->m_boss, true, false);
+
+		sceneObject->createBaloon(sceneObject->m_sceneEntryPosition + Vector3(0, 0, -5));
 
 
 		//Generate a set of segments on the boss, primarily to display the interface.
@@ -1932,6 +1933,12 @@ void Scene::onSceneLoaded()
 
 void Scene::updateScene(const float& dt)
 {
+	if (removeOnNextFrame != "")
+	{
+		removeEntity(removeOnNextFrame);
+		removeOnNextFrame = "";
+	}
+
 	if (m_boss)
 	{
 		m_boss->update(dt);
@@ -2371,6 +2378,7 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 	{
 		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST) //Create Trampoline entity
 		{
+			//if (msg.)
 			const float trampolineOffsetY = 0.5f; //Offset to position trampoline top at feet of player. Also used for raycast.
 			
 			Vector3 trampolineSpawnPos;
@@ -2406,8 +2414,16 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
 		{
 			Entity* trampolineEnt = m_entities[msg.entityIdentifier];
-			TrampolineComponent* tc = (TrampolineComponent*)trampolineEnt->getComponent("trampoline");
-			tc->activate();
+			TriggerComponent* a = static_cast<TriggerComponent*>(trampolineEnt->getComponent("heightTrigger"));
+			if (a->getPhysicsData().boolData == true)
+			{ // This is a baloon
+				removeOnNextFrame = msg.entityIdentifier;
+			}
+			else
+			{ // Animate trampolin
+				TrampolineComponent* tc = (TrampolineComponent*)trampolineEnt->getComponent("trampoline");
+				tc->activate();
+			}
 		}
 	}
 
@@ -2516,6 +2532,30 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 
 		addComponent(hammer, "swing",
 			new SwingComponent(hammer, rotation, swingSpeed));
+	}
+}
+
+void Scene::createBaloon(Vector3 position)
+{
+	Entity* baloon = addEntity("baloon" + std::to_string(m_nrOfBaloons++));
+	if (baloon)
+	{
+		baloon->setPosition(position);
+		baloon->setScale(Vector3(0.5f, 0.5f, 0.5f));
+		addComponent(baloon, "mesh1", new MeshComponent("Baloon_pCone2.lrm", Material( { L"DarkGrayTexture.png" } )));
+
+		TriggerComponent* triggerComponent = new TriggerComponent();
+		triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
+		triggerComponent->setIntData(0);
+		baloon->addComponent("heightTrigger", triggerComponent);
+		triggerComponent->initTrigger(m_sceneID, baloon, { 1.5f, 1.7f, 1.5f }, { 0, 0, 0 }, true);
+
+		Vector3 startPos = position + Vector3(0, 0.15f, 0);
+		Vector3 endPos   = position - Vector3(0, 0.15f, 0);
+		addComponent(baloon, "sweep", new SweepingComponent(baloon, startPos, endPos, 2));
+
+		m_nrOfBaloons++;
+
 	}
 }
 
