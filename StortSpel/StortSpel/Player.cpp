@@ -6,6 +6,7 @@
 #include"CannonPickup.h"
 #include"ParticleComponent.h"
 #include "Traps.h"
+#include "Renderer.h"
 
 Pickup* getCorrectPickupByID(int id);
 
@@ -91,22 +92,31 @@ Player::~Player()
 	Pickup::clearStaticPickupArrayPlz();
 }
 
-void Player::setCannonEntity(Entity* entity, MeshComponent* pipe)
+void Player::setCannonEntity(Entity* entity, MeshComponent* pipe, Entity* Marker3DEnt)
 {
 	m_cannonEntity = entity;
 	m_pipe = pipe;
 	m_shouldDrawLine = true;
 
 	if (!m_3dMarker)
-	{
-		m_3dMarker = new Entity("3DMarker");
-		m_3dMarker->scale(0.25f, 0.25f, 0.25f);
-		Engine::get().getEntityMap()->emplace("3DMarker", m_3dMarker);
-		MeshComponent* mesh = new MeshComponent("testCube_pCube1.lrm");
-		mesh->setCastsShadow(false);
-		m_3dMarker->addComponent("6 nov (mesh)", mesh);
-		Engine::get().getMeshComponentMap()->emplace(1632, mesh);
-	}
+		m_3dMarker = Marker3DEnt;
+
+	//// FIXIDIXA HÄR 1
+	//if (!m_3dMarker)
+	//{
+	//	m_3dMarker = new Entity("3DMarker");
+	//	m_3dMarker->scale(0.25f, 0.25f, 0.25f);
+	//	//Engine::get().getEntityMap()->emplace("3DMarker", m_3dMarker);
+	//	MeshComponent* mesh = new MeshComponent("testCube_pCube1.lrm");
+	//	//Renderer::get().addMeshToDrawCallList(mesh);
+	//	
+	//	mesh->setCastsShadow(false);
+
+	//	//currentScene->addComponent(m_3dMarker, "6 nov (mesh)", mesh);
+	//	//m_3dMarker->addComponent("6 nov (mesh)", mesh);
+	//	
+	//	//Engine::get().getMeshComponentMap()->emplace(1632, mesh);
+	//}
 }
 
 Entity* Player::get3DMarkerEntity()
@@ -122,6 +132,7 @@ bool Player::isRunning()
 
 void Player::setStates(InputData& inputData)
 {
+	
 	std::vector<State>& states = inputData.stateData;
 	std::vector<RangeData>& range = inputData.rangeData; // Used for Gamepad left stick walking/Running
 	m_movementVector = Vector3();
@@ -157,7 +168,7 @@ void Player::setStates(InputData& inputData)
 			{
 				Vector3 analogWalkW(range[i].pos.x, 0.f, range[i].pos.y);
 				Quaternion cameraRot = m_cameraTransform->getRotation();
-				m_movementVector += XMVector3Rotate(analogWalkW, Vector4(0.f , cameraRot.y, 0.f, cameraRot.w));
+				m_movementVector += XMVector3Rotate(analogWalkW, Vector4(0.f, cameraRot.y, 0.f, cameraRot.w));
 			}
 		}
 	}
@@ -410,7 +421,6 @@ void Player::playerStateLogic(const float& dt)
 			jump(dt);
 
 		break;
-
 	case PlayerState::JUMPING:
 
 
@@ -940,50 +950,54 @@ void Player::sendPlayerMSG(const PlayerMessageData &data)
 
 void Player::inputUpdate(InputData& inputData)
 {
-	if (m_state == PlayerState::CANNON)
+	if (!m_ignoreInput)
 	{
+		if (m_state == PlayerState::CANNON)
+		{
+			for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
+			{
+				if (inputData.actionData.at(i) == Action::USE)
+				{
+					m_shouldFire = true;
+				}
+			}		
+		}
+
+	
+		this->setStates(inputData);
+
 		for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
 		{
-			if (inputData.actionData.at(i) == Action::USE)
+			switch (inputData.actionData[i])
 			{
-				m_shouldFire = true;
+			case DASH:
+				if (m_state == PlayerState::IDLE)
+				{
+					roll();
+				}
+				else
+				{
+					if (canDash())
+						dash();
+				}
+				break;
+			case USEPICKUP:
+				if (canUsePickup())
+					handlePickupOnUse();
+				break;
+
+			case CLOSEINTROGUI:
+				//GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+				//GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
+				break;
+
+			case RESPAWN:
+				respawnPlayer();
+				break;
+
+			default:
+				break;
 			}
-		}		
-	}
-
-	this->setStates(inputData);
-
-	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
-	{
-		switch (inputData.actionData[i])
-		{
-		case DASH:
-			if (m_state == PlayerState::IDLE)
-			{
-				roll();
-			}
-			else
-			{
-				if (canDash())
-					dash();
-			}
-			break;
-		case USEPICKUP:
-			if (canUsePickup())
-				handlePickupOnUse();
-			break;
-
-		case CLOSEINTROGUI:
-			//GUIHandler::get().setVisible(m_instructionGuiIndex, false);
-			//GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
-			break;
-
-		case RESPAWN:
-			respawnPlayer();
-			break;
-
-		default:
-			break;
 		}
 	}
 }

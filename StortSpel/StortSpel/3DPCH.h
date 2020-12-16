@@ -113,3 +113,9 @@ enum class EventType
 };
 
 const bool DEBUGMODE = true;
+
+template <typename T>
+T lerp(T a, T b, float lerpVal)
+{
+	return (a + lerpVal * (b - a));
+}
