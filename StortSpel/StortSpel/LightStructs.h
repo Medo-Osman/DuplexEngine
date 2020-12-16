@@ -19,7 +19,7 @@ struct SpotLightRepresentation
 
 struct DirectionLight
 {
-    XMVECTOR direction = { 0.0f, -1.0f, -1.0f};
+    XMVECTOR direction = { -0.767f, -0.574f, 0.382f};
     XMFLOAT4 color = { 1.0f, 0.156f, 0.024f, 1.0f };
     FLOAT brightness = 15.0f;
 };

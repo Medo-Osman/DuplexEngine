@@ -1574,9 +1574,9 @@ void Renderer::update(const float& dt)
 	static lightBufferStruct lightBufferTemp;
 	static cloudConstBuffer cloudConstBufferTemp;
 
-	static float tempSunDirectionX = 0.0f;
-	static float tempSunDirectionY = -1.0f;
-	static float tempSunDirectionZ = 1.0f;
+	static float tempSunDirectionX = -0.767f;
+	static float tempSunDirectionY = -0.574f;
+	static float tempSunDirectionZ = 0.382f;
 
 	enum TimeState
 	{
@@ -1652,33 +1652,49 @@ void Renderer::update(const float& dt)
 		ImGui::End();
 	}
 
-	switch (currentTimeState)
-	{
-	case DAY:
-		//cloudConstBufferTemp.cloudDisplacementFactor = ;
-		//cloudConstBufferTemp.worleyScale = ;
-		//cloudConstBufferTemp.panSpeed.x = ;
-		//cloudConstBufferTemp.panSpeed.y = ;
-		//cloudConstBufferTemp.panSpeed.z = ;
-		//cloudConstBufferTemp.tile = ;
-		//cloudConstBufferTemp.dispPower = ;
-		//cloudConstBufferTemp.preDisplacement = ;
-		//cloudConstBufferTemp.occlusionFactor = ;
-		//cloudConstBufferTemp.backlightFactor = ;
-		//cloudConstBufferTemp.backlightStrength = ;
-		//cloudConstBufferTemp.backlightColor = ;
+	//switch (currentTimeState)
+	//{
+	//case DAY:
+	//	cloudConstBufferTemp.worleyScale = 0.02f;
+	//	cloudConstBufferTemp.panSpeed.x = 0.032f;
+	//	cloudConstBufferTemp.panSpeed.y = -0.026f;
+	//	cloudConstBufferTemp.panSpeed.z = -0.009f;
+	//	cloudConstBufferTemp.occlusionFactor = 1;
+	//	cloudConstBufferTemp.backlightFactor = 3;
+	//	cloudConstBufferTemp.backlightStrength = 1;
+	//	cloudConstBufferTemp.backlightColor = { 1.0f / 255.0f, 1.0f / 40.0f, 1.0f / 6.0f };
 
-		//lightBufferTemp.skyLight.direction = ;
-		break;
-	case NIGHT:
+	//	lightBufferTemp.skyLight.direction = { -0.767, -0.574, 0.382 };
+	//	break;
+	//case NIGHT:
+	//	cloudConstBufferTemp.worleyScale = 0.02f;
+	//	cloudConstBufferTemp.panSpeed.x = 0.032f;
+	//	cloudConstBufferTemp.panSpeed.y = -0.026f;
+	//	cloudConstBufferTemp.panSpeed.z = -0.009f;
+	//	cloudConstBufferTemp.occlusionFactor = 1;
+	//	cloudConstBufferTemp.backlightFactor = 3;
+	//	cloudConstBufferTemp.backlightStrength = 1;
+	//	cloudConstBufferTemp.backlightColor = { 1.0f / 255.0f, 1.0f / 40.0f, 1.0f / 6.0f };
 
-		break;
-	case SUNSET:
+	//	lightBufferTemp.skyLight.direction = { -0.767, -0.574, 0.382 };
 
-		break;
-	default:
-		break;
-	}
+	//	break;
+	//case SUNSET:
+	//	cloudConstBufferTemp.worleyScale = 0.02f;
+	//	cloudConstBufferTemp.panSpeed.x = 0.032f;
+	//	cloudConstBufferTemp.panSpeed.y = -0.026f;
+	//	cloudConstBufferTemp.panSpeed.z = -0.009f;
+	//	cloudConstBufferTemp.occlusionFactor = 1;
+	//	cloudConstBufferTemp.backlightFactor = 3;
+	//	cloudConstBufferTemp.backlightStrength = 1;
+	//	cloudConstBufferTemp.backlightColor = { 1.0f / 255.0f, 1.0f / 40.0f, 1.0f / 6.0f };
+
+	//	lightBufferTemp.skyLight.direction = { -0.767, -0.574, 0.382 };
+
+	//	break;
+	//default:
+	//	break;
+	//}
 
 	struct cloudConstBuffer
 	{
