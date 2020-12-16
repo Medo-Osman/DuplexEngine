@@ -270,9 +270,9 @@ public:
 							for (int y = 0; y < (int)meshResource->getVertexBuffer().getSize(); y++)
 							{
 								Vector3 pos = verts[y].position;
-								pos = XMVector3Transform(pos, XMMatrixIdentity() * XMMatrixScalingFromVector(entity->getScaling())
-									* XMMatrixRotationQuaternion(entity->getRotation())
-									* XMMatrixTranslationFromVector(entity->getTranslation()));
+								pos = XMVector3Transform(pos, XMMatrixIdentity() * XMMatrixScalingFromVector(entity->getScaling() * meshComponent->getScaling())
+									* XMMatrixRotationQuaternion(entity->getRotation() * meshComponent->getRotation())
+									* XMMatrixTranslationFromVector(entity->getTranslation() + meshComponent->getTranslation()));
 								min = XMVectorMin(min, pos);
 								max = XMVectorMax(max, pos);
 							}
