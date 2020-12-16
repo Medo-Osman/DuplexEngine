@@ -1591,8 +1591,7 @@ void Renderer::renderSceneWithExperimentalSorting(BoundingFrustum* frust, XMMATR
 
 	for (auto& drawCall : m_drawCallVector)
 	{
-		renderDrawCall(frust, wvp, V, P, drawCall.second, false);
-		delete drawCall.second;
+		renderMeshComponent(frust, wvp, V, P, drawCall.second, false);
 	}
 		
 	m_drawCallVector.clear();
@@ -1892,31 +1891,26 @@ void Renderer::render()
 		quadTree->getRenderList(&frust, meshCompVec, m_boundingVolumes);
 		if (USE_EXPERIMENTAL_SORTING)
 		{
-			for (int i = 0; i < (int)meshCompVec.size(); i++)
+
+			for (int j = 0; j < (int)meshCompVec.size(); j++)
 			{
-				MeshComponent* mComp = meshCompVec.at(i);
+				MeshComponent* mComp = meshCompVec.at(j);
 				Entity* entity = entityMapPtr->at(mComp->getParentEntityIdentifier());
-				int nrOfMaterials = mComp->getMeshResourcePtr()->getMaterialCount();
-				for (int j = 0; j < nrOfMaterials; j++)
-				{
-					DrawCallStruct* dStruct = new DrawCallStruct(mComp, j, entity);
-					Vector3 meshPos = entity->getTranslation();
-					Vector3 dist = meshPos - Vector3(m_camera->getPosition());
-					unsigned int val = 0;
-					drawInt dInt;
-					dInt.dist = dist.Length();
-					dInt.id = (unsigned int)mComp->getShaderProgEnum(j);
-					m_drawCallVector.push_back(std::make_pair((unsigned int)(dInt.dist | dInt.id), dStruct));
-				}
-				
+				Vector3 meshPos = entity->getTranslation();
+				Vector3 dist = meshPos - Vector3(m_camera->getPosition());
+				unsigned int val = 0;
+				drawInt dInt;
+				dInt.dist = dist.Length();
+				dInt.id = (unsigned int)mComp->getShaderProgEnum(0);
+				m_drawCallVector.push_back(std::make_pair((unsigned int)(dInt.dist | dInt.id), mComp));
+
 			}
+			
+			std::sort(m_drawCallVector.begin(), m_drawCallVector.end());
 		}
-		
+
+	
 	}
-
-	if(USE_EXPERIMENTAL_SORTING)
-		std::sort(m_drawCallVector.begin(), m_drawCallVector.end());
-
 
 
 	//Run the shadow pass before everything else

@@ -140,7 +140,7 @@ private:
 	float m_blackClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
 	float m_AOclearColor[4] = { 0.0f, 0.0f, -1.0f, 1e5f };
 
-	std::vector<std::pair<unsigned int, DrawCallStruct*>> m_drawCallVector;
+	std::vector<std::pair<unsigned int, MeshComponent*>> m_drawCallVector;
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
