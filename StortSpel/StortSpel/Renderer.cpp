@@ -1997,7 +1997,7 @@ void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* h
 	this->m_dContextPtr->GSSetShader(gsPtr, nullptr, 0);
 	this->m_dContextPtr->PSSetShader(psPtr, nullptr, 0);
 }
-
+int idEffectOnDistance = 300;
 void Renderer::render()
 {
 
@@ -2075,6 +2075,8 @@ void Renderer::render()
 	std::unordered_map<std::string, Entity*>* entityMapPtr = Engine::get().getEntityMap();
 //	std::vector<DrawCallStruct*> drawCalls;
 	std::vector<MeshComponent*> meshCompVec;
+	
+
 	if (quadTree)
 	{
 		quadTree->getRenderList(&frust, meshCompVec, m_boundingVolumes);
@@ -2095,7 +2097,7 @@ void Renderer::render()
 					dInt.dist = dist.Length();
 					dInt.id = (unsigned int)mComp->getShaderProgEnum(j);
 					dInt.translucency = (dInt.id == (int)ShaderProgramsEnum::LUCY_FACE);
-					m_drawCallVector.push_back(std::make_pair((uint_fast16_t)(dInt.translucency << 15 | dInt.dist << 4 | dInt.id), dStruct));
+					m_drawCallVector.push_back(std::make_pair((uint_fast16_t)(dInt.translucency << 15 | (dInt.dist + dInt.id * idEffectOnDistance) << 4 | dInt.id), dStruct));
 				}
 				
 			}
@@ -2130,7 +2132,7 @@ void Renderer::render()
 				dInt.dist = dist.Length() + j;
 				dInt.id = (unsigned int)mComp->getShaderProgEnum(j);
 				dInt.translucency = (dInt.id == (int)ShaderProgramsEnum::LUCY_FACE);
-				m_drawCallVector.push_back(std::make_pair((uint_fast16_t)(dInt.translucency << 15 | dInt.dist << 4 | dInt.id), dStruct));
+				m_drawCallVector.push_back(std::make_pair((uint_fast16_t)(dInt.translucency << 15 | (dInt.dist + dInt.id * idEffectOnDistance) << 4 | dInt.id), dStruct));
 			}
 		}
 
