@@ -47,11 +47,10 @@ private:
 	char charPtr[256] = { 0 };
 	int m_singleplayerIndex = 0;
 	int m_multiplayerIndex = 0;
-	int m_tutorialIndex = 0;
 	int m_exitIndex = 0;
 	int m_joinGameIndex = 0;
 	int m_hostGameIndex = 0;
-	int m_backToLobbyIndex = 0;
+	int m_backToMainMenu = 0;
 
 	bool checking;
 	//
@@ -94,9 +93,13 @@ private:
 	void hideMainMenu();
 	void hidePauseMenu();
 	void hideSettingsMenu();
+	void hideMultiplayerMenu();
+	void hideHostMenu();
 	void showPauseMenu();
 	void showMainMenu();
 	void showSettingsMenu();
+	void showMultiplayerMenu();
+	void showHostMenu();
 
 
 	void startBarrelDrop(std::string entity);

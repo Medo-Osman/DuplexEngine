@@ -136,10 +136,6 @@ private:
     Pickup* m_pickupPointer;
     Pickup* m_environmentPickup;
 
-    // UI
-    int m_instructionGuiIndex = 0;
-    int closeInstructionsBtnIndex = 0;
-
     // Movement
     float m_currentDistance;
     Vector3 m_moveDirection;

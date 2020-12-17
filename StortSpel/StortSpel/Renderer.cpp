@@ -1932,8 +1932,8 @@ void Renderer::render()
 	{
 		ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 		ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
+		ImGui::End();
 	}
-	ImGui::End();
 
 	// Bloom Filter
 	downSamplePass();
@@ -1944,13 +1944,10 @@ void Renderer::render()
 	// GUI
 	GUIHandler::get().render();
 
-	if (DEBUGMODE)
-	{
-		// Render ImGui
-		ImGui::Render();
-		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-	}
-
+	// Render ImGui
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	
 	m_swapChainPtr->Present(0, 0);
 }
 

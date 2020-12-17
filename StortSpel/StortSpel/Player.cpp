@@ -37,41 +37,19 @@ Player::Player(bool isLocal)
 	if (m_isLocal)
 	{
 		m_score = 0;
+		//style.position.y = 70.f;
+		//style.scale = { 0.5f };
+		//m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
+		GUIImageStyle iStyle;
+		iStyle.position = Vector2(1750, 150);
+		m_powerUpBG_GUIIndex = GUIHandler::get().addGUIImage(L"Power-up_BG.png", iStyle);
+		iStyle.position = Vector2(1700, 50);
+		m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Point_BG.png", iStyle);
 		GUITextStyle style;
-		style.position.y = 70.f;
-		style.scale = { 0.5f };
-		m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
-		style.position.x = 160.f;
-		style.color = Colors::Yellow;
-		m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
-
-		GUIImageStyle imageStyle;
-		imageStyle.position = Vector2(400.f, 50.f);
-		imageStyle.scale = Vector2(0.9f, 0.9f);
-		m_instructionGuiIndex = GUIHandler::get().addGUIImage(L"keyboard.png", imageStyle);
-
-		//Test Button stuff
-		GUIButtonStyle btnStyle;
-		btnStyle.position = Vector2(240, 200);
-		btnStyle.scale = Vector2(0.5, 0.5);
-		closeInstructionsBtnIndex = GUIHandler::get().addGUIButton(L"closeButton.png", btnStyle);
-
-		//Attach to the click listener for the button
-		dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(closeInstructionsBtnIndex))->Attach(this);
+		style.position = Vector2(1717, 50);
+		style.color = Colors::White;
+		m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"concert_one_72.spritefont", style);
 	}
-	m_score = 0;
-	//style.position.y = 70.f;
-	//style.scale = { 0.5f };
-	//m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
-	GUIImageStyle iStyle;
-	iStyle.position = Vector2(1750, 150);
-	m_powerUpBG_GUIIndex = GUIHandler::get().addGUIImage(L"Power-up_BG.png", iStyle);
-	iStyle.position = Vector2(1700, 50);
-	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Point_BG.png", iStyle);
-	GUITextStyle style;
-	style.position = Vector2(1717, 50);
-	style.color = Colors::White;
-	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"concert_one_72.spritefont", style);
 
 	//GUIImageStyle imageStyle;
 	//imageStyle.position = Vector2(400.f, 50.f);
@@ -204,10 +182,7 @@ void Player::setStates(InputData& inputData)
 		}
 	}
 	if (m_movementVector.Length() > 1.f)
-	{
-		std::cout << m_movementVector.x << ", " << m_movementVector.z << "\n";
 		m_movementVector.Normalize();
-	}
 
 }
 
@@ -1180,9 +1155,9 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				{
 					m_pickupPointer = getCorrectPickupByID(physicsData.associatedTriggerEnum);
 					m_pickupPointer->setModifierValue(physicsData.floatData);
-					m_pickupPointer->onPickup(m_playerEntity, m_speedModifierDuration);
+					/*m_pickupPointer->onPickup(m_playerEntity, m_speedModifierDuration);
 					if (m_pickupPointer->shouldActivateOnPickup())
-						m_pickupPointer->onUse();
+						m_pickupPointer->onUse();*/
 
 					PacketHandler::get().sendScorePickup(physicsData.entityIdentifier);
 
@@ -1270,9 +1245,6 @@ void Player::update(GUIUpdateType type, GUIElement* guiElement)
 	if (type == GUIUpdateType::CLICKED)
 	{
 		GUIHandler::get().setVisible(guiElement->m_index, false);
-
-		//Set instructions to not visible
-		GUIHandler::get().setVisible(m_instructionGuiIndex, false);
 	}
 
 
