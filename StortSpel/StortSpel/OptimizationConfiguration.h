@@ -9,8 +9,8 @@ static const bool USE_FRUSTUM_CULLING = true;
 static const bool USE_EXPERIMENTAL_SORTING = true;
 
 struct drawInt {
-	unsigned int translucency : 1; //0-1 :)
-	unsigned int dist : 11; //0-2047
+	unsigned int translucency : 2; //0-1 :)
+	unsigned int dist : 10; //0-
 	unsigned int id : 4; //0-15
 };
 
