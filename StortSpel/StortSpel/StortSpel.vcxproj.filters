@@ -449,9 +449,6 @@
     <ClInclude Include="MoveToAction.h">
       <Filter>Source Files\Game\Boss\Moves</Filter>
     </ClInclude>
-    <ClInclude Include="GUIContext.h">
-      <Filter>Header Files</Filter>
-      </ClInclude>
     <ClInclude Include="HeightPickup.h">
       <Filter>Source Files\Game\Pickup</Filter>
     </ClInclude>
@@ -538,6 +535,9 @@
     </ClInclude>
     <ClInclude Include="BoundingVolumeHolder.h">
       <Filter>Source Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIContext.h">
+      <Filter>Source Files\Application\Input\Context</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
