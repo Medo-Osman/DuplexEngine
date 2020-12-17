@@ -28,7 +28,6 @@ void ResourceHandler::checkResources()
 		{
 			idsForMeshesToRemove.push_back(meshStruct.first);
 		}
-
 	}
 
 	for (int i = 0; i < idsForMeshesToRemove.size(); i++)
@@ -48,9 +47,7 @@ void ResourceHandler::checkResources()
 		if (textureStruct.second->getRefCount() == 0 && textureStruct.second->m_doReferenceCount)
 		{
 			textureIdsToRemove.push_back(std::wstring(textureStruct.first.begin(), textureStruct.first.end()));
-
 		}
-
 	}
 
 	for (int i = 0; i < textureIdsToRemove.size(); i++)
