@@ -245,6 +245,9 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 	Vector3 dir = direction;
 	Vector3 outDir;
 
+	if (!m_3dMarker)
+		return pos;
+
 	while (!foundEnd && t < 10)
 	{
 		float timeStepIncreece = 0.01f;
@@ -486,7 +489,8 @@ void Player::playerStateLogic(const float& dt)
 			m_direction = m_lastDirectionalMovement = m_moveDirection = m_cameraTransform->getForwardVector();
 			m_direction *= CANNON_POWER;
 			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
-			m_3dMarker->setPosition(0, -9999, -9999);
+			if(m_3dMarker)
+				m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
 			m_shouldDrawLine = false;
 			m_verticalMultiplier = 5;
@@ -920,7 +924,7 @@ void Player::handlePickupOnUse()
 		break;
 	case PickupType::CANNON:
 		m_state = PlayerState::CANNON;
-		m_cameraOffset = Vector3(1.f, 2.0f, 0.f);
+		m_cameraOffset = Vector3(1.2f, 1.0f, -0.8f);
 		//Cannon on use
 		break;
 	default:
