@@ -2755,7 +2755,6 @@ void Scene::removeEntity(std::string identifier)
 
 		removeMeshFromShadowPassDrawCallList(meshComp);
 		removeMeshFromMeshComponentVector(meshComp);
-		m_entities[identifier]->removeComponent(meshComponent);
 	}
 	delete m_entities[identifier];
 	m_entities.erase(identifier);
