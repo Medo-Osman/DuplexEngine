@@ -17,7 +17,7 @@ PacketHandler::PacketHandler()
 		serverPlayerData[i].rot = XMQuaternionIdentity();
 		serverPlayerData[i].state = 9;
 		serverPlayerData[i].blend = 0;
-		serverPlayerData[i].score = 50;
+		serverPlayerData[i].score = 0;
 	}
 
 	//ipAddress = "188.148.250.207";
