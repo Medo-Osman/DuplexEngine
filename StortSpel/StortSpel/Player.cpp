@@ -1268,24 +1268,26 @@ void Player::serverPlayerAnimationChange(PlayerState currentState, float current
 	if (currentState != m_state)
 	{
 		m_state = currentState;
-
-		switch (currentState)
+		if (m_animMesh)
 		{
-		case PlayerState::IDLE:
-			idleAnimation();
-			break;
-		case PlayerState::JUMPING:
-			startJump_First();
-			break;
-		case PlayerState::FALLING:
-			startJump_Second();
-			break;
-		case PlayerState::DASH:
-			dashAnimation();
-			break;
-		case PlayerState::ROLL:
-			rollAnimation();
-			break;
+			switch (currentState)
+			{
+			case PlayerState::IDLE:
+				idleAnimation();
+				break;
+			case PlayerState::JUMPING:
+				startJump_First();
+				break;
+			case PlayerState::FALLING:
+				startJump_Second();
+				break;
+			case PlayerState::DASH:
+				dashAnimation();
+				break;
+			case PlayerState::ROLL:
+				rollAnimation();
+				break;
+			}
 		}
 	}
 }
@@ -1367,9 +1369,13 @@ void Player::dashAnimation()
 
 void Player::idleAnimation()
 {
-	m_animMesh->playBlendState("runOrIdle", 0.3f);
-	//m_animMesh->setAnimationSpeed(1, 1.5f);
-	m_animMesh->setAnimationSpeed(1, 1.7f);
+	if (m_animMesh)
+	{
+		m_animMesh->playBlendState("runOrIdle", 0.3f);
+		//m_animMesh->setAnimationSpeed(1, 1.5f);
+		m_animMesh->setAnimationSpeed(1, 1.7f);
+	}
+	
 }
 
 void Player::startJump_First()
