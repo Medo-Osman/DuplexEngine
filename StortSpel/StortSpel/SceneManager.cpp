@@ -283,45 +283,43 @@ void SceneManager::inputUpdate(InputData& inputData)
 				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			}
 			else if (inputData.actionData[i] == MENU)
-
-		}
-
-		if (inputData.actionData[i] == MENU)
-		{
-			if (m_currectSceneEnum != ScenesEnum::MAINMENU && m_currectSceneEnum != ScenesEnum::ENDSCENE)
 			{
-				if (!m_inPause || m_inPauseSettings)
+				if (m_currectSceneEnum != ScenesEnum::MAINMENU && m_currectSceneEnum != ScenesEnum::ENDSCENE)
 				{
-
-					//showPauseMenu();
-
-					// close Pause Settings
-					if (m_inPauseSettings) // if back from pause settings, hide settings
+					if (!m_inPause || m_inPauseSettings)
 					{
-						hideSettingsMenu();
 
-						m_inPauseSettings = false;
+						//showPauseMenu();
+
+						// close Pause Settings
+						if (m_inPauseSettings) // if back from pause settings, hide settings
+						{
+							hideSettingsMenu();
+
+							m_inPauseSettings = false;
+						}
+						else
+						{
+							m_inputPtr->setCursor(true);
+						}
+
+						showPauseMenu();
+
+						m_inPause = true;
 					}
 					else
 					{
-						m_inputPtr->setCursor(true);
+						enableMovement();
+						m_inputPtr->setCursor(false);
+						hidePauseMenu();
+						m_inPause = false;
 					}
-
-					showPauseMenu();
-
-					m_inPause = true;
 				}
-				else
-				{
-					enableMovement();
-					m_inputPtr->setCursor(false);
-					hidePauseMenu();
-					m_inPause = false;
-				}
-			}
+			} 
 		}
 	}
 }
+
 //Can't swap scenes when using onTrigger function due to it being triggered in physx simulations, ie it could result in a crash and is not best practice.
 void SceneManager::sendPhysicsMessage(PhysicsData& physicsData, bool& destroyEntity)
 {

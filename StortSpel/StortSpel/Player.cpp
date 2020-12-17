@@ -106,7 +106,7 @@ void Player::setCannonEntity(Entity* entity, MeshComponent* pipe, Entity* Marker
 		MeshComponent* mesh = new MeshComponent("Marker3D.lrm", TEMP_TEST);
 		mesh->setCastsShadow(false);
 		m_3dMarker->addComponent("6 nov (mesh)", mesh);
-		Engine::get().getMeshComponentMap()->emplace(1632, mesh);
+		Engine::get().getMeshComponents()->emplace_back(mesh);
 	}
 }
 

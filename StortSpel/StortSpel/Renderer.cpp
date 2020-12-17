@@ -1250,43 +1250,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 
 		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
 		{
-			//Culling
-			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
-			Vector3 pos = parentEntity->getTranslation();
-			Vector3 meshOffset = component.second->getTranslation();
-			Vector3 boundsCenter = component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
-
-			if (!XMQuaternionIsIdentity(parentEntity->getRotation()))
-			{
-				meshOffset = XMVector3Rotate(meshOffset, parentEntity->getRotation());
-				boundsCenter = XMVector3Rotate(boundsCenter, parentEntity->getRotation());
-			}
-			if (!XMQuaternionIsIdentity(component.second->getRotation()))
-			{
-				meshOffset = XMVector3Rotate(meshOffset, component.second->getRotation());
-				boundsCenter = XMVector3Rotate(boundsCenter, component.second->getRotation());
-			}
-
-			pos += meshOffset;
-			pos += boundsCenter;
-
-			if (frust->Contains(pos) != ContainmentType::CONTAINS)
-			{
-				component->getMeshResourcePtr()->getMinMax(min, max);
-
-				XMFLOAT3 ext = (max - min) / 2;
-				ext = ext * scale;
-
-				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
-				BoundingOrientedBox box(pos, ext, rot);
-
-				ContainmentType contType = frust->Contains(box);
-				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
-			}
-			else
-			{
-				draw = true;
-			}
+			draw = preformCullOnMeshComponent(frust, component, parentEntity);
 		}
 
 		MeshComponent* meshComp = dynamic_cast<MeshComponent*>(component);
@@ -1298,7 +1262,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 			component->getMeshResourcePtr()->set(m_dContextPtr.Get());
 			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
 			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
-			constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(component.second->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(component->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
 
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
@@ -1564,33 +1528,6 @@ void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATR
 	else
 		parentEntity = (*entityMap)[meshComponent->getParentEntityIdentifier()];
 
-		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
-		{
-			//Culling
-			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
-			Vector3 pos = parentEntity->getTranslation();
-			Vector3 meshOffset = component.second->getTranslation();
-			Vector3 boundsCenter = component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
-			
-			if (!XMQuaternionIsIdentity(parentEntity->getRotation()))
-			{
-				meshOffset = XMVector3Rotate(meshOffset, parentEntity->getRotation());
-				boundsCenter = XMVector3Rotate(boundsCenter, parentEntity->getRotation());
-			}
-			if (!XMQuaternionIsIdentity(component.second->getRotation()))
-			{
-				meshOffset = XMVector3Rotate(meshOffset, component.second->getRotation());
-				boundsCenter = XMVector3Rotate(boundsCenter, component.second->getRotation());
-			}
-
-			pos += meshOffset;
-			pos += boundsCenter;
-
-			XMFLOAT3 ext = (max - min) / 2;
-			ext = ext * scale;
-			XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
-			BoundingOrientedBox box(pos, ext, rot);
-
 
 	if (m_camera->frustumCullingOn && parentEntity->m_canCull && USE_FRUSTUM_CULLING && useFrustumCullingParam)
 	{
@@ -1736,7 +1673,7 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 void Renderer::renderShadowPassByMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent)
 {
 	
-	if (component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_PBR && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
+	if (meshComponent->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_PBR && meshComponent->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && meshComponent->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
 	{
 		ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
 		m_compiledShaders[meshShaderEnum]->setShaders();
@@ -2217,7 +2154,7 @@ void Renderer::render()
 	if (m_debugViewMode != 1)
 	{
 		// Normals & Depth pass
-		normalsNDepthPass(&frust, &wvp, &V, &P);
+		normalsNDepthPass(&frust, &W, &V, &P);
 
 		// SSAO
 		computeSSAOPass();
