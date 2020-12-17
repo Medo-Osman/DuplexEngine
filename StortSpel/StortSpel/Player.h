@@ -182,7 +182,7 @@ private:
 
     //Checkpoint
     Vector3 m_checkpointPos = Vector3(0.f, 9.f, 5.f);
-    int m_heightLimitBeforeRespawn = -7.f;
+    int m_heightLimitBeforeRespawn = -7;
 
     //trap
     Vector3 m_trapPos = Vector3(0, 9, 20);

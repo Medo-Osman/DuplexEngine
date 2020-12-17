@@ -2465,7 +2465,7 @@ void Scene::loadBossTestPhaseTwo(Scene* sceneObject, bool* finished)
 		float a = 2.5f * 4;
 		a = a + 10 + 1.25f;
 		sceneObject->m_sceneEntryPosition = Vector3(10, 6, a);
-		sceneObject->createStaticPlatform(Vector3(10, 4.9, a), Vector3(0, 0, 0), Vector3(3, 0.2, 3), "testCube_pCube1.lrm");
+		sceneObject->createStaticPlatform(Vector3(10, 4.9f, a), Vector3(0, 0, 0), Vector3(3, 0.2f, 3), "testCube_pCube1.lrm");
 
 		//Added the platform to spawn on, as well as a checkpoint on it.
 		sceneObject->addCheckpoint(sceneObject->m_sceneEntryPosition - Vector3(0, 1, 0), 0);
@@ -2960,7 +2960,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 	{
 		for (int i = 0; i < (*m_boss->platformArray).columns.size(); i++)
 		{
-			displacePlatform((*m_boss->platformArray)[m_boss->currentPlatformIndex.x][i]);
+			displacePlatform((*m_boss->platformArray)[(int)m_boss->currentPlatformIndex.x][i]);
 		}
 	}
 
@@ -2968,7 +2968,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 	{
 		for (int i = 0; i < (*m_boss->platformArray).columns.size(); i++)
 		{
-			displacePlatform((*m_boss->platformArray)[i][m_boss->currentPlatformIndex.y]);
+			displacePlatform((*m_boss->platformArray)[i][(int)m_boss->currentPlatformIndex.y]);
 		}
 	}
 
