@@ -152,42 +152,42 @@ void Camera::inputUpdate(InputData& inputData)
 			{
 				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
 				Vector3 currForward = XMVector3TransformCoord(this->forwardVector, cameraRotation);
-				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				m_position += currForward * 0.1f * m_flightSpeedMultiplier;
 				setPosition(m_position);
 			}
 			if (inputData.stateData[i] == State::WALK_LEFT)
 			{
 				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
 				Vector3 currForward = XMVector3TransformCoord(-this->rightVector, cameraRotation);
-				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				m_position += currForward * 0.1f * m_flightSpeedMultiplier;
 				setPosition(m_position);
 			}
 			if (inputData.stateData[i] == State::WALK_RIGHT)
 			{
 				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
 				Vector3 currForward = XMVector3TransformCoord(this->rightVector, cameraRotation);
-				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				m_position += currForward * 0.1f * m_flightSpeedMultiplier;
 				setPosition(m_position);
 			}
 			if (inputData.stateData[i] == State::WALK_BACKWARD)
 			{
 				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
 				Vector3 currForward = XMVector3TransformCoord(-this->forwardVector, cameraRotation);
-				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				m_position += currForward * 0.1f * m_flightSpeedMultiplier;
 				setPosition(m_position);
 			}
 			if (inputData.stateData[i] == State::FLY_UP)
 			{
 				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
 				Vector3 currForward = XMVector3TransformCoord(upVector, cameraRotation);
-				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				m_position += currForward * 0.1f * m_flightSpeedMultiplier;
 				setPosition(m_position);
 			}
 			if (inputData.stateData[i] == State::FLY_DOWN)
 			{
 				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
 				Vector3 currForward = XMVector3TransformCoord(-upVector, cameraRotation);
-				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				m_position += currForward * 0.1f * m_flightSpeedMultiplier;
 				setPosition(m_position);
 			}
 			if (inputData.stateData[i] == State::CTRLDOWN)
