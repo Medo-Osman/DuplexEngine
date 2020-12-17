@@ -1973,7 +1973,7 @@ void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* h
 	this->m_dContextPtr->GSSetShader(gsPtr, nullptr, 0);
 	this->m_dContextPtr->PSSetShader(psPtr, nullptr, 0);
 }
-int idEffectOnDistance = 300;
+int idEffectOnDistance = 100;
 void Renderer::render()
 {
 
@@ -2073,7 +2073,9 @@ void Renderer::render()
 					dInt.dist = dist.Length();
 					dInt.id = (unsigned int)mComp->getShaderProgEnum(j);
 					dInt.translucency = (dInt.id == (int)ShaderProgramsEnum::LUCY_FACE);
-					m_drawCallVector.push_back(std::make_pair((uint_fast16_t)(dInt.translucency << 15 | (dInt.dist + dInt.id * idEffectOnDistance) << 4 | dInt.id), dStruct));
+					dInt.translucency += (dInt.id == (int)ShaderProgramsEnum::EMISSIVE);
+
+					m_drawCallVector.push_back(std::make_pair((uint_fast16_t)(dInt.translucency << 14 | (dInt.dist + dInt.id * idEffectOnDistance) << 4 | dInt.id), dStruct));
 				}
 				
 			}
@@ -2112,7 +2114,8 @@ void Renderer::render()
 				dInt.translucency = (dInt.id == (int)ShaderProgramsEnum::LUCY_FACE || (dInt.id == (int)ShaderProgramsEnum::EMISSIVE));
 				dInt.translucency += (dInt.id == (int)ShaderProgramsEnum::EMISSIVE);
 
-				m_drawCallVector.push_back(std::make_pair((uint_fast16_t)(dInt.translucency << 15 | (dInt.dist + dInt.id * idEffectOnDistance) << 4 | dInt.id), dStruct));
+
+				m_drawCallVector.push_back(std::make_pair((uint_fast16_t)(dInt.translucency << 14 | (dInt.dist + dInt.id * idEffectOnDistance) << 4 | dInt.id), dStruct));
 			}
 		}
 

@@ -1,5 +1,6 @@
 #include "3DPCH.h"
 #include "Material.h"
+#include"OptimizationConfiguration.h"
 
 Material::Material()
 	:m_materialId(0), m_isDefault(true), m_isPRB(false)
@@ -422,11 +423,15 @@ void Material::readMaterials()
 		MATERIAL_INIT_STRUCT mat;
 		mat.MaterialID = ++totalMaterialCount;
 		//std::cout << textureNames.at(i) << std::endl;
-		if (textureNames.at(i) == std::wstring(L"LucyEyes"))
+		if (USE_SORTED)
 		{
-			mat.MaterialID += 3000;
-			int laaa = 0;
+			if (textureNames.at(i) == std::wstring(L"LucyEyes"))
+			{
+				mat.MaterialID += 3000;
+				int laaa = 0;
+			}
 		}
+
 			
 
 		for (int l = 0; l < 4; l++)
