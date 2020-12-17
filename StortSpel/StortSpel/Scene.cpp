@@ -2355,17 +2355,18 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	}
 
 
-	Entity* walls = sceneObject->addEntity("Walls");
+	/*Entity* walls = sceneObject->addEntity("Walls");
 	if (walls)
 	{
 		sceneObject->addComponent(walls, "mesh", new MeshComponent("BossWalls_polySurface54.lrm", PBRTEST,
 													 Material (L"DarkGrayTexture", true)));
 		walls->setPosition(22.5, -35, 22.5);
 		walls->setScaleUniform(0.5);
-	}
+	}*/
+	sceneObject->addCloudBedMesh2({ 0, 0, 0 }, "cloudPlane.lrm");
 
-
-	sceneObject->createSkybox(L"skybox_bluesky_2.dds");
+	sceneObject->createSkybox(L"Skyway_Sunset_CM.dds", L"Skyway_Sunset_RF.dds", L"Skyway_Sunset_IR.dds");
+	//sceneObject->createSkybox(L"Skyway_Day.dds");
 	//Entity* skybox = sceneObject->addEntity("SkyBox");
 	//skybox->m_canCull = false;
 	//if (skybox)
