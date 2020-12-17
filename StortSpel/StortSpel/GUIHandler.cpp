@@ -124,6 +124,8 @@ bool GUIHandler::getVisible(int index)
 	return (m_elements[index]->isVisible());
 }
 
+
+
 void GUIHandler::setImageStyle(int index, GUIImageStyle style)
 {
 	static_cast<GUIImageLabel*>(m_elements[index])->setStyle(style);
@@ -146,9 +148,21 @@ std::vector<GUIElement*>* GUIHandler::getElementMap()
 
 void GUIHandler::setInMenu(bool inMenu, int startIndex)
 {
+
+	if (m_selectedMenuButton != -1)
+	{
+		GUIButton* button = dynamic_cast<GUIButton*>(m_elements[m_selectedMenuButton]);
+		button->setIsSelected(false);
+	}
+
 	m_inMenu = inMenu;
 	if (m_inMenu)
+	{
 		m_selectedMenuButton = startIndex; // Reset Menu Selected Position
+
+		GUIButton* button = dynamic_cast<GUIButton*>(m_elements[m_selectedMenuButton]);
+		button->setIsSelected(true);
+	}
 }
 
 void GUIHandler::render()

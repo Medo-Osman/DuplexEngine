@@ -87,7 +87,7 @@ ps_out main(ps_in input) : SV_TARGET
 {
     float3 modelPosition = worldMatrix._41_42_43;
 
-    float3 color = rgb2hsl(modelPosition);
+    //float3 color = rgb2hsl(modelPosition);
     ps_out output;
     float sintime = (sin(time) / 2.) + 0.5;
     float3 rainbow = rgb2hsl(float3(input.uv.x + time/10, time/10, input.uv.y));

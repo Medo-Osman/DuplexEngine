@@ -18,6 +18,12 @@ enum ShaderProgramsEnum
 	LUCY_FACE,
 	RAINBOW,
 	CLOUD,
+	PEARL,
+	Z_PRE_PASS,
+	Z_PRE_PASS_ANIM,
+	NORMALS_DEPTH,
+	NORMALS_DEPTH_ANIM,
+	SSAO_MAP,
 	NONE
 };
 
@@ -95,7 +101,7 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 	(
 		{ L"CombinePassVertex.hlsl",L"null",L"null",L"null",L"CombinePassPixel.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
-		VertexLayoutType::LRMVertexLayout,
+		VertexLayoutType::renderQuadVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 
@@ -151,21 +157,83 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 
 	(*compiledShadersMap)[ShaderProgramsEnum::LUCY_FACE] = new ShaderProgram
 	(
-		//{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"BasicPixelShader_temp_for_testing_shaderSwitching.hlsl" },BasicPixelShader_Shadow
 		{ L"VertexShaderAnim.hlsl",L"null",L"null",L"null",L"SeeThroughPixel.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		VertexLayoutType::LRSMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 
+	(*compiledShadersMap)[ShaderProgramsEnum::Z_PRE_PASS] = new ShaderProgram
+	(
+		{ L"ZPrePassVertexShaderBasic.hlsl",L"null",L"null",L"null",L"ZPrePassPixelShader.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+		(*compiledShadersMap)[ShaderProgramsEnum::Z_PRE_PASS] = new ShaderProgram
+	(
+		{ L"ZPrePassVertexShaderBasic.hlsl",L"null",L"null",L"null",L"ZPrePassPixelShader.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::Z_PRE_PASS_ANIM] = new ShaderProgram
+	(
+		{ L"ZPrePassVertexShaderAnim.hlsl",L"null",L"null",L"null",L"ZPrePassPixelShader.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+
 	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD] = new ShaderProgram
 	(
+		//{ L"CloudShaderVS.hlsl", L"CloudShaderHS.hlsl", L"CloudShaderDS.hlsl", L"null", L"CloudShaderPS.hlsl" },
 		{ L"CloudShaderVS.hlsl", L"CloudShaderHS.hlsl", L"CloudShaderDS.hlsl", L"null", L"CloudShaderPS.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST,
-		VertexLayoutType::LRSMVertexLayout,
+		VertexLayoutType::LRMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 
 	// Allow binding of a displacement map to the domain shader
 	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Domain, true);
+	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Pixel, true);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::PEARL] = new ShaderProgram
+	(
+		{ L"PearlVS.hlsl", L"null", L"null", L"null", L"PearlPS.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST,
+		VertexLayoutType::LRMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	// Allow binding of a displacement map to the domain shader
+	(*compiledShadersMap)[ShaderProgramsEnum::PEARL]->setShaderNeedsResource(ShaderType::Vertex, true);
+	(*compiledShadersMap)[ShaderProgramsEnum::PEARL]->setShaderNeedsResource(ShaderType::Pixel, true);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::NORMALS_DEPTH] = new ShaderProgram
+	(
+		{ L"NormalsDepthVertex.hlsl",L"null",L"null",L"null",L"NormalsDepthPixel.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::NORMALS_DEPTH_ANIM] = new ShaderProgram
+	(
+		{ L"NormalsDepthVertexAnim.hlsl",L"null",L"null",L"null",L"NormalsDepthPixel.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::LRSMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::SSAO_MAP] = new ShaderProgram
+	(
+		{ L"SSAOVertex.hlsl",L"null",L"null",L"null",L"SSAOPixel.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+		VertexLayoutType::renderQuadVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
 }

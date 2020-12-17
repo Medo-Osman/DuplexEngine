@@ -2,7 +2,7 @@
 
 static const float SHADOW_MAP_SIZE = 4096.f;
 static const float SHADOW_MAP_DELTA = 1.f / SHADOW_MAP_SIZE;
-static const float RANGE = 90.f;
+static const float RANGE = 50.f;
 
 struct pointLight
 {
@@ -70,6 +70,8 @@ struct ps_in
     float3 bitangent : BITANGENT;
     float4 worldPos : POSITION;
     float4 shadowPos : SPOS;
+    float4 ssaoPos : SSAOPOS;
+
 };
 
 struct ps_out
@@ -82,6 +84,8 @@ Texture2D diffuseTexture : TEXTURE : register(t0);
 SamplerState sampState : SAMPLER : register(s0);
 SamplerComparisonState shadowSampState : SAMPLER1 : register(s1);
 Texture2D shadowMap : TEXTURE : register(t7);
+
+Texture2D ambientOcclusionMap : TEXTURE : register(t8);
 
 struct lightComputeResult
 {
@@ -106,7 +110,7 @@ float computeShadowFactor(float4 shadowPosH)
     float percentLit = 0.0f;
     
     //PCF sampling for shadow map
-    const int sampleRange = 2;
+    const int sampleRange = 3;
     [unroll]
     for (int x = -sampleRange; x <= sampleRange; x++)
     {
@@ -133,6 +137,13 @@ lightComputeResult computeLightFactor(ps_in input)
     float3 finalColor = float3(0, 0, 0);
     float3 diffuse = diffuseTexture.Sample(sampState, input.uv).xyz;
     float shadowFactor = computeShadowFactor(input.shadowPos);
+    
+   
+    // SSAO
+    input.ssaoPos /= input.ssaoPos.w;
+    input.ssaoPos.x = (1.f + input.ssaoPos.x) * 0.5f;
+    input.ssaoPos.y = (1.0f - input.ssaoPos.y) * 0.5f;
+    float ambientFactor = ambientOcclusionMap.SampleLevel(sampState, input.ssaoPos.xy, 0.0f).r;
     
     //Loop through all pointlights
     for (int i = 0; i < nrOfPointLights; i++)
@@ -168,7 +179,11 @@ lightComputeResult computeLightFactor(ps_in input)
     
     finalColor = finalColor + shadowFactor*saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness * 0.2f;
     
-    result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel));
+    result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel * ambientFactor));
+    //result.lightColor = diffuse * (finalColor * ambientLightLevel * ambientFactor);
+    //litColor = texColor * (ambient + diffuse);
+    //result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel)));
+    //result.lightColor = (finalColor * diffuse + (float3(1, 0, 0) * (-ambientFactor + 1)));
     
     return result;
 }

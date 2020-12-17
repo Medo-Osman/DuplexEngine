@@ -97,6 +97,9 @@
     <Filter Include="Source Files\Graphics\Particles\PlatformWarning">
       <UniqueIdentifier>{ea91ae63-a675-4fa1-a31d-4759086d677a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Shader\ZPrePass">
+      <UniqueIdentifier>{95f52e81-a96b-4cb8-a1d0-db72c2917be7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -203,6 +206,9 @@
     </ClCompile>
     <ClCompile Include="WinState.cpp">
       <Filter>Source Files\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDraw.cpp">
+      <Filter>Source Files\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -527,6 +533,12 @@
     <ClInclude Include="WinState.h">
       <Filter>Source Files\Game</Filter>
     </ClInclude>
+    <ClInclude Include="DebugDraw.h">
+      <Filter>Source Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingVolumeHolder.h">
+      <Filter>Source Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestComponent.h">
@@ -654,10 +666,43 @@
     <FxCompile Include="CloudShaderVS.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
+    <FxCompile Include="ZPrePassPixelShader.hlsl">
+      <Filter>Resource Files\Shader\ZPrePass</Filter>
+    </FxCompile>
+    <FxCompile Include="ZPrePassVertexShaderBasic.hlsl">
+      <Filter>Resource Files\Shader\ZPrePass</Filter>
+    </FxCompile>
+    <FxCompile Include="ZPrePassVertexShaderAnim.hlsl">
+      <Filter>Resource Files\Shader\ZPrePass</Filter>
+    </FxCompile>
+    <FxCompile Include="NormalsDepthPixel.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="NormalsDepthVertex.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="NormalsDepthVertexAnim.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="SSAOVertex.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="SSAOPixel.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="PearlPS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="PearlVS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="UtilityLibrary.hlsli">
+      <Filter>Resource Files\Shader</Filter>
+    </None>
+    <None Include="DebugViewModes.hlsli">
       <Filter>Resource Files\Shader</Filter>
     </None>
   </ItemGroup>

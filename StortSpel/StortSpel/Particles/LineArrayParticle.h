@@ -36,15 +36,27 @@ private:
 
 	}
 
+
+	void init()
+	{
+		this->m_maxNrOfParticles = 100;
+		this->setShaders(streamOutVS, streamOutGS, drawVS, drawGS, drawPS);
+		m_player = Engine::get().getPlayerPtr();
+		m_lineDataBuffer.initializeBuffer(Engine::get().getDevicePtr(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, m_player->getLineDataArray(), 10);
+	}
+
 public:
 	LineArrayParticle()
 		: Particle(ParticleEffect::LINEARRAY, true)
 	{
-		this->m_maxNrOfParticles = 100;
-		this->m_textureName = L"white.png";
-		this->setShaders(streamOutVS, streamOutGS, drawVS, drawGS, drawPS);
-		m_player = Engine::get().getPlayerPtr();
-		m_lineDataBuffer.initializeBuffer(Engine::get().getDevicePtr(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, m_player->getLineDataArray(), 10);
 
+		this->m_textureName = L"white.png";
+		init();
+	}
+	LineArrayParticle(std::wstring texture)
+		: Particle(ParticleEffect::LINEARRAY, true)
+	{
+		this->m_textureName = texture;
+		init();
 	}
 };

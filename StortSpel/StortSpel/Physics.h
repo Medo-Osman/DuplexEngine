@@ -15,6 +15,7 @@ struct PhysicsData
 	std::string stringData;
 	float floatData;
 	int intData;
+	bool boolData;
 	void* pointer;
 	std::string entityIdentifier;
 	PhysicsData()
@@ -152,6 +153,7 @@ private:
 	std::vector<PxScene*> m_scenes;
 	int m_nrOfThreads;
 	Vector3 m_gravity;
+	PxActor* m_latestTriggerInteractionActor;
 
 	PxScene* createNewScene()
 	{
@@ -353,7 +355,6 @@ public:
 		}
 	}
 
-
 	void onTrigger(PxTriggerPair* pairs, PxU32 count) //Will currently check for collisions with player and said trigger shape.
 	{
 		for (PxU32 i = 0; i < count; i++)
@@ -380,6 +381,10 @@ public:
 						{
 							m_reactOnRemoveObservers[k]->sendPhysicsMessage(*data, stopLoop);
 						}
+					}
+					else
+					{
+						m_latestTriggerInteractionActor = pairs[i].triggerActor;
 					}
 				}
 			}
@@ -531,8 +536,14 @@ public:
 
 	void update(const float &dt)
 	{
+		
 		m_scenePtr->simulate(dt);
 		m_scenePtr->fetchResults(true);
+		if (m_latestTriggerInteractionActor)
+		{
+			m_scenePtr->resetFiltering(*m_latestTriggerInteractionActor);
+			m_latestTriggerInteractionActor = nullptr;
+		}
 
 		for (size_t i = 0; i < m_actorsToRemoveAfterSimulation.size(); i++)
 		{
@@ -623,7 +634,7 @@ public:
 		ccd.height = height;
 		ccd.radius = radius;
 		ccd.invisibleWallHeight = 0.f;
-		ccd.maxJumpHeight = 0.f; //If invisibleWalLHeigt is used, this parameter is used.
+		ccd.maxJumpHeight = 0.f; //If invisibleWalLHeight is used, this parameter is used.
 		ccd.nonWalkableMode = PxControllerNonWalkableMode::ePREVENT_CLIMBING_AND_FORCE_SLIDING;
 		ccd.position = PxExtendedVec3(position.x, position.y, position.z);
 		ccd.registerDeletionListener = true;
@@ -685,7 +696,7 @@ public:
 
 	void makeKinematicActorDynamic(PxRigidBody* actor, float newMass)
 	{
-		actor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, false);
+		actor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_SPECULATIVE_CCD, false);
 		actor->setMass(newMass);
 	}
 

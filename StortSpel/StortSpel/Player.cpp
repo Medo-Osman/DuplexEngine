@@ -65,13 +65,13 @@ Player::Player(bool isLocal)
 	//m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
 	GUIImageStyle iStyle;
 	iStyle.position = Vector2(1750, 150);
-	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Power-up_BG.png", iStyle);
+	m_powerUpBG_GUIIndex = GUIHandler::get().addGUIImage(L"Power-up_BG.png", iStyle);
 	iStyle.position = Vector2(1700, 50);
 	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Point_BG.png", iStyle);
 	GUITextStyle style;
-	style.position = Vector2(1717, 62);
+	style.position = Vector2(1717, 50);
 	style.color = Colors::White;
-	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
+	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"concert_one_72.spritefont", style);
 
 	//GUIImageStyle imageStyle;
 	//imageStyle.position = Vector2(400.f, 50.f);
@@ -129,7 +129,7 @@ void Player::setCannonEntity(Entity* entity, MeshComponent* pipe)
 		m_3dMarker = new Entity("3DMarker");
 		m_3dMarker->scale(0.25f, 0.25f, 0.25f);
 		Engine::get().getEntityMap()->emplace("3DMarker", m_3dMarker);
-		MeshComponent* mesh = new MeshComponent("testCube_pCube1.lrm");
+		MeshComponent* mesh = new MeshComponent("Marker3D.lrm", TEMP_TEST);
 		mesh->setCastsShadow(false);
 		m_3dMarker->addComponent("6 nov (mesh)", mesh);
 		Engine::get().getMeshComponentMap()->emplace(1632, mesh);
@@ -160,10 +160,22 @@ void Player::setStates(InputData& inputData)
 		{
 			switch (states[i])
 			{
-			case WALK_LEFT:		m_movementVector += XMVector3Rotate(Vector3(-1.f, 0.f, 0.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
-			case WALK_RIGHT:	m_movementVector += XMVector3Rotate(Vector3(1.f, 0.f, 0.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
-			case WALK_FORWARD:	m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, 1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
-			case WALK_BACKWARD: m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, -1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
+			case WALK_LEFT:
+				m_movementVector += XMVector3Rotate(Vector3(-1.f, 0.f, 0.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w));
+				m_analogHorizontalMultiplier = 1.f;
+				break;
+			case WALK_RIGHT:
+				m_movementVector += XMVector3Rotate(Vector3(1.f, 0.f, 0.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w));
+				m_analogHorizontalMultiplier = 1.f;
+				break;
+			case WALK_FORWARD:
+				m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, 1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w));
+				m_analogHorizontalMultiplier = 1.f;
+				break;
+			case WALK_BACKWARD:
+				m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, -1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w));
+				m_analogHorizontalMultiplier = 1.f;
+				break;
 			case JUMPING:
 				hasJumped = true;
 				m_lastJumpPressed = m_jumpPressed;
@@ -183,12 +195,20 @@ void Player::setStates(InputData& inputData)
 			if (range[i].rangeFlag == Range::WALK)
 			{
 				Vector3 analogWalkW(range[i].pos.x, 0.f, range[i].pos.y);
+				//std::cout << analogWalkW.x << ", " << analogWalkW.z << "\n";
 				Quaternion cameraRot = m_cameraTransform->getRotation();
-				m_movementVector += XMVector3Rotate(analogWalkW, Vector4(0.f , cameraRot.y, 0.f, cameraRot.w));
+				Vector3 analogDirection = XMVector3Rotate(analogWalkW, Vector4(0.f , cameraRot.y, 0.f, cameraRot.w));
+				m_movementVector += analogDirection;
+				m_analogHorizontalMultiplier = analogDirection.Length();
 			}
 		}
 	}
-	m_movementVector.Normalize();
+	if (m_movementVector.Length() > 1.f)
+	{
+		std::cout << m_movementVector.x << ", " << m_movementVector.z << "\n";
+		m_movementVector.Normalize();
+	}
+
 }
 
 void Player::handleRotation(const float &dt)
@@ -237,47 +257,51 @@ float lerp(const float& a, const float &b, const float &t)
 	return a + (t * (b - a));
 }
 
-Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 dir, float t, float horizonalMultiplier, float vertMulti)
+Vector3 Player::trajectoryEquation(Vector3 pos, Vector3 &dir, float t, XMFLOAT3& outDir)
 {
 
 
 	//m_controller->move(m_direction * 75 * dt, dt);
 	//m_direction.y -= 1.f * dt;
 
-	dir.y -= 1.f * t;
-	dir = dir * 75 * t;
-	
+	dir.y -= CANNON_POWER * t;
+	Vector3 dtDir = dir * t;
+	outDir = dtDir;
 
-	return pos + dir;
+	return pos + dtDir;
 }
 
-void Player::trajectoryEquationOutFill(Vector3 pos, Vector3 dir, float t, float horizonalMultiplier, float vertMulti, XMFLOAT3& outPos, XMFLOAT3& outDir)
+void Player::trajectoryEquationOutFill(Vector3 &pos, Vector3 &dir, float t, XMFLOAT3& outPos, XMFLOAT3& outDir)
 {
-	dir.y -= 1.f * t;
-	dir = dir * 75 * t;
+	dir.y -= CANNON_POWER * t;
+	Vector3 dtDir = dir * t;
+	outDir = dtDir;
 
-
-	outPos = pos + dir;
-	dir.Normalize();
-	outDir = dir;
+	pos = pos + dtDir;
+	outPos = pos;
+	outDir = Vector3(XMVector3Normalize(dtDir));
 }
-bool hasPrinted = false;
 																	//m_horizontalMultiplier, m_verticalMultiplier
-Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizonalMultiplier, float vertMulti)
+Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizontalMultiplier, float vertMulti)
 {
 	Vector3 returnPosition;
 
 	bool foundEnd = false;
-	float t = 0.01f;
+	float t = 0.f;
 	Vector3 pos = position;
 	Vector3 dir = direction;
+	Vector3 outDir;
+
+	if (!m_3dMarker)
+		return pos;
 
 	while (!foundEnd && t < 10)
 	{
-		pos = trajectoryEquation(position, dir, t, horizonalMultiplier, vertMulti);
+		float timeStepIncreece = 0.01f;
+		pos = trajectoryEquation(pos, dir, timeStepIncreece, outDir);
 
-		t += 0.01f;
-		bool hit = Physics::get().hitSomething(pos, m_controller->getOriginalRadius(), m_controller->getOriginalHeight());
+		t += timeStepIncreece;
+		bool hit = Physics::get().castRay(pos, DirectX::XMVector3Normalize(outDir), 1.f);
 
 		if (hit)
 		{
@@ -285,13 +309,12 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 			foundEnd = true;
 			returnPosition = pos;
 			m_3dMarker->setPosition(returnPosition);
+			Vector3 pos2 = position;
+			Vector3 dir2 = direction;
 			float tDist = t / 10;
 			for (int i = 0; i < 10; i++)
 			{
-				Vector3 lineDataPos;
-				Vector3 lineDataDir;
-				float tempT = tDist * i;
-				trajectoryEquationOutFill(position, dir, tempT, horizonalMultiplier, vertMulti, m_lineData[i].position, this->m_lineData[i].direction);
+				trajectoryEquationOutFill(pos2, dir2, tDist, m_lineData[i].position, this->m_lineData[i].direction);
 			}
 
 		}
@@ -303,18 +326,17 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 
 	if (!foundEnd)
 	{
+
 		m_3dMarker->setPosition(pos);
+		Vector3 pos2 = position;
+		Vector3 dir2 = direction;
 		float tDist = t / 10;
 		for (int i = 0; i < 10; i++)
 		{
-			Vector3 lineDataPos;
-			Vector3 lineDataDir;
-			float tempT = tDist * i;
-			trajectoryEquationOutFill(position, dir, tempT, horizonalMultiplier, vertMulti, m_lineData[i].position, this->m_lineData[i].direction);
+			trajectoryEquationOutFill(pos2, dir2, tDist, m_lineData[i].position, this->m_lineData[i].direction);
 		}
 	}
 
-	hasPrinted = true;
 	return returnPosition;
 }
 
@@ -334,6 +356,11 @@ void Player::playerStateLogic(const float& dt)
 
 			if (m_transitionTime < MAX_TRANSITION_TIME) // Normal Movement
 			{
+				if (!m_rollAnimationAnimChanged)
+				{
+					idleAnimation();
+					m_rollAnimationAnimChanged = true;
+				}
 				directionalMovement = m_moveDirection;
 				// Add Speed
 				m_horizontalMultiplier = PLAYER_MAX_SPEED * m_currentSpeedModifier;
@@ -342,15 +369,18 @@ void Player::playerStateLogic(const float& dt)
 			}
 			else
 			{
+				m_rollAnimationAnimChanged = false;
 				if (m_controller->checkGround())
 					m_state = PlayerState::IDLE;
 				else
+				{
 					m_state = PlayerState::FALLING;
+					m_animMesh->queueSingleAnimation("JumpLoop_First", 0.f, true, true);
+				}
 			}
 
 			m_controller->setControllerSize(m_controller->getOriginalHeight());
 			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
-			idleAnimation();
 		}
 		else
 		{
@@ -362,6 +392,10 @@ void Player::playerStateLogic(const float& dt)
 			m_currentDistance += ROLL_SPEED * dt;
 			m_transitionTime = 0.f;
 		}
+
+		if (m_controller->checkGround())
+			m_verticalMultiplier = 0;
+
 		break;
 
 	case PlayerState::DASH:
@@ -371,9 +405,12 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::DASH;
 			m_state = PlayerState::FALLING;
 			m_hasDashed = true;
-			m_horizontalMultiplier = 0.f;
+			m_horizontalMultiplier = PLAYER_AIR_ACCELERATION * dt * m_currentSpeedModifier;
 			m_beginDashSpeed = -1.f;
-			idleAnimation();
+			if (m_jumps == 1)
+				m_animMesh->playSingleAnimation("JumpLoop_First", 0.2f, true, true);
+			else	
+				m_animMesh->playSingleAnimation("JumpLoop_Second", 0.2f, true, true);
 		}
 		else
 		{
@@ -395,7 +432,7 @@ void Player::playerStateLogic(const float& dt)
 		if (directionalMovement.LengthSquared() > 0)
 		{
 			// Add Speed
-			m_horizontalMultiplier += PLAYER_AIR_ACCELERATION * dt * m_currentSpeedModifier;
+			m_horizontalMultiplier += PLAYER_AIR_ACCELERATION * dt * m_currentSpeedModifier * m_analogHorizontalMultiplier;
 
 			// Limit Speed
 			if (m_horizontalMultiplier > PLAYER_MAX_SPEED * m_currentSpeedModifier)
@@ -416,6 +453,7 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::FALLING;
 			m_state = PlayerState::IDLE;
 			m_jumps = 0;
+			m_verticalMultiplier = 0;
 			m_hasDashed = false;
 		}
 		else if (m_jumpPressed && !m_lastJumpPressed && m_jumps < ALLOWED_NR_OF_JUMPS)
@@ -433,8 +471,8 @@ void Player::playerStateLogic(const float& dt)
 
 		if (m_shouldPickupJump)
 			m_jumpLimit = JUMP_HEIGHT_FORCE_LIMIT * TRAMPOLINE_JUMP_MULTIPLIER;
-
-		if ((m_jumpPressed || m_shouldPickupJump) && (currentY - m_jumpStartY < m_jumpLimit)) // Jump Limit Not Reached
+		
+		if ((m_jumpPressed || m_shouldPickupJump) && !m_controller->checkRoof() && (currentY - m_jumpStartY < m_jumpLimit)) // Jump Limit Not Reached
 		{
 			m_verticalMultiplier += JUMP_SPEED * dt; // Apply Jump Force
 		}
@@ -442,7 +480,7 @@ void Player::playerStateLogic(const float& dt)
 		if (directionalMovement.LengthSquared() > 0)
 		{
 			// Add Speed
-			m_horizontalMultiplier += PLAYER_AIR_ACCELERATION * dt * m_currentSpeedModifier;
+			m_horizontalMultiplier += PLAYER_AIR_ACCELERATION * dt * m_currentSpeedModifier * m_analogHorizontalMultiplier;
 
 			// Limit Speed
 			if (m_horizontalMultiplier > PLAYER_MAX_SPEED * m_currentSpeedModifier)
@@ -465,7 +503,7 @@ void Player::playerStateLogic(const float& dt)
 		if (directionalMovement.LengthSquared() > 0)
 		{
 			// Add Speed
-			m_horizontalMultiplier += PLAYER_ACCELERATION * dt * m_currentSpeedModifier;
+			m_horizontalMultiplier += PLAYER_ACCELERATION * dt * m_currentSpeedModifier * m_analogHorizontalMultiplier;
 
 			// Limit Speed
 			if (m_horizontalMultiplier > PLAYER_MAX_SPEED * m_currentSpeedModifier)
@@ -477,30 +515,45 @@ void Player::playerStateLogic(const float& dt)
 			m_lastState = PlayerState::IDLE;
 			m_state = PlayerState::FALLING;
 			m_verticalMultiplier = 0.f;
+			m_animMesh->playSingleAnimation("JumpLoop_First", 0.2f, true, true);
 		}
 		else if (m_jumpPressed && !m_lastJumpPressed)
 			jump();
 
 		break;
 	case PlayerState::CANNON:
+	{
 		m_controller->setPosition(m_cannonEntity->getTranslation() + Vector3(0.f, 0.5f, 0.f));
 		m_velocity.y = 0;
 
-		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
-
+		std::vector<Component*> meshVec;
+		std::vector<Component*> animMeshVec;
+		m_playerEntity->getComponentsOfType(meshVec, ComponentType::MESH);
+		m_playerEntity->getComponentsOfType(animMeshVec, ComponentType::ANIM_MESH);
+		for (int i = 0; i < meshVec.size(); i++)
+		{
+			static_cast<MeshComponent*>(meshVec.at(i))->setVisible(false);
+		}
+		for (int i = 0; i < animMeshVec.size(); i++)
+		{
+			static_cast<AnimatedMeshComponent*>(animMeshVec.at(i))->setVisible(false);
+		}
 
 		if (m_shouldFire)
 		{
 			m_state = PlayerState::FLYINGBALL;
 			m_lastState = PlayerState::CANNON;
 			m_velocity = { 0, 0, 0 };
-			m_direction = m_cameraTransform->getForwardVector();
+			m_direction = m_lastDirectionalMovement = m_moveDirection = m_cameraTransform->getForwardVector();
+			m_direction *= CANNON_POWER;
 			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
-			m_3dMarker->setPosition(0, -9999, -9999);
+			if (m_3dMarker)
+				m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
 			m_shouldDrawLine = false;
 			m_verticalMultiplier = 5;
 			m_horizontalMultiplier = CANNON_POWER;
+			m_playerEntity->setRotation(m_cameraTransform->getRotationMatrix());
 
 			static_cast<CannonPickup*>(m_pickupPointer)->geFyr();
 			PlayerMessageData d;
@@ -508,13 +561,13 @@ void Player::playerStateLogic(const float& dt)
 			d.playerPtr = this;
 
 			this->sendPlayerMSG(d);
-			
+
 
 		}
 		else //Draw marker
 		{
 			Vector3 finalPos;
-			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector(), CANNON_POWER, 1);
+			finalPos = calculatePath(m_controller->getCenterPosition(), m_cameraTransform->getForwardVector() * CANNON_POWER, CANNON_POWER, 1);
 
 			/*            Set base rot (Y)              */
 			Quaternion q1 = m_cameraTransform->getRotation();
@@ -533,12 +586,26 @@ void Player::playerStateLogic(const float& dt)
 			return;
 		}
 		break;
+	}
 	case PlayerState::FLYINGBALL:
-		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
-		m_direction.y -= 1.f * dt;
+	{
+		m_direction.y -= CANNON_POWER * dt;
 
-		m_controller->move(m_direction  * 75 * dt, dt);
-		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || m_controller->checkGround() || m_horizontalMultiplier < 0.1f)
+		std::vector<Component*> meshVec;
+		std::vector<Component*> animMeshVec;
+		m_playerEntity->getComponentsOfType(meshVec, ComponentType::MESH);
+		m_playerEntity->getComponentsOfType(animMeshVec, ComponentType::ANIM_MESH);
+		for (int i = 0; i < meshVec.size(); i++)
+		{
+			static_cast<MeshComponent*>(meshVec.at(i))->setVisible(true);
+		}
+		for (int i = 0; i < animMeshVec.size(); i++)
+		{
+			static_cast<AnimatedMeshComponent*>(animMeshVec.at(i))->setVisible(true);
+		}
+
+		m_controller->move(m_direction * dt, dt);
+		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || (m_direction.y <= 0 && m_controller->checkGround()))
 		{
 			m_horizontalMultiplier = 0;
 			m_verticalMultiplier = 0;
@@ -555,6 +622,7 @@ void Player::playerStateLogic(const float& dt)
 		}
 		return;
 		break;
+	}
 	default:
 		break;
 	}
@@ -564,35 +632,66 @@ void Player::playerStateLogic(const float& dt)
 	{
 		m_verticalMultiplier -= GRAVITY * m_gravityScale * dt;
 	}
+	else if (m_state == PlayerState::IDLE && m_verticalMultiplier >= 0)
+		m_verticalMultiplier = -1.f; // Needed for PhysX stick to platform
+
 	/*if (m_controller->checkGround(m_controller->getFootPosition(), Vector3(0.f, -1.f, 0.f), 0.1f) && m_state != PlayerState::JUMPING)
 		m_verticalMultiplier = 0.f;*/
 
-	// Max Gravity Tests
-	if (m_verticalMultiplier <= -MAX_FALL_SPEED)
-		m_verticalMultiplier = -MAX_FALL_SPEED;
+		// Max Gravity Tests
+		if (m_verticalMultiplier <= -MAX_FALL_SPEED)
+			m_verticalMultiplier = -MAX_FALL_SPEED;
 
 
-	if (m_state != PlayerState::CANNON)
+	/*switch (m_state)
 	{
-		// Final frame velocity
-		if (directionalMovement.LengthSquared() > 0.f)
-		{
-			// Compensate for larger directional change
-			m_horizontalMultiplier = m_horizontalMultiplier * max(directionalMovement.Dot(m_lastDirectionalMovement), 0.2f);
-			m_lastDirectionalMovement = directionalMovement;
-		}
+	case PlayerState::IDLE:
+		std::cout << "IDLE\n";
+		break;
+	case PlayerState::JUMPING:
+		std::cout << "JUMPING\n";
+		break;
+	case PlayerState::FALLING:
+		std::cout << "FALLING\n";
+		break;
+	case PlayerState::DASH:
+		std::cout << "DASH\n";
+		break;
+	case PlayerState::ROLL:
+		std::cout << "ROLL\n";
+		break;
+	case PlayerState::CANNON:
+		std::cout << "CANNON\n";
+		break;
+	case PlayerState::FLYINGBALL:
+		std::cout << "FLYINGBALL\n";
+		break;
+	default:
+		break;
+	}*/
+	//std::cout << m_verticalMultiplier << "\n";
+	//std::cout << m_verticalMultiplier << "\n";
+
+
+	// Final frame velocity
+	if (directionalMovement.LengthSquared() > 0.f)
+	{
+		// Compensate for larger directional change
+		m_horizontalMultiplier = m_horizontalMultiplier * max(directionalMovement.Dot(m_lastDirectionalMovement), 0.2f);
+		m_lastDirectionalMovement = directionalMovement;
 	}
+	
 
 
 	m_velocity = ((m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier)) * dt;
 
-	m_controller->move(m_velocity, 1.f);
+	m_controller->move(m_velocity, dt);
 	m_lastPosition = m_playerEntity->getTranslation();
 
 	// Animation
 	//float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).LengthSquared();
 	float vectorLen = Vector3(m_velocity.x, 0, m_velocity.z).Length();
-	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH)
+	if (m_state != PlayerState::ROLL && m_state != PlayerState::DASH && m_state != PlayerState::CANNON && m_state != PlayerState::CANNON)
 	{
 		float blend = vectorLen / (PLAYER_MAX_SPEED * dt);
 
@@ -621,7 +720,7 @@ void Player::playerStateLogic(const float& dt)
 	// Respawning
 	if (m_controller->getFootPosition().y < (float)m_heightLimitBeforeRespawn)
 	{
-		respawnPlayer();
+		m_respawnNextFrame = true;
 	}
 }
 
@@ -749,7 +848,7 @@ void Player::setPlayerEntity(Entity* entity, bool local)
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
 	if (DEBUGMODE)
 	{
-		m_pickupPointer = new CannonPickup();
+		m_pickupPointer = new HeightPickup();
 		m_pickupPointer->onPickup(m_playerEntity, false);
 	}
 		
@@ -758,6 +857,11 @@ void Player::setPlayerEntity(Entity* entity, bool local)
 Vector3 Player::getCheckpointPos()
 {
 	return m_checkpointPos;
+}
+
+bool Player::getRespawnNextFrame()
+{
+	return m_respawnNextFrame;
 }
 
 Vector3 Player::getVelocity()
@@ -814,15 +918,14 @@ void Player::increaseScoreBy(int value)
 	if (m_score >= 10 && m_score < 100)
 	{
 		GUITextStyle style;
-		style.position = Vector2(1705, 62);
+		style.position = Vector2(1698, 50);
 		style.color = Colors::White;
 		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
 	}
-	if (m_score >= 100)
+	else if (m_score >= 100)
 	{
-
 		GUITextStyle style;
-		style.position = Vector2(1678, 62);
+		style.position = Vector2(1668, 50);
 		style.color = Colors::White;
 		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
 	}
@@ -833,11 +936,18 @@ void Player::respawnPlayer()
 	m_respawnNextFrame = false;
 	m_state = PlayerState::IDLE;
 	m_controller->setPosition(m_checkpointPos);
+	m_playerEntity->setRotationQuat(XMQuaternionRotationRollPitchYaw(0.f, 0.f, 0.f));
 	m_velocity = Vector3();
 	m_horizontalMultiplier = 0.f;
 	m_verticalMultiplier = 0.f;
 	if (m_pickupPointer && m_pickupPointer->isActive())
 	{
+		if (m_pickupPointer->getPickupType() == PickupType::SPEED)
+		{
+			m_currentSpeedModifier = 1.f;
+			m_goalSpeedModifier = 1.f;
+			m_speedModifierTime = 0.f;
+		}
 		m_pickupPointer->onDepleted();
 		m_pickupPointer->onRemove();
 		SAFE_DELETE(m_pickupPointer);
@@ -890,9 +1000,9 @@ void Player::handlePickupOnUse()
 	case PickupType::SPEED:
 		//Not used since it is activated on use.
 
-		//m_currentSpeedModifier = 1.f;
-		//m_goalSpeedModifier = m_pickupPointer->getModifierValue();
-		//m_speedModifierTime = 0;
+		m_currentSpeedModifier = 1.f;
+		m_goalSpeedModifier = m_pickupPointer->getModifierValue();
+		m_speedModifierTime = 0;
 		break;
 	case PickupType::HEIGHTBOOST:
 		//jump(false, TRAMPOLINE_JUMP_MULTIPLIER); //Activates by enviormental instead.
@@ -900,17 +1010,14 @@ void Player::handlePickupOnUse()
 		break;
 	case PickupType::CANNON:
 		m_state = PlayerState::CANNON;
-		m_cameraOffset = Vector3(1.f, 2.0f, 0.f);
+		m_cameraOffset = Vector3(1.2f, 1.0f, -0.8f);
 		//Cannon on use
 		break;
 	default:
 		break;
 	}
 	m_pickupPointer->onUse();
-	for (int i = 0; i < m_playerObservers.size(); i++)
-	{
-		m_playerObservers[i]->reactOnPlayer(data);
-	}
+	sendPlayerMSG(data);
 }
 
 void Player::sendPlayerMSG(const PlayerMessageData &data)
@@ -923,50 +1030,53 @@ void Player::sendPlayerMSG(const PlayerMessageData &data)
 
 void Player::inputUpdate(InputData& inputData)
 {
-	if (m_state == PlayerState::CANNON)
+	if (!m_ignoreInput)
 	{
+		if (m_state == PlayerState::CANNON)
+		{
+			for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
+			{
+				if (inputData.actionData.at(i) == Action::USE)
+				{
+					m_shouldFire = true;
+				}
+			}
+		}
+
+		this->setStates(inputData);
+
 		for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
 		{
-			if (inputData.actionData.at(i) == Action::USE)
+			switch (inputData.actionData[i])
 			{
-				m_shouldFire = true;
+			case DASH:
+				if (m_state == PlayerState::IDLE)
+				{
+					roll();
+				}
+				else
+				{
+					if (canDash())
+						dash();
+				}
+				break;
+			case USEPICKUP:
+				if (canUsePickup())
+					handlePickupOnUse();
+				break;
+
+			case CLOSEINTROGUI:
+				//GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+				//GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
+				break;
+
+			case RESPAWN:
+				respawnPlayer();
+				break;
+
+			default:
+				break;
 			}
-		}		
-	}
-
-	this->setStates(inputData);
-
-	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
-	{
-		switch (inputData.actionData[i])
-		{
-		case DASH:
-			if (m_state == PlayerState::IDLE)
-			{
-				roll();
-			}
-			else
-			{
-				if (canDash())
-					dash();
-			}
-			break;
-		case USEPICKUP:
-			if (canUsePickup())
-				handlePickupOnUse();
-			break;
-
-		case CLOSEINTROGUI:
-			//GUIHandler::get().setVisible(m_instructionGuiIndex, false);
-			//GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
-			break;
-
-		case RESPAWN:
-			respawnPlayer();
-			break;
-
-		default:
-			break;
 		}
 	}
 }
@@ -1037,9 +1147,6 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				{
 				case PickupType::SPEED:
 					shouldTriggerEntityBeRemoved = true; //We want to remove speedpickup entity after we've used it.
-					m_currentSpeedModifier = 1.f;
-					m_goalSpeedModifier = physicsData.floatData;
-					m_speedModifierTime = 0;
 					break;
 				case PickupType::HEIGHTBOOST:
 					if ((bool)physicsData.intData) //fromPickup -true/false
@@ -1055,11 +1162,7 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 						data.playerActionType = PlayerActions::ON_ENVIRONMENTAL_USE;
 						data.intEnum = physicsData.associatedTriggerEnum;
 						data.entityIdentifier = physicsData.entityIdentifier;
-						
-						for (int i = 0; i < (int)m_playerObservers.size(); i++)
-						{
-							m_playerObservers.at(i)->reactOnPlayer(data);
-						}
+						sendPlayerMSG(data);
 					}
 
 
@@ -1133,6 +1236,11 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 	}
 }
 
+void Player::reset3DMarker()
+{
+	m_3dMarker = nullptr;
+}
+
 Pickup* getCorrectPickupByID(int id)
 {
 	Pickup* pickupPtr = Pickup::getPickupByID(id);
@@ -1195,10 +1303,10 @@ void Player::serverPlayerAnimationChange(PlayerState currentState, float current
 			idleAnimation();
 			break;
 		case PlayerState::JUMPING:
-
+			startJump_First();
 			break;
 		case PlayerState::FALLING:
-
+			startJump_Second();
 			break;
 		case PlayerState::DASH:
 			dashAnimation();
@@ -1221,11 +1329,9 @@ void Player::jump(const bool& incrementCounter, const float& multiplier)
 {
 	if (incrementCounter)
 	{
-		m_state = PlayerState::JUMPING;
 		m_jumps++;
 	}
-	else
-		m_state = PlayerState::JUMPING;
+	m_state = PlayerState::JUMPING;
 
 	m_jumpStartY = m_playerEntity->getTranslation().y;
 
@@ -1233,7 +1339,7 @@ void Player::jump(const bool& incrementCounter, const float& multiplier)
 		startJump_First();
 	else
 		startJump_Second();
-
+	//std::cout << m_jumps << "\n";
 	m_currentDistance = 0;
 	m_verticalMultiplier = JUMP_START_SPEED * multiplier; // Apply Jump Force
 }
@@ -1249,12 +1355,13 @@ void Player::roll()
 	m_controller->setControllerSize(ROLL_HEIGHT);
 	m_state = PlayerState::ROLL;
 	m_verticalMultiplier = 0.f;
+	//std::cout << "They se me rolling\n";
 	rollAnimation();
 }
 
 bool Player::canDash() const
 {
-	return (m_state == PlayerState::JUMPING || m_state == PlayerState::FALLING && !m_hasDashed);
+	return (m_state == PlayerState::JUMPING && !m_hasDashed || m_state == PlayerState::FALLING && !m_hasDashed);
 }
 
 void Player::dash()
@@ -1274,44 +1381,66 @@ void Player::prepDistVariables()
 
 void Player::rollAnimation()
 {
-
-	m_animMesh->playSingleAnimation("Slide", 0.2f, false, false);
-	m_animMesh->setAnimationSpeed(1.2f);
+	//m_animMesh->playSingleAnimation("lucy_roll", 0.2f, false, false);
+	//m_animMesh->setAnimationSpeed(2.2f);
+	m_animMesh->playSingleAnimation("lucy_roll", 0.2f, true, true);
+	m_animMesh->setAnimationSpeed(0, 1.7f);
 }
 
 void Player::dashAnimation()
 {
-	m_animMesh->playSingleAnimation("Dash", 0.1f, false, true);
-	m_animMesh->setAnimationSpeed(1.f);
+	m_animMesh->playSingleAnimation("Dash", 0.04f, false, false);
+	m_animMesh->setAnimationSpeed(1.5f);
 }
 
 void Player::idleAnimation()
 {
 	m_animMesh->playBlendState("runOrIdle", 0.3f);
-	m_animMesh->setAnimationSpeed(1.5f);
+	//m_animMesh->setAnimationSpeed(1, 1.5f);
+	m_animMesh->setAnimationSpeed(1, 1.7f);
 }
 
 void Player::startJump_First()
 {
-	m_animMesh->playSingleAnimation("JumpStart_First", 0.01f, true, false);
-	m_animMesh->queueSingleAnimation("JumpLoop_First", 0.f, true, false);
+	m_animMesh->playSingleAnimation("JumpStart_First", 0.1f, true, false);
+	m_animMesh->setAnimationSpeed(3.5f);
+	//m_animMesh->playSingleAnimation("JumpStart_First", 0.01f, true, false);
+	m_animMesh->queueSingleAnimation("JumpLoop_First", 0.1f, true, true);
 }
 
 void Player::endJump_First()
 {
-	m_animMesh->playSingleAnimation("JumpEnd_First", 0.01f, false, false);
-	//m_animMesh->setAnimationSpeed(0.1f);
-	m_animMesh->queueBlendState("runOrIdle", 0.05f);
+	m_animMesh->playSingleAnimation("JumpEnd_First", 0.1f, true, false);
+	m_animMesh->setAnimationSpeed(1.7f);
+	m_animMesh->queueBlendState("runOrIdle", 0.3f); // Something is still bugged with the queue, when I set the tt to 0.05f it is too high I guess.
+	m_animMesh->setAnimationSpeed(1, 1.5f);
 }
 
 void Player::startJump_Second()
 {
-	m_animMesh->playSingleAnimation("JumpStart_Second", 0.1f, true, false);
-	m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.1f, true, false);
+	// Classic version 1 
+	//m_animMesh->playSingleAnimation("JumpStart_Second", 0.0f, false, false);
+	//m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.f, true, true);
+	
+	// Silly roll version
+	/*
+	m_animMesh->playSingleAnimation("lucy_roll", 0.3f, true, false);
+	m_animMesh->setAnimationSpeed(1.9f);
+	m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.5f, true, true);
+	*/
+
+	// Simple no jump version
+	m_animMesh->playSingleAnimation("JumpLoop_Second", 0.3f, true, false);
+	
+	// Classic version 2
+	//m_animMesh->playSingleAnimation("JumpStart_Second", 0.1f, true, false);
+	//m_animMesh->queueSingleAnimation("JumpLoop_Second", 0.1f, true, true);
 }
 
 void Player::endJump_Second()
 {
-	m_animMesh->playSingleAnimation("JumpEnd_Second", 0.1f, false, false);
+	m_animMesh->playSingleAnimation("JumpEnd_Second", 0.05f, true, false);
+	m_animMesh->setAnimationSpeed(1.7f);
 	m_animMesh->queueBlendState("runOrIdle", 0.3f);
+	m_animMesh->setAnimationSpeed(1, 1.5f);
 }

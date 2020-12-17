@@ -50,12 +50,13 @@ cbuffer perModel : register(b2)
 
 struct ps_in
 {
-	float4 pos : SV_POSITION;
-	float2 uv : TEXCOORD;
-	float3 normal : NORMAL;
-	float3 tangent : TANGENT;
-	float3 bitangent : BITANGENT;
+    float4 pos : SV_POSITION;
+    float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
     float4 worldPos : POSITION;
+    float4 shadowPos : SPOS;
 };
 
 Texture2D diffuseTexture : TEXTURE : register(t0);
@@ -68,15 +69,15 @@ struct lightComputeResult
     float intensity;
 };
 
-float computeShadowFactor(float4 shadowPosH)
-{
-    shadowPosH.xyz /= shadowPosH.w; //Finish projection
+//float computeShadowFactor(float4 shadowPosH)
+//{
+//    shadowPosH.xyz /= shadowPosH.w; //Finish projection
     
-    float depth = shadowPosH.z; //In NDC
+//    float depth = shadowPosH.z; //In NDC
     
     
     
-};
+//};
 
 //Only calculating diffuse light
 lightComputeResult computeLightFactor(ps_in input)

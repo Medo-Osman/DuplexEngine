@@ -75,20 +75,21 @@ private:
     const float CAPSULE_HEIGHT = 1.5f;
     const float CAPSULE_RADIUS = 0.01f;
     //WALK CONFIG
-    const float PLAYER_MAX_SPEED = 8.f;
-    const float PLAYER_ACCELERATION = 30.f; // times dt
-    const float PLAYER_DECELERATION = 15.f; // times dt
+    const float PLAYER_MAX_SPEED = 5.f;
+    const float PLAYER_ACCELERATION = 40.f; // times dt
+    const float PLAYER_DECELERATION = 20.f; // times dt
     const float PLAYER_ROTATION_SPEED = 0.08f;
     float m_verticalMultiplier = 0.f;
     float m_horizontalMultiplier = 0.f;
+    float m_analogHorizontalMultiplier = 1.f;
     Vector3 m_movementVector;
 
     //JUMP CONFIG
     const float JUMP_SPEED = 70.f;
-    const float JUMP_START_SPEED = 4.f;
+    const float JUMP_START_SPEED = 6.f;
     //const float JUMP_SPEED = 10.f;
-    const float PLAYER_AIR_ACCELERATION = 20.f;
-    const float PLAYER_AIR_DECELERATION = 15.f;
+    const float PLAYER_AIR_ACCELERATION = 30.f;
+    const float PLAYER_AIR_DECELERATION = 20.f;
     const float JUMP_HEIGHT_FORCE_LIMIT = 1.0f;
     float m_jumpLimit = JUMP_HEIGHT_FORCE_LIMIT;
 
@@ -96,6 +97,7 @@ private:
     bool m_lastJumpPressed = false;
     float m_jumpStartY = 0.f;
     const int ALLOWED_NR_OF_JUMPS = 2;
+    bool notAlloedToDash = false;
     int m_jumps;
 
     //FALLING / GRAVITY CONFIG
@@ -104,29 +106,29 @@ private:
     float m_gravityScale = 4.f;
 
     //DASH CONFIG
-    const float DASH_TRAVEL_DISTANCE = 3.f;
+    const float DASH_TRAVEL_DISTANCE = 4.f;
     const float DASH_SPEED = 30.0f;
     const float DASH_OUT_SPEED = 10.0f;
     float m_beginDashSpeed = -1.f;
     bool m_hasDashed;
 
     //Roll CONFIG
-    const float ROLL_TRAVEL_DISTANCE = 30.f;
-    const float ROLL_SPEED = 50.0f;
+    const float ROLL_TRAVEL_DISTANCE = 15.f;
+    const float ROLL_SPEED = 30.0f;
     const float ROLL_HEIGHT = 0.2f;
     const float ROLL_RADIUS = 0.2f; // not used
     const float ROLL_TRANSITION_SPEED = 8.0f;
-    const float MAX_TRANSITION_TIME = 0.2f; // Sec
+    const float MAX_TRANSITION_TIME = 0.3f; // seconds
     float m_transitionTime;
+    bool m_rollAnimationAnimChanged = false;
 
     //Cannon Config
-    const float CANNON_POWER = 100;
+    const float CANNON_POWER = 30;
 
 
     // Speed Powerup
     float m_currentSpeedModifier;
     float m_goalSpeedModifier;
-    int m_speedModifierDuration;
     float m_speedModifierTime;
     const float FOR_FULL_EFFECT_TIME = 2.f;
 
@@ -171,7 +173,7 @@ private:
 
     //Trampoline
     bool m_shouldPickupJump;
-    const float TRAMPOLINE_JUMP_MULTIPLIER = 2.0f;
+    const float TRAMPOLINE_JUMP_MULTIPLIER = 3.0f;
     std::string m_trampolineEntityIdentifier; //Used to make sure player does not use same trampoline object twice, so we don't recive double sounds for example.
 
     // Trap
@@ -183,12 +185,13 @@ private:
     int m_scoreGUIIndex;
     int m_scoreBG_GUIIndex;
     int m_powerUp_GUIIndex;
+    int m_powerUpBG_GUIIndex;
     std::wstring m_scoreSound = L"StarSound.wav";
     AudioComponent* m_audioComponent;
 
     //Checkpoint
     Vector3 m_checkpointPos = Vector3(0.f, 9.f, 5.f);
-    int m_heightLimitBeforeRespawn = -10.f;
+    int m_heightLimitBeforeRespawn = -7;
 
     //trap
     Vector3 m_trapPos = Vector3(0, 9, 20);
@@ -203,9 +206,9 @@ private:
     //Private functions
     void setStates(InputData& inputData);
     void handleRotation(const float& dt);
-    Vector3 trajectoryEquation(Vector3 position, Vector3 direction, float t, float horizonalMultiplier, float vertMulti);
-	void trajectoryEquationOutFill(Vector3 position, Vector3 direction, float t, float horizonalMultiplier, float vertMulti, XMFLOAT3& outPos, XMFLOAT3& outDir);
-    Vector3 calculatePath(Vector3 position, Vector3 direction, float horizonalMultiplier, float vertMulti);
+    Vector3 trajectoryEquation(Vector3 position, Vector3 &direction, float t, XMFLOAT3& outDir);
+	void trajectoryEquationOutFill(Vector3 &position, Vector3 &direction, float t, XMFLOAT3& outPos, XMFLOAT3& outDir);
+    Vector3 calculatePath(Vector3 position, Vector3 direction, float horizontalMultiplier, float vertMulti);
     void playerStateLogic(const float& dt);
 
     bool pickupUpdate(Pickup* pickupPtr, const float& dt);
@@ -231,6 +234,7 @@ public:
     Player(bool isLocal = false);
     ~Player();
     bool m_shouldDrawLine = false;
+    bool m_ignoreInput = false;
 
 
     virtual void Attach(PlayerObserver* observer)
@@ -252,7 +256,6 @@ public:
     void setCannonEntity(Entity* entity, MeshComponent* pipe);
     Entity* get3DMarkerEntity();
     Entity* getCannonEntity() { return m_cannonEntity; }
-    int m_cannonCrosshairID;
 
     bool isRunning();
 
@@ -261,6 +264,7 @@ public:
     void setPlayerEntity(Entity* entity, bool local = true);
 
     Vector3 getCheckpointPos();
+    bool getRespawnNextFrame();
     Vector3 getVelocity();
     LineData* getLineDataArray();
     PlayerState getState();
@@ -291,6 +295,7 @@ public:
     void sendPlayerMSG(const PlayerMessageData& data);
     void inputUpdate(InputData& inputData);
     void sendPhysicsMessage(PhysicsData& physicsData, bool &removed);
+    void reset3DMarker();
 
     // Inherited via GUIObserver
     virtual void update(GUIUpdateType type, GUIElement* guiElement) override;

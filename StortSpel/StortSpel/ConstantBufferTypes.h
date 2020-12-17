@@ -51,7 +51,7 @@ struct perObjectMVP
 
 struct lightBufferStruct
 {
-    FLOAT ambientLightLevel = 0.1f;
+    FLOAT ambientLightLevel = 0.3f;
     PointLightRepresentation pointLights[8];
     int nrOfPointLights = 0;
 
@@ -100,24 +100,54 @@ struct globalConstBuffer
     Vector3 playerPosition = { 0.0f, 0.0f, 0.0f };
     float environmentMapBrightness = 1.0f;
     float time = 1.0f;
-    Vector3 padding;
+    float globalTimeDilation = 1.0f;
+    Vector2 padding;
+};
+
+struct cloudConstBuffer
+{
+    float cloudBedHeightPosition = 0.0f;
+    float cloudDisplacementFactor = 100.0f;
+    float cloudTessellationFactor = 5.0f;
+    float worleyScale = 0.02f;
+    Vector3 panSpeed = { 0.032f, -0.026f, -0.009f };
+    float tile = 1.0f;
+    float dispPower = 0.1f;
+    float occlusionFactor = 1.0f;
+    float backlightFactor = 3.0f;
+    float backlightStrength = 1.0f;
+    Vector3 backlightColor = { 1.0f, 0.156f, 0.024f };
+    float preDisplacement = -15.0f;
 };
 
 struct atmosphericFogConstBuffer
 {
     Vector3 FogColor = { 1.0f, 1.0f, 1.0f };
-    float FogStartDepth = 70.0;
+    float FogStartDepth = 200.0;
     Vector3 FogHighlightColor = { 1.0f, 1.0f, 1.0f };
-    float FogGlobalDensity = 0.2f;
+    float FogGlobalDensity = 0.009f;
     Vector3 FogSunDir = { 1.0f, 0.0f, 0.0f };
-    float FogHeightFalloff = 2.0f;
+    float FogHeightFalloff = 0.169f;
     float FogStartDepthSkybox = 14.0;
 
     float cloudFogHeightStart = -5.0f;
-    float cloudFogHeightEnd = 10.0f;
-    float cloudFogStrength = 0.7f;
+    float cloudFogHeightEnd = 160.0f;
+    float cloudFogStrength = 0.25f;
     Vector3 cloudFogColor = { 1.0f, 1.0f, 1.0f };
     float padding;
+};
+
+struct SSAO_BUFFER
+{
+    XMMATRIX viewToTexSpace;
+    XMMATRIX worldInverseTransposeView;
+    XMFLOAT4 offsetVectors[14];
+    XMFLOAT4 frustumCorners[4];
+
+    float occlusionRadius = 0.5f;
+    float occlusionFadeStart = 0.2f;
+    float occlusionFadeEnd = 2.0f;
+    float surfaceEpsilon = 0.05f;
 };
 
 __declspec(align(16)) struct projectionMatrix

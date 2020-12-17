@@ -2,15 +2,15 @@
 #include "Material.h"
 
 Material::Material()
-	:m_materialId(0), m_isDefault(true)
+	:m_materialId(0), m_isDefault(true), m_isPRB(false)
 {
 	TextureResource* errorTexturePtr = ResourceHandler::get().loadErrorTexture();
 	for (int i = 0; i < 5; i++)
 		this->m_textureArray.push_back(errorTexturePtr->view);
 }
 
-Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData)
-	:m_materialId(++totalMaterialCount), m_isDefault(false)
+Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST_BUFFER materialConstData, bool isPBR)
+	:m_materialId(++totalMaterialCount), m_isDefault(false), m_isPRB(isPBR)
 {
 	for (auto fileName : fileNames)
 	{
@@ -21,19 +21,37 @@ Material::Material(std::initializer_list<const WCHAR*> fileNames, MATERIAL_CONST
 
 Material::Material(std::wstring materialName, bool isPBR)
 	/*:Material(m_MaterialCache[materialName])*/
-	:m_materialId(m_MaterialCache[materialName].MaterialID), m_isDefault(false)
+	: m_isDefault(false), m_isPRB(isPBR)
 {
-	if (isPBR)
-	{
-		addTexture(L"skybox_bluesky_2.dds", true);
-		addTexture(L"skybox_bluesky_2.dds", true);
-		addTexture(L"ibl_brdf_lut.png");
-	}
+	int i = 0;
 	
-	for (auto fileName : m_MaterialCache[materialName].fileNames)
+	if (m_MaterialCache.count(materialName) == 0)
 	{
-		addTexture(fileName.c_str());
+		for (auto fileName : m_MaterialCache[L"Missing"].fileNames)
+		{
+			addTexture(fileName.c_str());
+			i++;
+		}
 	}
+	else
+	{
+		for (auto fileName : m_MaterialCache[materialName].fileNames)
+		{
+			addTexture(fileName.c_str());
+			i++;
+		}
+	}
+	m_materialId = m_MaterialCache[materialName].MaterialID;
+
+	//if (isPBR)
+	//{
+	//	//addTexture(m_currentSkyboxTex.c_str(), true);
+	//	//addTexture(m_currentSkyboxTex.c_str(), true);
+	//	addTexture(L"skybox_bluesky_2.dds", true);
+	//	addTexture(L"skybox_bluesky_2.dds", true);
+	//	addTexture(L"ibl_brdf_lut.png");
+	//}
+	//i += 3;
 
 	if (m_MaterialCache[materialName].fileNames.empty())
 	{
@@ -59,6 +77,8 @@ Material::Material(const Material& other)
 	this->m_referencedResources = other.m_referencedResources;
 
 	this->m_isDefault = other.m_isDefault;
+
+	this->m_isPRB = other.m_isPRB;
 }
 
 Material::~Material() 
@@ -108,10 +128,17 @@ void Material::setMaterial(bool shaderNeedsResource[5], bool shaderNeedsCBuffer[
 
 	if (shaderNeedsResource[ShaderType::Pixel])
 		dContextPtr->PSSetShaderResources(0, (UINT)this->m_textureArray.size(), &this->m_textureArray[0]);
+
+	if (m_isPRB /*&& !pbrIsSet*/)
+	{
+		dContextPtr->PSSetShaderResources(4, (UINT)3, &pbrTextures[0]);
+		pbrIsSet = true;
+	}
+
 	//TODO: check what is already set and if it should be overwritten, maybe might already be in the drivers
 }
 
-void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
+void Material::addTexture(const WCHAR* fileName, bool isCubeMap, bool isTexture3D)
 {
 	std::wstring wideString = fileName;
 	std::string string = std::string(wideString.begin(), wideString.end());
@@ -125,12 +152,17 @@ void Material::addTexture(const WCHAR* fileName, bool isCubeMap)
 		m_isDefault = false;
 	}
 
-	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, true);
+	bool refBasedDelete = true;
+	if (isCubeMap)
+		refBasedDelete = false;
+
+	TextureResource* loadedTexResource = ResourceHandler::get().loadTexture(fileName, isCubeMap, refBasedDelete, isTexture3D);
 	//std::cout << "\tMaterial loaded in: " << loadedTexResource->debugName << std::endl;
 	//loadedTexResource->addRef();
-
+	
 	this->m_textureArray.push_back(loadedTexResource->view);
-	this->m_referencedResources.push_back(loadedTexResource);
+	if(refBasedDelete)
+		this->m_referencedResources.push_back(loadedTexResource);
 }
 
 void Material::swapTexture(const WCHAR* fileName, int index, bool isCubeMap)
@@ -153,6 +185,18 @@ void Material::setUVScale(float scale)
 	}
 
 	this->m_materialConstData.UVScale = scale;
+}
+
+void Material::setBaseColor(Vector3 color)
+{
+	if (m_isDefault)
+	{
+		this->m_textureArray.clear();
+		m_materialId = ++totalMaterialCount;
+		m_isDefault = false;
+	}
+
+	this->m_materialConstData.baseColor = color;
 }
 
 void Material::setRoughness(float roughness)
@@ -234,11 +278,109 @@ MATERIAL_CONST_BUFFER Material::getMaterialParameters()
 	return this->m_materialConstData;
 }
 
+std::wstring Material::getCurrentSkybox()
+{
+	return m_currentSkyboxTex;
+}
+
+void Material::setCurrentSkybox(std::wstring newSkyboxTex, std::wstring newIRTex)
+{
+	m_currentSkyboxTex = newSkyboxTex;
+	pbrIsSet = false;
+
+	if (newIRTex.empty())
+		newIRTex = newSkyboxTex;
+
+	TextureResource* t, *t1,* t2;
+	t  = ResourceHandler::get().loadTexture(newIRTex, true, false);
+	t1 = ResourceHandler::get().loadTexture(newSkyboxTex, true, false);
+	t2 = ResourceHandler::get().loadTexture(L"ibl_brdf_lut.png", true, false);
+	pbrTextures[0] = t->view;
+	pbrTextures[1] = t1->view;
+	pbrTextures[2] = t2->view;
+	//std::cout << "\tMaterial loaded in: " << loadedTexResource->debugName << std::endl;
+	//loadedTexResource->addRef();
+
+	/*this->m_referencedResources.push_back(t);
+	this->m_referencedResources.push_back(t1);
+	this->m_referencedResources.push_back(t2);*/
+}
+
+void Material::setIsPBR(bool state)
+{
+	m_isPRB = state;
+}
+
+//void Material::readMaterials()
+//{
+//	std::unordered_map<std::wstring, std::unordered_map<std::wstring, std::wstring>> materials;
+//	std::vector<std::wstring> textureNames;
+//	std::wstring letters[4] = { L"D", L"E", L"N", L"ORM" };
+//
+//	for (const auto& file : std::filesystem::directory_iterator(m_TEXTURES_PATH))
+//	{
+//		std::wstring filePath = file.path();
+//		std::wstring fileName = filePath.substr(filePath.find_last_of(L"/") + 1);
+//		std::wstring rawFileName = L"";
+//		std::wstring textureName = L"";
+//		if (fileName.rfind(L"T_", 0) == 0)
+//		{
+//			rawFileName = fileName.substr(0, fileName.size() - 4);
+//			textureName = rawFileName.substr(2);						// Remove start "T_"
+//			textureName = textureName.substr(0, textureName.find_last_of(L"_")); // Remove ending "_D"
+//			if (textureName.find_last_of(L"_") != std::wstring::npos)
+//				textureName = textureName.substr(0, textureName.find_last_of(L"_")); // Remove shaderprog letter "_E"
+//			bool isTextrue = false;
+//
+//			for (int l = 0; l < 4; l++)
+//			{
+//				std::wstring testVariable1 = rawFileName.substr(rawFileName.size() - (l == 3 ? 4 : 2), std::wstring::npos);
+//				std::wstring testVariable2 = L"_" + letters[l];
+//
+//				if (rawFileName.substr(rawFileName.size() - (l == 3 ? 4 : 2), std::wstring::npos) == L"_" + letters[l])
+//				{
+//					materials[textureName][letters[l]] = (rawFileName);
+//					isTextrue = true;
+//				}
+//			}
+//			if (std::find(textureNames.begin(), textureNames.end(), textureName) == textureNames.end() && isTextrue == true) // If unique textureName
+//			{
+//				textureNames.push_back(textureName);
+//			}
+//		}
+//	}
+//
+//	for (int i = 0; i < materials.size(); i++)
+//	{
+//		//Material mat;
+//		MATERIAL_INIT_STRUCT mat;
+//		mat.MaterialID = ++totalMaterialCount;
+//		
+//		for (int l = 0; l < 4; l++)
+//		{
+//			if (materials[textureNames[i]].find(letters[l]) == materials[textureNames[i]].end())
+//			{
+//				materials[textureNames[i]][letters[l]] = L"T_Missing_" + letters[l];
+//			}
+//		}
+//
+//		for (int l = 0; l < 4; l++)
+//		{
+//			std::wstring name = materials[textureNames[i]][letters[l]] + L".png";
+//			//mat.addTexture(std::wstring(name.begin(), name.end()).c_str());
+//			mat.fileNames.push_back(name);
+//		}
+//		
+//		m_MaterialCache[textureNames[i]] = mat;
+//	}
+//}
+
 void Material::readMaterials()
 {
 	std::unordered_map<std::wstring, std::unordered_map<std::wstring, std::wstring>> materials;
 	std::vector<std::wstring> textureNames;
 	std::wstring letters[4] = { L"D", L"E", L"N", L"ORM" };
+	std::wstring fileEnding = L"";
 
 	for (const auto& file : std::filesystem::directory_iterator(m_TEXTURES_PATH))
 	{
@@ -249,6 +391,7 @@ void Material::readMaterials()
 		if (fileName.rfind(L"T_", 0) == 0)
 		{
 			rawFileName = fileName.substr(0, fileName.size() - 4);
+			fileEnding = fileName.substr(rawFileName.length());
 			textureName = rawFileName.substr(2);						// Remove start "T_"
 			textureName = textureName.substr(0, textureName.find_last_of(L"_")); // Remove ending "_D"
 			if (textureName.find_last_of(L"_") != std::wstring::npos)
@@ -262,7 +405,7 @@ void Material::readMaterials()
 
 				if (rawFileName.substr(rawFileName.size() - (l == 3 ? 4 : 2), std::wstring::npos) == L"_" + letters[l])
 				{
-					materials[textureName][letters[l]] = (rawFileName);
+					materials[textureName][letters[l]] = (rawFileName) + fileEnding;
 					isTextrue = true;
 				}
 			}
@@ -278,22 +421,22 @@ void Material::readMaterials()
 		//Material mat;
 		MATERIAL_INIT_STRUCT mat;
 		mat.MaterialID = ++totalMaterialCount;
-		
+
 		for (int l = 0; l < 4; l++)
 		{
 			if (materials[textureNames[i]].find(letters[l]) == materials[textureNames[i]].end())
 			{
-				materials[textureNames[i]][letters[l]] = L"T_Missing_" + letters[l];
+				materials[textureNames[i]][letters[l]] = L"T_Missing_" + letters[l] + L".dds";
 			}
 		}
 
 		for (int l = 0; l < 4; l++)
 		{
-			std::wstring name = materials[textureNames[i]][letters[l]] + L".png";
+			std::wstring name = materials[textureNames[i]][letters[l]] /*+ fileEnding*/;
 			//mat.addTexture(std::wstring(name.begin(), name.end()).c_str());
 			mat.fileNames.push_back(name);
 		}
-		
+
 		m_MaterialCache[textureNames[i]] = mat;
 	}
 }

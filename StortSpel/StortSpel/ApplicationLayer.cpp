@@ -14,11 +14,10 @@ ApplicationLayer::ApplicationLayer()
 	m_dt = 0.f;
 	m_consoleFile = nullptr;
 
-	RECT deskRect;
-	HWND deskTop = GetDesktopWindow();
-	GetWindowRect(deskTop, &deskRect);
-	m_width = deskRect.right - deskRect.left;
-	m_height = deskRect.bottom - deskRect.top;
+	RECT rect;
+	SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
+	m_width = rect.right;
+	m_height = rect.bottom;
 }
 
 ApplicationLayer::~ApplicationLayer()
@@ -43,6 +42,14 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	this->createWin32Window(hInstance, WINDOWTILE, hWnd);// hwnd is refference, is set to created window.
 	m_window = hWnd;
 
+	RECT rect;
+	GetClientRect(m_window, &rect);
+	m_width = rect.right - rect.left;
+	m_height = rect.bottom - rect.top;
+
+	std::cout << "WINDOW: X: " << m_width << " Y: " << m_height << std::endl;
+
+
 	// Input
 	SetCursor(NULL);
 	RAWINPUTDEVICE rawIDevice;
@@ -64,7 +71,9 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 
 	// Renderer
 	m_rendererPtr = &Renderer::get();//new Renderer();
+	m_input.Attach(m_rendererPtr);
 	hr = m_rendererPtr->initialize(m_window);
+	m_input.Attach(m_rendererPtr);
 	if (SUCCEEDED(hr))
 	{
 		initOK = true;
@@ -106,11 +115,12 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 	RegisterClass(&wc);
 
 	RECT windowRect;
-	windowRect.left = 20;
+	windowRect.left = 0;
 	windowRect.right = windowRect.left + m_width;
-	windowRect.top = 20;
+	windowRect.top = 0;
 	windowRect.bottom = windowRect.top + m_height;
-	AdjustWindowRect(&windowRect, NULL, false);
+	//AdjustWindowRect(&windowRect, NULL, false);
+	AdjustWindowRectEx(&windowRect, WS_OVERLAPPEDWINDOW, true, NULL);
 
 
 
@@ -120,16 +130,17 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 		windowTitle,                // Window class
 		windowTitle,				// Window text
 		WS_OVERLAPPEDWINDOW,        // Window style
-		windowRect.left,			// Position, X
-		windowRect.top,				// Position, Y
-		m_width,					// Width
-		m_height,					// Height
+		0,			// Position, X
+		0,				// Position, Y
+		windowRect.right,			// Width
+		windowRect.bottom,			// Height
 		NULL,						// Parent window
 		NULL,						// Menu
 		hInstance,					// Instance handle
 		NULL						// Additional application data
 	);
 	assert(_d3d11Window);
+
 
 	if(DEBUGMODE)
 		RedirectIOToConsole(); // Disabled For PlayTest
@@ -163,12 +174,25 @@ void ApplicationLayer::applicationLoop()
 		{
 
 			this->m_dt = (float)m_timer.timeElapsed();
+			//this->m_dt = 1.f/60.f;
 			m_gameTime += m_dt;
+			//m_dt *= 0.3f;
 			m_timer.restart();
+
+			m_dt *= Renderer::get().getGlobalConstBuffer().globalTimeDilation;
 
 			ImGui_ImplDX11_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
+
+			if (DEBUGMODE)
+			{
+				ImGui::Begin("Sleep");
+				if (ImGui::Button("16fps"))
+					m_shouldSleep = !m_shouldSleep;
+				ImGui::End();
+			}
+
 			m_input.readBuffers(m_dt);
 			m_physics->update(m_dt);
 
@@ -179,6 +203,9 @@ void ApplicationLayer::applicationLoop()
 			AudioHandler::get().update(m_dt);
 			m_rendererPtr->update(m_dt);
 			m_rendererPtr->render();
+
+			if (m_shouldSleep)
+				Sleep((1000 / 20));
 		}
 	}
 	m_physics->release();
@@ -225,6 +252,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		GetClientRect(hwnd, &windowRect);
 		x = windowRect.right - windowRect.left;
 		y = windowRect.bottom - windowRect.top;
+
 		Renderer::get().resizeBackbuff(x, y);
 
 		return 0;

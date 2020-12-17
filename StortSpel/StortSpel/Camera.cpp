@@ -20,12 +20,13 @@ void Camera::initialize(const int& fov, const float& aspectRatio, const float& n
 	setProjectionMatrix(fov, aspectRatio, nearZ, farZ);
 }
 
-void Camera::setProjectionMatrix(const int& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
+void Camera::setProjectionMatrix(const float& fov, const float& aspectRatio, const float& nearZ, const float& farZ)
 {
 	m_projectionMatrix = DirectX::XMMatrixPerspectiveFovLH((fov / 360.f) * DirectX::XM_2PI,
 		aspectRatio, nearZ, farZ);
+	BoundingFrustum::CreateFromMatrix(m_frustum, m_projectionMatrix);
 }
-void Camera::setPosition(const XMVECTOR& pos)
+void Camera::setPosition(const Vector3& pos)
 {
 	m_position = pos;
 	this->updateViewMatrix();
@@ -141,38 +142,141 @@ void Camera::inputUpdate(InputData& inputData)
 			m_transform.setRotation(m_rotation);
 		}
 	}
+
+	if (m_isFlyingCamera)
+	{
+		bool foundShift = false;
+		for (size_t i = 0; i < inputData.stateData.size(); i++)
+		{
+			if (inputData.stateData[i] == State::WALK_FORWARD)
+			{
+				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+				Vector3 currForward = XMVector3TransformCoord(this->forwardVector, cameraRotation);
+				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				setPosition(m_position);
+			}
+			if (inputData.stateData[i] == State::WALK_LEFT)
+			{
+				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+				Vector3 currForward = XMVector3TransformCoord(-this->rightVector, cameraRotation);
+				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				setPosition(m_position);
+			}
+			if (inputData.stateData[i] == State::WALK_RIGHT)
+			{
+				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+				Vector3 currForward = XMVector3TransformCoord(this->rightVector, cameraRotation);
+				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				setPosition(m_position);
+			}
+			if (inputData.stateData[i] == State::WALK_BACKWARD)
+			{
+				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+				Vector3 currForward = XMVector3TransformCoord(-this->forwardVector, cameraRotation);
+				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				setPosition(m_position);
+			}
+			if (inputData.stateData[i] == State::FLY_UP)
+			{
+				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+				Vector3 currForward = XMVector3TransformCoord(upVector, cameraRotation);
+				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				setPosition(m_position);
+			}
+			if (inputData.stateData[i] == State::FLY_DOWN)
+			{
+				XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+				Vector3 currForward = XMVector3TransformCoord(-upVector, cameraRotation);
+				m_position += currForward * 0.1 * m_flightSpeedMultiplier;
+				setPosition(m_position);
+			}
+			if (inputData.stateData[i] == State::CTRLDOWN)
+			{
+				foundShift = true;
+				std::cout << "Shift down" << std::endl;
+			}
+		}
+
+		for (size_t i = 0; i < inputData.actionData.size(); i++)
+		{
+
+			if (!foundShift)
+			{
+				if (inputData.actionData[i] == Action::SCROLL_DOWN)
+				{
+					m_flightSpeedMultiplier -= 0.1f;
+				}
+
+				if (inputData.actionData[i] == Action::SCROLL_UP)
+				{
+					m_flightSpeedMultiplier += 0.1f;
+				}
+			}
+			else
+			{
+				if (inputData.actionData[i] == Action::SCROLL_DOWN)
+				{
+					targetFov += 1;
+					m_sensitivity = 0.05f * abs(targetFov / 80.f);
+				}
+
+				if (inputData.actionData[i] == Action::SCROLL_UP)
+				{
+					if (targetFov > 10)
+						targetFov -= 1;
+					m_sensitivity = 0.05f * abs(targetFov / 80.f);
+				}
+			}
+
+		}
+
+
+	}
 }
 
 void Camera::update(const float& dt)
 {
-	//if (m_newIncrements)
-	//{
-	//	this->m_rotation += m_incrementRotation * dt * 2;
-	//	m_transform.rotate(m_rotation);
-	//	m_newIncrements = false;
-	//}
-	Player* ply = Engine::get().getPlayerPtr();
-	m_position = ply->getPlayerEntity()->getTranslation() + ply->getCameraOffset() + Vector3(0, 0.5f, -1.f);
-	m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
+	if (m_isPlayerCamera)
+	{
+		Player* ply = Engine::get().getPlayerPtr();
+		m_position = ply->getPlayerEntity()->getTranslation() + ply->getCameraOffset() + Vector3(0, 0.5f, -1.f);
+		m_transform.setPosition(m_position); // Transform pointer used by 3d positional Audio to get the listener position
+		if (ply->getRespawnNextFrame()) // Reset camera rotation after respawn
+		{
+			m_rotation = XMQuaternionRotationRollPitchYaw(0.f, 0.f, 0.f);
+			m_transform.setRotationQuat(m_rotation);
+		}
 
-	//endscene fixed camera position
-	if (endSceneCamera)
-	{
-		frustumCullingOn = false;
-		this->updateViewMatrixEndScene();
+		//endscene fixed camera position
+		if (endSceneCamera)
+		{
+			frustumCullingOn = false;
+			this->updateViewMatrixEndScene();
+		}
+		else
+		{
+			frustumCullingOn = true;
+			this->updateViewMatrix();
+		}
 	}
-	else
+	
+	if (m_isFlyingCamera)
 	{
-		frustumCullingOn = true;
 		this->updateViewMatrix();
+
+		fovAmount = lerp(fovAmount, targetFov, 0.1f);
+
+		if (abs(targetFov - fovAmount) < 0.1f)
+			updateFov = false;
+		else
+			updateFov = true;
 	}
+
 }
 
 BoundingFrustum Camera::getFrustum()
 {
-	BoundingFrustum frust;
-	BoundingFrustum::CreateFromMatrix(frust, m_projectionMatrix);
-	return frust;
+	return m_frustum;
 }
 
 //Private
@@ -186,32 +290,61 @@ void Camera::updateViewMatrix()
 
 	XMVECTOR currentRotation = XMQuaternionRotationRollPitchYaw(currentRotationAngleX, currentRotationAngleY, 0);
 
-	XMVECTOR playerPos = Vector3(dynamic_cast<CharacterControllerComponent*>(ply->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + ply->getCameraOffset() + Vector3(0, 0.5, 0);//->getTranslation();
-
-	playerPos += Vector3(0, 0.5f, 0);
-	m_position = playerPos;
-	XMVECTOR offsetVector = Vector3(0, 0, 1) * 2;
-	offsetVector = XMVector3Rotate(offsetVector, currentRotation);
-	m_position -= offsetVector;
-
-	Vector3 fromPlayerToCamera = m_position - playerPos;
-	if (Physics::get().castRay(playerPos, DirectX::XMVector3Normalize(fromPlayerToCamera), 2, hitPos))
+	if (m_isPlayerCamera && !m_isFlyingCamera)
 	{
-		m_position = hitPos;
+		XMVECTOR playerPos = Vector3(dynamic_cast<CharacterControllerComponent*>(ply->getPlayerEntity()->getComponent("CCC"))->getFootPosition()) + ply->getCameraOffset() + Vector3(0, 0.5, 0);//->getTranslation();
+
+		playerPos += Vector3(0, 0.5f, 0);
+		m_position = playerPos;
+		XMVECTOR offsetVector = Vector3(0, 0, 1) * 2;
+		offsetVector = XMVector3Rotate(offsetVector, currentRotation);
+		m_position -= offsetVector;
+
+		Vector3 fromPlayerToCamera = DirectX::XMVector3Normalize(m_position - playerPos);
+		if (Physics::get().castRay(playerPos, fromPlayerToCamera, 2, hitPos))
+		{
+			m_position = hitPos - fromPlayerToCamera * 0.01f;
+		}
+
+		if (XMVector3Equal(m_position, playerPos))
+		{
+			playerPos.m128_f32[1] += 0.00001f;
+		}
+
+		XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+		XMVECTOR up = XMVector3TransformCoord(this->upVector, cameraRotation);
+		m_viewMatrix = XMMatrixLookAtLH(m_position, playerPos, up);
+	}
+	else
+	{
+		XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+
+		m_viewMatrix = XMMatrixLookAtLH(m_position, XMVector3TransformCoord(forwardVector, cameraRotation), XMVector3TransformCoord(this->upVector, cameraRotation));
+
 	}
 
-	if (XMVector3Equal(m_position, playerPos))
+	if (m_isFlyingCamera)
 	{
-		playerPos.m128_f32[1] += 0.00001f;
+		//XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
+		//Vector4(this->upVector) = Vector4(XMVector3TransformCoord(this->upVector, cameraRotation));
+		//m_viewMatrix = XMMatrixLookAtLH(m_position, XMVector3TransformCoord(this->forwardVector, cameraRotation), XMVector3TransformCoord(this->upVector, cameraRotation));
+
+
+		XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(this->m_rotation);
+		XMVECTOR cameraLookAt = XMVector3TransformCoord(this->forwardVector, cameraRotation);
+		cameraLookAt += this->m_position;
+
+		XMVECTOR up = XMVector3TransformCoord(this->upVector, cameraRotation);
+
+		//Build view matrix for left-handed coordinate system.
+		this->m_viewMatrix = XMMatrixLookAtLH(this->m_position, cameraLookAt, up);
+
 	}
+	
 
 
 
-	XMMATRIX cameraRotation = XMMatrixRotationRollPitchYawFromVector(m_rotation);
-	XMVECTOR up = XMVector3TransformCoord(this->upVector, cameraRotation);
-	m_viewMatrix = XMMatrixLookAtLH(m_position, playerPos, up);
 
-	// = XMVector3TransformCoord(this->forwardVector, cameraRotation);
 	//m_curUp = XMVector3TransformCoord(this->upVector, cameraRotation);
 	//m_curRight = XMVector3TransformCoord(this->rightVector, cameraRotation);
 }

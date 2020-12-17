@@ -23,6 +23,7 @@ struct vs_out
     float3 bitangent : BITANGENT;
     float4 worldPos : POSITION;
     float4 shadowPos : SPOS;
+    float4 ssaoPos : SSAOPOS;
 };
 
 cbuffer perModel : register(b0)
@@ -51,6 +52,11 @@ vs_out main(vs_in input)
 	output.tangent = normalize(mul(float4(input.tangent, 0), worldMatrix));
 	output.bitangent = normalize(mul(float4(input.bitangent, 0), worldMatrix));
     output.worldPos = mul(float4(input.pos, 1), worldMatrix);
+    float4 vPos = mul(output.worldPos, viewMatrix);
+ 
+    output.ssaoPos = mul(float4(input.pos, 1), wvpMatrix);
+    //output.ssaoPos = mul(output.ssaoPos, M);
+    
     //output.shadowPos = mul(float4(input.pos, 1), shadowMatrix);
     
     /*

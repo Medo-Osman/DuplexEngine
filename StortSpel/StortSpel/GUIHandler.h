@@ -57,6 +57,7 @@ public:
 	void setVisible(int index, bool value);
 	bool getVisible(int index);
 
+
 	void setImageStyle(int index, GUIImageStyle style);
 	void setButtonStyle(int index, GUIButtonStyle style);
 	void setGUITextStyle(int index, GUITextStyle style);

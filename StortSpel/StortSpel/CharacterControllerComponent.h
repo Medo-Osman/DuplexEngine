@@ -120,7 +120,12 @@ public:
 	
 	bool checkGround() const
 	{
-		return m_physicsPtr->sphereIntersectionTest(m_controller->getPosition() + PxExtendedVec3(0.f, ((m_originalHeight / 2.f) + 0.2f) * -1.f, 0.f), m_originalRadius);
+		return m_physicsPtr->sphereIntersectionTest(m_controller->getPosition() + PxExtendedVec3(0.0, ((m_originalHeight / 2.0) + 0.2) * -1.0, 0.0), m_originalRadius);
+	}
+
+	bool checkRoof() const
+	{
+		return m_physicsPtr->sphereIntersectionTest(m_controller->getPosition() + PxExtendedVec3(0.0, (m_originalHeight - 0.2), 0.0), m_originalRadius);
 	}
 
 	bool castRay(const Vector3& origin, const Vector3& unitDirection, const float& distance) const

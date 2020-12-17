@@ -65,6 +65,8 @@ struct ps_in
     float3 tangent : TANGENT;
     float3 bitangent : BITANGENT;
     float4 worldPos : POSITION;
+    float4 shadowPos : SPOS;
+    float4 ssaoPos : SSAOPOS;
 };
 
 struct ps_out
@@ -75,6 +77,7 @@ struct ps_out
 
 Texture2D diffuseTexture : TEXTURE : register(t0);
 Texture2D emissiveTexture : TEXTURE : register(t1);
+Texture2D ambientOcclusionMap : TEXTURE : register(t8);
 SamplerState sampState : SAMPLER : register(s0);
 
 struct lightComputeResult
@@ -94,6 +97,12 @@ lightComputeResult computeLightFactor(ps_in input)
     float diffuseLightFactor = 0;
     float3 finalColor = float3(0, 0, 0);
     float3 diffuse = diffuseTexture.Sample(sampState, input.uv).xyz;
+    
+    // SSAO
+    input.ssaoPos /= input.ssaoPos.w;
+    input.ssaoPos.x = (1.f + input.ssaoPos.x) * 0.5f;
+    input.ssaoPos.y = (1.0f - input.ssaoPos.y) * 0.5f;
+    float ambientFactor = ambientOcclusionMap.SampleLevel(sampState, input.ssaoPos.xy, 0.0f).r;
     
     //Loop through all pointlights
     for (int i = 0; i < nrOfPointLights; i++)
@@ -127,7 +136,9 @@ lightComputeResult computeLightFactor(ps_in input)
     
     finalColor = finalColor + saturate(dot(-skyLight.direction.xyz, input.normal)) * skyLight.color.xyz * skyLight.brightness;
     
-    result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel));
+    result.lightColor = (finalColor * diffuse + (diffuse * ambientLightLevel * ambientFactor));
+    //result.lightColor = (finalColor * diffuse + (float3(1, 0, 0) * (-ambientFactor + 1)));
+    //result.lightColor = float3(ambientFactor, ambientFactor, ambientFactor);
     
     return result;
 }
@@ -144,8 +155,9 @@ ps_out main(ps_in input) : SV_TARGET
     output.glow = float4(emissive.rgb * emissiveScalar, 1.f);
     
     // Diffuse color
-    float3 diffuse = lightResult.lightColor * (1.f - length(emissive.rgb));
+    //float3 diffuse = lightResult.lightColor * (1.f - length(emissive.rgb));
+    float3 diffuse = float3(1, 1, 1) * (1.f - length(emissive.rgb));
     output.diffuse = float4(diffuse, 1.f) + float4(emissive.rgb + (emStrengthColor * length(emissive.rgb)), 1.f);
-    
+    output.glow = output.diffuse;
     return output;
 }
