@@ -35,7 +35,6 @@ static const int MSAAcount = 8;
 
 class Renderer : public InputObserver
 {
-
 private:
 	static const bool USE_Z_PRE_PASS;
 	//Pointers
@@ -206,9 +205,11 @@ private:
 	void zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
 	void renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P);
+	void toggleFlyingCamera();
 	Renderer(); //{};
 
 	Camera m_testCamera;
+	Camera m_flyingCamera;
 
 	using VertexType = DirectX::VertexPositionColor;
 
@@ -224,6 +225,7 @@ private:
 	int m_drawn = 0;
 	bool m_isFullscreen = false;
 
+	bool m_useFlyingCamera = false;
 	bool m_switchCamera = false;
 public:
 	Renderer(const Renderer&) = delete;
@@ -254,8 +256,8 @@ public:
 
 	globalConstBuffer getGlobalConstBuffer();
 
+	void addPrimitiveToDraw();
+
 	// Inherited via InputObserver
 	virtual void inputUpdate(InputData& inputData) override;
-
-	void addPrimitiveToDraw();
 };

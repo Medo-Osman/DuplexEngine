@@ -73,6 +73,7 @@ private:
     const float PLAYER_ROTATION_SPEED = 0.08f;
     float m_verticalMultiplier = 0.f;
     float m_horizontalMultiplier = 0.f;
+    float m_analogHorizontalMultiplier = 1.f;
     Vector3 m_movementVector;
 
     //JUMP CONFIG
@@ -181,7 +182,7 @@ private:
 
     //Checkpoint
     Vector3 m_checkpointPos = Vector3(0.f, 9.f, 5.f);
-    int m_heightLimitBeforeRespawn = -7.f;
+    int m_heightLimitBeforeRespawn = -7;
 
     //trap
     Vector3 m_trapPos = Vector3(0, 9, 20);
@@ -198,7 +199,7 @@ private:
     void handleRotation(const float& dt);
     Vector3 trajectoryEquation(Vector3 position, Vector3 &direction, float t, XMFLOAT3& outDir);
 	void trajectoryEquationOutFill(Vector3 &position, Vector3 &direction, float t, XMFLOAT3& outPos, XMFLOAT3& outDir);
-    Vector3 calculatePath(Vector3 position, Vector3 direction, float horizonalMultiplier, float vertMulti);
+    Vector3 calculatePath(Vector3 position, Vector3 direction, float horizontalMultiplier, float vertMulti);
     void playerStateLogic(const float& dt);
 
     bool pickupUpdate(Pickup* pickupPtr, const float& dt);
@@ -224,6 +225,7 @@ public:
     Player();
     ~Player();
     bool m_shouldDrawLine = false;
+    bool m_ignoreInput = false;
 
 
     virtual void Attach(PlayerObserver* observer)

@@ -73,6 +73,7 @@ bool ApplicationLayer::initializeApplication(const HINSTANCE& hInstance, const L
 	m_rendererPtr = &Renderer::get();//new Renderer();
 	m_input.Attach(m_rendererPtr);
 	hr = m_rendererPtr->initialize(m_window);
+	m_input.Attach(m_rendererPtr);
 	if (SUCCEEDED(hr))
 	{
 		initOK = true;

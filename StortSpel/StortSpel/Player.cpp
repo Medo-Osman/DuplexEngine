@@ -133,10 +133,22 @@ void Player::setStates(InputData& inputData)
 		{
 			switch (states[i])
 			{
-			case WALK_LEFT:		m_movementVector += XMVector3Rotate(Vector3(-1.f, 0.f, 0.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
-			case WALK_RIGHT:	m_movementVector += XMVector3Rotate(Vector3(1.f, 0.f, 0.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
-			case WALK_FORWARD:	m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, 1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
-			case WALK_BACKWARD: m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, -1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w)); break;
+			case WALK_LEFT:
+				m_movementVector += XMVector3Rotate(Vector3(-1.f, 0.f, 0.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w));
+				m_analogHorizontalMultiplier = 1.f;
+				break;
+			case WALK_RIGHT:
+				m_movementVector += XMVector3Rotate(Vector3(1.f, 0.f, 0.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w));
+				m_analogHorizontalMultiplier = 1.f;
+				break;
+			case WALK_FORWARD:
+				m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, 1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w));
+				m_analogHorizontalMultiplier = 1.f;
+				break;
+			case WALK_BACKWARD:
+				m_movementVector += XMVector3Rotate(Vector3(0.f, 0.f, -1.f), Vector4(0.f, cameraRot.y, 0.f, cameraRot.w));
+				m_analogHorizontalMultiplier = 1.f;
+				break;
 			case JUMPING:
 				hasJumped = true;
 				m_lastJumpPressed = m_jumpPressed;
@@ -156,12 +168,20 @@ void Player::setStates(InputData& inputData)
 			if (range[i].rangeFlag == Range::WALK)
 			{
 				Vector3 analogWalkW(range[i].pos.x, 0.f, range[i].pos.y);
+				//std::cout << analogWalkW.x << ", " << analogWalkW.z << "\n";
 				Quaternion cameraRot = m_cameraTransform->getRotation();
-				m_movementVector += XMVector3Rotate(analogWalkW, Vector4(0.f , cameraRot.y, 0.f, cameraRot.w));
+				Vector3 analogDirection = XMVector3Rotate(analogWalkW, Vector4(0.f , cameraRot.y, 0.f, cameraRot.w));
+				m_movementVector += analogDirection;
+				m_analogHorizontalMultiplier = analogDirection.Length();
 			}
 		}
 	}
-	m_movementVector.Normalize();
+	if (m_movementVector.Length() > 1.f)
+	{
+		std::cout << m_movementVector.x << ", " << m_movementVector.z << "\n";
+		m_movementVector.Normalize();
+	}
+
 }
 
 void Player::handleRotation(const float &dt)
@@ -235,7 +255,7 @@ void Player::trajectoryEquationOutFill(Vector3 &pos, Vector3 &dir, float t, XMFL
 	outDir = Vector3(XMVector3Normalize(dtDir));
 }
 																	//m_horizontalMultiplier, m_verticalMultiplier
-Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizonalMultiplier, float vertMulti)
+Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizontalMultiplier, float vertMulti)
 {
 	Vector3 returnPosition;
 
@@ -385,7 +405,7 @@ void Player::playerStateLogic(const float& dt)
 		if (directionalMovement.LengthSquared() > 0)
 		{
 			// Add Speed
-			m_horizontalMultiplier += PLAYER_AIR_ACCELERATION * dt * m_currentSpeedModifier;
+			m_horizontalMultiplier += PLAYER_AIR_ACCELERATION * dt * m_currentSpeedModifier * m_analogHorizontalMultiplier;
 
 			// Limit Speed
 			if (m_horizontalMultiplier > PLAYER_MAX_SPEED * m_currentSpeedModifier)
@@ -433,7 +453,7 @@ void Player::playerStateLogic(const float& dt)
 		if (directionalMovement.LengthSquared() > 0)
 		{
 			// Add Speed
-			m_horizontalMultiplier += PLAYER_AIR_ACCELERATION * dt * m_currentSpeedModifier;
+			m_horizontalMultiplier += PLAYER_AIR_ACCELERATION * dt * m_currentSpeedModifier * m_analogHorizontalMultiplier;
 
 			// Limit Speed
 			if (m_horizontalMultiplier > PLAYER_MAX_SPEED * m_currentSpeedModifier)
@@ -456,7 +476,7 @@ void Player::playerStateLogic(const float& dt)
 		if (directionalMovement.LengthSquared() > 0)
 		{
 			// Add Speed
-			m_horizontalMultiplier += PLAYER_ACCELERATION * dt * m_currentSpeedModifier;
+			m_horizontalMultiplier += PLAYER_ACCELERATION * dt * m_currentSpeedModifier * m_analogHorizontalMultiplier;
 
 			// Limit Speed
 			if (m_horizontalMultiplier > PLAYER_MAX_SPEED * m_currentSpeedModifier)
@@ -597,19 +617,20 @@ void Player::playerStateLogic(const float& dt)
 		break;
 	}*/
 	//std::cout << m_verticalMultiplier << "\n";
+	//std::cout << m_verticalMultiplier << "\n";
 
 
-		// Final frame velocity
-		if (directionalMovement.LengthSquared() > 0.f)
-		{
-			// Compensate for larger directional change
-			m_horizontalMultiplier = m_horizontalMultiplier * max(directionalMovement.Dot(m_lastDirectionalMovement), 0.2f);
-			m_lastDirectionalMovement = directionalMovement;
-		}
+	// Final frame velocity
+	if (directionalMovement.LengthSquared() > 0.f)
+	{
+		// Compensate for larger directional change
+		m_horizontalMultiplier = m_horizontalMultiplier * max(directionalMovement.Dot(m_lastDirectionalMovement), 0.2f);
+		m_lastDirectionalMovement = directionalMovement;
+	}
 	
 
 
-		m_velocity = ((m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier)) * dt;
+	m_velocity = ((m_lastDirectionalMovement * m_horizontalMultiplier) + (Vector3(0, 1, 0) * m_verticalMultiplier)) * dt;
 
 	m_controller->move(m_velocity, dt);
 	m_lastPosition = m_playerEntity->getTranslation();
@@ -943,50 +964,53 @@ void Player::sendPlayerMSG(const PlayerMessageData &data)
 
 void Player::inputUpdate(InputData& inputData)
 {
-	if (m_state == PlayerState::CANNON)
+	if (!m_ignoreInput)
 	{
+		if (m_state == PlayerState::CANNON)
+		{
+			for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
+			{
+				if (inputData.actionData.at(i) == Action::USE)
+				{
+					m_shouldFire = true;
+				}
+			}
+		}
+
+		this->setStates(inputData);
+
 		for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
 		{
-			if (inputData.actionData.at(i) == Action::USE)
+			switch (inputData.actionData[i])
 			{
-				m_shouldFire = true;
+			case DASH:
+				if (m_state == PlayerState::IDLE)
+				{
+					roll();
+				}
+				else
+				{
+					if (canDash())
+						dash();
+				}
+				break;
+			case USEPICKUP:
+				if (canUsePickup())
+					handlePickupOnUse();
+				break;
+
+			case CLOSEINTROGUI:
+				//GUIHandler::get().setVisible(m_instructionGuiIndex, false);
+				//GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
+				break;
+
+			case RESPAWN:
+				respawnPlayer();
+				break;
+
+			default:
+				break;
 			}
-		}		
-	}
-
-	this->setStates(inputData);
-
-	for (std::vector<int>::size_type i = 0; i < inputData.actionData.size(); i++)
-	{
-		switch (inputData.actionData[i])
-		{
-		case DASH:
-			if (m_state == PlayerState::IDLE)
-			{
-				roll();
-			}
-			else
-			{
-				if (canDash())
-					dash();
-			}
-			break;
-		case USEPICKUP:
-			if (canUsePickup())
-				handlePickupOnUse();
-			break;
-
-		case CLOSEINTROGUI:
-			//GUIHandler::get().setVisible(m_instructionGuiIndex, false);
-			//GUIHandler::get().setVisible(closeInstructionsBtnIndex, false);
-			break;
-
-		case RESPAWN:
-			respawnPlayer();
-			break;
-
-		default:
-			break;
 		}
 	}
 }

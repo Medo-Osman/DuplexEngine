@@ -15,6 +15,7 @@ struct PhysicsData
 	std::string stringData;
 	float floatData;
 	int intData;
+	bool boolData;
 	void* pointer;
 	std::string entityIdentifier;
 	PhysicsData()

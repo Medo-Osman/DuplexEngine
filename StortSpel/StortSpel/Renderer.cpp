@@ -159,6 +159,8 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	HRESULT hr;
 	m_window = window;
+	
+	m_flyingCamera.setIsFlyingCamera(true);
 
 	m_settings = Engine::get().getSettings();
 
@@ -554,6 +556,10 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_testCamera.initialize(m_testCamera.fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 	m_testCamera.setPosition(Vector3(0, 5, 0));
 	m_testCamera.setRotation(Vector4(0.7071068f, 0.f, 0.f, 0.7071068f));
+
+	m_flyingCamera.initialize(m_flyingCamera.fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
+	m_flyingCamera.setPosition(Vector3(0, 100, 300));
+	m_flyingCamera.setRotation(Vector4(0.7071068f, 0.f, 0.f, 0.7071068f));
 	return hr;
 }
 
@@ -1477,7 +1483,7 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 
 	//Shadow
 	m_shadowMap->bindResourcesAndSetNullRTV(m_dContextPtr.Get());
-	m_shadowMap->computeShadowMatrix(Engine::get().getCameraPtr()->getPosition());
+	m_shadowMap->computeShadowMatrix(m_camera->getPosition());
 
 	shadowBuffer shadowBufferStruct;
 	shadowBufferStruct.lightProjMatrix = XMMatrixTranspose(m_shadowMap->m_lightProjMatrix);
@@ -1535,6 +1541,16 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	}
 }
 
+void Renderer::toggleFlyingCamera()
+{
+	m_useFlyingCamera = !m_useFlyingCamera;
+	Engine::get().getPlayerPtr()->m_ignoreInput = m_useFlyingCamera;
+
+	m_camera = &m_flyingCamera;
+	m_camera->frustumCullingOn = false;
+	m_camera->setPosition(Engine::get().getPlayerPtr()->getPlayerEntity()->getTranslation() + Vector3(0, 4.f, 0));
+}
+
 void Renderer::resizeBackbuff(int x, int y)
 {
 	//m_swapChainPtr.
@@ -1588,6 +1604,27 @@ void Renderer::update(const float& dt)
 		{
 			m_switchCamera = !m_switchCamera;
 		}
+
+		if (ImGui::Button("Flying camera"))
+		{
+			toggleFlyingCamera();
+		}
+	}
+
+	if (m_useFlyingCamera)
+	{
+		m_camera->update(dt);
+		m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
+
+		if (m_camera->updateFov)
+		{
+			buildFrustumFarCorners((m_camera->fovAmount / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
+			buildOffsetVectors();
+		}
+	}
+	else
+	{
+		m_camera = Engine::get().getCameraPtr();
 	}
 
 	// Constant buffer updates and settings
@@ -1963,6 +2000,9 @@ void Renderer::inputUpdate(InputData& inputData)
 			if (m_debugViewMode < debugViewModeCount - 1)
 				m_debugViewMode++;
 			break;
+		case TOGGLEFLY:
+			toggleFlyingCamera();
+			break;	
 		default:
 			break;
 		}

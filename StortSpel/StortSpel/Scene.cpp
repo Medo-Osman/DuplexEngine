@@ -210,14 +210,29 @@ Entity* Scene::addScore(const Vector3& position, const int tier, std::string nam
 	mat.setEmissiveStrength(100.f);
 	Entity* pickupPtr = addEntity(name);
 
+	const WCHAR* textureName = L"";
+
+	switch (tier)
+	{
+	case 1: textureName = L"Green";
+		pickupPtr->scaleUniform(0.25f);
+	break;
+	case 3: textureName = L"Blue";
+		pickupPtr->scaleUniform(0.4f);
+	break;
+	case 10: textureName = L"Red";
+		pickupPtr->scaleUniform(0.5f);
+	break;
+	}
+
+	mat = Material(textureName, false);
 
 	pickupPtr->setPosition(position);
-	pickupPtr->scaleUniform(0.5f);
 
-	addComponent(pickupPtr, "mesh", new MeshComponent("star.lrm", ShaderProgramsEnum::TEMP_TEST, mat));
+	addComponent(pickupPtr, "mesh", new MeshComponent("SphereAttempt_Plane.lrm", ShaderProgramsEnum::EMISSIVE, mat));
 	addComponent(pickupPtr, "pickup", new PickupComponent(PickupType::SCORE, 1.f * (float)tier, 6));
 	static_cast<TriggerComponent*>(pickupPtr->getComponent("pickup"))->initTrigger( m_sceneID, pickupPtr, { 0.5f, 0.5f, 0.5f });
-	addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
+	//addComponent(pickupPtr, "rotate", new RotateComponent(pickupPtr, { 0.f, 1.f, 0.f }));
 
 	return pickupPtr;
 }
@@ -2095,8 +2110,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	sceneObject->m_bossPromptTextIndex = GUIHandler::get().addGUIText("Prepare to collect all the stars! \nAvoid the boss!" , L"concert_one_32.spritefont", sceneObject->textStyle);
 
 
-
-
+	
 	//Generate the boss, if boss does not exist in the scene it will not be updated in sceneUpdate() either.
 	Entity* bossEnt = sceneObject->addEntity("boss");
 	sceneObject->m_bossMusicComp = new AudioComponent(L"BossMusic.wav", true, 0.1f, 0.f, false);
@@ -2138,7 +2152,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 					static_cast<ShrinkingComponent*>(platform->getComponent("shrink"))->setDone(true);
 
 					Material emissiveMat({ L"DarkGrayTexture.png", L"BlueEmissive.png" });
-					emissiveMat.setEmissiveStrength(40);
+					emissiveMat.setEmissiveStrength(5);
 					sceneObject->addComponent(platform, "mesh", new MeshComponent("BossPlatform.lrm", 
 						{
 							PBRTEST, // TODO: this was emmisive
@@ -2169,6 +2183,8 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		sceneObject->addCheckpoint(sceneObject->m_sceneEntryPosition - Vector3(0, 1, 0), 0);
 		Physics::get().Attach(sceneObject->m_boss, true, false);
 
+		sceneObject->createBaloon(sceneObject->m_sceneEntryPosition + Vector3(0, 0, -5));
+
 
 		//Generate a set of segments on the boss, primarily to display the interface.
 		for (int i = 0; i < 1; i++)
@@ -2176,7 +2192,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
 
 			Material emissiveMat({ L"DarkGrayTexture.png", L"RedCrystalEmissive.png" });
-			emissiveMat.setEmissiveStrength(20);
+			emissiveMat.setEmissiveStrength(40);
 
 			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("BossModel_polySurface188.lrm", 
 				{
@@ -2331,7 +2347,7 @@ void Scene::loadBossTestPhaseTwo(Scene* sceneObject, bool* finished)
 		float a = 2.5f * 4;
 		a = a + 10 + 1.25f;
 		sceneObject->m_sceneEntryPosition = Vector3(10, 6, a);
-		sceneObject->createStaticPlatform(Vector3(10, 4.9, a), Vector3(0, 0, 0), Vector3(3, 0.2, 3), "testCube_pCube1.lrm");
+		sceneObject->createStaticPlatform(Vector3(10, 4.9f, a), Vector3(0, 0, 0), Vector3(3, 0.2f, 3), "testCube_pCube1.lrm");
 
 		//Added the platform to spawn on, as well as a checkpoint on it.
 		sceneObject->addCheckpoint(sceneObject->m_sceneEntryPosition - Vector3(0, 1, 0), 0);
@@ -2344,7 +2360,7 @@ void Scene::loadBossTestPhaseTwo(Scene* sceneObject, bool* finished)
 			Entity* segmentEntity = sceneObject->addEntity("projectileSegment" + std::to_string(i));
 
 			Material emissiveMat({ L"DarkGrayTexture.png", L"RedCrystalEmissive.png" });
-			emissiveMat.setEmissiveStrength(20);
+			emissiveMat.setEmissiveStrength(40);
 
 			sceneObject->addComponent(segmentEntity, "mesh", new MeshComponent("BossModel_polySurface188.lrm",
 				{
@@ -2451,6 +2467,12 @@ void Scene::onSceneLoaded()
 
 void Scene::updateScene(const float& dt)
 {
+	if (removeOnNextFrame != "")
+	{
+		removeEntity(removeOnNextFrame);
+		removeOnNextFrame = "";
+	}
+
 	if (m_boss)
 	{
 		m_boss->update(dt);
@@ -2748,7 +2770,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 	{
 		for (int i = 0; i < (*m_boss->platformArray).columns.size(); i++)
 		{
-			displacePlatform((*m_boss->platformArray)[m_boss->currentPlatformIndex.x][i]);
+			displacePlatform((*m_boss->platformArray)[(int)m_boss->currentPlatformIndex.x][i]);
 		}
 	}
 
@@ -2756,7 +2778,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 	{
 		for (int i = 0; i < (*m_boss->platformArray).columns.size(); i++)
 		{
-			displacePlatform((*m_boss->platformArray)[i][m_boss->currentPlatformIndex.y]);
+			displacePlatform((*m_boss->platformArray)[i][(int)m_boss->currentPlatformIndex.y]);
 		}
 	}
 
@@ -2830,7 +2852,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 		Entity* boss = m_entities.at("projectileSegment0");
 		MeshComponent* bossMeshComponent = (MeshComponent*)(boss->getComponent("mesh"));
 		Material* bossMaterial = bossMeshComponent->getMaterialPtr(1);
-		bossMaterial->setEmissiveStrength(700);
+		bossMaterial->setEmissiveStrength(40);
 		
 		{
 			Entity* bossEnt = static_cast<Entity*>(data.pointer1);
@@ -2846,7 +2868,7 @@ void Scene::bossEventUpdate(BossMovementType type, BossStructures::BossActionDat
 		Entity* boss = m_entities.at("projectileSegment0");
 		MeshComponent* bossMeshComponent = (MeshComponent*)(boss->getComponent("mesh"));
 		Material* bossMaterial = bossMeshComponent->getMaterialPtr(1);
-		bossMaterial->setEmissiveStrength(20);
+		bossMaterial->setEmissiveStrength(5);
 	}
 
 }
@@ -2890,6 +2912,7 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 	{
 		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST) //Create Trampoline entity
 		{
+			//if (msg.)
 			const float trampolineOffsetY = 0.5f; //Offset to position trampoline top at feet of player. Also used for raycast.
 			
 			Vector3 trampolineSpawnPos;
@@ -2925,8 +2948,16 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
 		{
 			Entity* trampolineEnt = m_entities[msg.entityIdentifier];
-			TrampolineComponent* tc = (TrampolineComponent*)trampolineEnt->getComponent("trampoline");
-			tc->activate();
+			TriggerComponent* a = static_cast<TriggerComponent*>(trampolineEnt->getComponent("heightTrigger"));
+			if (a->getPhysicsData().boolData == true)
+			{ // This is a baloon
+				removeOnNextFrame = msg.entityIdentifier;
+			}
+			else
+			{ // Animate trampolin
+				TrampolineComponent* tc = (TrampolineComponent*)trampolineEnt->getComponent("trampoline");
+				tc->activate();
+			}
 		}
 	}
 
@@ -3035,6 +3066,30 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 
 		addComponent(hammer, "swing",
 			new SwingComponent(hammer, rotation, swingSpeed));
+	}
+}
+
+void Scene::createBaloon(Vector3 position)
+{
+	Entity* baloon = addEntity("baloon" + std::to_string(m_nrOfBaloons++));
+	if (baloon)
+	{
+		baloon->setPosition(position);
+		baloon->setScale(Vector3(0.5f, 0.5f, 0.5f));
+		addComponent(baloon, "mesh1", new MeshComponent("Baloon_pCone2.lrm", Material( { L"DarkGrayTexture.png" } )));
+
+		TriggerComponent* triggerComponent = new TriggerComponent();
+		triggerComponent->setEventData(TriggerType::PICKUP, (int)PickupType::HEIGHTBOOST);
+		triggerComponent->setIntData(0);
+		baloon->addComponent("heightTrigger", triggerComponent);
+		triggerComponent->initTrigger(m_sceneID, baloon, { 1.5f, 1.7f, 1.5f }, { 0, 0, 0 }, true);
+
+		Vector3 startPos = position + Vector3(0, 0.15f, 0);
+		Vector3 endPos   = position - Vector3(0, 0.15f, 0);
+		addComponent(baloon, "sweep", new SweepingComponent(baloon, startPos, endPos, 2));
+
+		m_nrOfBaloons++;
+
 	}
 }
 
@@ -3159,7 +3214,7 @@ void Scene::createLaser(BossStructures::BossActionData data)
 		laserEntity->setPosition(data.origin - Vector3(0, 1.5f, 0));
 		laserEntity->m_canCull = false;
 		Material mat = Material({ L"red.png", L"red.png" });
-		mat.setEmissiveStrength(700.f);
+		mat.setEmissiveStrength(40.f);
 
 		MeshComponent* mComp = new MeshComponent("Boss_Laser.lrm", EMISSIVE, mat);
 		mComp->setCastsShadow(false);
