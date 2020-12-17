@@ -840,15 +840,14 @@ void Player::increaseScoreBy(int value)
 	if (m_score >= 10 && m_score < 100)
 	{
 		GUITextStyle style;
-		style.position = Vector2(1705, 62);
+		style.position = Vector2(1698, 50);
 		style.color = Colors::White;
 		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
 	}
-	if (m_score >= 100)
+	else if (m_score >= 100)
 	{
-
 		GUITextStyle style;
-		style.position = Vector2(1678, 62);
+		style.position = Vector2(1668, 50);
 		style.color = Colors::White;
 		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
 	}
