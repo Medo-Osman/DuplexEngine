@@ -813,7 +813,7 @@ void Renderer::computeSSAOPass()
 	m_dContextPtr->IASetVertexBuffers(0, 1, m_renderQuadBuffer.GetAddressOf(), m_renderQuadBuffer.getStridePointer(), &offset);
 
 	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), NULL);
-	m_dContextPtr->ClearRenderTargetView(m_SSAORenderTargetViewPtr.Get(), m_blackClearColor);
+	m_dContextPtr->ClearRenderTargetView(m_SSAORenderTargetViewPtr.Get(), m_whiteClearColor);
 
 	m_compiledShaders[ShaderProgramsEnum::SSAO_MAP]->setShaders();
 	m_currentSetShaderProg = ShaderProgramsEnum::SSAO_MAP;
@@ -1087,8 +1087,8 @@ void Renderer::ssaoBlurPass()
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
 	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
 
-	//ImGui::Begin("someWindow");
-	//ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(512, 288));
+	//ImGui::Begin("SSAO Map");
+	//ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(720, 405));
 	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(512, 288));
 	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(1024, 576));
 	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(256, 256));
@@ -1101,7 +1101,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 	m_drawn = 0;
 
 	m_dContextPtr->OMSetRenderTargets(1, m_normalsNDepthRenderTargetViewPtr.GetAddressOf(), m_NormalDepthStencilViewPtr.Get());
-	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_AOclearColor);
+	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_normalsNDepthClearColor);
 	// Get Entity map from Engine
 	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
 
@@ -1771,7 +1771,7 @@ void Renderer::render()
 	m_dContextPtr->ClearRenderTargetView(m_geometryRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_finalRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_glowMapRenderTargetViewPtr.Get(), m_blackClearColor);
-	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_clearColor);
+	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_normalsNDepthClearColor);
 
 	if (m_depthStencilViewPtr)
 	{
@@ -1824,7 +1824,7 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(1, nullRenderTargets, nullptr);
 
 	//Run ZPreePass
-	if (m_debugViewMode == 1)
+	if (m_debugViewMode == 2)
 		m_dContextPtr->RSSetState(m_rasterizerStatePtrWireframe.Get());
 	else
 		m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
@@ -1839,14 +1839,22 @@ void Renderer::render()
 		this->zPrePass(&frust, &wvp, &V, &P);
 	}
 
-	// Normals & Depth pass
-	normalsNDepthPass(&frust, &wvp, &V, &P);
+	// SSAO ON OR OFF
+	if (m_debugViewMode != 1)
+	{
+		// Normals & Depth pass
+		normalsNDepthPass(&frust, &wvp, &V, &P);
 
-	// SSAO
-	computeSSAOPass();
+		// SSAO
+		computeSSAOPass();
 
-	// SSAO Blur
-	ssaoBlurPass();
+		// SSAO Blur
+		ssaoBlurPass();
+	}
+	else
+	{
+		m_dContextPtr->ClearRenderTargetView(m_SSAORenderTargetViewPtr.Get(), m_whiteClearColor);
+	}
 
 	//Run ordinary pass
 	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);

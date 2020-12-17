@@ -12,20 +12,22 @@
 #include"Particles\RainingDogsParticle.h"
 #include"Particles\ScorePickupParticle.h"
 
-static const int debugViewModeCount = 2;
+static const int debugViewModeCount = 3;
 #include"DebugDraw.h"
 #include"BoundingVolumeHolder.h"
 
 enum DebugViewMode
 {
 	DEFAULTVIEW,
-	WIREFRAME,
+	SSAO_OFF,
+	WIREFRAME
 };
 
 static const std::string DebugModeNames[debugViewModeCount]
 {
 	"Default",
-	"Wireframe",
+	"SSAO OFF",
+	"Wireframe"
 };
 
 // Graphics Settings
@@ -161,7 +163,8 @@ private:
 	
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 	float m_blackClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
-	float m_AOclearColor[4] = { 0.0f, 0.0f, -1.0f, 1e5f };
+	float m_whiteClearColor[4] = { 1.f, 1.f, 1.f, 1.f };
+	float m_normalsNDepthClearColor[4] = { 0.0f, 0.0f, -1.0f, 1e5f };
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;

@@ -43,9 +43,9 @@ Player::Player()
 	iStyle.position = Vector2(1700, 50);
 	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Point_BG.png", iStyle);
 	GUITextStyle style;
-	style.position = Vector2(1717, 62);
+	style.position = Vector2(1717, 50);
 	style.color = Colors::White;
-	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
+	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"concert_one_72.spritefont", style);
 
 	//GUIImageStyle imageStyle;
 	//imageStyle.position = Vector2(400.f, 50.f);
