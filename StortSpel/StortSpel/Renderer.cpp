@@ -75,22 +75,36 @@ void Renderer::drawBoundingVolumes()
 
 bool preformCullOnMeshComponent(BoundingFrustum* frust ,MeshComponent* meshComponent, Entity* parentEntity)
 {
-	bool draw = true;
+	//Culling
 	XMFLOAT3 min, max;
+	bool draw = true;
 	Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
-	XMVECTOR pos = parentEntity->getTranslation();
-	pos += meshComponent->getTranslation();
-	pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
-	XMFLOAT3 posFloat3;
-	XMStoreFloat3(&posFloat3, pos);
+	Vector3 pos = parentEntity->getTranslation();
+	Vector3 meshOffset = meshComponent->getTranslation();
+	Vector3 boundsCenter = meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
+
+	if (!XMQuaternionIsIdentity(parentEntity->getRotation()))
+	{
+		meshOffset = XMVector3Rotate(meshOffset, parentEntity->getRotation());
+		boundsCenter = XMVector3Rotate(boundsCenter, parentEntity->getRotation());
+	}
+	if (!XMQuaternionIsIdentity(meshComponent->getRotation()))
+	{
+		meshOffset = XMVector3Rotate(meshOffset, meshComponent->getRotation());
+		boundsCenter = XMVector3Rotate(boundsCenter, meshComponent->getRotation());
+	}
+
+	pos += meshOffset;
+	pos += boundsCenter;
 
 	if (frust->Contains(pos) != ContainmentType::CONTAINS)
 	{
 		meshComponent->getMeshResourcePtr()->getMinMax(min, max);
+
 		XMFLOAT3 ext = (max - min) / 2;
 		ext = ext * scale;
 		XMFLOAT4 rot = parentEntity->getRotation() * meshComponent->getRotation();
-		BoundingOrientedBox box(posFloat3, ext, rot);
+		BoundingOrientedBox box(pos, ext, rot);
 
 		ContainmentType contType = frust->Contains(box);
 		draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
@@ -1339,13 +1353,7 @@ void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V
 {
 	bool shaderSet= false;
 	MeshComponent* meshComponent = drawCallStruct->mesh;
-	ShaderProgramsEnum shaderProgEnum = meshComponent->getShaderProgEnum(drawCallStruct->material_IDX);
-	if(m_currentSetShaderProg != shaderProgEnum)
-	{
-		m_currentSetShaderProg = shaderProgEnum;
-		m_compiledShaders[m_currentSetShaderProg]->setShaders();
-		shaderSet = true;
-	}
+
 
 
 	Entity* parentEntity = drawCallStruct->entity;
@@ -1377,6 +1385,17 @@ void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V
 			m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 		}
 
+		ShaderProgramsEnum shaderProgEnum = meshComponent->getShaderProgEnum(drawCallStruct->material_IDX);
+		if (m_currentSetShaderProg != shaderProgEnum)
+		{
+			m_currentSetShaderProg = shaderProgEnum;
+			if (m_compiledShaders[m_currentSetShaderProg])
+			{
+				m_compiledShaders[m_currentSetShaderProg]->setShaders();
+				shaderSet = true;
+			}
+		}
+
 		// ----------------- Step 3.3: Set material constant buffers
 		int material_ID = drawCallStruct->material_ID;
 		int material_IDX = drawCallStruct->material_IDX;
@@ -1402,9 +1421,6 @@ void Renderer::renderDrawCall(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V
 		m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
 		m_drawn++;
 	}
-
-	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-	m_dContextPtr->PSSetShaderResources(7, 1, nullSRV);
 	
 }
 
@@ -1613,7 +1629,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 {
 	m_drawn = 0;
 
-	for (auto& meshComponent : *Engine::get().getShadowPassDrawCallsPtr())
+	for (auto& meshComponent : *Engine::get().getMeshComponents())
 	{
 
 		this->renderMeshComponent(frust, wvp, V, P, meshComponent, true);

@@ -200,20 +200,35 @@ public:
 						if (parentEntity->m_canCull && USE_FRUSTUM_CULLING)
 						{
 							//Culling
+							//Culling
+							XMFLOAT3 min, max;
 							Vector3 scale = meshComponent->getScaling() * parentEntity->getScaling();
-							XMVECTOR pos = parentEntity->getTranslation();
-							pos += meshComponent->getTranslation();
-							pos += meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
-							XMFLOAT3 posFloat3;
-							XMStoreFloat3(&posFloat3, pos);
+							Vector3 pos = parentEntity->getTranslation();
+							Vector3 meshOffset = meshComponent->getTranslation();
+							Vector3 boundsCenter = meshComponent->getMeshResourcePtr()->getBoundsCenter() * scale;
+
+							if (!XMQuaternionIsIdentity(parentEntity->getRotation()))
+							{
+								meshOffset = XMVector3Rotate(meshOffset, parentEntity->getRotation());
+								boundsCenter = XMVector3Rotate(boundsCenter, parentEntity->getRotation());
+							}
+							if (!XMQuaternionIsIdentity(meshComponent->getRotation()))
+							{
+								meshOffset = XMVector3Rotate(meshOffset, meshComponent->getRotation());
+								boundsCenter = XMVector3Rotate(boundsCenter, meshComponent->getRotation());
+							}
+
+							pos += meshOffset;
+							pos += boundsCenter;
 
 							if (frust->Contains(pos) != ContainmentType::CONTAINS)
 							{
 								meshComponent->getMeshResourcePtr()->getMinMax(min, max);
+
 								XMFLOAT3 ext = (max - min) / 2;
 								ext = ext * scale;
 								XMFLOAT4 rot = parentEntity->getRotation() * meshComponent->getRotation();
-								BoundingOrientedBox box(posFloat3, ext, rot);
+								BoundingOrientedBox box(pos, ext, rot);
 
 								ContainmentType contType = frust->Contains(box);
 								draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
