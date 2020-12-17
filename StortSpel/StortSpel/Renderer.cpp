@@ -2105,9 +2105,13 @@ void Renderer::render()
 				Vector3 dist = meshPos - Vector3(m_camera->getPosition());
 				unsigned int val = 0;
 				drawInt dInt;
-				dInt.dist = dist.Length() + j;
+				int lol = 1;
+
+				dInt.dist = dist.Length() + j * lol;
 				dInt.id = (unsigned int)mComp->getShaderProgEnum(j);
-				dInt.translucency = (dInt.id == (int)ShaderProgramsEnum::LUCY_FACE);
+				dInt.translucency = (dInt.id == (int)ShaderProgramsEnum::LUCY_FACE || (dInt.id == (int)ShaderProgramsEnum::EMISSIVE));
+				dInt.translucency += (dInt.id == (int)ShaderProgramsEnum::EMISSIVE);
+
 				m_drawCallVector.push_back(std::make_pair((uint_fast16_t)(dInt.translucency << 15 | (dInt.dist + dInt.id * idEffectOnDistance) << 4 | dInt.id), dStruct));
 			}
 		}
