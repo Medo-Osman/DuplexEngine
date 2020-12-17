@@ -37,6 +37,7 @@ private:
 	bool checked = true;
 
 	int m_menuOverlayIndex = 0;
+	int m_mainMenuBGIndex = 0;
 	bool m_inPause = false;
 	bool m_inPauseSettings = false;
 	int m_cameraSense;

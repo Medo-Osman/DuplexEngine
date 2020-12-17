@@ -30,6 +30,10 @@ void SceneManager::initalize(Input* input)
 	imageStyle.scale = Vector2(settings.width * 2.f, settings.height * 2.f);
 	m_menuOverlayIndex = GUIHandler::get().addGUIImage(L"menu_overlay.png", imageStyle);
 
+	imageStyle.position = Vector2(0, 0);
+	imageStyle.scale = Vector2(1, 1);
+	m_mainMenuBGIndex = GUIHandler::get().addGUIImage(L"MainMenuBG.png", imageStyle);
+
 	//------- Multiplayer Buttons ---------
 
 	//Nr Of Players buttons
@@ -69,8 +73,6 @@ void SceneManager::initalize(Input* input)
 
 	GUIButton* joinButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_joinGameIndex));
 	joinButton->Attach(this);
-	//joinButton->setPrevMenuButton(startButton);
-	//startButton->setNextMenuButton(joinButton);
 
 	//Host Button
 	btnStyle.position = Vector2(140, 700);
@@ -79,8 +81,6 @@ void SceneManager::initalize(Input* input)
 
 	GUIButton* hostButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_hostGameIndex));
 	hostButton->Attach(this);
-	hostButton->setPrevMenuButton(joinButton);
-	joinButton->setNextMenuButton(hostButton);
 
 	GUIHandler::get().setVisible(m_hostGameIndex, false);
 	GUIHandler::get().setVisible(m_joinGameIndex, false);
@@ -796,10 +796,6 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 			//do stuff
 			Engine::get().setClient(true);
 			//m_gameStarted = true;
-			GUIHandler::get().setVisible(m_singleplayerIndex, false);
-			GUIHandler::get().setVisible(m_hostGameIndex, false);
-			GUIHandler::get().setVisible(m_joinGameIndex, false);
-			GUIHandler::get().setVisible(m_exitIndex, false);
 			hideHostMenu();
 			hideMultiplayerMenu();
 			m_nextSceneEnum = ScenesEnum::LOBBY;
@@ -980,7 +976,7 @@ void SceneManager::startBarrelDrop(std::string entity)
 
 void SceneManager::hideMainMenu()
 {
-	GUIHandler::get().setVisible(m_menuOverlayIndex, false);
+	GUIHandler::get().setVisible(m_mainMenuBGIndex, false);
 	GUIHandler::get().setVisible(m_multiplayerIndex, false);
 	GUIHandler::get().setVisible(m_singleplayerIndex, false);
 	GUIHandler::get().setVisible(m_exitIndex, false);
@@ -1043,8 +1039,8 @@ void SceneManager::hidePauseMenu()
 
 void SceneManager::showMainMenu()
 {
-
-	GUIHandler::get().setVisible(m_menuOverlayIndex, true);
+	GUIHandler::get().setVisible(m_mainMenuBGIndex, true);
+	GUIHandler::get().setVisible(m_menuOverlayIndex, false);
 	GUIHandler::get().setVisible(m_multiplayerIndex, true);
 	GUIHandler::get().setVisible(m_singleplayerIndex, true);
 	GUIHandler::get().setVisible(m_settingsIndex, true);
@@ -1065,15 +1061,13 @@ void SceneManager::showMainMenu()
 	settingsButton->setNextMenuButton(exitButton);
 
 	exitButton->setPrevMenuButton(settingsButton);
-	exitButton->setNextMenuButton(startButton);
+	exitButton->setNextMenuButton(multiplayerButton);
 
 	GUIHandler::get().setInMenu(true, m_multiplayerIndex);
 }
 
 void SceneManager::showSettingsMenu()
 {
-	
-
 	GUIButton* senseIncrease = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_senseIncreaseIndex));
 	GUIButton* senseDecrease = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_senseDecreaseIndex));
 
@@ -1089,9 +1083,6 @@ void SceneManager::showSettingsMenu()
 
 	GUIButton* mainMenuButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_backToMainMenu));
 
-
-	
-
 	//GUIHandler::get().setInMenu(true, m_resumeBtnIndex);
 	if (m_inPause) // came from pause menu
 	{
@@ -1102,8 +1093,6 @@ void SceneManager::showSettingsMenu()
 	{
 		GUIHandler::get().setVisible(m_backToMainMenu, true);
 	}
-
-
 
 	GUIHandler::get().setVisible(m_senseDecreaseIndex, true);
 	senseDecrease->setNextMenuButton(senseIncrease);
@@ -1149,8 +1138,8 @@ void SceneManager::showSettingsMenu()
 		mainMenuButton->setPrevMenuButton(fullscreen);
 	}
 
-
 	GUIHandler::get().setVisible(m_menuOverlayIndex, true);
+	GUIHandler::get().setVisible(m_mainMenuBGIndex, false);
 	GUIHandler::get().setVisible(m_sensitivityIndex, true);
 	GUIHandler::get().setVisible(m_settingsText, true);
 	GUIHandler::get().setVisible(m_fullscreenText, true);
@@ -1166,9 +1155,24 @@ void SceneManager::showSettingsMenu()
 
 void SceneManager::showMultiplayerMenu()
 {
-	GUIHandler::get().setVisible(m_hostGameIndex, true);
 	GUIHandler::get().setVisible(m_joinGameIndex, true);
+	GUIHandler::get().setVisible(m_hostGameIndex, true);
 	GUIHandler::get().setVisible(m_backToMainMenu, true);
+
+	GUIButton* joinGameButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_joinGameIndex));
+	GUIButton* hostGameButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_hostGameIndex));
+	GUIButton* backToMainMenuButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_backToMainMenu));
+
+	joinGameButton->setPrevMenuButton(backToMainMenuButton);
+	joinGameButton->setNextMenuButton(hostGameButton);
+
+	hostGameButton->setPrevMenuButton(joinGameButton);
+	hostGameButton->setNextMenuButton(backToMainMenuButton);
+
+	backToMainMenuButton->setPrevMenuButton(hostGameButton);
+	backToMainMenuButton->setNextMenuButton(joinGameButton);
+
+	GUIHandler::get().setInMenu(true, m_hostGameIndex);
 }
 
 void SceneManager::showHostMenu()
@@ -1177,6 +1181,25 @@ void SceneManager::showHostMenu()
 	GUIHandler::get().setVisible(m_multiPlayerIndexThree, true);
 	GUIHandler::get().setVisible(m_multiPlayerIndexFour, true);
 	GUIHandler::get().setVisible(m_backToMainMenu, true);
+
+	GUIButton* multiPlayerTwoButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_multiPlayerIndexTwo));
+	GUIButton* multiPlayerThreeButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_multiPlayerIndexThree));
+	GUIButton* multiPlayerFourButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_multiPlayerIndexFour));
+	GUIButton* backToMainMenuButton = dynamic_cast<GUIButton*>(GUIHandler::get().getElementMap()->at(m_backToMainMenu));
+
+	multiPlayerTwoButton->setPrevMenuButton(backToMainMenuButton);
+	multiPlayerTwoButton->setNextMenuButton(multiPlayerThreeButton);
+
+	multiPlayerThreeButton->setPrevMenuButton(multiPlayerTwoButton);
+	multiPlayerThreeButton->setNextMenuButton(multiPlayerFourButton);
+
+	multiPlayerFourButton->setPrevMenuButton(multiPlayerThreeButton);
+	multiPlayerFourButton->setNextMenuButton(backToMainMenuButton);
+
+	backToMainMenuButton->setPrevMenuButton(multiPlayerFourButton);
+	backToMainMenuButton->setNextMenuButton(multiPlayerTwoButton);
+
+	GUIHandler::get().setInMenu(true, m_multiPlayerIndexTwo);
 }
 
 void SceneManager::hideSettingsMenu()
@@ -1206,13 +1229,14 @@ void SceneManager::hideSettingsMenu()
 
 void SceneManager::hideMultiplayerMenu()
 {
-	GUIHandler::get().setVisible(m_hostGameIndex, false);
 	GUIHandler::get().setVisible(m_joinGameIndex, false);
+	GUIHandler::get().setVisible(m_hostGameIndex, false);
 	GUIHandler::get().setVisible(m_backToMainMenu, false);
 }
 
 void SceneManager::hideHostMenu()
 {
+	GUIHandler::get().setVisible(m_mainMenuBGIndex, false);
 	GUIHandler::get().setVisible(m_multiPlayerIndexTwo, false);
 	GUIHandler::get().setVisible(m_multiPlayerIndexThree, false);
 	GUIHandler::get().setVisible(m_multiPlayerIndexFour, false);
