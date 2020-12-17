@@ -2184,6 +2184,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		Physics::get().Attach(sceneObject->m_boss, true, false);
 
 		sceneObject->createBaloon(sceneObject->m_sceneEntryPosition + Vector3(0, 0, -5));
+		sceneObject->createBaloon(sceneObject->m_sceneEntryPosition + Vector3(0, 10, -10));
 
 
 		//Generate a set of segments on the boss, primarily to display the interface.
@@ -2469,6 +2470,7 @@ void Scene::updateScene(const float& dt)
 {
 	if (removeOnNextFrame != "")
 	{
+		//std::cout << (removeOnNextFrame) << std::endl;
 		removeEntity(removeOnNextFrame);
 		removeOnNextFrame = "";
 	}
@@ -2947,16 +2949,19 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 	{
 		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
 		{
-			Entity* trampolineEnt = m_entities[msg.entityIdentifier];
-			TriggerComponent* a = trampolineEnt->getComponentsByType<TriggerComponent>(ComponentType::TRIGGER);//static_cast<TriggerComponent*>(trampolineEnt->getComponent("heightTrigger"));
-			if (a && a->getPhysicsData().boolData == true)
-			{ // This is a baloon
-				removeOnNextFrame = msg.entityIdentifier;
-			}
-			else
-			{ // Animate trampolin
-				TrampolineComponent* tc = (TrampolineComponent*)trampolineEnt->getComponent("trampoline");
-				tc->activate();
+			if (msg.entityIdentifier != "")
+			{
+				Entity* trampolineEnt = m_entities[msg.entityIdentifier];
+				TriggerComponent* a = trampolineEnt->getComponentsByType<TriggerComponent>(ComponentType::TRIGGER);//static_cast<TriggerComponent*>(trampolineEnt->getComponent("heightTrigger"));
+				if (a && a->getPhysicsData().boolData == true)
+				{ // This is a baloon
+					removeOnNextFrame = msg.entityIdentifier;
+				}
+				else
+				{ // Animate trampolin
+					TrampolineComponent* tc = (TrampolineComponent*)trampolineEnt->getComponent("trampoline");
+					tc->activate();
+				}
 			}
 		}
 	}
@@ -3071,7 +3076,7 @@ void Scene::createSwingingHammer(Vector3 position, Vector3 rotation, float swing
 
 void Scene::createBaloon(Vector3 position)
 {
-	Entity* baloon = addEntity("baloon" + std::to_string(m_nrOfBaloons++));
+	Entity* baloon = addEntity("baloon" + std::to_string(m_nrOfBaloons));
 	if (baloon)
 	{
 		baloon->setPosition(position);
@@ -3089,7 +3094,6 @@ void Scene::createBaloon(Vector3 position)
 		addComponent(baloon, "sweep", new SweepingComponent(baloon, startPos, endPos, 2));
 
 		m_nrOfBaloons++;
-
 	}
 }
 
