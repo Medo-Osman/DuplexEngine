@@ -495,11 +495,24 @@ void Player::playerStateLogic(const float& dt)
 
 		break;
 	case PlayerState::CANNON:
+	{
 		m_controller->setPosition(m_cannonEntity->getTranslation() + Vector3(0.f, 0.5f, 0.f));
 		m_velocity.y = 0;
 
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 
+		std::vector<Component*> meshVec;
+		std::vector<Component*> animMeshVec;
+		m_playerEntity->getComponentsOfType(meshVec, ComponentType::MESH);
+		m_playerEntity->getComponentsOfType(animMeshVec, ComponentType::ANIM_MESH);
+		for (int i = 0; i < meshVec.size(); i++)
+		{
+			static_cast<MeshComponent*>(meshVec.at(i))->setVisible(false);
+		}
+		for (int i = 0; i < animMeshVec.size(); i++)
+		{
+			static_cast<AnimatedMeshComponent*>(animMeshVec.at(i))->setVisible(false);
+		}
 
 		if (m_shouldFire)
 		{
@@ -509,7 +522,7 @@ void Player::playerStateLogic(const float& dt)
 			m_direction = m_lastDirectionalMovement = m_moveDirection = m_cameraTransform->getForwardVector();
 			m_direction *= CANNON_POWER;
 			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
-			if(m_3dMarker)
+			if (m_3dMarker)
 				m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
 			m_shouldDrawLine = false;
@@ -521,9 +534,9 @@ void Player::playerStateLogic(const float& dt)
 			PlayerMessageData d;
 			d.playerActionType = PlayerActions::ON_FIRE_CANNON;
 			d.playerPtr = this;
-			
+
 			this->sendPlayerMSG(d);
-			
+
 
 		}
 		else //Draw marker
@@ -548,9 +561,24 @@ void Player::playerStateLogic(const float& dt)
 			return;
 		}
 		break;
+	}
 	case PlayerState::FLYINGBALL:
+	{
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 		m_direction.y -= CANNON_POWER * dt;
+
+		std::vector<Component*> meshVec;
+		std::vector<Component*> animMeshVec;
+		m_playerEntity->getComponentsOfType(meshVec, ComponentType::MESH);
+		m_playerEntity->getComponentsOfType(animMeshVec, ComponentType::ANIM_MESH);
+		for (int i = 0; i < meshVec.size(); i++)
+		{
+			static_cast<MeshComponent*>(meshVec.at(i))->setVisible(true);
+		}
+		for (int i = 0; i < animMeshVec.size(); i++)
+		{
+			static_cast<AnimatedMeshComponent*>(animMeshVec.at(i))->setVisible(true);
+		}
 
 		m_controller->move(m_direction * dt, dt);
 		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || (m_direction.y <= 0 && m_controller->checkGround()))
@@ -570,6 +598,7 @@ void Player::playerStateLogic(const float& dt)
 		}
 		return;
 		break;
+	}
 	default:
 		break;
 	}

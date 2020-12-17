@@ -1585,6 +1585,7 @@ void Renderer::rasterizerSetup()
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtrWireframe.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerStateWireframe");
 
+	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_particleRasterizerStatePtr.GetAddressOf());
