@@ -421,6 +421,13 @@ void Material::readMaterials()
 		//Material mat;
 		MATERIAL_INIT_STRUCT mat;
 		mat.MaterialID = ++totalMaterialCount;
+		//std::cout << textureNames.at(i) << std::endl;
+		if (textureNames.at(i) == std::wstring(L"LucyEyes"))
+		{
+			mat.MaterialID += 3000;
+			int laaa = 0;
+		}
+			
 
 		for (int l = 0; l < 4; l++)
 		{
