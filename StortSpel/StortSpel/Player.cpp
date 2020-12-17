@@ -43,9 +43,9 @@ Player::Player()
 	iStyle.position = Vector2(1700, 50);
 	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Point_BG.png", iStyle);
 	GUITextStyle style;
-	style.position = Vector2(1717, 62);
+	style.position = Vector2(1717, 50);
 	style.color = Colors::White;
-	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
+	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"concert_one_72.spritefont", style);
 
 	//GUIImageStyle imageStyle;
 	//imageStyle.position = Vector2(400.f, 50.f);
@@ -102,7 +102,7 @@ void Player::setCannonEntity(Entity* entity, MeshComponent* pipe)
 		m_3dMarker = new Entity("3DMarker");
 		m_3dMarker->scale(0.25f, 0.25f, 0.25f);
 		Engine::get().getEntityMap()->emplace("3DMarker", m_3dMarker);
-		MeshComponent* mesh = new MeshComponent("testCube_pCube1.lrm");
+		MeshComponent* mesh = new MeshComponent("Marker3D.lrm", TEMP_TEST);
 		mesh->setCastsShadow(false);
 		m_3dMarker->addComponent("6 nov (mesh)", mesh);
 		Engine::get().getMeshComponentMap()->emplace(1632, mesh);
@@ -264,6 +264,9 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 	Vector3 pos = position;
 	Vector3 dir = direction;
 	Vector3 outDir;
+
+	if (!m_3dMarker)
+		return pos;
 
 	while (!foundEnd && t < 10)
 	{
@@ -492,11 +495,24 @@ void Player::playerStateLogic(const float& dt)
 
 		break;
 	case PlayerState::CANNON:
+	{
 		m_controller->setPosition(m_cannonEntity->getTranslation() + Vector3(0.f, 0.5f, 0.f));
 		m_velocity.y = 0;
 
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 
+		std::vector<Component*> meshVec;
+		std::vector<Component*> animMeshVec;
+		m_playerEntity->getComponentsOfType(meshVec, ComponentType::MESH);
+		m_playerEntity->getComponentsOfType(animMeshVec, ComponentType::ANIM_MESH);
+		for (int i = 0; i < meshVec.size(); i++)
+		{
+			static_cast<MeshComponent*>(meshVec.at(i))->setVisible(false);
+		}
+		for (int i = 0; i < animMeshVec.size(); i++)
+		{
+			static_cast<AnimatedMeshComponent*>(animMeshVec.at(i))->setVisible(false);
+		}
 
 		if (m_shouldFire)
 		{
@@ -506,7 +522,8 @@ void Player::playerStateLogic(const float& dt)
 			m_direction = m_lastDirectionalMovement = m_moveDirection = m_cameraTransform->getForwardVector();
 			m_direction *= CANNON_POWER;
 			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
-			m_3dMarker->setPosition(0, -9999, -9999);
+			if (m_3dMarker)
+				m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
 			m_shouldDrawLine = false;
 			m_verticalMultiplier = 5;
@@ -517,9 +534,9 @@ void Player::playerStateLogic(const float& dt)
 			PlayerMessageData d;
 			d.playerActionType = PlayerActions::ON_FIRE_CANNON;
 			d.playerPtr = this;
-			
+
 			this->sendPlayerMSG(d);
-			
+
 
 		}
 		else //Draw marker
@@ -544,9 +561,24 @@ void Player::playerStateLogic(const float& dt)
 			return;
 		}
 		break;
+	}
 	case PlayerState::FLYINGBALL:
+	{
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 		m_direction.y -= CANNON_POWER * dt;
+
+		std::vector<Component*> meshVec;
+		std::vector<Component*> animMeshVec;
+		m_playerEntity->getComponentsOfType(meshVec, ComponentType::MESH);
+		m_playerEntity->getComponentsOfType(animMeshVec, ComponentType::ANIM_MESH);
+		for (int i = 0; i < meshVec.size(); i++)
+		{
+			static_cast<MeshComponent*>(meshVec.at(i))->setVisible(true);
+		}
+		for (int i = 0; i < animMeshVec.size(); i++)
+		{
+			static_cast<AnimatedMeshComponent*>(animMeshVec.at(i))->setVisible(true);
+		}
 
 		m_controller->move(m_direction * dt, dt);
 		if (m_controller->castRay(m_controller->getCenterPosition(), DirectX::XMVector3Normalize(m_direction), 1.f) || (m_direction.y <= 0 && m_controller->checkGround()))
@@ -566,6 +598,7 @@ void Player::playerStateLogic(const float& dt)
 		}
 		return;
 		break;
+	}
 	default:
 		break;
 	}
@@ -857,15 +890,14 @@ void Player::increaseScoreBy(int value)
 	if (m_score >= 10 && m_score < 100)
 	{
 		GUITextStyle style;
-		style.position = Vector2(1705, 62);
+		style.position = Vector2(1698, 50);
 		style.color = Colors::White;
 		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
 	}
-	if (m_score >= 100)
+	else if (m_score >= 100)
 	{
-
 		GUITextStyle style;
-		style.position = Vector2(1678, 62);
+		style.position = Vector2(1668, 50);
 		style.color = Colors::White;
 		GUIHandler::get().setGUITextStyle(m_scoreGUIIndex, style);
 	}
@@ -941,7 +973,7 @@ void Player::handlePickupOnUse()
 		break;
 	case PickupType::CANNON:
 		m_state = PlayerState::CANNON;
-		m_cameraOffset = Vector3(1.f, 2.0f, 0.f);
+		m_cameraOffset = Vector3(1.2f, 1.0f, -0.8f);
 		//Cannon on use
 		break;
 	default:

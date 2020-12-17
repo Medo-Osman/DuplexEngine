@@ -23,6 +23,8 @@ public:
 		m_actionMapping['F'] = Action::USEPICKUP;
 		m_actionMapping[(char)'\x24'] = Action::RESPAWN; //Home 
 		m_actionMapping['\x1B'] = Action::MENU; // Escape
+		m_actionMapping['\x72'] = Action::PREVIOUSDEBUGVIEWMODE;
+		m_actionMapping['\x73'] = Action::NEXTDEBUGVIEWMODE;
 		m_actionMapping['\x0D'] = Action::USE;
 		m_actionMapping['mwp'] = Action::SCROLL_UP;
 		m_actionMapping['mwr'] = Action::SCROLL_DOWN;

@@ -18,6 +18,7 @@ enum ShaderProgramsEnum
 	LUCY_FACE,
 	RAINBOW,
 	CLOUD,
+	PEARL,
 	Z_PRE_PASS,
 	Z_PRE_PASS_ANIM,
 	NORMALS_DEPTH,
@@ -189,14 +190,28 @@ inline void compileAllShaders(std::unordered_map<ShaderProgramsEnum, ShaderProgr
 
 	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD] = new ShaderProgram
 	(
+		//{ L"CloudShaderVS.hlsl", L"CloudShaderHS.hlsl", L"CloudShaderDS.hlsl", L"null", L"CloudShaderPS.hlsl" },
 		{ L"CloudShaderVS.hlsl", L"CloudShaderHS.hlsl", L"CloudShaderDS.hlsl", L"null", L"CloudShaderPS.hlsl" },
 		D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST,
-		VertexLayoutType::LRSMVertexLayout,
+		VertexLayoutType::LRMVertexLayout,
 		devicePtr, dContextPtr, depthStencilPtr
 	);
 
 	// Allow binding of a displacement map to the domain shader
 	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Domain, true);
+	(*compiledShadersMap)[ShaderProgramsEnum::CLOUD]->setShaderNeedsResource(ShaderType::Pixel, true);
+
+	(*compiledShadersMap)[ShaderProgramsEnum::PEARL] = new ShaderProgram
+	(
+		{ L"PearlVS.hlsl", L"null", L"null", L"null", L"PearlPS.hlsl" },
+		D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST,
+		VertexLayoutType::LRMVertexLayout,
+		devicePtr, dContextPtr, depthStencilPtr
+	);
+
+	// Allow binding of a displacement map to the domain shader
+	(*compiledShadersMap)[ShaderProgramsEnum::PEARL]->setShaderNeedsResource(ShaderType::Vertex, true);
+	(*compiledShadersMap)[ShaderProgramsEnum::PEARL]->setShaderNeedsResource(ShaderType::Pixel, true);
 
 	(*compiledShadersMap)[ShaderProgramsEnum::NORMALS_DEPTH] = new ShaderProgram
 	(

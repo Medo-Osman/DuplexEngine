@@ -11,12 +11,30 @@
 #include"Particles\Particle.h"
 #include"Particles\RainingDogsParticle.h"
 #include"Particles\ScorePickupParticle.h"
+
+static const int debugViewModeCount = 3;
 #include"DebugDraw.h"
 #include"BoundingVolumeHolder.h"
 
+enum DebugViewMode
+{
+	DEFAULTVIEW,
+	SSAO_OFF,
+	WIREFRAME
+};
+
+static const std::string DebugModeNames[debugViewModeCount]
+{
+	"Default",
+	"SSAO OFF",
+	"Wireframe"
+};
+
+// Graphics Settings
+static const int MSAAcount = 8;
+
 class Renderer : public InputObserver
 {
-
 private:
 	static const bool USE_Z_PRE_PASS;
 	//Pointers
@@ -99,7 +117,9 @@ private:
 	Buffer<skeletonAnimationCBuffer> m_skelAnimationConstantBuffer;
 	Buffer<MATERIAL_CONST_BUFFER> m_currentMaterialConstantBuffer;
 	Buffer<globalConstBuffer> m_globalConstBuffer;
+	globalConstBuffer m_globalConstBufferTemp;
 	Buffer<atmosphericFogConstBuffer> m_atmosphericFogConstBuffer;
+	Buffer<cloudConstBuffer> m_cloudConstBuffer;
 
 	// Blur stuff
 	Buffer<CS_BLUR_CBUFFER> m_blurBuffer;
@@ -113,6 +133,7 @@ private:
 	//Rasterizer
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtr = NULL;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_particleRasterizerStatePtr = NULL;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerStatePtrWireframe = NULL;
 
 	D3D11_VIEWPORT m_defaultViewport;
 
@@ -136,12 +157,13 @@ private:
 	HWND m_window;
 	Settings m_settings;
 	Camera* m_camera = nullptr;
+
+	int m_debugViewMode = 0;
 	
 	float m_clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.f };
 	float m_blackClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
-	float m_AOclearColor[4] = { 0.0f, 0.0f, -1.0f, 1e5f };
-
-	
+	float m_whiteClearColor[4] = { 1.f, 1.f, 1.f, 1.f };
+	float m_normalsNDepthClearColor[4] = { 0.0f, 0.0f, -1.0f, 1e5f };
 	
 	std::unordered_map<ShaderProgramsEnum, ShaderProgram*> m_compiledShaders;
 	ShaderProgramsEnum m_currentSetShaderProg = ShaderProgramsEnum::NONE;
@@ -232,11 +254,10 @@ public:
 	ID3D11DepthStencilView* getDepthStencilView();
 	void printLiveObject();
 
+	globalConstBuffer getGlobalConstBuffer();
 
 	void addPrimitiveToDraw();
 
-
 	// Inherited via InputObserver
 	virtual void inputUpdate(InputData& inputData) override;
-
 };

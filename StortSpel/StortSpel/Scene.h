@@ -186,6 +186,7 @@ public:
 	static void loadLobby(Scene* sceneObject, bool* finished);
 	static void loadArena(Scene* sceneObject, bool* finished);
 	static void loadMaterialTest(Scene* sceneObject, bool* finished);
+	static void loadSimpleTest(Scene* sceneObject, bool* finished);
 	static void loadBossTest(Scene* sceneObject, bool* finished);
 	static void loadBossTestPhaseTwo(Scene* sceneObject, bool* finished);
 	static void loadEmpty(Scene* sceneObject, bool* finished);
@@ -219,6 +220,8 @@ public:
 	void addLightComponent(LightComponent* component);
 	void addBarrelDrop(Vector3 Position);
 	void addBarrelDropTrigger(Vector3 Position);
+	void addCloudBedMesh(Vector3 Position, const char* meshName, int nrOfParts);
+	void addCloudBedMesh2(Vector3 Position, const char* meshName);
 
 	int getSceneID();
 

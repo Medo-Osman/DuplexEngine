@@ -10,7 +10,7 @@ const bool Renderer::USE_Z_PRE_PASS = true;
 Renderer::Renderer()
 {
 	//m_rTargetViewsArray = new ID3D11RenderTargetView * [8];
-	
+
 	//Variables
 	m_shadowMap = nullptr;
 }
@@ -95,7 +95,7 @@ void Renderer::release()
 	{
 		delete element.second;
 	}
-	
+
 	Particle::cleanStaticDataForParticles();
 
 	m_states.reset();
@@ -137,7 +137,7 @@ Renderer::~Renderer()
 	m_cameraBuffer.release();
 	m_skyboxConstantBuffer.release();
 	m_shadowConstantBuffer.release();
-	
+
 	m_skelAnimationConstantBuffer.release();
 	m_currentMaterialConstantBuffer.release();
 
@@ -175,15 +175,15 @@ HRESULT Renderer::initialize(const HWND& window)
 #ifdef _DEBUG
 	//Get Debugger
 	hr = m_devicePtr->QueryInterface(IID_PPV_ARGS(m_debugPtr.GetAddressOf()));
-						//QueryInterface(IID_PPV_ARGS(&debug))
+	//QueryInterface(IID_PPV_ARGS(&debug))
 	if (!SUCCEEDED(hr)) return hr;
 
-//	ID3D11InfoQueue* infoQueue = nullptr;
-//	hr = m_debugPtr->QueryInterface(__uuidof(ID3D11InfoQueue), (void**) & infoQueue);
-//
-//#ifdef _DEBUG
-//	infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
-//	infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
+	//	ID3D11InfoQueue* infoQueue = nullptr;
+	//	hr = m_debugPtr->QueryInterface(__uuidof(ID3D11InfoQueue), (void**) & infoQueue);
+	//
+	//#ifdef _DEBUG
+	//	infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
+	//	infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
 #endif
 
 
@@ -193,7 +193,7 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	hr = createDepthStencil();
 	if (!SUCCEEDED(hr)) return hr;
-	
+
 	D3D11_TEXTURE2D_DESC textureDesc = { 0 };
 	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	textureDesc.Width = m_settings.width;
@@ -201,7 +201,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
-	textureDesc.SampleDesc.Count = 2;
+	textureDesc.SampleDesc.Count = MSAAcount;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
 
 	ID3D11Texture2D* geometryTexture;
@@ -232,7 +232,8 @@ HRESULT Renderer::initialize(const HWND& window)
 	buildFrustumFarCorners((80.f / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
 	buildOffsetVectors();
 	calculateBlurWeights(m_ssaoBlurData, BLUR_RADIUS, m_ssaoSigma);
-	createViewPort(m_SSAOViewport, m_settings.width, m_settings.height);
+	//createViewPort(m_SSAOViewport, m_settings.width, m_settings.height);
+	createViewPort(m_SSAOViewport, m_settings.width / 2.f, m_settings.height / 2.f);
 
 	// Bloom
 	initializeBloomFilter();
@@ -256,9 +257,9 @@ HRESULT Renderer::initialize(const HWND& window)
 
 	glowTexture->Release();
 
+	// SSAO Maps
 	ID3D11Texture2D* normalsNDepthTexture;
-
-	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	textureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	textureDesc.SampleDesc.Count = 1;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Format = textureDesc.Format;
@@ -269,14 +270,15 @@ HRESULT Renderer::initialize(const HWND& window)
 	hr = m_devicePtr->CreateRenderTargetView(normalsNDepthTexture, 0, m_normalsNDepthRenderTargetViewPtr.GetAddressOf());
 	if (!SUCCEEDED(hr)) return hr;
 
-
 	hr = m_devicePtr->CreateShaderResourceView(normalsNDepthTexture, &srvDesc, &m_normalsNDepthSRV);
 	if (!SUCCEEDED(hr)) return hr;
 
 	normalsNDepthTexture->Release();
 
 	ID3D11Texture2D* SSAOTexture;
-	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	textureDesc.Width = m_settings.width / 2.f;
+	textureDesc.Height = m_settings.height / 2.f;
+	textureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
 
 	srvDesc.Format = textureDesc.Format;
@@ -343,14 +345,14 @@ HRESULT Renderer::initialize(const HWND& window)
 	//Setup samplerstate
 	D3D11_SAMPLER_DESC samplerStateDesc;
 	ZeroMemory(&samplerStateDesc, sizeof(D3D11_SAMPLER_DESC));
-	samplerStateDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerStateDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	samplerStateDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerStateDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerStateDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerStateDesc.MipLODBias = 0.0f;
-	samplerStateDesc.MaxAnisotropy = 1;
+	samplerStateDesc.MaxAnisotropy = 2;
 	samplerStateDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerStateDesc.MinLOD = 0;
+	samplerStateDesc.MinLOD = -FLT_MAX;
 	samplerStateDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	hr = m_devicePtr->CreateSamplerState(&samplerStateDesc, &m_psSamplerState);
@@ -411,6 +413,12 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_dContextPtr->PSSetConstantBuffers(4, 1, m_globalConstBuffer.GetAddressOf());
 	m_dContextPtr->DSSetConstantBuffers(1, 1, m_globalConstBuffer.GetAddressOf());
 
+	cloudConstBuffer cloudConstBuffer;
+	m_cloudConstBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cloudConstBuffer, 1);
+	m_dContextPtr->HSSetConstantBuffers(2, 1, m_cloudConstBuffer.GetAddressOf());
+	m_dContextPtr->DSSetConstantBuffers(2, 1, m_cloudConstBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(6, 1, m_cloudConstBuffer.GetAddressOf());
+
 	lightBufferStruct initalLightData; //Not sure why, but it refuses to take &lightBufferStruct() as argument on line below
 	m_lightBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &initalLightData, 1);
 	m_dContextPtr->PSSetConstantBuffers(0, 1, m_lightBuffer.GetAddressOf());
@@ -421,6 +429,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	cameraBufferStruct cameraBufferStruct;
 	m_cameraBuffer.initializeBuffer(m_devicePtr.Get(), true, D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER, &cameraBufferStruct, 1);
 	m_dContextPtr->PSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
+	m_dContextPtr->HSSetConstantBuffers(1, 1, m_cameraBuffer.GetAddressOf());
 
 	m_dContextPtr->PSSetConstantBuffers(2, 1, m_perObjectConstantBuffer.GetAddressOf());
 
@@ -448,7 +457,7 @@ HRESULT Renderer::initialize(const HWND& window)
 	/////////////////////////////////////////////////
 
 	initRenderQuad();
-	
+
 
 	// ImGui initialization
 	IMGUI_CHECKVERSION();
@@ -457,6 +466,64 @@ HRESULT Renderer::initialize(const HWND& window)
 	ImGui::SetCurrentContext(imguictx);
 
 	ImGui::StyleColorsDark();
+
+	io.Fonts->AddFontFromFileTTF("../res/fonts/Ruda-Bold.ttf", 14.0f);
+
+	ImGuiStyle* style = &ImGui::GetStyle();
+	style->FrameRounding = 4.0f;
+	style->WindowBorderSize = 0.0f;
+	style->PopupBorderSize = 0.0f;
+	style->GrabRounding = 4.0f;
+
+	ImVec4* colors = ImGui::GetStyle().Colors;
+	colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+	colors[ImGuiCol_TextDisabled] = ImVec4(0.73f, 0.75f, 0.74f, 1.00f);
+	colors[ImGuiCol_WindowBg] = ImVec4(0.09f, 0.09f, 0.09f, 0.94f);
+	colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
+	colors[ImGuiCol_Border] = ImVec4(0.20f, 0.20f, 0.20f, 0.50f);
+	colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	colors[ImGuiCol_FrameBg] = ImVec4(0.71f, 0.39f, 0.39f, 0.54f);
+	colors[ImGuiCol_FrameBgHovered] = ImVec4(0.84f, 0.66f, 0.66f, 0.40f);
+	colors[ImGuiCol_FrameBgActive] = ImVec4(0.84f, 0.66f, 0.66f, 0.67f);
+	colors[ImGuiCol_TitleBg] = ImVec4(0.47f, 0.22f, 0.22f, 0.67f);
+	colors[ImGuiCol_TitleBgActive] = ImVec4(0.47f, 0.22f, 0.22f, 1.00f);
+	colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.47f, 0.22f, 0.22f, 0.67f);
+	colors[ImGuiCol_MenuBarBg] = ImVec4(0.34f, 0.16f, 0.16f, 1.00f);
+	colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
+	colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+	colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+	colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
+	colors[ImGuiCol_CheckMark] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+	colors[ImGuiCol_SliderGrab] = ImVec4(0.71f, 0.39f, 0.39f, 1.00f);
+	colors[ImGuiCol_SliderGrabActive] = ImVec4(0.84f, 0.66f, 0.66f, 1.00f);
+	colors[ImGuiCol_Button] = ImVec4(0.47f, 0.22f, 0.22f, 0.65f);
+	colors[ImGuiCol_ButtonHovered] = ImVec4(0.71f, 0.39f, 0.39f, 0.65f);
+	colors[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.20f, 0.20f, 0.50f);
+	colors[ImGuiCol_Header] = ImVec4(0.71f, 0.39f, 0.39f, 0.54f);
+	colors[ImGuiCol_HeaderHovered] = ImVec4(0.84f, 0.66f, 0.66f, 0.65f);
+	colors[ImGuiCol_HeaderActive] = ImVec4(0.84f, 0.66f, 0.66f, 0.00f);
+	colors[ImGuiCol_Separator] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
+	colors[ImGuiCol_SeparatorHovered] = ImVec4(0.71f, 0.39f, 0.39f, 0.54f);
+	colors[ImGuiCol_SeparatorActive] = ImVec4(0.71f, 0.39f, 0.39f, 0.54f);
+	colors[ImGuiCol_ResizeGrip] = ImVec4(0.71f, 0.39f, 0.39f, 0.54f);
+	colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.84f, 0.66f, 0.66f, 0.66f);
+	colors[ImGuiCol_ResizeGripActive] = ImVec4(0.84f, 0.66f, 0.66f, 0.66f);
+	colors[ImGuiCol_Tab] = ImVec4(0.71f, 0.39f, 0.39f, 0.54f);
+	colors[ImGuiCol_TabHovered] = ImVec4(0.84f, 0.66f, 0.66f, 0.66f);
+	colors[ImGuiCol_TabActive] = ImVec4(0.84f, 0.66f, 0.66f, 0.66f);
+	colors[ImGuiCol_TabUnfocused] = ImVec4(0.07f, 0.10f, 0.15f, 0.97f);
+	colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.14f, 0.26f, 0.42f, 1.00f);
+	colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+	colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+	colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+	colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+	colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+	colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+	colors[ImGuiCol_NavHighlight] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+	colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+	colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(m_devicePtr.Get(), m_dContextPtr.Get());
@@ -479,9 +546,9 @@ HRESULT Renderer::initialize(const HWND& window)
 	m_effect->GetVertexShaderBytecode(&shaderByteCode, &byteCodeLength);
 
 	hr = m_devicePtr->CreateInputLayout(VertexType::InputElements,
-			VertexType::InputElementCount,
-			shaderByteCode, byteCodeLength,
-			m_inputLayout.ReleaseAndGetAddressOf());
+		VertexType::InputElementCount,
+		shaderByteCode, byteCodeLength,
+		m_inputLayout.ReleaseAndGetAddressOf());
 
 	m_batch = std::make_unique<PrimitiveBatch<VertexType>>(this->m_dContextPtr.Get());
 
@@ -513,7 +580,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 	sChainDesc.BufferDesc.RefreshRate.Numerator = 60; //IF vSync is enabled and fullscreen, this specifies the max refreshRate
 	sChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	sChainDesc.SampleDesc.Quality = 0;
-	sChainDesc.SampleDesc.Count = 2;
+	sChainDesc.SampleDesc.Count = MSAAcount;
 	sChainDesc.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_DISCARD; //What to do with buffer when swap occur
 	sChainDesc.OutputWindow = m_window;
 
@@ -558,7 +625,7 @@ HRESULT Renderer::createDepthStencil()
 	depthTextureDesc.MipLevels = 1;
 	depthTextureDesc.MiscFlags = 0;
 	depthTextureDesc.SampleDesc.Quality = 0;
-	depthTextureDesc.SampleDesc.Count = 2;
+	depthTextureDesc.SampleDesc.Count = MSAAcount;
 	depthTextureDesc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
 
 	ID3D11Texture2D* depthStencilBufferPtr;
@@ -752,13 +819,13 @@ void Renderer::computeSSAOPass()
 	m_dContextPtr->IASetVertexBuffers(0, 1, m_renderQuadBuffer.GetAddressOf(), m_renderQuadBuffer.getStridePointer(), &offset);
 
 	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), NULL);
-	m_dContextPtr->ClearRenderTargetView(m_SSAORenderTargetViewPtr.Get(), m_blackClearColor);
+	m_dContextPtr->ClearRenderTargetView(m_SSAORenderTargetViewPtr.Get(), m_whiteClearColor);
 
 	m_compiledShaders[ShaderProgramsEnum::SSAO_MAP]->setShaders();
 	m_currentSetShaderProg = ShaderProgramsEnum::SSAO_MAP;
 
-	m_dContextPtr->VSSetConstantBuffers(4, 1, m_ssaoBuffer.GetAddressOf());
-	m_dContextPtr->PSSetConstantBuffers(4, 1, m_ssaoBuffer.GetAddressOf());
+	m_dContextPtr->VSSetConstantBuffers(7, 1, m_ssaoBuffer.GetAddressOf());
+	m_dContextPtr->PSSetConstantBuffers(7, 1, m_ssaoBuffer.GetAddressOf());
 	m_dContextPtr->PSSetShaderResources(0, 1, m_normalsNDepthSRV.GetAddressOf());
 	m_dContextPtr->PSSetShaderResources(1, 1, m_randomVectorsSRV.GetAddressOf());
 
@@ -924,7 +991,7 @@ void Renderer::blurPass()
 {
 	UINT offset = 0;
 	int vertexCount = 6;
-	
+
 
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
 	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
@@ -1015,7 +1082,8 @@ void Renderer::ssaoBlurPass()
 		this->m_dContextPtr->CSSetUnorderedAccessViews(0, 1, &blurUAVs[m_ssaoBlurData.direction], &cOffset);
 
 		// Dispatch Shader
-		this->m_dContextPtr->Dispatch(m_settings.width / 8, m_settings.height / 8, 1);
+		this->m_dContextPtr->Dispatch(m_settings.width / 16, m_settings.height / 16, 1);
+		//this->m_dContextPtr->Dispatch(m_settings.width / 8, m_settings.height / 8, 1);
 
 		// Unbind Unordered Access View and Shader Resource View
 		this->m_dContextPtr->CSSetShaderResources(0, 1, &this->nullSrv);
@@ -1025,8 +1093,9 @@ void Renderer::ssaoBlurPass()
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
 	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
 
-	//ImGui::Begin("someWindow");
-	//ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(512, 288));
+	//ImGui::Begin("SSAO Map");
+	//ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(720, 405));
+	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(512, 288));
 	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(1024, 576));
 	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(256, 256));
 	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(128, 128));
@@ -1038,12 +1107,14 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 	m_drawn = 0;
 
 	m_dContextPtr->OMSetRenderTargets(1, m_normalsNDepthRenderTargetViewPtr.GetAddressOf(), m_NormalDepthStencilViewPtr.Get());
-	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_AOclearColor);
+	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_normalsNDepthClearColor);
 	// Get Entity map from Engine
 	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
+		
+		
 		bool isAnim = false;
 		XMFLOAT3 min, max;
 		bool draw = true;
@@ -1061,12 +1132,23 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 		{
 			//Culling
 			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
-			XMVECTOR pos = parentEntity->getTranslation();
-			pos += component.second->getTranslation();
-			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
-			XMFLOAT3 posFloat3;
-			XMStoreFloat3(&posFloat3, pos);
+			Vector3 pos = parentEntity->getTranslation();
+			Vector3 meshOffset = component.second->getTranslation();
+			Vector3 boundsCenter = component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
 
+			if (!XMQuaternionIsIdentity(parentEntity->getRotation()))
+			{
+				meshOffset = XMVector3Rotate(meshOffset, parentEntity->getRotation());
+				boundsCenter = XMVector3Rotate(boundsCenter, parentEntity->getRotation());
+			}
+			if (!XMQuaternionIsIdentity(component.second->getRotation()))
+			{
+				meshOffset = XMVector3Rotate(meshOffset, component.second->getRotation());
+				boundsCenter = XMVector3Rotate(boundsCenter, component.second->getRotation());
+			}
+
+			pos += meshOffset;
+			pos += boundsCenter;
 
 			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
@@ -1075,7 +1157,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 				XMFLOAT3 ext = (max - min) / 2;
 				ext = ext * scale;
 				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
-				BoundingOrientedBox box(posFloat3, ext, rot);
+				BoundingOrientedBox box(pos, ext, rot);
 
 				ContainmentType contType = frust->Contains(box);
 				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
@@ -1095,7 +1177,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
 			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
-			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component.second->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(component.second->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
@@ -1114,7 +1196,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 
 			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
 			{
-				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+				//m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 				NormalShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH_ANIM;
 			}
 
@@ -1229,9 +1311,9 @@ void Renderer::zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMA
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
-				
+
 			AnimatedMeshComponent* animMeshComponent = nullptr;
-			if(component.second->getType() == ComponentType::ANIM_MESH)
+			if (component.second->getType() == ComponentType::ANIM_MESH)
 				animMeshComponent = static_cast<AnimatedMeshComponent*>(component.second);
 
 
@@ -1282,7 +1364,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		XMFLOAT3 min, max;
 		bool draw = true;
 		Entity* parentEntity;
-		
+
 		if (component.second->getParentEntityIdentifier() == PLAYER_ENTITY_NAME)
 			parentEntity = Engine::get().getPlayerPtr()->getPlayerEntity();
 		else if (component.second->getParentEntityIdentifier() == (const std::string) "3DMarker")
@@ -1295,12 +1377,23 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		{
 			//Culling
 			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
-			XMVECTOR pos = parentEntity->getTranslation();
-			pos += component.second->getTranslation();
-			pos += component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
-			XMFLOAT3 posFloat3;
-			XMStoreFloat3(&posFloat3, pos);
+			Vector3 pos = parentEntity->getTranslation();
+			Vector3 meshOffset = component.second->getTranslation();
+			Vector3 boundsCenter = component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
+			
+			if (!XMQuaternionIsIdentity(parentEntity->getRotation()))
+			{
+				meshOffset = XMVector3Rotate(meshOffset, parentEntity->getRotation());
+				boundsCenter = XMVector3Rotate(boundsCenter, parentEntity->getRotation());
+			}
+			if (!XMQuaternionIsIdentity(component.second->getRotation()))
+			{
+				meshOffset = XMVector3Rotate(meshOffset, component.second->getRotation());
+				boundsCenter = XMVector3Rotate(boundsCenter, component.second->getRotation());
+			}
 
+			pos += meshOffset;
+			pos += boundsCenter;
 
 			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
@@ -1309,7 +1402,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 				XMFLOAT3 ext = (max - min) / 2;
 				ext = ext * scale;
 				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
-				BoundingOrientedBox box(posFloat3, ext, rot);
+				BoundingOrientedBox box(pos, ext, rot);
 
 				ContainmentType contType = frust->Contains(box);
 				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
@@ -1324,7 +1417,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 		if (draw && meshComp->isVisible())
 		{
 			m_drawn++;
-			
+
 			perObjectMVP constantBufferPerObjectStruct;
 			component.second->getMeshResourcePtr()->set(m_dContextPtr.Get());
 			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_switchCamera ? m_testCamera.getProjectionMatrix() : m_camera->getProjectionMatrix());
@@ -1336,11 +1429,11 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 
 			AnimatedMeshComponent* animMeshComponent = dynamic_cast<AnimatedMeshComponent*>(component.second);
 
-			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
-			{
-				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
-			}
-			
+			//if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
+			//{
+			//	m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+			//}
+
 			int materialCount = component.second->getMeshResourcePtr()->getMaterialCount();
 
 			for (int mat = 0; mat < materialCount; mat++)
@@ -1352,7 +1445,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 					m_compiledShaders[meshShaderEnum]->setShaders();
 					m_currentSetShaderProg = meshShaderEnum;
 				}
-				
+
 				Material* meshMatPtr = component.second->getMaterialPtr(mat);
 				if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
 				{
@@ -1365,6 +1458,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 					currentMaterialConstantBufferData.metallic = meshMatPtr->getMaterialParameters().metallic;
 					currentMaterialConstantBufferData.textured = meshMatPtr->getMaterialParameters().textured;
 					currentMaterialConstantBufferData.emissiveStrength = meshMatPtr->getMaterialParameters().emissiveStrength;
+					currentMaterialConstantBufferData.baseColor = meshMatPtr->getMaterialParameters().baseColor;
 
 					m_currentMaterialConstantBuffer.updateBuffer(m_dContextPtr.Get(), &currentMaterialConstantBufferData);
 				}
@@ -1372,7 +1466,7 @@ void Renderer::renderScene(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, X
 				m_dContextPtr->PSSetShaderResources(8, 1, m_SSAOShaderResourceViewPtr.GetAddressOf());
 
 				std::pair<std::uint32_t, std::uint32_t> offsetAndSize = component.second->getMeshResourcePtr()->getMaterialOffsetAndSize(mat);
-				
+
 				m_dContextPtr->DrawIndexed(offsetAndSize.second, offsetAndSize.first, 0);
 			}
 		}
@@ -1399,7 +1493,6 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 
 	for (auto& component : *Engine::get().getMeshComponentMap())
 	{
-
 		if (component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_PBR && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
 		{
 			ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
@@ -1461,7 +1554,7 @@ void Renderer::toggleFlyingCamera()
 void Renderer::resizeBackbuff(int x, int y)
 {
 	//m_swapChainPtr.
-	
+
 	/*ID3D11Texture2D* swapChainBufferPtr;
 	HRESULT hr = m_swapChainPtr->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&swapChainBufferPtr);
 	int succInt = swapChainBufferPtr->Release();
@@ -1478,14 +1571,21 @@ void Renderer::rasterizerSetup()
 	D3D11_RASTERIZER_DESC rasterizerDesc;
 	ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 
+	rasterizerDesc.MultisampleEnable = true;
+
 	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
 
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtr.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerState");
 
+	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
+	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 
+	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtrWireframe.GetAddressOf());
+	assert(SUCCEEDED(hr) && "Error creating rasterizerStateWireframe");
 
+	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_particleRasterizerStatePtr.GetAddressOf());
@@ -1510,14 +1610,10 @@ void Renderer::update(const float& dt)
 		{
 			toggleFlyingCamera();
 		}
-
-		
-
 	}
 
 	if (m_useFlyingCamera)
 	{
-
 		m_camera->update(dt);
 		m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 
@@ -1526,68 +1622,168 @@ void Renderer::update(const float& dt)
 			buildFrustumFarCorners((m_camera->fovAmount / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
 			buildOffsetVectors();
 		}
-
-
-
 	}
 	else
 	{
 		m_camera = Engine::get().getCameraPtr();
-
 	}
 
-
 	// Constant buffer updates and settings
-	static globalConstBuffer globalConstBufferTemp;
 	static atmosphericFogConstBuffer fogConstBufferTemp;
 	static lightBufferStruct lightBufferTemp;
+	static cloudConstBuffer cloudConstBufferTemp;
 
-	static float tempSunDirectionX = 0.0f;
-	static float tempSunDirectionY = -1.0f;
-	static float tempSunDirectionZ = 1.0f;
+	static float tempSunDirectionX = -0.767f;
+	static float tempSunDirectionY = -0.574f;
+	static float tempSunDirectionZ = 0.382f;
+
+	enum TimeState
+	{
+		CUSTOM,
+		DAY,
+		NIGHT,
+		SUNSET,
+	};
+
+	TimeState currentTimeState = TimeState::DAY;
 
 	if (DEBUGMODE)
 	{
-		ImGui::SetNextWindowPos(ImVec2(1300.0f, 200.0f));
-		ImGui::SetNextWindowSize(ImVec2(550.0f, 500.0f));
+		ImGui::SetNextWindowPos(ImVec2(1370.0f, 0.0f));
+		ImGui::SetNextWindowSize(ImVec2(550.0f, 60.0f));
+		ImGui::Begin("Game Settings");
+
+		ImGui::SliderFloat("Global time dilation", (float*)&m_globalConstBufferTemp.globalTimeDilation, 0.0f, 5.0f);
+
+		ImGui::End();
+
+		ImGui::SetNextWindowPos(ImVec2(1370.0f, 60.0f));
+		ImGui::SetNextWindowSize(ImVec2(550.0f, 1020.0f));
 		ImGui::Begin("Global Shader Settings");
 
-		ImGui::Text("");
+		ImGui::Text("Debug Mode");
+		ImGui::Text("Index: %d", m_debugViewMode);
+		ImGui::Text(DebugModeNames[m_debugViewMode].c_str());
+
+		//ImGui::Text("");
+		ImGui::Text("Clouds");
+		//ImGui::InputFloat("Height Position", (float*)&cloudConstBufferTemp.cloudBedHeightPosition);
+		ImGui::SliderFloat("Displacement Factor", (float*)&cloudConstBufferTemp.cloudDisplacementFactor, 0.01f, 200.0f);
+		ImGui::SliderFloat("Tessellation Factor", (float*)&cloudConstBufferTemp.cloudTessellationFactor, 0.01f, 14.99f);
+		ImGui::SliderFloat("Worley Noise Scale", (float*)&cloudConstBufferTemp.worleyScale, 0.0f, 0.1f);
+		ImGui::Text("Pan Speed");
+		ImGui::SliderFloat("X", (float*)&cloudConstBufferTemp.panSpeed.x, -1.0f, 1.0f);
+		ImGui::SliderFloat("Y", (float*)&cloudConstBufferTemp.panSpeed.y, -1.0f, 1.0f);
+		ImGui::SliderFloat("Z", (float*)&cloudConstBufferTemp.panSpeed.z, -1.0f, 1.0f);
+		ImGui::SliderFloat("Tiling", (float*)&cloudConstBufferTemp.tile, 0.0f, 20.0f);
+		ImGui::SliderFloat("Disp. Power", (float*)&cloudConstBufferTemp.dispPower, 0.0f, 2.0f);
+		ImGui::SliderFloat("Pre-displacement", (float*)&cloudConstBufferTemp.preDisplacement, 0.0f, -100.0f);
+		ImGui::SliderFloat("Occlusion Factor", (float*)&cloudConstBufferTemp.occlusionFactor, 0.0f, 10.0f);
+		ImGui::SliderFloat("Backlight Factor", (float*)&cloudConstBufferTemp.backlightFactor, 0.0f, 10.0f);
+		ImGui::SliderFloat("Backlight Strength", (float*)&cloudConstBufferTemp.backlightStrength, 0.0f, 10.0f);
+		ImGui::ColorEdit3("Backlight Color", (float*)&cloudConstBufferTemp.backlightColor);
+
+		//ImGui::Text("");
+		ImGui::Text("Lighting");
 		ImGui::Text("Directional Light");
 		ImGui::SliderFloat("Intensity", (float*)&lightBufferTemp.skyLight.brightness, 0.0f, 100.0f);
 		ImGui::SliderFloat("Sun direction X", (float*)&tempSunDirectionX, -1.0f, 1.0f);
 		ImGui::SliderFloat("Sun direction Y", (float*)&tempSunDirectionY, -1.0f, 1.0f);
 		ImGui::SliderFloat("Sun direction Z", (float*)&tempSunDirectionZ, -1.0f, 1.0f);
 		ImGui::ColorEdit3("Color:", (float*)&lightBufferTemp.skyLight.color);
+		ImGui::Text("Misc.");
+		ImGui::SliderFloat("Environment Map Strength", (float*)&m_globalConstBufferTemp.environmentMapBrightness, 0.0f, 10.0f);
 
-		ImGui::Text("");
+		//ImGui::Text("");
 		ImGui::Text("Atmospheric Fog Settings");
 		ImGui::ColorEdit3("Color", (float*)&fogConstBufferTemp.FogColor);
-		ImGui::SliderFloat("Start depth", (float*)&fogConstBufferTemp.FogStartDepth, 0.0f, 100.0f);
-		ImGui::SliderFloat("Start depth (Skybox)", (float*)&fogConstBufferTemp.FogStartDepthSkybox, 0.0f, 100.0f);
+		ImGui::SliderFloat("Start depth", (float*)&fogConstBufferTemp.FogStartDepth, 0.0f, 1000.0f);
+		ImGui::SliderFloat("Start depth (Skybox)", (float*)&fogConstBufferTemp.FogStartDepthSkybox, 0.0f, 1000.0f);
 		ImGui::ColorEdit3("Highlight color", (float*)&fogConstBufferTemp.FogHighlightColor);
-		ImGui::SliderFloat("Global Density", (float*)&fogConstBufferTemp.FogGlobalDensity, 0.0f, 0.5f);
-		ImGui::SliderFloat("Height falloff", (float*)&fogConstBufferTemp.FogHeightFalloff, 0.0f, 100.0f);
+		ImGui::SliderFloat("Global Density", (float*)&fogConstBufferTemp.FogGlobalDensity, 0.0f, 0.1f);
+		ImGui::SliderFloat("Height falloff", (float*)&fogConstBufferTemp.FogHeightFalloff, 0.0f, 2.0f);
 		ImGui::Text("Cloud Fog");
-		ImGui::SliderFloat("Start", (float*)&fogConstBufferTemp.cloudFogHeightStart, -100.0f, 100.0f);
-		ImGui::SliderFloat("End", (float*)&fogConstBufferTemp.cloudFogHeightEnd, -100.0f, 100.0f);
+		ImGui::SliderFloat("Start", (float*)&fogConstBufferTemp.cloudFogHeightStart, -200.0f, fogConstBufferTemp.cloudFogHeightEnd - 1.0f);
+		ImGui::SliderFloat("End", (float*)&fogConstBufferTemp.cloudFogHeightEnd, fogConstBufferTemp.cloudFogHeightStart + 1.0f, fogConstBufferTemp.cloudFogHeightStart + 200.0f);
 		ImGui::SliderFloat("Strength", (float*)&fogConstBufferTemp.cloudFogStrength, 0.0f, 1.0f);
 		ImGui::ColorEdit3("Cloud Fog Color", (float*)&fogConstBufferTemp.cloudFogColor);
 
 		ImGui::End();
 	}
 
+	//switch (currentTimeState)
+	//{
+	//case DAY:
+	//	cloudConstBufferTemp.worleyScale = 0.02f;
+	//	cloudConstBufferTemp.panSpeed.x = 0.032f;
+	//	cloudConstBufferTemp.panSpeed.y = -0.026f;
+	//	cloudConstBufferTemp.panSpeed.z = -0.009f;
+	//	cloudConstBufferTemp.occlusionFactor = 1;
+	//	cloudConstBufferTemp.backlightFactor = 3;
+	//	cloudConstBufferTemp.backlightStrength = 1;
+	//	cloudConstBufferTemp.backlightColor = { 1.0f / 255.0f, 1.0f / 40.0f, 1.0f / 6.0f };
+
+	//	lightBufferTemp.skyLight.direction = { -0.767, -0.574, 0.382 };
+	//	break;
+	//case NIGHT:
+	//	cloudConstBufferTemp.worleyScale = 0.02f;
+	//	cloudConstBufferTemp.panSpeed.x = 0.032f;
+	//	cloudConstBufferTemp.panSpeed.y = -0.026f;
+	//	cloudConstBufferTemp.panSpeed.z = -0.009f;
+	//	cloudConstBufferTemp.occlusionFactor = 1;
+	//	cloudConstBufferTemp.backlightFactor = 3;
+	//	cloudConstBufferTemp.backlightStrength = 1;
+	//	cloudConstBufferTemp.backlightColor = { 1.0f / 255.0f, 1.0f / 40.0f, 1.0f / 6.0f };
+
+	//	lightBufferTemp.skyLight.direction = { -0.767, -0.574, 0.382 };
+
+	//	break;
+	//case SUNSET:
+	//	cloudConstBufferTemp.worleyScale = 0.02f;
+	//	cloudConstBufferTemp.panSpeed.x = 0.032f;
+	//	cloudConstBufferTemp.panSpeed.y = -0.026f;
+	//	cloudConstBufferTemp.panSpeed.z = -0.009f;
+	//	cloudConstBufferTemp.occlusionFactor = 1;
+	//	cloudConstBufferTemp.backlightFactor = 3;
+	//	cloudConstBufferTemp.backlightStrength = 1;
+	//	cloudConstBufferTemp.backlightColor = { 1.0f / 255.0f, 1.0f / 40.0f, 1.0f / 6.0f };
+
+	//	lightBufferTemp.skyLight.direction = { -0.767, -0.574, 0.382 };
+
+	//	break;
+	//default:
+	//	break;
+	//}
+
+	struct cloudConstBuffer
+	{
+		float cloudBedHeightPosition = 0.0f;
+		float cloudDisplacementFactor = 100.0f;
+		float cloudTessellationFactor = 14.99f;
+		float worleyScale = 0.02f;
+		Vector3 panSpeed = { 0.0f, -0.055f, 0.0f };
+		float tile = 1.0f;
+		float dispPower = 0.1f;
+		float occlusionFactor = 1.0f;
+		float backlightFactor = 5.0f;
+		float backlightStrength = 1.0f;
+		Vector3 backlightColor = { 1.0f, 0.156f, 0.024f };
+		float preDisplacement = -15.0f;
+	};
+
 
 	// Misc updates
 	lightBufferTemp.skyLight.direction = { tempSunDirectionX, tempSunDirectionY, tempSunDirectionZ };
 	fogConstBufferTemp.FogSunDir = lightBufferTemp.skyLight.direction;
-	globalConstBufferTemp.time += dt;
+	m_globalConstBufferTemp.time += dt;
 
-	m_globalConstBuffer.updateBuffer(m_dContextPtr.Get(), &globalConstBufferTemp);
+	m_globalConstBuffer.updateBuffer(m_dContextPtr.Get(), &m_globalConstBufferTemp);
 	m_atmosphericFogConstBuffer.updateBuffer(m_dContextPtr.Get(), &fogConstBufferTemp);
-	m_lightBuffer.updateBuffer(m_dContextPtr.Get(), &lightBufferTemp);
+	m_cloudConstBuffer.updateBuffer(m_dContextPtr.Get(), &cloudConstBufferTemp);
 
 	Engine::get().setSkyLightDir({ tempSunDirectionX, tempSunDirectionY, tempSunDirectionZ, 0 });
+	Engine::get().setSkyLightColor({ lightBufferTemp.skyLight.color });
+	Engine::get().setSkyLightIntensity({ lightBufferTemp.skyLight.brightness });
 }
 
 void Renderer::setPipelineShaders(ID3D11VertexShader* vsPtr, ID3D11HullShader* hsPtr, ID3D11DomainShader* dsPtr, ID3D11GeometryShader* gsPtr, ID3D11PixelShader* psPtr)
@@ -1604,6 +1800,7 @@ void Renderer::render()
 	//m_deferredContext->ExecuteCommandList();
 	m_dContextPtr->ExecuteCommandList(ResourceHandler::get().m_commandList, TRUE);
 
+
 	//Update camera position for pixel shader buffer
 	cameraBufferStruct cameraStruct = cameraBufferStruct{ m_camera->getPosition() };
 	m_cameraBuffer.updateBuffer(m_dContextPtr.Get(), &cameraStruct);
@@ -1613,7 +1810,7 @@ void Renderer::render()
 	m_dContextPtr->ClearRenderTargetView(m_geometryRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_finalRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_glowMapRenderTargetViewPtr.Get(), m_blackClearColor);
-	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_clearColor);
+	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_normalsNDepthClearColor);
 
 	if (m_depthStencilViewPtr)
 	{
@@ -1628,9 +1825,6 @@ void Renderer::render()
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	//m_rTargetViewsArray[0] = m_finalRenderTargetViewPtr.Get();
 	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
-
-	
-	
 
 	//End of particles
 	// Skybox constant buffer:
@@ -1659,17 +1853,21 @@ void Renderer::render()
 
 	//Run the shadow pass before everything else
 	m_dContextPtr->VSSetConstantBuffers(3, 1, m_shadowConstantBuffer.GetAddressOf());
-	
+
 	m_shadowMap->setLightDir(Engine::get().getSkyLightDir());
 	renderShadowPass(&frust, &wvp, &V, &P);
-	
-	
+
+
 	//Set to null, otherwise we get error saying it's still bound to input.
 	ID3D11RenderTargetView* nullRenderTargets[1] = { 0 };
 	m_dContextPtr->OMSetRenderTargets(1, nullRenderTargets, nullptr);
 
 	//Run ZPreePass
-	m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+	if (m_debugViewMode == 2)
+		m_dContextPtr->RSSetState(m_rasterizerStatePtrWireframe.Get());
+	else
+		m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
+
 	m_dContextPtr->RSSetViewports(1, &m_defaultViewport); //Set default viewport
 	m_dContextPtr->PSSetSamplers(0, 1, m_psSamplerState.GetAddressOf());
 	if (USE_Z_PRE_PASS)
@@ -1680,22 +1878,31 @@ void Renderer::render()
 		this->zPrePass(&frust, &wvp, &V, &P);
 	}
 
-	// Normals & Depth pass
-	normalsNDepthPass(&frust, &wvp, &V, &P);
+	// SSAO ON OR OFF
+	if (m_debugViewMode != 1)
+	{
+		// Normals & Depth pass
+		normalsNDepthPass(&frust, &wvp, &V, &P);
 
-	// SSAO
-	computeSSAOPass();
+		// SSAO
+		computeSSAOPass();
 
-	// SSAO Blur
-	ssaoBlurPass();
+		// SSAO Blur
+		ssaoBlurPass();
+	}
+	else
+	{
+		m_dContextPtr->ClearRenderTargetView(m_SSAORenderTargetViewPtr.Get(), m_whiteClearColor);
+	}
 
 	//Run ordinary pass
 	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
 	m_dContextPtr->OMSetRenderTargets(2, m_geometryPassRTVs, m_depthStencilViewPtr.Get());
 
 	m_dContextPtr->OMSetBlendState(m_blendStateWithBlendPtr, m_blendFactor, m_sampleMask);
+
 	renderScene(&frust, &wvp, &V, &P);
-	m_dContextPtr->OMSetBlendState(m_blendStateNoBlendPtr, m_blendFactor, m_sampleMask);
+	m_dContextPtr->OMSetBlendState(m_blendStateNoBlendPtr, m_blendFactor, m_sampleMask);		
 
 	ID3D11ShaderResourceView* srv[1] = { 0 };
 	m_dContextPtr->PSSetShaderResources(0, 1, srv);
@@ -1733,14 +1940,16 @@ void Renderer::render()
 	blurPass();
 
 	drawBoundingVolumes();
-
+	
 	// GUI
 	GUIHandler::get().render();
 
-	// Render ImGui
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
+	if (DEBUGMODE)
+	{
+		// Render ImGui
+		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	}
 
 	m_swapChainPtr->Present(0, 0);
 }
@@ -1773,14 +1982,30 @@ void Renderer::printLiveObject()
 #endif
 }
 
+globalConstBuffer Renderer::getGlobalConstBuffer()
+{
+	return m_globalConstBufferTemp;
+}
+
 void Renderer::inputUpdate(InputData& inputData)
 {
 	for (size_t i = 0; i < inputData.actionData.size(); i++)
 	{
-		if (inputData.actionData[i] == Action::TOGGLEFLY)
+		switch (inputData.actionData[i])
 		{
+		case PREVIOUSDEBUGVIEWMODE:
+			if (m_debugViewMode > 0)
+				m_debugViewMode--;
+			break;
+		case NEXTDEBUGVIEWMODE:
+			if (m_debugViewMode < debugViewModeCount - 1)
+				m_debugViewMode++;
+			break;
+		case TOGGLEFLY:
 			toggleFlyingCamera();
+			break;	
+		default:
+			break;
 		}
 	}
-
 }

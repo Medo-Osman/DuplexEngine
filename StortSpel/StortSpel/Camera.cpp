@@ -300,10 +300,10 @@ void Camera::updateViewMatrix()
 		offsetVector = XMVector3Rotate(offsetVector, currentRotation);
 		m_position -= offsetVector;
 
-		Vector3 fromPlayerToCamera = m_position - playerPos;
-		if (Physics::get().castRay(playerPos, DirectX::XMVector3Normalize(fromPlayerToCamera), 2, hitPos))
+		Vector3 fromPlayerToCamera = DirectX::XMVector3Normalize(m_position - playerPos);
+		if (Physics::get().castRay(playerPos, fromPlayerToCamera, 2, hitPos))
 		{
-			m_position = hitPos;
+			m_position = hitPos - fromPlayerToCamera * 0.01f;
 		}
 
 		if (XMVector3Equal(m_position, playerPos))

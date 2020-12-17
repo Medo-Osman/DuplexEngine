@@ -12,7 +12,7 @@ struct vs_out
     float2 uv : TEXCOORD1;
 };
 
-cbuffer cbPerFrame : register(b4)
+cbuffer cbPerFrame : register(b7)
 {
     float4x4 viewToTexSpace;
     float4x4 worldInverseTransposeView;

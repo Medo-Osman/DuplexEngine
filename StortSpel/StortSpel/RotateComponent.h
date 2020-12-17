@@ -55,7 +55,7 @@ public:
 		m_angle -= m_rotationSpeed * dt;
 		if (m_angle <= 0)
 		{
-			m_angle = 360.f;
+			m_angle = XMConvertToRadians(360.f);
 		}
 		//XMMATRIX rotMatrix = XMMatrixRotationRollPitchYawFromVector(m_rotateVector * m_angle);
 

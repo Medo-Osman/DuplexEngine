@@ -663,10 +663,19 @@
     <FxCompile Include="SSAOPixel.hlsl">
       <Filter>Resource Files\Shader</Filter>
     </FxCompile>
+    <FxCompile Include="PearlPS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="PearlVS.hlsl">
+      <Filter>Resource Files\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="UtilityLibrary.hlsli">
+      <Filter>Resource Files\Shader</Filter>
+    </None>
+    <None Include="DebugViewModes.hlsli">
       <Filter>Resource Files\Shader</Filter>
     </None>
   </ItemGroup>
