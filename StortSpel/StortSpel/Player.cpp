@@ -570,20 +570,8 @@ void Player::playerStateLogic(const float& dt)
 		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 		std::vector<Component*> meshVec;
 		std::vector<Component*> animMeshVec;
-		m_playerEntity->getComponentsOfType(meshVec, ComponentType::MESH);
-		m_playerEntity->getComponentsOfType(animMeshVec, ComponentType::ANIM_MESH);
-		for (int i = 0; i < meshVec.size(); i++)
-		{
-			static_cast<MeshComponent*>(meshVec.at(i))->setVisible(true);
-		}
-		for (int i = 0; i < animMeshVec.size(); i++)
-		{
-			static_cast<AnimatedMeshComponent*>(animMeshVec.at(i))->setVisible(true);
-		}
 		m_direction.y -= CANNON_POWER * dt;
 
-		std::vector<Component*> meshVec;
-		std::vector<Component*> animMeshVec;
 		m_playerEntity->getComponentsOfType(meshVec, ComponentType::MESH);
 		m_playerEntity->getComponentsOfType(animMeshVec, ComponentType::ANIM_MESH);
 		for (int i = 0; i < meshVec.size(); i++)
