@@ -189,9 +189,9 @@ void SceneManager::updateScene(const float &dt)
 
 void SceneManager::inputUpdate(InputData& inputData)
 {
-	if (DEBUGMODE)
+	for (size_t i = 0; i < inputData.actionData.size(); i++)
 	{
-		for (size_t i = 0; i < inputData.actionData.size(); i++)
+		if (DEBUGMODE)
 		{
 			if (inputData.actionData[i] == TEST_SCENE)
 			{
@@ -209,7 +209,7 @@ void SceneManager::inputUpdate(InputData& inputData)
 			else if (inputData.actionData[i] == LOAD_SCENE)
 			{
 				m_nextScene = new Scene();
-				
+
 				//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "Skyway_1", m_nextSceneReady);
 				std::thread sceneLoaderThread = std::thread(Scene::loadSimpleTest, m_nextScene, m_nextSceneReady);
 				sceneLoaderThread.detach();
@@ -283,37 +283,40 @@ void SceneManager::inputUpdate(InputData& inputData)
 				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			}
 			else if (inputData.actionData[i] == MENU)
+
+		}
+
+		if (inputData.actionData[i] == MENU)
+		{
+			if (m_currectSceneEnum != ScenesEnum::MAINMENU && m_currectSceneEnum != ScenesEnum::ENDSCENE)
 			{
-				if (m_currectSceneEnum != ScenesEnum::MAINMENU && m_currectSceneEnum != ScenesEnum::ENDSCENE)
+				if (!m_inPause || m_inPauseSettings)
 				{
-					if (!m_inPause || m_inPauseSettings)
+
+					//showPauseMenu();
+
+					// close Pause Settings
+					if (m_inPauseSettings) // if back from pause settings, hide settings
 					{
+						hideSettingsMenu();
 
-						//showPauseMenu();
-
-						// close Pause Settings
-						if (m_inPauseSettings) // if back from pause settings, hide settings
-						{
-							hideSettingsMenu();
-
-							m_inPauseSettings = false;
-						}
-						else
-						{
-							m_inputPtr->setCursor(true);
-						}
-
-						showPauseMenu();
-
-						m_inPause = true;
+						m_inPauseSettings = false;
 					}
 					else
 					{
-						enableMovement();
-						m_inputPtr->setCursor(false);
-						hidePauseMenu();
-						m_inPause = false;
+						m_inputPtr->setCursor(true);
 					}
+
+					showPauseMenu();
+
+					m_inPause = true;
+				}
+				else
+				{
+					enableMovement();
+					m_inputPtr->setCursor(false);
+					hidePauseMenu();
+					m_inPause = false;
 				}
 			}
 		}

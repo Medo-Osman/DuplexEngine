@@ -939,7 +939,7 @@ void Renderer::computeSSAOPass()
 	m_dContextPtr->IASetVertexBuffers(0, 1, m_renderQuadBuffer.GetAddressOf(), m_renderQuadBuffer.getStridePointer(), &offset);
 
 	m_dContextPtr->OMSetRenderTargets(1, m_SSAORenderTargetViewPtr.GetAddressOf(), NULL);
-	m_dContextPtr->ClearRenderTargetView(m_SSAORenderTargetViewPtr.Get(), m_blackClearColor);
+	m_dContextPtr->ClearRenderTargetView(m_SSAORenderTargetViewPtr.Get(), m_whiteClearColor);
 
 	m_compiledShaders[ShaderProgramsEnum::SSAO_MAP]->setShaders();
 	m_currentSetShaderProg = ShaderProgramsEnum::SSAO_MAP;
@@ -1213,8 +1213,8 @@ void Renderer::ssaoBlurPass()
 	m_dContextPtr->PSSetShaderResources(0, 1, &nullSrv);
 	m_dContextPtr->PSSetShaderResources(1, 1, &nullSrv);
 
-	//ImGui::Begin("someWindow");
-	//ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(512, 288));
+	//ImGui::Begin("SSAO Map");
+	//ImGui::Image(m_SSAOShaderResourceViewPtr.Get(), ImVec2(720, 405));
 	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(512, 288));
 	//ImGui::Image(m_normalsNDepthSRV.Get(), ImVec2(1024, 576));
 	//ImGui::Image(m_randomVectorsSRV.Get(), ImVec2(256, 256));
@@ -1227,12 +1227,14 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 	m_drawn = 0;
 
 	m_dContextPtr->OMSetRenderTargets(1, m_normalsNDepthRenderTargetViewPtr.GetAddressOf(), m_NormalDepthStencilViewPtr.Get());
-	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_AOclearColor);
+	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_normalsNDepthClearColor);
 	// Get Entity map from Engine
 	std::unordered_map<std::string, Entity*>* entityMap = Engine::get().getEntityMap();
 
 	for (auto& component : *Engine::get().getShadowPassDrawCallsPtr())
 	{
+		
+		
 		bool isAnim = false;
 		XMFLOAT3 min, max;
 		bool draw = true;
@@ -1249,13 +1251,24 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
 		{
 			//Culling
-			Vector3 scale = component->getScaling() * parentEntity->getScaling();
-			XMVECTOR pos = parentEntity->getTranslation();
-			pos += component->getTranslation();
-			pos += component->getMeshResourcePtr()->getBoundsCenter() * scale;
-			XMFLOAT3 posFloat3;
-			XMStoreFloat3(&posFloat3, pos);
+			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
+			Vector3 pos = parentEntity->getTranslation();
+			Vector3 meshOffset = component.second->getTranslation();
+			Vector3 boundsCenter = component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
 
+			if (!XMQuaternionIsIdentity(parentEntity->getRotation()))
+			{
+				meshOffset = XMVector3Rotate(meshOffset, parentEntity->getRotation());
+				boundsCenter = XMVector3Rotate(boundsCenter, parentEntity->getRotation());
+			}
+			if (!XMQuaternionIsIdentity(component.second->getRotation()))
+			{
+				meshOffset = XMVector3Rotate(meshOffset, component.second->getRotation());
+				boundsCenter = XMVector3Rotate(boundsCenter, component.second->getRotation());
+			}
+
+			pos += meshOffset;
+			pos += boundsCenter;
 
 			if (frust->Contains(pos) != ContainmentType::CONTAINS)
 			{
@@ -1263,8 +1276,9 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 
 				XMFLOAT3 ext = (max - min) / 2;
 				ext = ext * scale;
-				XMFLOAT4 rot = parentEntity->getRotation() * component->getRotation();
-				BoundingOrientedBox box(posFloat3, ext, rot);
+
+				XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
+				BoundingOrientedBox box(pos, ext, rot);
 
 				ContainmentType contType = frust->Contains(box);
 				draw = (contType == ContainmentType::INTERSECTS || contType == ContainmentType::CONTAINS);
@@ -1284,7 +1298,8 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 			component->getMeshResourcePtr()->set(m_dContextPtr.Get());
 			constantBufferPerObjectStruct.projection = XMMatrixTranspose(m_camera->getProjectionMatrix());
 			constantBufferPerObjectStruct.view = XMMatrixTranspose(m_camera->getViewMatrix());
-			constantBufferPerObjectStruct.world = XMMatrixTranspose((parentEntity->calculateWorldMatrix() * component->calculateWorldMatrix()));
+			constantBufferPerObjectStruct.world = XMMatrixTranspose(XMMatrixMultiply(component.second->calculateWorldMatrix(), parentEntity->calculateWorldMatrix()));
+
 			constantBufferPerObjectStruct.mvpMatrix = constantBufferPerObjectStruct.projection * constantBufferPerObjectStruct.view * constantBufferPerObjectStruct.world;
 			m_perObjectConstantBuffer.updateBuffer(m_dContextPtr.Get(), &constantBufferPerObjectStruct);
 
@@ -1303,7 +1318,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 
 			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
 			{
-				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+				//m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 				NormalShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH_ANIM;
 			}
 
@@ -1531,6 +1546,7 @@ void Renderer::zPrePass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMA
 		this->zPrePassRenderMeshComponent(frust, wvp, V, P, meshComponent, false);
 	}
 
+
 }
 
 void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent, const bool& useFrustumCullingParam)
@@ -1548,6 +1564,32 @@ void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATR
 	else
 		parentEntity = (*entityMap)[meshComponent->getParentEntityIdentifier()];
 
+		if (m_camera->frustumCullingOn && parentEntity->m_canCull)
+		{
+			//Culling
+			Vector3 scale = component.second->getScaling() * parentEntity->getScaling();
+			Vector3 pos = parentEntity->getTranslation();
+			Vector3 meshOffset = component.second->getTranslation();
+			Vector3 boundsCenter = component.second->getMeshResourcePtr()->getBoundsCenter() * scale;
+			
+			if (!XMQuaternionIsIdentity(parentEntity->getRotation()))
+			{
+				meshOffset = XMVector3Rotate(meshOffset, parentEntity->getRotation());
+				boundsCenter = XMVector3Rotate(boundsCenter, parentEntity->getRotation());
+			}
+			if (!XMQuaternionIsIdentity(component.second->getRotation()))
+			{
+				meshOffset = XMVector3Rotate(meshOffset, component.second->getRotation());
+				boundsCenter = XMVector3Rotate(boundsCenter, component.second->getRotation());
+			}
+
+			pos += meshOffset;
+			pos += boundsCenter;
+
+			XMFLOAT3 ext = (max - min) / 2;
+			ext = ext * scale;
+			XMFLOAT4 rot = parentEntity->getRotation() * component.second->getRotation();
+			BoundingOrientedBox box(pos, ext, rot);
 
 
 	if (m_camera->frustumCullingOn && parentEntity->m_canCull && USE_FRUSTUM_CULLING && useFrustumCullingParam)
@@ -1585,6 +1627,7 @@ void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATR
 				m_compiledShaders[meshShaderEnum]->setShaders();
 				m_currentSetShaderProg = meshShaderEnum;
 			}
+
 
 			Material* meshMatPtr = meshComponent->getMaterialPtr(mat);
 			if (m_currentSetMaterialId != meshMatPtr->getMaterialId())
@@ -1685,9 +1728,7 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 	for(auto meshComponent : *shadowPassDrawCalls)
 	{
 		this->renderShadowPassByMeshComponent(frust, wvp, V, P, meshComponent);
-
 	}
-
 }
 
 
@@ -1695,7 +1736,7 @@ void Renderer::renderShadowPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX*
 void Renderer::renderShadowPassByMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX* V, XMMATRIX* P, MeshComponent* meshComponent)
 {
 	
-	if (meshComponent->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_PBR && meshComponent->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && meshComponent->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
+	if (component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_PBR && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::LUCY_FACE && component.second->getShaderProgEnum(0) != ShaderProgramsEnum::SKEL_ANIM)
 	{
 		ShaderProgramsEnum meshShaderEnum = ShaderProgramsEnum::SHADOW_DEPTH;
 		m_compiledShaders[meshShaderEnum]->setShaders();
@@ -1827,9 +1868,7 @@ void Renderer::update(const float& dt)
 	else
 	{
 		m_camera = Engine::get().getCameraPtr();
-
 	}
-
 
 	// Constant buffer updates and settings
 	static atmosphericFogConstBuffer fogConstBufferTemp;
@@ -2021,7 +2060,7 @@ void Renderer::render()
 	m_dContextPtr->ClearRenderTargetView(m_geometryRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_finalRenderTargetViewPtr.Get(), m_clearColor);
 	m_dContextPtr->ClearRenderTargetView(m_glowMapRenderTargetViewPtr.Get(), m_blackClearColor);
-	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_clearColor);
+	m_dContextPtr->ClearRenderTargetView(m_normalsNDepthRenderTargetViewPtr.Get(), m_normalsNDepthClearColor);
 
 	if (m_depthStencilViewPtr)
 	{
@@ -2152,7 +2191,7 @@ void Renderer::render()
 	m_dContextPtr->OMSetRenderTargets(1, nullRenderTargets, nullptr);
 
 	//Run ZPreePass
-	if (m_debugViewMode == 1)
+	if (m_debugViewMode == 2)
 		m_dContextPtr->RSSetState(m_rasterizerStatePtrWireframe.Get());
 	else
 		m_dContextPtr->RSSetState(m_rasterizerStatePtr.Get());
@@ -2170,14 +2209,26 @@ void Renderer::render()
 	}
 
 
+
 	// Normals & Depth pass
 	normalsNDepthPass(&frust, &W, &V, &P);
 
-	// SSAO
-	computeSSAOPass();
+	// SSAO ON OR OFF
+	if (m_debugViewMode != 1)
+	{
+		// Normals & Depth pass
+		normalsNDepthPass(&frust, &wvp, &V, &P);
 
-	// SSAO Blur
-	ssaoBlurPass();
+		// SSAO
+		computeSSAOPass();
+
+		// SSAO Blur
+		ssaoBlurPass();
+	}
+	else
+	{
+		m_dContextPtr->ClearRenderTargetView(m_SSAORenderTargetViewPtr.Get(), m_whiteClearColor);
+	}
 
 	//Run ordinary pass
 	this->m_dContextPtr->OMSetDepthStencilState(m_depthStencilStatePtr.Get(), NULL);
@@ -2234,14 +2285,16 @@ void Renderer::render()
 	blurPass();
 
 	drawBoundingVolumes();
-
+	
 	// GUI
 	GUIHandler::get().render();
 
-	// Render ImGui
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
+	if (DEBUGMODE)
+	{
+		// Render ImGui
+		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	}
 
 	m_swapChainPtr->Present(0, 0);
 

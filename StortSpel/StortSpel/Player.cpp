@@ -44,9 +44,9 @@ Player::Player()
 	iStyle.position = Vector2(1700, 50);
 	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Point_BG.png", iStyle);
 	GUITextStyle style;
-	style.position = Vector2(1717, 62);
+	style.position = Vector2(1717, 50);
 	style.color = Colors::White;
-	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"squirk.spritefont", style);
+	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"concert_one_72.spritefont", style);
 
 	//GUIImageStyle imageStyle;
 	//imageStyle.position = Vector2(400.f, 50.f);
@@ -99,24 +99,15 @@ void Player::setCannonEntity(Entity* entity, MeshComponent* pipe, Entity* Marker
 	m_shouldDrawLine = true;
 
 	if (!m_3dMarker)
-		m_3dMarker = Marker3DEnt;
-
-	//// FIXIDIXA HÄR 1
-	//if (!m_3dMarker)
-	//{
-	//	m_3dMarker = new Entity("3DMarker");
-	//	m_3dMarker->scale(0.25f, 0.25f, 0.25f);
-	//	//Engine::get().getEntityMap()->emplace("3DMarker", m_3dMarker);
-	//	MeshComponent* mesh = new MeshComponent("testCube_pCube1.lrm");
-	//	//Renderer::get().addMeshToDrawCallList(mesh);
-	//	
-	//	mesh->setCastsShadow(false);
-
-	//	//currentScene->addComponent(m_3dMarker, "6 nov (mesh)", mesh);
-	//	//m_3dMarker->addComponent("6 nov (mesh)", mesh);
-	//	
-	//	//Engine::get().getMeshComponentMap()->emplace(1632, mesh);
-	//}
+	{
+		m_3dMarker = new Entity("3DMarker");
+		m_3dMarker->scale(0.25f, 0.25f, 0.25f);
+		Engine::get().getEntityMap()->emplace("3DMarker", m_3dMarker);
+		MeshComponent* mesh = new MeshComponent("Marker3D.lrm", TEMP_TEST);
+		mesh->setCastsShadow(false);
+		m_3dMarker->addComponent("6 nov (mesh)", mesh);
+		Engine::get().getMeshComponentMap()->emplace(1632, mesh);
+	}
 }
 
 Entity* Player::get3DMarkerEntity()
@@ -276,6 +267,9 @@ Vector3 Player::calculatePath(Vector3 position, Vector3 direction, float horizon
 	Vector3 pos = position;
 	Vector3 dir = direction;
 	Vector3 outDir;
+
+	if (!m_3dMarker)
+		return pos;
 
 	while (!foundEnd && t < 10)
 	{
@@ -529,7 +523,8 @@ void Player::playerStateLogic(const float& dt)
 			m_direction = m_lastDirectionalMovement = m_moveDirection = m_cameraTransform->getForwardVector();
 			m_direction *= CANNON_POWER;
 			m_cameraOffset = ORIGINAL_CAMERA_OFFSET;
-			m_3dMarker->setPosition(0, -9999, -9999);
+			if(m_3dMarker)
+				m_3dMarker->setPosition(0, -9999, -9999);
 			m_shouldFire = false;
 			m_shouldDrawLine = false;
 			m_verticalMultiplier = 5;
@@ -980,7 +975,7 @@ void Player::handlePickupOnUse()
 		break;
 	case PickupType::CANNON:
 		m_state = PlayerState::CANNON;
-		m_cameraOffset = Vector3(1.f, 2.0f, 0.f);
+		m_cameraOffset = Vector3(1.2f, 1.0f, -0.8f);
 		//Cannon on use
 		break;
 	default:

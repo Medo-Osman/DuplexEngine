@@ -54,7 +54,7 @@ public:
 
 		Engine* eng = &Engine::get();
 		Pickup::onUse();
-		m_particleEffect = new ParticleComponent(m_entityToDoEffectsOn, new LineArrayParticle(L"red.png"));
+		m_particleEffect = new ParticleComponent(m_entityToDoEffectsOn, new LineArrayParticle(L"red.png")); // T_Missing_D.dds
 		m_entityToDoEffectsOn->addComponent("trajectory", m_particleEffect);
 		m_particleEffect->getParticlePointer()->initParticle(eng->getDevicePtr(), eng->getCameraPtr(), m_entityToDoEffectsOn);
 		m_particleEffect->activate();
