@@ -278,7 +278,7 @@ void Engine::initialize(Input* input)
 
 	// - Mesh Componenet
 	//AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth", true), Material(L"Skin", true), Material(L"Hair", true), Material(L"LucyEyes") });
-	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth"), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth" + std::to_wstring(1)), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
 	//animMeshComp->getMaterialPtr(0)->swapTexture((L"T_Cloth" + std::to_wstring(3) + L"_D.dds").c_str() , 0);
 	playerEntity->addComponent("mesh", animMeshComp);
 	playerEntity->setScaleUniform(0.5f);
@@ -308,7 +308,7 @@ void Engine::initialize(Input* input)
 		Entity* serverEntity = new Entity(PLAYER_ENTITY_NAME + std::to_string(i + 1));
 		serverEntity->setPosition({ (float)(10 * i), 0, 0 });
 		
-		AnimatedMeshComponent* serverMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth" + std::to_wstring(i + 1)), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
+		AnimatedMeshComponent* serverMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth" /*+ std::to_wstring(i + 1)*/), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
 		serverEntity->addComponent("mesh", serverMeshComp);
 		serverEntity->setScaleUniform(0.5f);
 		serverMeshComp->addAndPlayBlendState({ {"Idle", 0.f}, {"RunLoop", 1.f} }, "runOrIdle", 0.f, true, true);

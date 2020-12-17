@@ -278,7 +278,7 @@ public:
 
 
     int getNetworkID() { return this->m_playerID; }
-    void setNetworkID(int id) { this->m_playerID = id; m_animMesh->getMaterialPtr(0)->swapTexture( (L"T_Cloth"+std::to_wstring(id+1)+L"_D.dds").c_str(), 0); }
+    void setNetworkID(int id) { this->m_playerID = id; if(id != -1) m_animMesh->getMaterialPtr(0)->swapTexture( (L"T_Cloth"+std::to_wstring(id+1)+L"_D.dds").c_str(), 0); }
 
     int m_nrOfBarrelDrops = 0;
     int getScore();
