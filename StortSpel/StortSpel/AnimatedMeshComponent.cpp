@@ -758,6 +758,7 @@ void AnimatedMeshComponent::setAnimationSpeed(const unsigned int structIndex, co
 	}
 	else
 	{
-		m_currentState->structs.at(structIndex).animationSpeed = newAnimationSpeed;
+		if(structIndex < m_currentState->structs.size())
+			m_currentState->structs.at(structIndex).animationSpeed = newAnimationSpeed;
 	}
 }
