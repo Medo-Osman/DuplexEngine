@@ -581,10 +581,11 @@ void SceneManager::swapScenes()
 		ResourceHandler::get().checkResources();
 
 		//winstate timer
-		if (!m_winState->secondWinState)
+		m_winState->secondWinState = false;
+		if (m_winState->secondWinState)
 		{
 			m_winState->m_time.start();
-			m_winState->secondWinState = true;
+			m_winState->secondWinState = false;
 		}
 	}
 }
