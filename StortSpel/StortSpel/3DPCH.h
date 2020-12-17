@@ -111,7 +111,7 @@ enum class EventType
 	BOSS_PROJECTILE_HIT,
 };
 
-const bool DEBUGMODE = false;
+const bool DEBUGMODE = true;
 
 template <typename T>
 T lerp(T a, T b, float lerpVal)

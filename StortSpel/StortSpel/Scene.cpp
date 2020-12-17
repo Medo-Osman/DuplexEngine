@@ -2948,8 +2948,8 @@ void Scene::reactOnPlayer(const PlayerMessageData& msg)
 		if ((PickupType)msg.intEnum == PickupType::HEIGHTBOOST)
 		{
 			Entity* trampolineEnt = m_entities[msg.entityIdentifier];
-			TriggerComponent* a = static_cast<TriggerComponent*>(trampolineEnt->getComponent("heightTrigger"));
-			if (a->getPhysicsData().boolData == true)
+			TriggerComponent* a = trampolineEnt->getComponentsByType<TriggerComponent>(ComponentType::TRIGGER);//static_cast<TriggerComponent*>(trampolineEnt->getComponent("heightTrigger"));
+			if (a && a->getPhysicsData().boolData == true)
 			{ // This is a baloon
 				removeOnNextFrame = msg.entityIdentifier;
 			}

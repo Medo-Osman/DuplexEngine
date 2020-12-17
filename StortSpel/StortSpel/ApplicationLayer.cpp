@@ -203,6 +203,7 @@ void ApplicationLayer::applicationLoop()
 			AudioHandler::get().update(m_dt);
 			m_rendererPtr->update(m_dt);
 			m_rendererPtr->render();
+			m_input.Attach(m_rendererPtr);
 
 			if (m_shouldSleep)
 				Sleep((1000 / 20));
