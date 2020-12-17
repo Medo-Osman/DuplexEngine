@@ -278,9 +278,9 @@ HRESULT Renderer::initialize(const HWND& window)
 	HRESULT hr;
 	m_window = window;
 
-	
 	m_flyingCamera.setIsFlyingCamera(true);
 	
+
 	m_settings = Engine::get().getSettings();
 	m_flyingCamera.setIsFlyingCamera(true);
 
@@ -1764,6 +1764,7 @@ void Renderer::rasterizerSetup()
 	hr = m_devicePtr->CreateRasterizerState(&rasterizerDesc, m_rasterizerStatePtrWireframe.GetAddressOf());
 	assert(SUCCEEDED(hr) && "Error creating rasterizerStateWireframe");
 
+	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 	rasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 
@@ -1802,7 +1803,6 @@ void Renderer::update(const float& dt)
 			buildFrustumFarCorners((m_camera->fovAmount / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
 			buildOffsetVectors();
 		}
-
 	}
 	else
 	{
@@ -2275,7 +2275,6 @@ void Renderer::printLiveObject()
 	assert(SUCCEEDED(hr));
 #endif
 }
-
 
 globalConstBuffer Renderer::getGlobalConstBuffer()
 {

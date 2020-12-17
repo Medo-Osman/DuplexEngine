@@ -1598,7 +1598,8 @@ void Scene::loadArena(Scene* sceneObject, bool* finished)
 		tc->setIntData((int)ScenesEnum::LOBBY);
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	sceneObject->createSkybox(L"skybox_bluesky.dds");
+	sceneObject->createSkybox(L"Skyway_Sunset_CM.dds", L"Skyway_Sunset_RF.dds", L"Skyway_Sunset_IR.dds");
+	//sceneObject->createSkybox(L"skybox_bluesky.dds");
 	/*Entity* skybox = sceneObject->addEntity("SkyBox");
 	skybox->m_canCull = false;
 	if (skybox)
@@ -2366,7 +2367,6 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 	sceneObject->addCloudBedMesh2({ 0, 0, 0 }, "cloudPlane.lrm");
 
 	sceneObject->createSkybox(L"Skyway_Sunset_CM.dds", L"Skyway_Sunset_RF.dds", L"Skyway_Sunset_IR.dds");
-	//sceneObject->createSkybox(L"Skyway_Day.dds");
 	//Entity* skybox = sceneObject->addEntity("SkyBox");
 	//skybox->m_canCull = false;
 	//if (skybox)
@@ -2535,7 +2535,9 @@ void Scene::loadBossTestPhaseTwo(Scene* sceneObject, bool* finished)
 	}
 
 
-	sceneObject->createSkybox(L"Skybox_Texture.dds");
+	//sceneObject->createSkybox(L"Skybox_Texture.dds");
+	sceneObject->createSkybox(L"Skyway_Sunset_CM.dds", L"Skyway_Sunset_RF.dds", L"Skyway_Sunset_IR.dds");
+	//sceneObject->createSkybox(L"skybox_bluesky.dds");
 	//Entity* skybox = sceneObject->addEntity("SkyBox");
 	//skybox->m_canCull = false;
 	//if (skybox)

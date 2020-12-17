@@ -16,7 +16,6 @@ static const int debugViewModeCount = 3;
 #include"DebugDraw.h"
 #include"BoundingVolumeHolder.h"
 
-
 enum DebugViewMode
 {
 	DEFAULTVIEW,
@@ -36,7 +35,6 @@ static const int MSAAcount = 8;
 
 class Renderer : public InputObserver
 {
-
 private:
 	//Pointers
 	//ID3D11RenderTargetView** m_rTargetViewsArray;
@@ -270,8 +268,8 @@ public:
 
 	globalConstBuffer getGlobalConstBuffer();
 
+	void addPrimitiveToDraw();
+
 	// Inherited via InputObserver
 	virtual void inputUpdate(InputData& inputData) override;
-
-	void addPrimitiveToDraw();
 };
