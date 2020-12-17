@@ -31,8 +31,9 @@ particleGSDraw main(particle particleDraw)
     particleGSDraw output;
     output.type = particleDraw.type;
     output.wSize = particleDraw.wSize;
-    output.wPos = (time * particleDraw.wVel) + particleDraw.wPos;
-	output.wOldPos = (particleDraw.oldTime * particleDraw.wVel) + particleDraw.wOldPos;
+    output.wPos = ((time + 0.05) * particleDraw.wVel) + particleDraw.wPos;
+    output.wOldPos = (time * particleDraw.wVel) + particleDraw.wPos;
+	//output.wOldPos = (particleDraw.oldTime * particleDraw.wVel) + particleDraw.wOldPos;
 
     return output;
 }
