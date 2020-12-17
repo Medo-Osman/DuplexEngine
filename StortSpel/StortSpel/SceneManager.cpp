@@ -945,6 +945,7 @@ void SceneManager::update(GUIUpdateType type, GUIElement* guiElement)
 		if (guiElement->m_index == m_backToLobbyIndex)
 		{
 			GUIHandler::get().setVisible(m_singleplayerIndex, true);
+			GUIHandler::get().setVisible(m_multiplayerIndex, true);
 			GUIHandler::get().setVisible(m_tutorialIndex, true);
 			//GUIHandler::get().setVisible(m_hostGameIndex, true);
 			//GUIHandler::get().setVisible(m_joinGameIndex, true);
