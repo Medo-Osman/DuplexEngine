@@ -48,8 +48,6 @@ void Engine::release()
 
 void Engine::update(const float& dt)
 {
-
-
 	//Example for updating light direction
 	/*Vector4 dir = m_skyLightDir;
 	dir = XMVector3TransformCoord(dir, XMMatrixRotationY(XMConvertToRadians(2.f)));
@@ -67,8 +65,6 @@ void Engine::update(const float& dt)
 	m_player->updatePlayer(dt);
 	m_camera.setProjectionMatrix(m_camera.fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 	updateLightData();
-
-
 
 	if (m_player->getNetworkID() == -1)
 	{
@@ -312,7 +308,7 @@ void Engine::initialize(Input* input)
 		Entity* serverEntity = new Entity(PLAYER_ENTITY_NAME + std::to_string(i + 1));
 		serverEntity->setPosition({ (float)(10 * i), 0, 0 });
 		
-		AnimatedMeshComponent* serverMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth" + std::to_wstring(i+1)), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
+		AnimatedMeshComponent* serverMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth" + std::to_wstring(i + 1)), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
 		serverEntity->addComponent("mesh", serverMeshComp);
 		serverEntity->setScaleUniform(0.5f);
 		serverMeshComp->addAndPlayBlendState({ {"Idle", 0.f}, {"RunLoop", 1.f} }, "runOrIdle", 0.f, true, true);
