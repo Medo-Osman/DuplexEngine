@@ -1932,8 +1932,8 @@ void Renderer::render()
 	{
 		ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 		ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
-		ImGui::End();
 	}
+	ImGui::End();
 
 	// Bloom Filter
 	downSamplePass();

@@ -181,12 +181,12 @@ void ApplicationLayer::applicationLoop()
 
 			m_dt *= Renderer::get().getGlobalConstBuffer().globalTimeDilation;
 
+			ImGui_ImplDX11_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ImGui::NewFrame();
+
 			if (DEBUGMODE)
 			{
-				ImGui_ImplDX11_NewFrame();
-				ImGui_ImplWin32_NewFrame();
-				ImGui::NewFrame();
-
 				ImGui::Begin("Sleep");
 				if (ImGui::Button("16fps"))
 					m_shouldSleep = !m_shouldSleep;
