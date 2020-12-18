@@ -13,6 +13,8 @@ enum class ScenesEnum
 	ARENA,
 	MAINMENU,
 	ENDSCENE,
+	PHASE2,
+
 };
 // LOBBY:START:ARENA:MAINMENU:ENDSCENE:
 
@@ -115,7 +117,7 @@ private:
 
 
 	Player* m_player;
-
+	std::vector<Player*>* m_serverPlayers;
 	Material ObjectSpaceGrid;	// Temp global grid material
 
 	Vector3 m_sceneEntryPosition;
@@ -128,7 +130,7 @@ private:
 
 	Timer m_despawnBarrelTimer;
 
-	std::vector<std::pair<int, std::string>> m_scores;
+	std::vector<std::pair<int, int>> m_scores;
 
 	std::unordered_map<std::string, Entity*> m_entities;
 	std::vector<std::vector<DrawCallStruct>> m_drawCalls;
@@ -213,7 +215,7 @@ public:
 	static void loadBossTestPhaseTwo(Scene* sceneObject, bool* finished);
 	static void loadEmpty(Scene* sceneObject, bool* finished);
 	static void loadAlmostEmpty(Scene* sceneObject, bool* finished);
-	static void loadSortTest(Scene* sceneObject, bool* finished);
+	static void loadPhaseTwo(Scene* sceneObject, bool* finished);
 
 	void onSceneLoaded();
 	
@@ -253,7 +255,7 @@ public:
 	void createNewPhysicsComponent(Entity* entity, bool dynamic = false, std::string meshName = "", PxGeometryType::Enum geometryType = PxGeometryType::eBOX, std::string materialName = "default", bool isUnique = false);
 
 
-	std::vector<std::pair<int, std::string>>* getScores();
+	std::vector<std::pair<int, int>>* getScores();
 	std::unordered_map<std::string, Entity*>* getEntityMap();
 	std::unordered_map<std::string, LightComponent*>* getLightMap();
 	std::vector<MeshComponent*>* getMeshComponentMap();

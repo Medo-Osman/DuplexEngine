@@ -112,6 +112,14 @@ Scene::Scene()
 
 	MeshComponent* meshComponent = dynamic_cast<MeshComponent*>(m_player->getPlayerEntity()->getComponent("mesh"));
 	addMeshComponent(meshComponent);
+
+	m_serverPlayers = Engine::get().getServerPlayers();
+	for (int i = 0; i < 3; i++)
+	{
+		m_entities[PLAYER_ENTITY_NAME + std::to_string(i + 1)] = m_serverPlayers->at(i)->getPlayerEntity();
+		MeshComponent* serverMeshComponent = dynamic_cast<MeshComponent*>(m_serverPlayers->at(i)->getPlayerEntity()->getComponent("mesh"));
+		addMeshComponent(serverMeshComponent);
+	}
 	setScoreVec();
 	sortScore();
 }
@@ -120,15 +128,25 @@ Scene::~Scene()
 {
 	for (std::pair<std::string, Entity*> entityElement : m_entities)
 	{
+		
 		if (entityElement.first != PLAYER_ENTITY_NAME)
 		{
-			delete entityElement.second;
-			entityElement.second = nullptr;
-			//m_entities[entityElement.first] = nullptr;
+			std::string temp = entityElement.first;
+			temp.erase(temp.size() - 1);
+			if (temp != PLAYER_ENTITY_NAME)
+			{
+				delete entityElement.second;
+				entityElement.second = nullptr;
+
+			}
+			else
+				entityElement.second = nullptr;
+	
 		}
 		else
 		{
 			entityElement.second = nullptr;
+
 		}
 	}
 
@@ -371,7 +389,11 @@ void Scene::addBarrelDrop(Vector3 Position)
 		createNewPhysicsComponent(rollingBarrel, true, "", PxGeometryType::eSPHERE, "wood", true);
 		static_cast<PhysicsComponent*>(rollingBarrel->getComponent("physics"))->setMass(100.0f);
 		addComponent(rollingBarrel, "barrel", new BarrelComponent());
-		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 4,2,2 });
+		static_cast<TriggerComponent*>(rollingBarrel->getComponent("barrel"))->initTrigger( m_sceneID, rollingBarrel, { 1,1,1 });
+		m_despawnBarrelTimer.restart();
+		addedBarrel = true;
+
+		//PacketHandler::get().addTrap(rollingBarrel->getIdentifier());
 	}
 }
 
@@ -427,6 +449,7 @@ void Scene::addPushTrap(Vector3 wallPosition1, Vector3 wallPosition2, Vector3 tr
 
 		addComponent(pushWall, "sweep",
 			new SweepingComponent(pushWall, Vector3(wallPosition1), Vector3(wallPosition2), 1, true));
+		
 	}
 
 	Entity* pushWallTrigger = addEntity("pushTrigger");
@@ -492,8 +515,12 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 	/*Entity* music = sceneObject->addEntity("lobbyMusic");
 	if (music)
 	{
+
+		//addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
+	}
 		sceneObject->addComponent(music, "lobbyMusic", new AudioComponent(L"LobbyMusic.wav", true, 0.1f));
 	}*/
+
 
 	Entity* floor = sceneObject->addEntity("Floor");
 	if (floor)
@@ -503,111 +530,6 @@ void Scene::loadLobby(Scene* sceneObject, bool* finished)
 		floor->scale({ 30, 1, 30 });
 		floor->translate({ 0,-2,0 });
 		sceneObject->createNewPhysicsComponent(floor, false, "", PxGeometryType::eBOX, "earth", false);
-	}
-
-	Material mat({ L"DarkGrayTexture.png", L"GlowTexture.png" });
-	Entity* test = sceneObject->addEntity("test"); // Emissive Test Material 1
-	if (test)
-	{
-		mat.setEmissiveStrength(100.f);
-		sceneObject->addComponent(test, "mesh",
-			new MeshComponent("GlowCube.lrm",
-				EMISSIVE,
-				mat
-			)
-		);
-
-		test->setScale({ 5, 5, 5 });
-		test->setPosition({ 8, 2, 5 });
-
-		sceneObject->createNewPhysicsComponent(test, true);
-		static_cast<PhysicsComponent*>(test->getComponent("physics"))->makeKinematic();
-
-		sceneObject->addComponent(test, "flipp",
-			new FlippingComponent(test, 1, 1));
-
-		// 3D Audio Test
-		test->addComponent("3Dsound", new AudioComponent(L"fireplace.wav", true, 3.f, 0.f, true, test));
-	}
-
-	Entity* test2 = sceneObject->addEntity("test2"); // Emissive Test Material 2
-	if (test2)
-	{
-		mat = Material({ L"DarkGrayTexture.png", L"GlowTexture.png" });
-		mat.setEmissiveStrength(50.f);
-		sceneObject->addComponent(test2, "mesh",
-			new MeshComponent("GlowCube.lrm",
-				EMISSIVE,
-				mat
-			)
-		);
-
-		test2->setScale({ 5, 5, 5 });
-		test2->setPosition({ 0, 2, 5 });
-
-		sceneObject->createNewPhysicsComponent(test2, true);
-		static_cast<PhysicsComponent*>(test2->getComponent("physics"))->makeKinematic();
-
-		sceneObject->addComponent(test2, "flipp",
-			new FlippingComponent(test2, 1, 1));
-	}
-
-	Entity* test3 = sceneObject->addEntity("test3"); // Emissive Test Material 3
-	if (test3)
-	{
-		mat = Material({ L"DarkGrayTexture.png", L"GlowTexture.png" });
-		mat.setEmissiveStrength(20.f);
-		sceneObject->addComponent(test3, "mesh",
-			new MeshComponent("GlowCube.lrm",
-				EMISSIVE,
-				mat
-			)
-		);
-
-		test3->setScale({ 5, 5, 5 });
-		test3->setPosition({ -8, 2, 5 });
-
-		sceneObject->createNewPhysicsComponent(test3, true);
-		static_cast<PhysicsComponent*>(test3->getComponent("physics"))->makeKinematic();
-
-		sceneObject->addComponent(test3, "flipp",
-			new FlippingComponent(test3, 1, 1));
-	}
-
-	Entity* test4 = sceneObject->addEntity("test4"); // Emissive Test Material 4
-	if (test4)
-	{
-		mat = Material({ L"DarkGrayTexture.png", L"ButtonStart.png" });
-		mat.setEmissiveStrength(90.f);
-		sceneObject->addComponent(test4, "mesh",
-			new MeshComponent("GlowCube.lrm",
-				EMISSIVE,
-				mat
-			)
-		);
-
-		test4->setScale({ 5, 5, 5 });
-		test4->setPosition({ -16, 2, 5 });
-
-		sceneObject->createNewPhysicsComponent(test4, true);
-		static_cast<PhysicsComponent*>(test4->getComponent("physics"))->makeKinematic();
-
-		sceneObject->addComponent(test4, "flipp",
-			new FlippingComponent(test4, 1, 1));
-	}
-
-	Entity* sign = sceneObject->addEntity("sign");
-	if(sign)
-	{
-		sceneObject->addComponent(sign, "mesh",
-			new MeshComponent("Wellcome_pCube15.lrm", Material({ L"Wellcome.png" })));
-		sign->setScale(Vector3(10.f, 5.f, 0.2f));
-
-		sceneObject->createNewPhysicsComponent(sign, true,"",PxGeometryType::eBOX,"default", true);
-		static_cast<PhysicsComponent*>(sign->getComponent("physics"))->makeKinematic();
-
-		sceneObject->addComponent(sign, "sweep",
-			new SweepingComponent(sign, Vector3(0.f, 5.f, 10.f), Vector3(0.f, 5.5f, 10.f), 5.f));
 	}
 
 	sceneObject->createSkybox(L"Skybox_Texture.dds");
@@ -1375,6 +1297,7 @@ void Scene::loadTestLevel(Scene* sceneObject, bool* finished)
 		tc->initTrigger( sceneObject->m_sceneID, goalTrigger, XMFLOAT3(9.0f, 8.0f, 0.5f));
 		tc->setEventData(TriggerType::EVENT, (int)EventType::SWAPSCENE);
 		tc->setIntData((int)ScenesEnum::ARENA);
+
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
 
@@ -2579,7 +2502,8 @@ void Scene::loadAlmostEmpty(Scene* sceneObject, bool* finished)
 	*finished = true;
 }
 
-void Scene::loadSortTest(Scene* sceneObject, bool* finished)
+
+void Scene::loadPhaseTwo(Scene* sceneObject, bool* finished)
 {
 	sceneObject->m_sceneEntryPosition = Vector3(0.f, 2.f, 0.f);
 	//Material test = Material({ L"DarkGrayTexture.png" });
@@ -2620,6 +2544,12 @@ void Scene::loadSortTest(Scene* sceneObject, bool* finished)
 		//Disable shadow casting
 		dynamic_cast<MeshComponent*>(skybox->getComponent("cube"))->setCastsShadow(false);
 	}
+
+	sceneObject->m_sceneEntryPosition = Vector3(0, 10, 0);
+	sceneObject->createStaticPlatform(Vector3(0, -2, 0), Vector3(0, 0, 0), Vector3(4, 1, 20), "testCube_pCube1.lrm");
+
+	sceneObject->addCheckpoint({ 0, 8, 0 });
+
 
 	*finished = true;
 }
@@ -2702,6 +2632,15 @@ void Scene::updateScene(const float& dt)
 		}
 	}
 
+	std::vector<std::string>* temp = &PacketHandler::get().getEntitiesToBeRemoved();
+	if (temp->size() > 0)
+	{
+		for (int i = 0; i < temp->size(); i++)
+		{
+			removeEntity(temp->at(i));
+		}
+		temp->clear();
+	}
 
 
 	// AUDIO TEST
@@ -2761,9 +2700,6 @@ void Scene::removeEntity(std::string identifier)
 	delete m_entities[identifier];
 	m_entities.erase(identifier);
 }
-
-
-
 
 
 bool Scene::addComponent(Entity* entity, std::string componentIdentifier, Component* component)
@@ -2871,7 +2807,7 @@ void Scene::setPlayersPosition(Entity* entity)
 	for (int i = 0; i < m_scores.size(); i++)
 	{
 
-		if (m_scores.at(i).second == entity->getIdentifier())
+		if (m_scores.at(i).first == PacketHandler::get().getIDAt(i))
 		{
 			position = i;
 		}
@@ -2913,7 +2849,7 @@ void Scene::removeLightComponentFromMap(LightComponent* component)
 	}
 }
 
-std::vector<std::pair<int, std::string>>* Scene::getScores()
+std::vector<std::pair<int, int>>* Scene::getScores()
 {
 	return &m_scores;
 }
@@ -3721,9 +3657,27 @@ void Scene::createRespawnBox(Vector3 position, Vector3 scale, bool boxVisible)
 void Scene::setScoreVec()
 {
 	//m_scores.push_back(std::make_pair(m_nrOfScore, "Player"));
-	m_scores.push_back(std::make_pair(m_nrOfScorePlayerOne, "Playerdummy1"));
-	m_scores.push_back(std::make_pair(m_nrOfScorePlayerTwo, "Playerdummy2"));
-	m_scores.push_back(std::make_pair(m_nrOfScorePlayerThree, "Playerdummy3"));
+	if (m_scores.size() < 1)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			m_scores.push_back(std::make_pair(PacketHandler::get().getIDAt(i), PacketHandler::get().getScoreAt(i)));
+		}
+	}
+	else
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			if (m_scores.at(i).first == PacketHandler::get().getIDAt(i))
+			{
+				m_scores.at(i).second = PacketHandler::get().getScoreAt(i);
+			}
+			m_scores.push_back(std::make_pair(PacketHandler::get().getIDAt(i), PacketHandler::get().getScoreAt(i)));
+		}
+	}
+	//m_scores.push_back(std::make_pair(m_nrOfScorePlayerOne, "Playerdummy1"));
+	//m_scores.push_back(std::make_pair(m_nrOfScorePlayerTwo, "Playerdummy2"));
+	//m_scores.push_back(std::make_pair(m_nrOfScorePlayerThree, "Playerdummy3"));
 }
 
 void Scene::sortScore()

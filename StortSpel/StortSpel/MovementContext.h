@@ -22,6 +22,7 @@ public:
 		m_actionMapping['\x10'] = Action::DASH; // Shift: '\x10'
 		m_actionMapping[(char)'\x0D'] = Action::CLOSEINTROGUI; //Enter 
 		m_actionMapping['F'] = Action::USEPICKUP;
+		m_actionMapping['I'] = Action::READY_UP;
 		m_actionMapping[(char)'\x24'] = Action::RESPAWN; //Home 
 		m_actionMapping['\x1B'] = Action::MENU; // Escape
 		m_actionMapping['\x72'] = Action::PREVIOUSDEBUGVIEWMODE;

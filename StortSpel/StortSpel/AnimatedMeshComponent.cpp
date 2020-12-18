@@ -380,24 +380,35 @@ void AnimatedMeshComponent::setCurrentBlend(float blend)
 	}
 	else
 	{
-		m_currentState->blend = blend;
+		if (m_currentState != nullptr)
+		{
+			m_currentState->blend = blend;
+		}
 	}
 
 }
 
 float AnimatedMeshComponent::getCurrentBlend()
 {
+	float returnValue = -1.0f;
 	if (m_inBindPose)
-		return 0.f;
+	{
+		return returnValue;
+
+	}
 	
 	if (m_transitionTime > 0.f)
 	{
-		return m_animationQueue.front()->blend;
+		returnValue = m_animationQueue.front()->blend;
+		return returnValue;
 	}
 	else
 	{
-		return m_currentState->blend;
+		returnValue = m_currentState->blend;
+		return returnValue;
 	}
+
+
 }
 
 void AnimatedMeshComponent::applyAnimationFrame()
@@ -747,6 +758,7 @@ void AnimatedMeshComponent::setAnimationSpeed(const unsigned int structIndex, co
 	}
 	else
 	{
-		m_currentState->structs.at(structIndex).animationSpeed = newAnimationSpeed;
+		if(structIndex < m_currentState->structs.size())
+			m_currentState->structs.at(structIndex).animationSpeed = newAnimationSpeed;
 	}
 }

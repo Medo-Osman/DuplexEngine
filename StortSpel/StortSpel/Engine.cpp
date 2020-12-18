@@ -48,8 +48,6 @@ void Engine::release()
 
 void Engine::update(const float& dt)
 {
-
-
 	//Example for updating light direction
 	/*Vector4 dir = m_skyLightDir;
 	dir = XMVector3TransformCoord(dir, XMMatrixRotationY(XMConvertToRadians(2.f)));
@@ -69,6 +67,57 @@ void Engine::update(const float& dt)
 	m_player->updatePlayer(dt);
 	m_camera.setProjectionMatrix(m_camera.fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
 	updateLightData();
+
+	if (m_player->getNetworkID() == -1)
+	{
+		m_player->setNetworkID(PacketHandler::get().getIDAt(0));
+	}
+	PacketHandler::get().setPlayerData(m_player->getPlayerEntity()->getTranslation());
+	PacketHandler::get().setPlayerData(m_player->getPlayerEntity()->getRotation());
+	PacketHandler::get().setPlayerState(m_player->getStateAsInt());
+	PacketHandler::get().setPlayerData(m_player->getAnimMeshComp()->getCurrentBlend());
+	PacketHandler::get().setPlayerScore(m_player->getScore());
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (serverPlayers->at(i)->getNetworkID() == -1)
+		{
+			serverPlayers->at(i)->getPlayerEntity()->setPosition(Vector3(999, 999, 999));
+			serverPlayers->at(i)->setNetworkID(PacketHandler::get().getIDAt(i + 1));
+		}
+		else
+		{
+			//std::cout << PacketHandler::get().getSceneAt(0) <<  " == " << PacketHandler::get().getSceneAt(i+1) << std::endl;
+
+			if (PacketHandler::get().getSceneAt(0) == PacketHandler::get().getSceneAt(i + 1))
+			{
+				serverPlayers->at(i)->getPlayerEntity()->setPosition(PacketHandler::get().getPosAt(i + 1));
+			}
+			else
+			{
+				serverPlayers->at(i)->getPlayerEntity()->setPosition(Vector3(999, 999, 999));
+				//serverPlayers->at(i)->getPlayerEntity()->
+			}
+			serverPlayers->at(i)->getPlayerEntity()->setRotationQuat(PacketHandler::get().getRotAt(i + 1));
+			serverPlayers->at(i)->serverPlayerAnimationChange((PlayerState)PacketHandler::get().getStateAt(i + 1), PacketHandler::get().getBlendAt(i + 1));
+			serverPlayers->at(i)->setScore(PacketHandler::get().getScoreAt(i + 1));
+		}
+	}
+
+	if (isHost && !serverRunning)
+	{
+		std::thread serverThread(runServer);
+		serverThread.detach();
+		std::thread clientThread(runClient);
+		clientThread.detach();
+		serverRunning = true;
+	}
+	else if (isClient && !isConnected)
+	{
+		std::thread clientThread(runClient);
+		clientThread.detach();
+		isConnected = true;
+	}
 
 }
 
@@ -209,6 +258,23 @@ Player* Engine::getPlayerPtr()
 	return m_player;
 }
 
+
+std::vector<Player*>* Engine::getServerPlayers()
+{
+	return this->serverPlayers;
+}
+
+void Engine::setHost(bool tf)
+{
+	this->isHost = tf;
+}
+
+void Engine::setClient(bool tf)
+{
+	this->isClient = tf;
+}
+
+
 void Engine::setDeviceAndContextPtrs(ID3D11Device* devicePtr, ID3D11DeviceContext* dContextPtr)
 {
 	m_devicePtr = devicePtr;
@@ -234,7 +300,7 @@ void Engine::initialize(Input* input)
 	
 
 	// Player
-	m_player = new Player();
+	m_player = new Player(true);
 
 	ApplicationLayer::getInstance().m_input.Attach(m_player);
 
@@ -247,6 +313,7 @@ void Engine::initialize(Input* input)
 	// - Mesh Componenet
 	//AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth", true), Material(L"Skin", true), Material(L"Hair", true), Material(L"LucyEyes") });
 	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth" + std::to_wstring(1)), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
+	//animMeshComp->getMaterialPtr(0)->swapTexture((L"T_Cloth" + std::to_wstring(3) + L"_D.dds").c_str() , 0);
 	playerEntity->addComponent("mesh", animMeshComp);
 	playerEntity->setScaleUniform(0.5f);
 
@@ -268,10 +335,57 @@ void Engine::initialize(Input* input)
 
 	// - set player Entity
 	m_player->setPlayerEntity(playerEntity);
+
+	serverPlayers = new std::vector<Player*>(3);
+	for (int i = 0; i < 3; i++)
+	{
+		Entity* serverEntity = new Entity(PLAYER_ENTITY_NAME + std::to_string(i + 1));
+		serverEntity->setPosition({ (float)(10 * i), 0, 0 });
+		
+		AnimatedMeshComponent* serverMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth" /*+ std::to_wstring(i + 1)*/), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
+		serverEntity->addComponent("mesh", serverMeshComp);
+		serverEntity->setScaleUniform(0.5f);
+		serverMeshComp->addAndPlayBlendState({ {"Idle", 0.f}, {"RunLoop", 1.f} }, "runOrIdle", 0.f, true, true);
+
+		serverPlayers->at(i) = new Player();
+		serverPlayers->at(i)->setAnimMeshPtr(serverMeshComp);
+		serverPlayers->at(i)->setNetworkID(-1);
+		serverPlayers->at(i)->setPlayerEntity(serverEntity, false);
+
+	}
+
 	//GUIHandler::get().initialize(m_devicePtr.Get(), m_dContextPtr.Get());
 
 	// Audio Handler needs Camera Transform ptr for 3D positional audio
 	AudioHandler::get().setListenerTransformPtr(m_camera.getTransform());
+
+	Material::readMaterials();
+
+}
+using namespace std::literals::chrono_literals;
+void Engine::runClient()
+{
+	PacketHandler::get();
+	while (true)
+	{
+
+		PacketHandler::get().update();
+		//std::this_thread::sleep_for(0.3ms);
+
+	}
+}
+using namespace std::literals::chrono_literals;
+void Engine::runServer()
+{
+	Server::get();
+	while (true)
+	{
+
+		Server::get().update();
+		//std::this_thread::sleep_for(0.3ms);
+
+	}
+
 	
 
 	Renderer::get().setFullScreen(false);

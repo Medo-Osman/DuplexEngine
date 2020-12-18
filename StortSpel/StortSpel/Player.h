@@ -9,6 +9,7 @@
 #include <cmath>
 #include"Physics.h"
 #include"Pickup.h"
+
 #include"CheckpointComponent.h"
 #include "Traps.h"
 #include "SlowTrapComponent.h"
@@ -63,9 +64,16 @@ public:
 
 
 
+
 class Player : public InputObserver, public PhysicsObserver, public GUIObserver, public PlayerSubject
 {
 private:
+    //NETWORK ID
+    int m_playerID = -1;
+    bool m_isLocal;
+    //CONTROLLER CONFIG
+    const float CAPSULE_HEIGHT = 1.5f;
+    const float CAPSULE_RADIUS = 0.01f;
     //WALK CONFIG
     const float PLAYER_MAX_SPEED = 5.f;
     const float PLAYER_ACCELERATION = 40.f; // times dt
@@ -127,10 +135,6 @@ private:
     // Pickup
     Pickup* m_pickupPointer;
     Pickup* m_environmentPickup;
-
-    // UI
-    int m_instructionGuiIndex = 0;
-    int closeInstructionsBtnIndex = 0;
 
     // Movement
     float m_currentDistance;
@@ -223,7 +227,7 @@ private:
     bool m_respawnNextFrame = false; //PhysX won't allow you to read and write at the same time.
 
 public:
-    Player();
+    Player(bool isLocal = false);
     ~Player();
     bool m_shouldDrawLine = false;
     bool m_ignoreInput = false;
@@ -253,7 +257,7 @@ public:
 
     void updatePlayer(const float& dt);
 
-    void setPlayerEntity(Entity* entity);
+    void setPlayerEntity(Entity* entity, bool local = true);
 
     Vector3 getCheckpointPos();
     bool getRespawnNextFrame();
@@ -273,8 +277,12 @@ public:
     void respawnPlayer();
 
 
+    int getNetworkID() { return this->m_playerID; }
+    void setNetworkID(int id) { this->m_playerID = id; if(id != -1) m_animMesh->getMaterialPtr(0)->swapTexture( (L"T_Cloth"+std::to_wstring(id+1)+L"_D.dds").c_str(), 0); }
+
     int m_nrOfBarrelDrops = 0;
     int getScore();
+    int getStateAsInt();
     void setScore(int newScore);
     Entity* getPlayerEntity() const;
     Vector3 getCameraOffset();
@@ -289,4 +297,6 @@ public:
     virtual void update(GUIUpdateType type, GUIElement* guiElement) override;
     void serverPlayerAnimationChange(PlayerState currentState, float currentBlend);
 
+    AnimatedMeshComponent* getAnimMeshComp();
 };
+

@@ -10,8 +10,9 @@
 
 Pickup* getCorrectPickupByID(int id);
 
-Player::Player()
+Player::Player(bool isLocal)
 {
+	m_isLocal = isLocal;
 	m_movementVector = XMVectorZero();
 	m_jumps = 0;
 	m_currentDistance = 0;
@@ -34,19 +35,22 @@ Player::Player()
 	}
 
 	//GUI
-	m_score = 0;
-	//style.position.y = 70.f;
-	//style.scale = { 0.5f };
-	//m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
-	GUIImageStyle iStyle;
-	iStyle.position = Vector2(1750, 150);
-	m_powerUpBG_GUIIndex = GUIHandler::get().addGUIImage(L"Power-up_BG.png", iStyle);
-	iStyle.position = Vector2(1700, 50);
-	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Point_BG.png", iStyle);
-	GUITextStyle style;
-	style.position = Vector2(1717, 50);
-	style.color = Colors::White;
-	m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"concert_one_72.spritefont", style);
+	if (m_isLocal)
+	{
+		m_score = 0;
+		//style.position.y = 70.f;
+		//style.scale = { 0.5f };
+		//m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
+		GUIImageStyle iStyle;
+		iStyle.position = Vector2(1750, 150);
+		m_powerUpBG_GUIIndex = GUIHandler::get().addGUIImage(L"Power-up_BG.png", iStyle);
+		iStyle.position = Vector2(1700, 50);
+		m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Point_BG.png", iStyle);
+		GUITextStyle style;
+		style.position = Vector2(1717, 50);
+		style.color = Colors::White;
+		m_scoreGUIIndex = GUIHandler::get().addGUIText(std::to_string(m_score), L"concert_one_72.spritefont", style);
+	}
 
 	//GUIImageStyle imageStyle;
 	//imageStyle.position = Vector2(400.f, 50.f);
@@ -77,6 +81,7 @@ Player::Player()
 		vec.emplace_back(new HeightPickup());
 		vec.emplace_back(new CannonPickup());
 		Pickup::initPickupArray(vec);
+
 	}
 }
 
@@ -180,10 +185,7 @@ void Player::setStates(InputData& inputData)
 		}
 	}
 	if (m_movementVector.Length() > 1.f)
-	{
-		std::cout << m_movementVector.x << ", " << m_movementVector.z << "\n";
 		m_movementVector.Normalize();
-	}
 
 }
 
@@ -671,6 +673,7 @@ void Player::playerStateLogic(const float& dt)
 	{
 		float blend = vectorLen / (PLAYER_MAX_SPEED * dt);
 
+
 		if ((PLAYER_MAX_SPEED * dt) <= 0.0f)
 			blend = 0.0f;
 
@@ -813,10 +816,13 @@ void Player::updatePlayer(const float& dt)
 
 }
 
-void Player::setPlayerEntity(Entity* entity)
+void Player::setPlayerEntity(Entity* entity, bool local)
 {
 	m_playerEntity = entity;
-	m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
+	if (local)
+	{
+		m_controller = static_cast<CharacterControllerComponent*>(m_playerEntity->getComponent("CCC"));
+	}
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
 	if (DEBUGMODE)
 	{
@@ -931,10 +937,19 @@ int Player::getScore()
 	return m_score;
 }
 
+int Player::getStateAsInt()
+{
+	return (int)this->m_state;
+}
+
 void Player::setScore(int newScore)
 {
-	m_score = newScore;
-	GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+	if (m_isLocal)
+	{
+		m_score = newScore;
+		GUIHandler::get().changeGUIText(m_scoreGUIIndex, std::to_string(m_score));
+	}
+
 }
 
 Entity* Player::getPlayerEntity() const
@@ -1140,8 +1155,13 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				}
 				if (addPickupByAssosiatedID)
 				{
-					Pickup* pickupPtr = getCorrectPickupByID(physicsData.associatedTriggerEnum);
-					pickupPtr->setModifierValue(physicsData.floatData);
+					m_pickupPointer = getCorrectPickupByID(physicsData.associatedTriggerEnum);
+					m_pickupPointer->setModifierValue(physicsData.floatData);
+					/*m_pickupPointer->onPickup(m_playerEntity, m_speedModifierDuration);
+					if (m_pickupPointer->shouldActivateOnPickup())
+						m_pickupPointer->onUse();*/
+
+					PacketHandler::get().sendScorePickup(physicsData.entityIdentifier);
 
 
 					if (environmenPickup)
@@ -1161,19 +1181,19 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 						}
 						if (usePickup)
 						{
-							pickupPtr->onPickup(m_playerEntity, true);
-							pickupPtr->onUse();
-							m_environmentPickup = pickupPtr;
+							m_pickupPointer->onPickup(m_playerEntity, true);
+							m_pickupPointer->onUse();
+							m_environmentPickup = m_pickupPointer;
 							m_trampolineEntityIdentifier = physicsData.entityIdentifier;
 						}
 
 					}
 					else
 					{
-						m_pickupPointer = pickupPtr;
-						pickupPtr->onPickup(m_playerEntity, false);
-						if (pickupPtr->shouldActivateOnPickup())
-							pickupPtr->onUse();
+						m_pickupPointer = m_pickupPointer;
+						m_pickupPointer->onPickup(m_playerEntity, false);
+						if (m_pickupPointer->shouldActivateOnPickup())
+							m_pickupPointer->onUse();
 					}
 				}
 			}
@@ -1184,6 +1204,9 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				this->increaseScoreBy(amount);
 				m_audioComponent->playSound();
 				shouldTriggerEntityBeRemoved = true;
+
+				//Send a packet that says that we've picked up this specific star
+				PacketHandler::get().sendScorePickup(physicsData.entityIdentifier);
 			}
 
 		}
@@ -1224,9 +1247,6 @@ void Player::update(GUIUpdateType type, GUIElement* guiElement)
 	if (type == GUIUpdateType::CLICKED)
 	{
 		GUIHandler::get().setVisible(guiElement->m_index, false);
-
-		//Set instructions to not visible
-		GUIHandler::get().setVisible(m_instructionGuiIndex, false);
 	}
 
 
@@ -1246,31 +1266,40 @@ void Player::update(GUIUpdateType type, GUIElement* guiElement)
 void Player::serverPlayerAnimationChange(PlayerState currentState, float currentBlend)
 {
 	m_animMesh->setCurrentBlend(currentBlend);
-
+	//std::cout << currentBlend << std::endl;
 	if (currentState != m_state)
 	{
 		m_state = currentState;
-
-		switch (currentState)
+		if (m_animMesh)
 		{
-		case PlayerState::IDLE:
-			idleAnimation();
-			break;
-		case PlayerState::JUMPING:
-			startJump_First();
-			break;
-		case PlayerState::FALLING:
-			startJump_Second();
-			break;
-		case PlayerState::DASH:
-			dashAnimation();
-			break;
-		case PlayerState::ROLL:
-			rollAnimation();
-			break;
+			switch (currentState)
+			{
+			case PlayerState::IDLE:
+				idleAnimation();
+				break;
+			case PlayerState::JUMPING:
+				startJump_First();
+				break;
+			case PlayerState::FALLING:
+				startJump_Second();
+				break;
+			case PlayerState::DASH:
+				dashAnimation();
+				break;
+			case PlayerState::ROLL:
+				rollAnimation();
+				break;
+			}
 		}
 	}
 }
+
+
+AnimatedMeshComponent* Player::getAnimMeshComp()
+{
+	return this->m_animMesh;
+}
+
 
 void Player::jump(const bool& incrementCounter, const float& multiplier)
 {
@@ -1342,9 +1371,13 @@ void Player::dashAnimation()
 
 void Player::idleAnimation()
 {
-	m_animMesh->playBlendState("runOrIdle", 0.3f);
-	//m_animMesh->setAnimationSpeed(1, 1.5f);
-	m_animMesh->setAnimationSpeed(1, 1.7f);
+	if (m_animMesh)
+	{
+		m_animMesh->playBlendState("runOrIdle", 0.3f);
+		//m_animMesh->setAnimationSpeed(1, 1.5f);
+		m_animMesh->setAnimationSpeed(1, 1.7f);
+	}
+	
 }
 
 void Player::startJump_First()

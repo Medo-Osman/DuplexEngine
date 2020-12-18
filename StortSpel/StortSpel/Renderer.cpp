@@ -706,7 +706,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 
 	sChainDesc.BufferCount = 2;
 	sChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	sChainDesc.Windowed = true; //Windowed or fullscreen
+	//sChainDesc.Windowed = true; //Windowed or fullscreen
 	//sChainDesc.Windowed = false; //Windowed or fullscreen
 	sChainDesc.BufferDesc.Height = m_settings.height; //Size of buffer in pixels, height
 	sChainDesc.BufferDesc.Width = m_settings.width; //Size of window in pixels, width
@@ -1296,7 +1296,7 @@ void Renderer::normalsNDepthPass(BoundingFrustum* frust, XMMATRIX* wvp, XMMATRIX
 
 			if (animMeshComponent != nullptr) // ? does this need to be optimised or is it fine to do this for every mesh?
 			{
-				//m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
+				m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 				NormalShaderEnum = ShaderProgramsEnum::NORMALS_DEPTH_ANIM;
 			}
 
@@ -1570,6 +1570,7 @@ void Renderer::renderMeshComponent(BoundingFrustum* frust, XMMATRIX* wvp, XMMATR
 			m_skelAnimationConstantBuffer.updateBuffer(m_dContextPtr.Get(), animMeshComponent->getAllAnimationTransforms());
 		}
 
+
 		int materialCount = meshComponent->getMeshResourcePtr()->getMaterialCount();
 
 		for (int mat = 0; mat < materialCount; mat++)
@@ -1791,6 +1792,22 @@ void Renderer::rasterizerSetup()
 
 void Renderer::update(const float& dt)
 {
+	if (m_useFlyingCamera)
+	{
+		m_camera->update(dt);
+		m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
+
+		if (m_camera->updateFov)
+		{
+			buildFrustumFarCorners((m_camera->fovAmount / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
+			buildOffsetVectors();
+		}
+	}
+	else
+	{
+		m_camera = Engine::get().getCameraPtr();
+	}
+
 	if (DEBUGMODE)
 	{
 		if (ImGui::Button("Toggle FrustumCulling"))
@@ -1807,22 +1824,6 @@ void Renderer::update(const float& dt)
 		{
 			toggleFlyingCamera();
 		}
-	}
-
-	if (m_useFlyingCamera)
-	{
-		m_camera->update(dt);
-		m_camera->setProjectionMatrix(m_camera->fovAmount, (float)m_settings.width / (float)m_settings.height, 0.01f, 1000.0f);
-
-		if (m_camera->updateFov)
-		{
-			buildFrustumFarCorners((m_camera->fovAmount / 360.f) * DirectX::XM_2PI, 1000.0f); // Change this to whatever global constants that get available later xD
-			buildOffsetVectors();
-		}
-	}
-	else
-	{
-		m_camera = Engine::get().getCameraPtr();
 	}
 
 	// Constant buffer updates and settings
@@ -2239,8 +2240,8 @@ void Renderer::render()
 	{
 		ImGui::Begin("DrawCall", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 		ImGui::Text("Nr of draw calls per frame: %d .", (int)m_drawn);
+		ImGui::End();
 	}
-	ImGui::End();
 
 	// Bloom Filter
 	downSamplePass();
@@ -2251,13 +2252,10 @@ void Renderer::render()
 	// GUI
 	GUIHandler::get().render();
 
-	if (DEBUGMODE)
-	{
-		// Render ImGui
-		ImGui::Render();
-		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-	}
-
+	// Render ImGui
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	
 	m_swapChainPtr->Present(0, 0);
 
 	

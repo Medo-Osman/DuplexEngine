@@ -88,4 +88,9 @@ public:
 		return m_triggerType;
 	}
 
+	int getAssociatedTriggerEnum()
+	{
+		return m_physicsData.associatedTriggerEnum;
+	}
+
 };

@@ -6,21 +6,22 @@
 #include <thread>
 #include <future>
 #include "Camera.h"
+#include "Server.h"
 #include <Windows.h>
 #include "Renderer.h"
-
+#include "WinState.h"
 
 
 class SceneManager : public InputObserver, public PhysicsObserver, public GUIObserver
 {
 private:
-	Scene* m_currentScene;
 	Scene* m_nextScene;
 	Input* m_inputPtr;
 	ScenesEnum m_currectSceneEnum;
 	ScenesEnum m_nextSceneEnum;
 	Camera* m_camera;
-	std::string str;
+	WinState* m_winState = nullptr;
+
 	bool m_swapScene;
 
 	//GUI score
@@ -36,6 +37,7 @@ private:
 	bool checked = true;
 
 	int m_menuOverlayIndex = 0;
+	int m_mainMenuBGIndex = 0;
 	bool m_inPause = false;
 	bool m_inPauseSettings = false;
 	int m_cameraSense;
@@ -45,11 +47,19 @@ private:
 
 	char charPtr[256] = { 0 };
 	int m_singleplayerIndex = 0;
-	int m_tutorialIndex = 0;
+	int m_multiplayerIndex = 0;
 	int m_exitIndex = 0;
 	int m_joinGameIndex = 0;
 	int m_hostGameIndex = 0;
-	int m_backToLobbyIndex = 0;
+	int m_backToMainMenu = 0;
+
+	bool checking;
+	//
+	int m_multiPlayerIndexTwo;
+	int m_multiPlayerIndexThree;
+	int m_multiPlayerIndexFour;
+
+
 	int m_settingsIndex = 0;
 	int m_senseIncreaseIndex = 0;
 	int m_senseDecreaseIndex = 0;
@@ -74,22 +84,31 @@ private:
 	int m_pauseText;
 	int m_fullscreenText;
 
+
 	bool* m_nextSceneReady = new bool;
 	bool m_loadNextSceneWhenReady = false;
-	std::vector<std::pair<int, std::string>>* m_scores;
+	std::vector<std::pair<int, int>>* m_scores;
 	void hideScore();
 	void showScore(); 
 
 	void hideMainMenu();
 	void hidePauseMenu();
 	void hideSettingsMenu();
+	void hideMultiplayerMenu();
+	void hideHostMenu();
 	void showPauseMenu();
 	void showMainMenu();
 	void showSettingsMenu();
+	void showMultiplayerMenu();
+	void showHostMenu();
+
+
+	void startBarrelDrop(std::string entity);
 
 	void uiMenuInitialize();
 
 public:
+	Scene* m_currentScene;
 	SceneManager();
 	~SceneManager();
 
@@ -108,8 +127,8 @@ public:
 	void setContextPtr(std::vector<iContext*>* contexts);
 	std::vector<iContext*>* getContextPtr();
 
-	void setScorePtr(std::vector<std::pair<int, std::string>>* m_scores);
-	std::vector<std::pair<int, std::string>>* getScorePtr();
+	void setScorePtr(std::vector<std::pair<int, int>>* m_scores);
+	std::vector<std::pair<int, int>>* getScorePtr();
 
 	void inputIP();
 
