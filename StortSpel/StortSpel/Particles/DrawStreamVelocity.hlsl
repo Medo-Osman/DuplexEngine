@@ -3,18 +3,18 @@
 struct particle //input
 {
     float3 wPos : POSITION;
-	float3 wOldPos : OLDPOS;
+    float3 wOldPos : OLDPOS;
     float3 wVel : VEL;
     float2 wSize : SIZE;
     float time : TIME;
-	float oldTime : OLDTIME;
+    float oldTime : OLDTIME;
     uint type : TYPE;
 };
 
 struct particleGSDraw //Output
 {
     float3 wPos : POSITION;
-	float3 wOldPos : OLDPOS;
+    float3 wOldPos : OLDPOS;
     float3 wVel : VEL;
     float2 wSize : SIZE;
     uint type : TYPE;
@@ -31,7 +31,7 @@ particleGSDraw main(particle particleDraw)
     particleGSDraw output;
     output.type = particleDraw.type;
     output.wSize = particleDraw.wSize;
-    output.wPos = ((time + 0.05) * particleDraw.wVel) + particleDraw.wPos;
+    output.wPos = ((time + 0.025) * particleDraw.wVel) + particleDraw.wPos;
     output.wOldPos = (time * particleDraw.wVel) + particleDraw.wPos;
 	//output.wOldPos = (particleDraw.oldTime * particleDraw.wVel) + particleDraw.wOldPos;
 

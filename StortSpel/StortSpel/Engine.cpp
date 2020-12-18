@@ -56,7 +56,9 @@ void Engine::update(const float& dt)
 	m_skyLightDir = dir;*/
 
 	for (auto& entity : *m_entities)
+	{
 		entity.second->update(dt);
+	}
 
 	if (AudioHandler::get().getAudioChanged())
 	{

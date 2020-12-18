@@ -61,7 +61,7 @@ public:
 		float sizeX = 118, sizeY = 118; //Full Image Size
 		float scaleX = 0.8f * scaleToUse.x, scaleY = 0.8f * scaleToUse.y; //Final Scale
 		style.origin = { (sizeX/2), (sizeY/2) };
-		style.position = { windowSize.x - (sizeX/2 * scaleX + 62) , windowSize.y * 0.150f + (sizeY/2 * scaleY) };
+		style.position = { windowSize.x - (sizeX/2 * scaleX + 59) , windowSize.y * 0.150f + (sizeY/2 * scaleY + 11) };
 		style.scale = { scaleX, scaleY };
 		ICON_ID = GUIHandler::get().addGUIImage(L"placeholderPickup.png", style);
 

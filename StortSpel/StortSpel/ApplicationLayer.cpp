@@ -182,12 +182,12 @@ void ApplicationLayer::applicationLoop()
 			m_dt *= Renderer::get().getGlobalConstBuffer().globalTimeDilation;
 
 
+			ImGui_ImplDX11_NewFrame();
+			ImGui_ImplWin32_NewFrame();
+			ImGui::NewFrame();
+
 			if (DEBUGMODE)
 			{
-				ImGui_ImplDX11_NewFrame();
-				ImGui_ImplWin32_NewFrame();
-				ImGui::NewFrame();
-
 				ImGui::Begin("Sleep");
 				if (ImGui::Button("16fps"))
 					m_shouldSleep = !m_shouldSleep;
@@ -204,6 +204,7 @@ void ApplicationLayer::applicationLoop()
 			AudioHandler::get().update(m_dt);
 			m_rendererPtr->update(m_dt);
 			m_rendererPtr->render();
+			m_input.Attach(m_rendererPtr);
 
 			if (m_shouldSleep)
 				Sleep((1000 / 20));

@@ -40,7 +40,7 @@ Player::Player()
 	//m_scoreLabelGUIIndex = GUIHandler::get().addGUIText("Score: ", L"squirk.spritefont", style);
 	GUIImageStyle iStyle;
 	iStyle.position = Vector2(1750, 150);
-	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Power-up_BG.png", iStyle);
+	m_powerUpBG_GUIIndex = GUIHandler::get().addGUIImage(L"Power-up_BG.png", iStyle);
 	iStyle.position = Vector2(1700, 50);
 	m_scoreBG_GUIIndex = GUIHandler::get().addGUIImage(L"Point_BG.png", iStyle);
 	GUITextStyle style;
@@ -501,8 +501,6 @@ void Player::playerStateLogic(const float& dt)
 		m_controller->setPosition(m_cannonEntity->getTranslation() + Vector3(0.f, 0.5f, 0.f));
 		m_velocity.y = 0;
 
-		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
-
 		std::vector<Component*> meshVec;
 		std::vector<Component*> animMeshVec;
 		m_playerEntity->getComponentsOfType(meshVec, ComponentType::MESH);
@@ -567,7 +565,6 @@ void Player::playerStateLogic(const float& dt)
 	}
 	case PlayerState::FLYINGBALL:
 	{
-		GUIHandler::get().setVisible(m_cannonCrosshairID, false);
 		std::vector<Component*> meshVec;
 		std::vector<Component*> animMeshVec;
 		m_direction.y -= CANNON_POWER * dt;

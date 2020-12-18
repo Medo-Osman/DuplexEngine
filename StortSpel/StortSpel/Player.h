@@ -177,6 +177,7 @@ private:
     int m_scoreGUIIndex;
     int m_scoreBG_GUIIndex;
     int m_powerUp_GUIIndex;
+    int m_powerUpBG_GUIIndex;
     std::wstring m_scoreSound = L"StarSound.wav";
     AudioComponent* m_audioComponent;
 
@@ -247,7 +248,6 @@ public:
     void setCannonEntity(Entity* entity, MeshComponent* pipe, Entity* Marker3DEnt);
     Entity* get3DMarkerEntity();
     Entity* getCannonEntity() { return m_cannonEntity; }
-    int m_cannonCrosshairID;
 
     bool isRunning();
 
