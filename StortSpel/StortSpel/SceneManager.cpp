@@ -428,8 +428,8 @@ void SceneManager::inputUpdate(InputData& inputData)
 			else if (inputData.actionData[i] == SORT_TEST)
 			{
 				m_nextScene = new Scene();
-				//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
-				std::thread sceneLoaderThread = std::thread(Scene::loadSortTest, m_nextScene, m_nextSceneReady);
+				std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+				//std::thread sceneLoaderThread = std::thread(Scene::loadSortTest, m_nextScene, m_nextSceneReady);
 				sceneLoaderThread.detach();
 
 				m_gameStarted = false;
