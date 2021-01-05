@@ -360,36 +360,36 @@ void SceneManager::inputUpdate(InputData& inputData)
 				std::thread sceneLoaderThread = std::thread(Scene::loadBossTestPhaseTwo, m_nextScene, m_nextSceneReady);
 				sceneLoaderThread.detach();
 
-			m_gameStarted = false;
-			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
-		}
-		else if (inputData.actionData[i] == LOAD_TEST_SCENE)
-		{
-			//PacketHandler::get().setPlayerScene(1);
-			m_nextScene = new Scene();
-			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
-			std::thread sceneLoaderThread = std::thread(Scene::loadBossTest, m_nextScene, m_nextSceneReady);
-			sceneLoaderThread.detach();
+				m_gameStarted = false;
+				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			}
+			else if (inputData.actionData[i] == LOAD_TEST_SCENE)
+			{
+				//PacketHandler::get().setPlayerScene(1);
+				m_nextScene = new Scene();
+				//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+				std::thread sceneLoaderThread = std::thread(Scene::loadBossTest, m_nextScene, m_nextSceneReady);
+				sceneLoaderThread.detach();
 
-			m_gameStarted = true;
-			m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
-		}
-		else if (inputData.actionData[i] == READY_UP)
-		{
-			
+				m_gameStarted = true;
+				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
+			}
+			else if (inputData.actionData[i] == READY_UP)
+			{
+
 				std::cout << "sending rdy package" << std::endl;
 				////PacketHandler::get().setPlayerScene(5);
 				PacketHandler::get().sendReady();
 
 
-		}
-		else if (inputData.actionData[i] == LOAD_ARENA)
-		{
-			PacketHandler::get().setPlayerScene(2);
-			m_nextScene = new Scene();
-			//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
-			std::thread sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
-			sceneLoaderThread.detach();
+			}
+			else if (inputData.actionData[i] == LOAD_ARENA)
+			{
+				PacketHandler::get().setPlayerScene(2);
+				m_nextScene = new Scene();
+				//std::thread sceneLoaderThread = std::thread(Scene::loadScene, m_nextScene, "levelMeshTest", m_nextSceneReady);
+				std::thread sceneLoaderThread = std::thread(Scene::loadArena, m_nextScene, m_nextSceneReady);
+				sceneLoaderThread.detach();
 				m_gameStarted = true;
 				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			}
@@ -435,41 +435,41 @@ void SceneManager::inputUpdate(InputData& inputData)
 				m_gameStarted = false;
 				m_loadNextSceneWhenReady = true; //Tell scene manager to switch to the next scene as soon as the next scene finished loading.
 			}
-			else if (inputData.actionData[i] == MENU)
+		}
+		if (inputData.actionData[i] == MENU)
+		{
+			if (m_currectSceneEnum != ScenesEnum::MAINMENU && m_currectSceneEnum != ScenesEnum::ENDSCENE)
 			{
-				if (m_currectSceneEnum != ScenesEnum::MAINMENU && m_currectSceneEnum != ScenesEnum::ENDSCENE)
+				if (!m_inPause || m_inPauseSettings)
 				{
-					if (!m_inPause || m_inPauseSettings)
+
+					//showPauseMenu();
+
+					// close Pause Settings
+					if (m_inPauseSettings) // if back from pause settings, hide settings
 					{
+						hideSettingsMenu();
 
-						//showPauseMenu();
-
-						// close Pause Settings
-						if (m_inPauseSettings) // if back from pause settings, hide settings
-						{
-							hideSettingsMenu();
-
-							m_inPauseSettings = false;
-						}
-						else
-						{
-							m_inputPtr->setCursor(true);
-						}
-
-						showPauseMenu();
-
-						m_inPause = true;
+						m_inPauseSettings = false;
 					}
 					else
 					{
-						enableMovement();
-						m_inputPtr->setCursor(false);
-						hidePauseMenu();
-						m_inPause = false;
+						m_inputPtr->setCursor(true);
 					}
+
+					showPauseMenu();
+
+					m_inPause = true;
 				}
-			} 
-		}
+				else
+				{
+					enableMovement();
+					m_inputPtr->setCursor(false);
+					hidePauseMenu();
+					m_inPause = false;
+				}
+			}
+		} 
 	}
 }
 
