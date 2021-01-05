@@ -24,7 +24,7 @@ PacketHandler::PacketHandler()
 	//ipAddress = "188.148.250.207";
 	//ipAddress = convert(Server::get().getServerIP());
 	//std::cout << "this is the IP to connect to " << ipAddress << std::endl;
-	ipAddress = "80.78.216.165";
+	ipAddress = "127.0.0.0";
 	port = 54000;
 
 	//Connect to server
