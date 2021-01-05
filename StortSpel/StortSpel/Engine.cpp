@@ -214,16 +214,16 @@ void Engine::initialize(Input* input)
 
 	// - Mesh Componenet
 	//AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::SKEL_PBR, ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth", true), Material(L"Skin", true), Material(L"Hair", true), Material(L"LucyEyes") });
-	//AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy_ReRigged.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth" /*+ std::to_wstring(1)*/), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
-	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth" /*+ std::to_wstring(1)*/), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
+	//AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy1.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth" /*+ std::to_wstring(1)*/), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
+	AnimatedMeshComponent* animMeshComp = new AnimatedMeshComponent("Lucy_ReRigged.lrsm", { ShaderProgramsEnum::LUCY_FACE }, { Material(L"Cloth" /*+ std::to_wstring(1)*/), Material(L"Skin"), Material(L"Hair"), Material(L"LucyEyes") });
 	playerEntity->addComponent("mesh", animMeshComp);
 	playerEntity->setScaleUniform(0.5f);
 
 	//animMeshComp->playAnimation("Running4.1", true);
 	//animMeshComp->playSingleAnimation("Running4.1", 0.0f);
 
-	animMeshComp->addAndPlayBlendState({ {"Idle", 0.f}, {"RunLoop", 1.f} }, "runOrIdle", 0.f, true, true);
-	//animMeshComp->addAndPlayBlendState({ {"Idle", 0.f}, {"runReRigged", 1.f} }, "runOrIdle", 0.f, true, true);
+	//animMeshComp->addAndPlayBlendState({ {"Idle", 0.f}, {"RunLoop", 1.f} }, "runOrIdle", 0.f, true, true);
+	animMeshComp->addAndPlayBlendState({ {"Idle", 0.f}, {"runReRigged", 1.f} }, "runOrIdle", 0.f, true, true);
 	animMeshComp->setAnimationSpeed(1, 1.7f);
 
 	m_player->setAnimMeshPtr(animMeshComp);
