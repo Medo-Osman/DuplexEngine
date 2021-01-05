@@ -108,6 +108,7 @@ struct cloudConstBuffer
 {
     float cloudBedHeightPosition = 0.0f;
     float cloudDisplacementFactor = 100.0f;
+    // float cloudTessellationFactor = 14.5f;
     float cloudTessellationFactor = 5.0f;
     float worleyScale = 0.02f;
     Vector3 panSpeed = { 0.032f, -0.026f, -0.009f };
