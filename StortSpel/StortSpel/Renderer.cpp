@@ -706,7 +706,7 @@ HRESULT Renderer::createDeviceAndSwapChain()
 
 	sChainDesc.BufferCount = 2;
 	sChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	//sChainDesc.Windowed = true; //Windowed or fullscreen
+	sChainDesc.Windowed = true; //Windowed or fullscreen
 	//sChainDesc.Windowed = false; //Windowed or fullscreen
 	sChainDesc.BufferDesc.Height = m_settings.height; //Size of buffer in pixels, height
 	sChainDesc.BufferDesc.Width = m_settings.width; //Size of window in pixels, width
@@ -1908,6 +1908,8 @@ void Renderer::update(const float& dt)
 
 		ImGui::End();
 	}
+
+	//Renderer::get().setFullScreen(false);
 
 	//switch (currentTimeState)
 	//{

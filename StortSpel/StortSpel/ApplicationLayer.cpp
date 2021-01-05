@@ -118,8 +118,8 @@ void ApplicationLayer::createWin32Window(const HINSTANCE hInstance, const wchar_
 	windowRect.right = windowRect.left + m_width;
 	windowRect.top = 0;
 	windowRect.bottom = windowRect.top + m_height;
-	//AdjustWindowRect(&windowRect, NULL, false);
-	AdjustWindowRectEx(&windowRect, WS_OVERLAPPEDWINDOW, true, NULL);
+	AdjustWindowRect(&windowRect, NULL, false);
+	//AdjustWindowRectEx(&windowRect, WS_OVERLAPPEDWINDOW, true, NULL);
 
 
 
