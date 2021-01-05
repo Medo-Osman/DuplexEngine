@@ -231,6 +231,8 @@ public:
 
 	virtual void onPickup(Entity* entityToDoEffectsOn, bool isEnvironmentalPickup)
 	{
+		std::cout << "ENTITY ADDR: " << entityToDoEffectsOn << std::endl;
+
 		m_isEnvironmental = isEnvironmentalPickup;
 		m_timer = 0.f;
 		m_entityToDoEffectsOn = entityToDoEffectsOn;

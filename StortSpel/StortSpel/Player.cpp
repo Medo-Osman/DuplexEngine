@@ -826,8 +826,8 @@ void Player::setPlayerEntity(Entity* entity, bool local)
 	entity->addComponent("ScoreAudio", m_audioComponent = new AudioComponent(m_scoreSound));
 	if (DEBUGMODE)
 	{
-		m_pickupPointer = new HeightPickup();
-		m_pickupPointer->onPickup(m_playerEntity, false);
+		//m_pickupPointer = new HeightPickup();
+		//m_pickupPointer->onPickup(m_playerEntity, false);
 	}
 		
 }
@@ -1155,11 +1155,14 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 				}
 				if (addPickupByAssosiatedID)
 				{
-					m_pickupPointer = getCorrectPickupByID(physicsData.associatedTriggerEnum);
-					m_pickupPointer->setModifierValue(physicsData.floatData);
+					/*m_pickupPointer = getCorrectPickupByID(physicsData.associatedTriggerEnum);*/
+					//m_pickupPointer->setModifierValue(physicsData.floatData);
 					/*m_pickupPointer->onPickup(m_playerEntity, m_speedModifierDuration);
 					if (m_pickupPointer->shouldActivateOnPickup())
 						m_pickupPointer->onUse();*/
+
+					Pickup* pickupPtr = getCorrectPickupByID(physicsData.associatedTriggerEnum);
+					pickupPtr->setModifierValue(physicsData.floatData);
 
 					PacketHandler::get().sendScorePickup(physicsData.entityIdentifier);
 
@@ -1181,16 +1184,16 @@ void Player::sendPhysicsMessage(PhysicsData& physicsData, bool &shouldTriggerEnt
 						}
 						if (usePickup)
 						{
-							m_pickupPointer->onPickup(m_playerEntity, true);
-							m_pickupPointer->onUse();
-							m_environmentPickup = m_pickupPointer;
+							pickupPtr->onPickup(m_playerEntity, true);
+							pickupPtr->onUse();
+							m_environmentPickup = pickupPtr;//m_pickupPointer;
 							m_trampolineEntityIdentifier = physicsData.entityIdentifier;
 						}
 
 					}
 					else
 					{
-						m_pickupPointer = m_pickupPointer;
+						m_pickupPointer = pickupPtr;//m_pickupPointer;
 						m_pickupPointer->onPickup(m_playerEntity, false);
 						if (m_pickupPointer->shouldActivateOnPickup())
 							m_pickupPointer->onUse();
