@@ -195,7 +195,6 @@ void Camera::inputUpdate(InputData& inputData)
 			if (inputData.stateData[i] == State::CTRLDOWN)
 			{
 				foundShift = true;
-				std::cout << "Shift down" << std::endl;
 			}
 		}
 
@@ -285,7 +284,6 @@ void Camera::inputUpdate(InputData& inputData)
 			if (inputData.stateData[i] == State::CTRLDOWN)
 			{
 				foundShift = true;
-				std::cout << "Shift down" << std::endl;
 			}
 		}
 
