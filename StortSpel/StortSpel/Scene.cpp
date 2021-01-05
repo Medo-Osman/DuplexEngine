@@ -2288,7 +2288,7 @@ void Scene::loadBossTest(Scene* sceneObject, bool* finished)
 		walls->setPosition(22.5, -35, 22.5);
 		walls->setScaleUniform(0.5);
 	}*/
-	sceneObject->addCloudBedMesh2({ 0, 0, 0 }, "cloudPlane.lrm");
+	sceneObject->addCloudBedMesh2({ 40, 0, 0 }, "cloudPlane.lrm");
 
 	sceneObject->createSkybox(L"Skyway_Sunset_CM.dds", L"Skyway_Sunset_RF.dds", L"Skyway_Sunset_IR.dds");
 	//Entity* skybox = sceneObject->addEntity("SkyBox");
